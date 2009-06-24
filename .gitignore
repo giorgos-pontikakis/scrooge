@@ -1,0 +1,17 @@
+### Lisp compiled files
+*.fasl
+
+### Miscellaneous files
+.directory
+
+### Configuration files
+config/config.lisp
+
+### Untracked project files
+/build
+/external
+/lib
+/logs
+/public
+/tmp
+/sql
