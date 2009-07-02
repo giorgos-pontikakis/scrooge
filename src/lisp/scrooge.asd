@@ -7,9 +7,12 @@
     :depends-on (:www)
     :components ((:file "package")
 		 (:file "utils")
-		 (:file "init")
 		 (:file "tables")
-		 (:file "core")))
+		 (:file "init")
+		 (:file "widgets")
+		 (:file "snippets")
+		 (:file "actions")
+		 (:file "pages")))
 
 
 
