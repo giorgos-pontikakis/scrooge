@@ -6,7 +6,7 @@
 (defun css (&rest files)
   (with-html
     (mapc (lambda (file)
-	    (htm (:link :href (url "static/" "css/" file) :rel "stylesheet" :type "text/css")))
+	    (htm (:link :href (url "css/" file) :rel "stylesheet" :type "text/css")))
 	  files)))
 
 (defun logo ()

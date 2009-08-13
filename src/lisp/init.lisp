@@ -3,9 +3,16 @@
 (disable-sql-reader-syntax)
 (enable-sql-reader-syntax)
 
-(load-cfg)
-
-;; \i /home/gnp/www/scrooge/sql/scrooge.sql;
+(define-cfg '(:dbhost "localhost"
+	      :dbname "scrooge"
+	      :dbadapter 'postgresql
+	      :dbuser "gnp"
+	      :dbpass ""
+	      :access-log-path  #p"/home/gnp/www/scrooge/logs/hunchentoot-access-scrooge.log" 
+	      :message-log-path #p"/home/gnp/www/scrooge/logs/hunchentoot-message-scrooge.log"
+	      :port 3001
+	      :webroot "/scrooge/"
+	      :debug t))
 
 (defun acc-grp-id (basename)
   (with-db 

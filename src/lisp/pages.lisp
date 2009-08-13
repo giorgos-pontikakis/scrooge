@@ -3,17 +3,30 @@
 (disable-sql-reader-syntax)
 (enable-sql-reader-syntax)
 
-(define-dynamic-page home () ("")
+(define-dynamic-page login () ("login")
   (with-page
     (:head
-     (:title "Σκρουτζ: Αρχική")
-     (css "reset.css" "scrooge.css"))
+     :title "Σκρουτζ: Login")
     (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Αρχική"))
-     (:div :id "content"
-	   (:p "Home content not yet available")))))
+     (with-form (verify-login)
+       (:p (label 'username "Username:"))
+       (:p (text 'username))
+       (:p (label 'password "Password:"))
+       (:p (text 'password :passwordp t))
+       (:p (submit "Login"))))))
+
+(define-dynamic-page home () ("")
+  (with-session (login)
+    (with-page
+      (:head
+       (:title "Σκρουτζ: Αρχική")
+       (css "reset.css" "scrooge.css"))
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Αρχική"))
+       (:div :id "content"
+	     (:p "Home content not yet available"))))))
 
 (defun config-head ()
   (with-html
@@ -84,195 +97,206 @@
 			   :id "tofs")))))))
 
 (define-dynamic-page config ((bank-id integer) (city-id integer) (tof-id integer)) ("config/") 
-  (with-page
-    (config-head)
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Ρυθμίσεις"))
-     (config-tables :bank-id bank-id :city-id city-id :tof-id tof-id))))
+  (with-session (login)
+    (with-page
+      (config-head)
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Ρυθμίσεις"))
+       (config-tables :bank-id bank-id :city-id city-id :tof-id tof-id)))))
 
 (define-dynamic-page bank/insert () ("config/bank/insert")
-  (with-page
-    (config-head)
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Ρυθμίσεις"))
-     (:div :id "prompt"
-	   (with-form (insert-bank) 
-	     (with-ul (:style "inline") 
-	       (label 'title "Νέα τράπεζα: ")
-	       (text 'title)
-	       (submit "Εισαγωγή")
-	       (link "Ακύρωση" :href (config)))))
-     (config-tables))))
+  (with-session (login)
+    (with-page
+      (config-head)
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Ρυθμίσεις"))
+       (:div :id "prompt"
+	     (with-form (insert-bank) 
+	       (with-ul (:style "inline") 
+		 (label 'title "Νέα τράπεζα: ")
+		 (text 'title)
+		 (submit "Εισαγωγή")
+		 (link "Ακύρωση" :href (config)))))
+       (config-tables)))))
 
 (define-dynamic-page city/insert () ("config/city/insert")
-  (with-page
-    (config-head)
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Ρυθμίσεις"))
-     (:div :id "prompt"
-	   (with-form (insert-city) 
-	     (with-ul (:style "inline") 
-	       (label 'title "Νέα πόλη:")
-	       (text 'title)
-	       (submit "Εισαγωγή")
-	       (link "Ακύρωση" :href (config)))))
-     (config-tables))))
+  (with-session (login)
+    (with-page
+      (config-head)
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Ρυθμίσεις"))
+       (:div :id "prompt"
+	     (with-form (insert-city) 
+	       (with-ul (:style "inline") 
+		 (label 'title "Νέα πόλη:")
+		 (text 'title)
+		 (submit "Εισαγωγή")
+		 (link "Ακύρωση" :href (config)))))
+       (config-tables)))))
 
 (define-dynamic-page tof/insert () ("config/tof/insert")
-  (with-page
-    (config-head)
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Ρυθμίσεις"))
-     (:div :id "prompt"
-	   (with-form (insert-tof) 
-	     (with-ul (:style "inline") 
-	       (label 'title "Νέα Δ.Ο.Υ.:")
-	       (text 'title)
-	       (submit "Εισαγωγή")
-	       (link "Ακύρωση" :href (config)))))
-     (config-tables))))
+  (with-session (login)
+    (with-page
+      (config-head)
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Ρυθμίσεις"))
+       (:div :id "prompt"
+	     (with-form (insert-tof) 
+	       (with-ul (:style "inline") 
+		 (label 'title "Νέα Δ.Ο.Υ.:")
+		 (text 'title)
+		 (submit "Εισαγωγή")
+		 (link "Ακύρωση" :href (config)))))
+       (config-tables)))))
 
 
 (define-dynamic-page bank/edit ((bank-id integer)) ("config/bank/edit")
-  (with-db
-    (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
-      (with-page 
-	(config-head)
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Ρυθμίσεις"))
-	 (:div :id "prompt"
-	       (with-form (edit-bank :id bank-id) 
-		 (with-ul (:style "inline") 
-		   (label 'title "Επεξεργασία τράπεζας: ")
-		   (text 'title :value (title bank))
-		   (submit "Ενημέρωση")
-		   (link "Ακύρωση" :href (config :bank-id bank-id)))))
-	 (config-tables :bank-id bank-id))))))
+  (with-session (login)
+    (with-db
+      (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
+	(with-page 
+	  (config-head)
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Ρυθμίσεις"))
+	   (:div :id "prompt"
+		 (with-form (edit-bank :id bank-id) 
+		   (with-ul (:style "inline") 
+		     (label 'title "Επεξεργασία τράπεζας: ")
+		     (text 'title :value (title bank))
+		     (submit "Ενημέρωση")
+		     (link "Ακύρωση" :href (config :bank-id bank-id)))))
+	   (config-tables :bank-id bank-id)))))))
 
 (define-dynamic-page city/edit ((city-id integer)) ("config/city/edit")
-  (with-db
-    (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
-      (with-page 
-	(config-head)
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Ρυθμίσεις"))
-	 (:div :id "prompt"
-	       (with-form (edit-city :id city-id) 
-		 (with-ul (:style "inline") 
-		   (label 'title "Επεξεργασία πόλης: ")
-		   (text 'title :value (title city))
-		   (submit "Ενημέρωση")
-		   (link "Ακύρωση" :href (config :city-id city-id)))))
-	 (config-tables :city-id city-id))))))
+  (with-session (login)
+    (with-db
+      (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
+	(with-page 
+	  (config-head)
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Ρυθμίσεις"))
+	   (:div :id "prompt"
+		 (with-form (edit-city :id city-id) 
+		   (with-ul (:style "inline") 
+		     (label 'title "Επεξεργασία πόλης: ")
+		     (text 'title :value (title city))
+		     (submit "Ενημέρωση")
+		     (link "Ακύρωση" :href (config :city-id city-id)))))
+	   (config-tables :city-id city-id)))))))
 
 (define-dynamic-page tof/edit ((tof-id integer)) ("config/tof/edit")
-  (with-db
-    (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
-      (with-page 
-	(config-head)
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Ρυθμίσεις"))
-	 (:div :id "prompt"
-	       (with-form (edit-tof :id tof-id) 
-		 (with-ul (:style "inline") 
-		   (label 'title "Επεξεργασία Δ.Ο.Υ.: ")
-		   (text 'title :value (title tof))
-		   (submit "Ενημέρωση")
-		   (link "Ακύρωση" :href (config :tof-id tof-id)))))
-	 (config-tables :tof-id tof-id))))))
+  (with-session (login)
+    (with-db
+      (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
+	(with-page 
+	  (config-head)
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Ρυθμίσεις"))
+	   (:div :id "prompt"
+		 (with-form (edit-tof :id tof-id) 
+		   (with-ul (:style "inline") 
+		     (label 'title "Επεξεργασία Δ.Ο.Υ.: ")
+		     (text 'title :value (title tof))
+		     (submit "Ενημέρωση")
+		     (link "Ακύρωση" :href (config :tof-id tof-id)))))
+	   (config-tables :tof-id tof-id)))))))
 
 
 (define-dynamic-page bank/remove ((bank-id integer)) ("config/bank/remove")
-  (with-db
-    (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
-     (with-page 
-       (config-head)
-       (:body
-	(:div :id "header"
-	      (logo)
-	      (navbar "Ρυθμίσεις"))
-	(:div :id "prompt"
-	      (with-form (remove-bank :id bank-id) 
-		(with-ul (:style "inline") 
-		  (label 'title "Διαγραφή τράπεζας: ")
-		  (text 'title :disabledp t :value (title bank))
-		  (submit "Διαγραφή")
-		  (link "Ακύρωση" :href (config :bank-id bank-id)))))
-	(config-tables :bank-id bank-id))))))
+  (with-session (login)
+    (with-db
+      (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
+	(with-page 
+	  (config-head)
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Ρυθμίσεις"))
+	   (:div :id "prompt"
+		 (with-form (remove-bank :id bank-id) 
+		   (with-ul (:style "inline") 
+		     (label 'title "Διαγραφή τράπεζας: ")
+		     (text 'title :disabledp t :value (title bank))
+		     (submit "Διαγραφή")
+		     (link "Ακύρωση" :href (config :bank-id bank-id)))))
+	   (config-tables :bank-id bank-id)))))))
 
 (define-dynamic-page city/remove ((city-id integer)) ("config/city/remove")
-  (with-db
-    (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
-     (with-page 
-       (config-head)
-       (:body
-	(:div :id "header"
-	      (logo)
-	      (navbar "Ρυθμίσεις"))
-	(:div :id "prompt"
-	      (with-form (remove-city :id city-id) 
-		(with-ul (:style "inline") 
-		  (label 'title "Διαγραφή πόλης: ")
-		  (text 'title :disabledp t :value (title city))
-		  (submit "Διαγραφή")
-		  (link "Ακύρωση" :href (config :city-id city-id)))))
-	(config-tables :city-id city-id))))))
+  (with-session (login)
+    (with-db
+      (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
+	(with-page 
+	  (config-head)
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Ρυθμίσεις"))
+	   (:div :id "prompt"
+		 (with-form (remove-city :id city-id) 
+		   (with-ul (:style "inline") 
+		     (label 'title "Διαγραφή πόλης: ")
+		     (text 'title :disabledp t :value (title city))
+		     (submit "Διαγραφή")
+		     (link "Ακύρωση" :href (config :city-id city-id)))))
+	   (config-tables :city-id city-id)))))))
 
 (define-dynamic-page tof/remove ((tof-id integer)) ("config/tof/remove")
-  (with-db
-    (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
-     (with-page 
-       (config-head)
-       (:body
-	(:div :id "header"
-	      (logo)
-	      (navbar "Ρυθμίσεις"))
-	(:div :id "prompt"
-	      (with-form (remove-tof :id tof-id) 
-		(with-ul (:style "inline") 
-		  (label 'title "Διαγραφή Δ.Ο.Υ.: ")
-		  (text 'title :disabledp t :value (title tof))
-		  (submit "Διαγραφή")
-		  (link "Ακύρωση" :href (config :tof-id tof-id)))))
-	(config-tables :tof-id tof-id))))))
+  (with-session (login)
+    (with-db
+      (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
+	(with-page 
+	  (config-head)
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Ρυθμίσεις"))
+	   (:div :id "prompt"
+		 (with-form (remove-tof :id tof-id) 
+		   (with-ul (:style "inline") 
+		     (label 'title "Διαγραφή Δ.Ο.Υ.: ")
+		     (text 'title :disabledp t :value (title tof))
+		     (submit "Διαγραφή")
+		     (link "Ακύρωση" :href (config :tof-id tof-id)))))
+	   (config-tables :tof-id tof-id)))))))
 
 
 (define-dynamic-page companies ((company-id integer)) ("companies/")
-  (with-db
-    (let ((companies (select [company.id] [company.title] [company.tin] [tof.title]
-			     :from '([company] [tof])
-			     :where [= [tof.id] [company.tof-id]]
-			     :flatp t))
-	  (header '("Επωνυμία" "Α.Φ.Μ" "Δ.Ο.Υ.")))
-      (with-page
-	(:head
-	 (:title "Σκρουτζ: Συναλλασσόμενοι")
-	 (css "reset.css" "scrooge.css"))
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Συναλλασσόμενοι"))
-	 (:div :id "content"
-	       (:div :id "prompt"
-		     (with-ul (:style "inline")
-		       (link "Εισαγωγή συναλλασσόμενου" :href (company/insert))
-		       #|(with-form (company/search)
-		       (label 'search-item "Search: ")
-		       (text 'search-item))|#))	       
+  (with-session (login)
+    (with-db
+      (let ((companies (select [company.id] [company.title] [company.tin] [tof.title]
+			       :from '([company] [tof])
+			       :where [= [tof.id] [company.tof-id]]
+			       :flatp t))
+	    (header '("Επωνυμία" "Α.Φ.Μ" "Δ.Ο.Υ.")))
+	(with-page
+	  (:head
+	   (:title "Σκρουτζ: Συναλλασσόμενοι")
+	   (css "reset.css" "scrooge.css"))
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Συναλλασσόμενοι"))
+	   (:div :id "content"
+		 (:div :id "prompt"
+		       (with-ul (:style "inline")
+			 (link "Εισαγωγή συναλλασσόμενου" :href (company/insert))
+			 #|(with-form (company/search)
+			 (label 'search-item "Search: ")
+			 (text 'search-item))|#))	       
 	       (table companies
 		      :id-fn #'first
 		      :td-fn #'rest
@@ -282,7 +306,7 @@
 				 (company/view :company-id company-id))
 		      :active-id company-id
 		      :id "companies"
-		      :style "dbtable")))))))
+		      :style "dbtable"))))))))
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -348,58 +372,62 @@
 
 
 (define-dynamic-page company/edit ((company-id integer)) ("company/edit")
-  (with-db
-    (let ((company (select-unique 'company
-				  :where [= [id] company-id]
-				  :flatp t)))
-      (with-page
-	(:head
-	 (:title "Σκρουτζ: Επεξεργασία συναλλασσόμενου: " (title company))
-	 (css "reset.css" "scrooge.css"))
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Συναλλασσόμενοι"))
-	 (:div :id "content"
-	       (company-form edit)))))))
+  (with-session (login)
+    (with-db
+      (let ((company (select-unique 'company
+				    :where [= [id] company-id]
+				    :flatp t)))
+	(with-page
+	  (:head
+	   (:title "Σκρουτζ: Επεξεργασία συναλλασσόμενου: " (title company))
+	   (css "reset.css" "scrooge.css"))
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Συναλλασσόμενοι"))
+	   (:div :id "content"
+		 (company-form edit))))))))
 
 (define-dynamic-page company/view ((company-id integer)) ("company/view")
-  (with-db
-    (let ((company (select-unique 'company
-				  :where [= [id] company-id]
-				  :flatp t)))
-      (with-page
-	(:head
-	 (:title "Σκρουτζ: " (str (title company)))
-	 (css "reset.css" "scrooge.css"))
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Συναλλασσόμενοι"))
-	 (:div :id "content"
-	       (company-form view)))))))
+  (with-session (login)
+    (with-db
+      (let ((company (select-unique 'company
+				    :where [= [id] company-id]
+				    :flatp t)))
+	(with-page
+	  (:head
+	   (:title "Σκρουτζ: " (str (title company)))
+	   (css "reset.css" "scrooge.css"))
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Συναλλασσόμενοι"))
+	   (:div :id "content"
+		 (company-form view))))))))
 
 (define-dynamic-page company/insert () ("company/insert")
-  (with-page
-    (:head
-     (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
-     (css "reset.css" "scrooge.css"))
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Συναλλασσόμενοι"))
-     (:div :id "content"
-	   (company-form insert)))))
+  (with-session (login)
+    (with-page
+      (:head
+       (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
+       (css "reset.css" "scrooge.css"))
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Συναλλασσόμενοι"))
+       (:div :id "content"
+	     (company-form insert))))))
 
 (define-dynamic-page company/remove ((company-id integer)) ("company/remove")
-  (with-page
-    (:head
-     (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
-     (css "reset.css" "scrooge.css"))
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar "Συναλλασσόμενοι"))
-     (:div :id "content"
-	   (company-form remove)))))
+  (with-session (login)
+    (with-page
+      (:head
+       (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
+       (css "reset.css" "scrooge.css"))
+      (:body
+       (:div :id "header"
+	     (logo)
+	     (navbar "Συναλλασσόμενοι"))
+       (:div :id "content"
+	     (company-form remove))))))
 
