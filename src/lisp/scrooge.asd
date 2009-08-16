@@ -4,7 +4,7 @@
 
 (asdf:defsystem :scrooge
     :serial t
-    :depends-on (:www)
+    :depends-on (:www-toolkit)
     :components ((:file "package")
 		 (:file "utils")
 		 (:file "tables")

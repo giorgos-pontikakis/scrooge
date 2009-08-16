@@ -4,9 +4,6 @@
 ### Miscellaneous files
 .directory
 
-### Configuration files
-config/config.lisp
-
 ### Untracked project files
 /build
 /external

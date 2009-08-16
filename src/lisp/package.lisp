@@ -9,4 +9,4 @@
 	:clsql
 	:clsql-postgresql
 	:alexandria
-	:www))
+	:www-toolkit))
