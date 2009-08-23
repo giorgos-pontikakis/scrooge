@@ -6,11 +6,11 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro define-table-create/update/delete (table id (&rest fields))
     ;; 
-    ;; ATTENTION: In all update- defun defined with this macro:
+    ;; ATTENTION: In every update- defun defined with this macro:
     ;; 
     ;; If a keyword representing a table attribute is not present, it is
     ;; ignored. If it /is/ present /and/ it is NIL and there are no NOT
-    ;; NULL constraint, the value NULL is inserted in the database
+    ;; NULL constraints, the value NULL is inserted in the database
     ;;
     (with-gensyms (record)
       (progn
@@ -55,6 +55,14 @@
 
 
 ;;; Auxiliary tables
+
+(def-view-class webuser ()
+  ((id       :type integer :accessor id       :initarg :id)
+   (username :type string  :accessor username :initarg :username) 
+   (password :type string  :accessor password :initarg :password)
+   (webrole  :type string  :accessor webrole  :initarg :webrole)))
+
+(define-table-create/update/delete webuser id (username password webrole))
 
 (def-view-class city ()
   ((id    :type integer :reader   id    :db-kind :key :db-constraints :primary-key)

@@ -8,8 +8,8 @@
 	      :dbadapter 'postgresql
 	      :dbuser "gnp"
 	      :dbpass ""
-	      :access-log-path  #p"/home/gnp/www/scrooge/logs/hunchentoot-access-scrooge.log" 
-	      :message-log-path #p"/home/gnp/www/scrooge/logs/hunchentoot-message-scrooge.log"
+	      :access-log-path  #p"/home/gnp/www/scrooge/logs/hunchentoot-scrooge-access.log" 
+	      :message-log-path #p"/home/gnp/www/scrooge/logs/hunchentoot-scrooge-message.log"
 	      :port 3001
 	      :webroot "/scrooge/"
 	      :debug t))
@@ -27,6 +27,15 @@
 		   :from [account]
 		   :where [= [basename] basename]
 		   :flatp t)))
+
+(with-db
+  (let ((user (select-unique [username]
+			     :from [webuser]
+			     :where [= [username] "gnp"])))
+    (unless user
+      (create-webuser "gnp" "gnp!scrooge" "root"))))
+
+
 
 ;; --------------------------------------------------------------------------------
 ;; Account Groups

@@ -7,6 +7,7 @@
     :depends-on (:www-toolkit)
     :components ((:file "package")
 		 (:file "utils")
+		 (:file "html-utils")
 		 (:file "tables")
 		 (:file "init")
 		 (:file "widgets")

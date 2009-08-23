@@ -3,6 +3,19 @@
 (disable-sql-reader-syntax)
 (enable-sql-reader-syntax)
 
+(define-dynamic-page debug-page (variable value) ("debug")
+  (with-page
+    (:body
+     (:p "Variable " variable " = " value))))
+
+
+(define-dynamic-page unauthorized () ("unauthorized")
+  (with-page
+    (:head
+     :title "Σκρουτζ: Πρόβλημα εξουσιοδότησης")
+    (:body
+     (:p "Δεν έχετε εξουσιοδότηση για να δείτε αυτή τη σελίδα"))))
+
 (define-dynamic-page login () ("login")
   (with-page
     (:head
@@ -11,12 +24,12 @@
      (with-form (verify-login)
        (:p (label 'username "Username:"))
        (:p (text 'username))
-       (:p (label 'password "Password:"))
-       (:p (text 'password :passwordp t))
+       (:p (label 'scrooge-password "Password:"))
+       (:p (text 'scrooge-password :passwordp t))
        (:p (submit "Login"))))))
 
 (define-dynamic-page home () ("")
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (:head
        (:title "Σκρουτζ: Αρχική")
@@ -97,7 +110,7 @@
 			   :id "tofs")))))))
 
 (define-dynamic-page config ((bank-id integer) (city-id integer) (tof-id integer)) ("config/") 
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (config-head)
       (:body
@@ -107,7 +120,7 @@
        (config-tables :bank-id bank-id :city-id city-id :tof-id tof-id)))))
 
 (define-dynamic-page bank/insert () ("config/bank/insert")
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (config-head)
       (:body
@@ -124,7 +137,7 @@
        (config-tables)))))
 
 (define-dynamic-page city/insert () ("config/city/insert")
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (config-head)
       (:body
@@ -141,7 +154,7 @@
        (config-tables)))))
 
 (define-dynamic-page tof/insert () ("config/tof/insert")
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (config-head)
       (:body
@@ -159,7 +172,7 @@
 
 
 (define-dynamic-page bank/edit ((bank-id integer)) ("config/bank/edit")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
 	(with-page 
@@ -178,7 +191,7 @@
 	   (config-tables :bank-id bank-id)))))))
 
 (define-dynamic-page city/edit ((city-id integer)) ("config/city/edit")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
 	(with-page 
@@ -197,7 +210,7 @@
 	   (config-tables :city-id city-id)))))))
 
 (define-dynamic-page tof/edit ((tof-id integer)) ("config/tof/edit")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
 	(with-page 
@@ -217,7 +230,7 @@
 
 
 (define-dynamic-page bank/remove ((bank-id integer)) ("config/bank/remove")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
 	(with-page 
@@ -236,7 +249,7 @@
 	   (config-tables :bank-id bank-id)))))))
 
 (define-dynamic-page city/remove ((city-id integer)) ("config/city/remove")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
 	(with-page 
@@ -255,7 +268,7 @@
 	   (config-tables :city-id city-id)))))))
 
 (define-dynamic-page tof/remove ((tof-id integer)) ("config/tof/remove")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
 	(with-page 
@@ -275,7 +288,7 @@
 
 
 (define-dynamic-page companies ((company-id integer)) ("companies/")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((companies (select [company.id] [company.title] [company.tin] [tof.title]
 			       :from '([company] [tof])
@@ -372,7 +385,7 @@
 
 
 (define-dynamic-page company/edit ((company-id integer)) ("company/edit")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((company (select-unique 'company
 				    :where [= [id] company-id]
@@ -389,7 +402,7 @@
 		 (company-form edit))))))))
 
 (define-dynamic-page company/view ((company-id integer)) ("company/view")
-  (with-session (login)
+  (with-auth "root"
     (with-db
       (let ((company (select-unique 'company
 				    :where [= [id] company-id]
@@ -406,7 +419,7 @@
 		 (company-form view))))))))
 
 (define-dynamic-page company/insert () ("company/insert")
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (:head
        (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
@@ -419,7 +432,7 @@
 	     (company-form insert))))))
 
 (define-dynamic-page company/remove ((company-id integer)) ("company/remove")
-  (with-session (login)
+  (with-auth "root"
     (with-page
       (:head
        (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
