@@ -1,0 +1,9 @@
+#! /usr/bin/bash
+
+cd /home/gnp/www/scrooge/public
+
+find . -type l | xargs rm
+
+ln -s ../src/css css
+
+
