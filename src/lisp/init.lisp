@@ -28,12 +28,7 @@
 		   :where [= [basename] basename]
 		   :flatp t)))
 
-(with-db
-  (let ((user (select-unique [username]
-			     :from [webuser]
-			     :where [= [username] "gnp"])))
-    (unless user
-      (create-webuser "gnp" "gnp!scrooge" "root"))))
+
 
 
 
@@ -63,24 +58,40 @@
 ;; --------------------------------------------------------------------------------
 ;; Account Groups
 ;; --------------------------------------------------------------------------------
+;; (defun create-accounts ()
+;;   (with-db
+;;     (flet ((ensure-account (basename title acc-grp-basename)
+;; 	     (let ((exists (select-unique [id]
+;; 					  :from [account]
+;; 					  :where [= [basename] basename]
+;; 					  :flatp t)))
+;; 	       (unless exists
+;; 		 (create-account basename title (acc-grp-id acc-grp-basename))))))
+;;       (iter (for (acc-grp-name acc-names) in '(("assets"
+;; 						(("cash"       "Μετρητά")
+;; 						 ("cheques-in" "Επιταγές προς είσπραξη")
+;; 						 ("receivable"  "Λογαριασμοί προς είσπραξη")))
+;; 					       ("liabilities"
+;; 						(("payable"     "Λογαριασμοί προς εξόφληση")
+;; 						 ("cheques-out" "Επιταγές προς εξόφληση")))))
+;; 	    (iter (for (basename title) in acc-names)
+;; 		  (ensure-account basename title acc-grp-name))))))
+
 (defun create-accounts ()
   (with-db
-    (flet ((ensure-account (basename title acc-grp-basename)
+    (flet ((ensure-account (basename title debit-account-p)
 	     (let ((exists (select-unique [id]
 					  :from [account]
 					  :where [= [basename] basename]
 					  :flatp t)))
 	       (unless exists
-		 (create-account basename title (acc-grp-id acc-grp-basename))))))
-      (iter (for (acc-grp-name acc-names) in '(("assets"
-						(("cash"       "Μετρητά")
-						 ("cheques-in" "Επιταγές προς είσπραξη")
-						 ("receivable"  "Λογαριασμοί προς είσπραξη")))
-					       ("liabilities"
-						(("payable"     "Λογαριασμοί προς εξόφληση")
-						 ("cheques-out" "Επιταγές προς εξόφληση")))))
-	    (iter (for (basename title) in acc-names)
-		  (ensure-account basename title acc-grp-name))))))
+		 (create-account nil basename title (bool debit-account-p))))))
+      (iter (for (basename title debit-account-p) in  '(("cash"        "Μετρητά" t)
+							("cheques-in"  "Επιταγές προς είσπραξη" t)
+							("receivable"  "Λογαριασμοί προς είσπραξη" t)
+							("payable"     "Λογαριασμοί προς εξόφληση" nil)
+							("cheques-out" "Επιταγές προς εξόφληση" nil)))
+	    (ensure-account basename title debit-account-p)))))
 
 ;; --------------------------------------------------------------------------------
 ;; Account Groups
@@ -130,7 +141,7 @@
   (with-db
     (flet ((ensure-tof (title)
 	     (let ((exists (select-unique [id]
-					  :from [city]
+					  :from [tof]
 					  :where [= [title] title]
 					  :flatp t)))
 	       (unless exists
@@ -153,11 +164,6 @@
 			   "Α΄ Ξάνθης")))))
 
 
-
-
-
-
-
 ;; (create-tx-type "Επιταγή"
 ;; 		 (acc-id "cheques-in")
 ;; 		 (acc-id "receivable"))
@@ -165,4 +171,16 @@
 ;; (create-tx-type "Μετρητά"
 ;; 		 (acc-id "cash")
 ;; 		 (accr-id "receivable"))
+
+(defun initall ()
+  (with-db
+  (let ((user (select-unique [username]
+			     :from [webuser]
+			     :where [= [username] "gnp"])))
+    (unless user
+      (create-webuser "gnp" "gnp!scrooge" "root"))))
+  (create-banks)
+  (create-tofs)
+  (create-cities)
+  (create-accounts))
 

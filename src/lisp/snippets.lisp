@@ -16,7 +16,9 @@
 (defmacro navbar (active-label)
   (let ((items (iter (for (label href) in '(("Αρχική" (home))
 					    ("Ρυθμίσεις" (config))
-					    ("Συναλλασσόμενοι" (companies)))) 
+					    ("Συναλλασσόμενοι" (companies))
+					    ("Λογαριασμοί" (accounts))
+					    ("Συναλλαγές" (transactions)))) 
 		     (collect `(link ,label
 				     :href ,(if (string-equal label active-label)
 						nil

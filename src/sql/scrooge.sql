@@ -45,17 +45,20 @@ create table account_group (
        id               serial,
        basename         varchar(32),
        title		varchar(128),
-       debit_account_p  boolean,
+       debit_p  boolean,
        CONSTRAINT account_group_pk PRIMARY KEY(id)
 );
 
 CREATE TABLE account (
        id		    serial,
+       parent_id	    integer,
        basename             varchar(32),
        title	   	    varchar(128),
-       account_group_id	    integer NOT NULL,
+       -- account_group_id	    integer NOT NULL,
+       debit_p	    boolean,
        CONSTRAINT account_pk PRIMARY KEY(id),
-       CONSTRAINT account_group_fk FOREIGN KEY(account_group_id) REFERENCES account_group(id)
+       CONSTRAINT parent_fk FOREIGN KEY(parent_id) REFERENCES account(id)
+       -- CONSTRAINT account_group_fk FOREIGN KEY(account_group_id) REFERENCES account_group(id)
 );
 
 CREATE TABLE company (
@@ -86,9 +89,11 @@ CREATE TABLE tx_type (
 
 CREATE TABLE tx (
        id		serial,
+       tx_date		date,
        title		varchar(256),
        tx_type_id	integer NOT NULL,
        company_id	integer NOT NULL,
+       amount		integer,
        CONSTRAINT tx_pk PRIMARY KEY(id), 
        CONSTRAINT tx_type_fk FOREIGN KEY(tx_type_id) REFERENCES tx_type(id),
        CONSTRAINT company_fk FOREIGN KEY(company_id) REFERENCES company(id)

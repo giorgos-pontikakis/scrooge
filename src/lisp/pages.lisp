@@ -4,20 +4,19 @@
 (enable-sql-reader-syntax)
 
 (define-dynamic-page debug-page (variable value) ("debug")
-  (with-page
+  (with-page ()
     (:body
      (:p "Variable " variable " = " value))))
 
-
 (define-dynamic-page unauthorized () ("unauthorized")
-  (with-page
+  (with-page ()
     (:head
      :title "Σκρουτζ: Πρόβλημα εξουσιοδότησης")
     (:body
      (:p "Δεν έχετε εξουσιοδότηση για να δείτε αυτή τη σελίδα"))))
 
 (define-dynamic-page login () ("login")
-  (with-page
+  (with-page ()
     (:head
      :title "Σκρουτζ: Login")
     (:body
@@ -30,7 +29,7 @@
 
 (define-dynamic-page home () ("")
   (with-auth "root"
-    (with-page
+    (with-page ()
       (:head
        (:title "Σκρουτζ: Αρχική")
        (css "reset.css" "scrooge.css"))
@@ -111,7 +110,7 @@
 
 (define-dynamic-page config ((bank-id integer) (city-id integer) (tof-id integer)) ("config/") 
   (with-auth "root"
-    (with-page
+    (with-page ()
       (config-head)
       (:body
        (:div :id "header"
@@ -119,9 +118,12 @@
 	     (navbar "Ρυθμίσεις"))
        (config-tables :bank-id bank-id :city-id city-id :tof-id tof-id)))))
 
+
+;;; --- Banks, cities, tofs --------------------
+
 (define-dynamic-page bank/insert () ("config/bank/insert")
   (with-auth "root"
-    (with-page
+    (with-page ()
       (config-head)
       (:body
        (:div :id "header"
@@ -138,7 +140,7 @@
 
 (define-dynamic-page city/insert () ("config/city/insert")
   (with-auth "root"
-    (with-page
+    (with-page ()
       (config-head)
       (:body
        (:div :id "header"
@@ -155,7 +157,7 @@
 
 (define-dynamic-page tof/insert () ("config/tof/insert")
   (with-auth "root"
-    (with-page
+    (with-page ()
       (config-head)
       (:body
        (:div :id "header"
@@ -175,7 +177,7 @@
   (with-auth "root"
     (with-db
       (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
-	(with-page 
+	(with-page () 
 	  (config-head)
 	  (:body
 	   (:div :id "header"
@@ -194,7 +196,7 @@
   (with-auth "root"
     (with-db
       (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
-	(with-page 
+	(with-page () 
 	  (config-head)
 	  (:body
 	   (:div :id "header"
@@ -213,7 +215,7 @@
   (with-auth "root"
     (with-db
       (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
-	(with-page 
+	(with-page () 
 	  (config-head)
 	  (:body
 	   (:div :id "header"
@@ -233,7 +235,7 @@
   (with-auth "root"
     (with-db
       (let ((bank (select-unique 'bank :where [= [id] bank-id] :flatp t)))
-	(with-page 
+	(with-page () 
 	  (config-head)
 	  (:body
 	   (:div :id "header"
@@ -252,7 +254,7 @@
   (with-auth "root"
     (with-db
       (let ((city (select-unique 'city :where [= [id] city-id] :flatp t)))
-	(with-page 
+	(with-page () 
 	  (config-head)
 	  (:body
 	   (:div :id "header"
@@ -271,7 +273,7 @@
   (with-auth "root"
     (with-db
       (let ((tof (select-unique 'tof :where [= [id] tof-id] :flatp t)))
-	(with-page 
+	(with-page () 
 	  (config-head)
 	  (:body
 	   (:div :id "header"
@@ -287,6 +289,8 @@
 	   (config-tables :tof-id tof-id)))))))
 
 
+;;; --- Companies --------------------
+
 (define-dynamic-page companies ((company-id integer)) ("companies/")
   (with-auth "root"
     (with-db
@@ -295,7 +299,7 @@
 			       :where [= [tof.id] [company.tof-id]]
 			       :flatp t))
 	    (header '("Επωνυμία" "Α.Φ.Μ" "Δ.Ο.Υ.")))
-	(with-page
+	(with-page ()
 	  (:head
 	   (:title "Σκρουτζ: Συναλλασσόμενοι")
 	   (css "reset.css" "scrooge.css"))
@@ -310,19 +314,18 @@
 			 #|(with-form (company/search)
 			 (label 'search-item "Search: ")
 			 (text 'search-item))|#))	       
-	       (table companies
-		      :id-fn #'first
-		      :td-fn #'rest
-		      :caption "ΣΥΝΑΛΛΑΣΣΟΜΕΝΟΙ"
-		      :header header
-		      :href-fn (lambda (company-id)
-				 (company/view :company-id company-id))
-		      :active-id company-id
-		      :id "companies"
-		      :style "dbtable"))))))))
+		 (table companies
+			:id-fn #'first
+			:td-fn #'rest
+			:caption "ΣΥΝΑΛΛΑΣΣΟΜΕΝΟΙ"
+			:header header
+			:href-fn (lambda (company-id)
+				   (company/view :company-id company-id))
+			:active-id company-id
+			:id "companies"
+			:style "dbtable"))))))))
 
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel :execute) 
   (defmacro company-form (purpose)
     ;; Captures company-id from the containing environment
     (with-gensyms (company tofs cities)
@@ -383,14 +386,13 @@
 		  ((label 'zipcode "Ταχυδρομικός κώδικας") (text 'zipcode :readonlyp ,readonlyp :value (zipcode ,company)))
 		  ((label 'pobox "Ταχυδρομική θυρίδα") (text 'pobox :readonlyp ,readonlyp :value (pobox ,company))))))))))))
 
-
 (define-dynamic-page company/edit ((company-id integer)) ("company/edit")
   (with-auth "root"
     (with-db
       (let ((company (select-unique 'company
 				    :where [= [id] company-id]
 				    :flatp t)))
-	(with-page
+	(with-page ()
 	  (:head
 	   (:title "Σκρουτζ: Επεξεργασία συναλλασσόμενου: " (title company))
 	   (css "reset.css" "scrooge.css"))
@@ -407,7 +409,7 @@
       (let ((company (select-unique 'company
 				    :where [= [id] company-id]
 				    :flatp t)))
-	(with-page
+	(with-page ()
 	  (:head
 	   (:title "Σκρουτζ: " (str (title company)))
 	   (css "reset.css" "scrooge.css"))
@@ -420,7 +422,7 @@
 
 (define-dynamic-page company/insert () ("company/insert")
   (with-auth "root"
-    (with-page
+    (with-page ()
       (:head
        (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
        (css "reset.css" "scrooge.css"))
@@ -433,7 +435,7 @@
 
 (define-dynamic-page company/remove ((company-id integer)) ("company/remove")
   (with-auth "root"
-    (with-page
+    (with-page ()
       (:head
        (:title "Σκρουτζ: Εισαγωγή συναλλασσόμενου")
        (css "reset.css" "scrooge.css"))
@@ -444,3 +446,220 @@
        (:div :id "content"
 	     (company-form remove))))))
 
+
+;;; --- Accounts --------------------
+
+(define-dynamic-page accounts ((account-id integer)) ("accounts/")
+  (with-db
+    (let ((debit-accounts (select [id] [title]
+				  :from [account]
+				  :where [= [debit-p] "t"]
+				  :flatp t))
+	  (credit-accounts (select [id] [title]
+				   :from [account]
+				   :where [= [debit-p] "f"]
+				   :flatp t))
+	  (header '("Όνομα λογαριασμού")))
+      (with-page ()
+	(:head
+	 (:title "Σκρουτζ: Λογαριασμοί")
+	 (css "reset.css" "scrooge.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (navbar "Λογαριασμοί"))
+	 (:div :id "content"
+	       (:div :id "prompt"
+		     (with-ul (:style "inline")  
+		       (link "Εισαγωγή λογαριασμού" :href (account/insert))))
+	       (table debit-accounts
+		      :id-fn #'first
+		      :td-fn #'rest
+		      :href-fn (lambda (account-id)
+				 (account/view :account-id account-id))
+		      :caption "ΧΡΕΩΣΤΙΚΟΙ ΛΟΓΑΡΙΑΣΜΟΙ"
+		      :header header
+		      :active-id account-id
+		      :id "debit-accounts"
+		      :style "dbtable")
+	       (table credit-accounts
+		      :id-fn #'first
+		      :td-fn #'rest
+		      :href-fn (lambda (account-id)
+				 (account/view :account-id account-id))
+		      :caption "ΠΙΣΤΩΤΙΚΟΙ ΛΟΓΑΡΙΑΣΜΟΙ"
+		      :header header
+		      :active-id account-id
+		      :id "credit-accounts"
+		      :style "dbtable")))))))
+
+(define-dynamic-page account/view ((account-id integer)) ("account/view")
+  (with-db
+    (let ((account (select-unique 'account
+				  :where [= [id] account-id]
+				  :flatp t)))
+      (with-page ()
+	(:head
+	 (:title "Σκρουτζ: Λογαριασμός" (str (title account)))
+	 (css "reset.css" "scrooge.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (navbar "Λογαριασμοί"))
+	 (:div :id "content"
+	       (:div :id "prompt"
+		     (with-ul (:style "inline")
+		       (:a :href (account/edit :account-id account-id) "Επεξεργασία λογαριασμού")
+		       (:a :href (account/remove :account-id account-id) "Διαγραφή λογαριασμού")
+		       (:a :href (accounts :account-id account-id) "Λογαριασμοί")))
+	       (with-table (:style "dbtable")
+		 ((label 'title "Ονομασία λογαριασμού")
+		  (text 'title :value (title account) :readonlyp t))
+		 ((label 'debit-p "Είδος λογαριασμού")
+		  (radio 'debit-p `(("Χρεωστικός" ,+db-true+)
+					    ("Πιστωτικός" ,+db-false+))
+			 :checked (debit-p account)
+			 :readonlyp t)))))))))
+
+(define-dynamic-page account/insert () ("account/insert")
+  (with-page ()
+    (:head
+     (:title "Σκρουτζ: Εισαγωγή λογαριασμού")
+     (css "reset.css" "scrooge.css"))
+    (:body
+     (:div :id "header"
+	   (logo)
+	   (navbar "Λογαριασμοί"))
+     (with-form (insert-account)
+       (:div :id "content"
+	     (:div :id "prompt"
+		   (with-ul (:style "inline")
+		     (submit "Δημιουργία λογαριασμού")
+		     (:a :href (accounts) "Ακύρωση")))
+	     (with-table (:style "dbtable")
+	       ((label 'title "Ονομασία λογαριασμού")
+		(text 'title))
+	       ((label 'debit-p "Είδος λογαριασμού")
+		(radio 'debit-p `(("Χρεωστικός" ,+db-true+)
+					  ("Πιστωτικός" ,+db-false+))))))))))
+
+(define-dynamic-page account/edit ((account-id integer)) ("account/edit")
+  (with-db
+    (let ((account (select-unique 'account
+				  :where [= [id] account-id]
+				  :flatp t)))
+      (with-page ()
+	(:head
+	 (:title "Σκρουτζ: Επεξεργασία λογαριασμού: " (title account))
+	 (css "reset.css" "scrooge.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (navbar "Λογαριασμοί"))
+	 (:div :id "content" 
+	       (with-form (edit-account :account-id account-id)
+		 (:div :id "prompt"
+		       (with-ul (:style "inline")
+			 (submit "Ενημέρωση")
+			 (:a :href (account/view :account-id account-id) "Ακύρωση")))
+		 (with-table (:style "dbtable")
+		   ((label 'title "Ονομασία λογαριασμού")
+		    (text 'title :value (title account)))
+		   ((label 'debit-p "Είδος λογαριασμού")
+		    (radio 'debit-p `(("Χρεωστικός" ,+db-true+)
+					      ("Πιστωτικός" ,+db-false+))
+			   :checked (debit-p account)))))))))))
+
+(define-dynamic-page account/remove ((account-id integer)) ("account/remove")
+  (with-db
+    (let ((account (select-unique 'account
+				  :where [= [id] account-id]
+				  :flatp t)))
+      (with-page ()
+	(:head
+	 (:title "Σκρουτζ: Λογαριασμός" (str (title account)))
+	 (css "reset.css" "scrooge.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (navbar "Λογαριασμοί"))
+	 (:div :id "content"
+	       (with-form (remove-account :account-id account-id)
+	   	 (:div :id "prompt"
+		       (with-ul (:style "inline")
+			 (submit "Διαγραφή λογαριασμού") 
+			 (:a :href (account/view :account-id account-id) "Ακύρωση")))
+		 (with-table (:style "dbtable")
+		   ((label 'title "Ονομασία λογαριασμού")
+		    (text 'title :value (title account) :readonlyp t))
+		   ((label 'debit-p "Είδος λογαριασμού")
+		    (radio 'debit-p `(("Χρεωστικός" ,+db-true+)
+					      ("Πιστωτικός" ,+db-false+))
+			   :checked (debit-p account)
+			   :readonlyp t))))))))))
+
+;;; --- Transactions --------------------
+
+(define-dynamic-page transactions () ("transactions/")
+  (with-db
+    (let ((transactions (select [tx.id] [tx.tx-date] [tx.title]
+				[company.title] [tx.amount] [tx.tx-type-id]
+				:from '([tx] [company])
+				:where [= [company.id]
+					  [tx.company-id]]
+				:flatp t)))
+      (with-page ()
+	(:head
+	 (:title "Σκρουτζ: Συναλλαγές")
+	 (css "reset.css" "scrooge.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (navbar "Συναλλαγές"))
+	 (:div :id "content"
+	       (:div :id "prompt"
+		     (with-ul (:style "inline")  
+		       (link "Εισαγωγή συναλλαγής" :href (transaction/insert))))
+	       (table transactions
+		      :id-fn #'first
+		      :td-fn #'rest 
+		      :caption "ΣΥΝΑΛΛΑΓΕΣ"
+		      :header '("Ημερομηνία" "Περιγραφή" "Εταιρεία" "Ποσό" "Είδος")
+		      :id "transactions"
+		      :style "dbtable")))))))
+
+(define-dynamic-page transaction/insert () ("transaction/insert")
+  (with-db
+    (let ((tx-types (select [id] [title] [debit-acc-id] [credit-acc-id]
+			     :from [tx-type]
+			     :flatp t))
+	  (companies (select [title] [id]
+			     :from [company]
+			     :flatp t)))
+      (with-page ()
+	(:head
+	 (:title "Σκρουτζ: Εισαγωγή συναλλαγής")
+	 (css "reset.css" "scrooge.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (navbar "Συναλλαγές"))
+	 (with-form (insert-tx)
+	   (:div :id "content"
+		 (:div :id "prompt"
+		       (with-ul (:style "inline")
+			 (submit "Δημιουργία συναλλαγής")
+			 (:a :href (accounts) "Ακύρωση")))
+		 (with-table (:style "dbtable")
+		   ((label 'title "Περιγραφή συναλλαγής")
+		    (text 'title))
+		   ((label 'tx-date "Ημερομηνία")
+		    (text 'tx-date :value (get-date)))
+		   ((label 'amount "Ποσόν")
+		    (text 'amount))
+		   ((label 'tx-type-id "Τύπος συναλλαγής")
+		    (dropdown 'tx-type-id (mapcar (lambda (tx-type)
+						     (list (second tx-type) (first tx-type)))
+						   tx-types)))
+		   ((label 'company-id "Εταιρία")
+		    (dropdown 'company-id companies))))))))))

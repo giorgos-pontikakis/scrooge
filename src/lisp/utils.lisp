@@ -12,3 +12,6 @@
 
 (defun euro (cents)
   (/ cents 100))
+
+(defun db-bool (string)
+  (string= "t" string))
