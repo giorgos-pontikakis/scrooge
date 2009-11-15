@@ -2,8 +2,9 @@
 
 cd /home/gnp/www/scrooge/public
 
-find . -type l | xargs rm
+find /home/gnp/www/scrooge/public -type l | xargs rm
 
 ln -s ../src/css css
+ln -s ../external/img img
 
 

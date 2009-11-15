@@ -1,8 +1,5 @@
 (in-package :scrooge)
 
-(disable-sql-reader-syntax)
-(enable-sql-reader-syntax)
-
 (define-cfg '(:dbhost "localhost"
 	      :dbname "scrooge"
 	      :dbadapter 'postgresql
@@ -14,45 +11,35 @@
 	      :webroot "/scrooge/"
 	      :debug t))
 
-(defun acc-grp-id (basename)
-  (with-db 
-    (select-unique [id]
-		   :from [account-group]
-		   :where [= [basename] basename]
-		   :flatp t)))
-
 (defun acc-id (basename)
-  (with-db
-    (select-unique [id]
-		   :from [account]
-		   :where [= [basename] basename]
-		   :flatp t)))
-
-
-
+  (with-db 
+    (query (:select 'id
+		    :from 'account
+		    :where (:= 'basename basename))
+	   :single)))
 
 
 ;; --------------------------------------------------------------------------------
 ;; Account Groups
 ;; --------------------------------------------------------------------------------
-(defun create-account-groups ()
-  (with-db
-    (flet ((ensure-account-group (basename title debit-p)
-	     (let ((exists (select-unique [id]
-					  :from [account-group]
-					  :where [= [basename] basename]
-					  :flatp t))
-		   (debit-account-p (bool debit-p)))
-	       (unless exists
-		 (create-account-group basename title debit-account-p)))))
-      (iter (for (basename title debit-p) in '(("assets" "Περιουσιακά στοιχεία" t)
-					       ("expenses" "Έξοδα" t)
-					       ("drawings" "Αναλήψεις" t)
-					       ;; credit account groups
-					       ("liabilities" "Υποχρεώσεις" nil)
-					       ("revenues" "Έσοδα" nil)
-					       ("capital" "Κεφάλαιο" nil)))
-	    (ensure-account-group basename title debit-p)))))
+;; (defun create-account-groups ()
+;;   (with-db
+;;     (flet ((ensure-account-group (basename title debit-p)
+;; 	     (let ((exists (select-unique [id]
+;; 					  :from [account-group]
+;; 					  :where [= [basename] basename]
+;; 					  :flatp t))
+;; 		   (debit-account-p (bool debit-p)))
+;; 	       (unless exists
+;; 		 (create-account-group basename title debit-account-p)))))
+;;       (iter (for (basename title debit-p) in '(("assets" "Περιουσιακά στοιχεία" t)
+;; 					       ("expenses" "Έξοδα" t)
+;; 					       ("drawings" "Αναλήψεις" t)
+;; 					       ;; credit account groups
+;; 					       ("liabilities" "Υποχρεώσεις" nil)
+;; 					       ("revenues" "Έσοδα" nil)
+;; 					       ("capital" "Κεφάλαιο" nil)))
+;; 	    (ensure-account-group basename title debit-p)))))
 
 
 ;; --------------------------------------------------------------------------------
@@ -80,10 +67,10 @@
 (defun create-accounts ()
   (with-db
     (flet ((ensure-account (basename title debit-account-p)
-	     (let ((exists (select-unique [id]
-					  :from [account]
-					  :where [= [basename] basename]
-					  :flatp t)))
+	     (let ((exists (query (:select 'id
+					   :from 'account
+					   :where (:= 'basename basename))
+				  :single)))
 	       (unless exists
 		 (create-account nil basename title (bool debit-account-p))))))
       (iter (for (basename title debit-account-p) in  '(("cash"        "Μετρητά" t)
@@ -99,10 +86,10 @@
 (defun create-banks ()
   (with-db
     (flet ((ensure-bank (title)
-	     (let ((exists (select-unique [id]
-					  :from [bank]
-					  :where [= [title] title]
-					  :flatp t)))
+	     (let ((exists (query (:select 'id
+					   :from 'bank
+					   :where (:= 'title title))
+				  :single)))
 	       (unless exists
 		 (create-bank title)))))
       (mapc #'ensure-bank '("Alpha Bank" "Eurobank" "Εθνική" "Γενική")))))
@@ -113,10 +100,10 @@
 (defun create-cities ()
   (with-db
     (flet ((ensure-city (title)
-	     (let ((exists (select-unique [id]
-					  :from [city]
-					  :where [= [title] title]
-					  :flatp t)))
+	     (let ((exists (query (:select 'id
+					   :from 'city
+					   :where (:= 'title title))
+				  :single)))
 	       (unless exists
 		 (create-city title)))))
       (mapc #'ensure-city '("Θεσσαλονίκη"
@@ -140,10 +127,10 @@
 (defun create-tofs ()
   (with-db
     (flet ((ensure-tof (title)
-	     (let ((exists (select-unique [id]
-					  :from [tof]
-					  :where [= [title] title]
-					  :flatp t)))
+	     (let ((exists (query (:select 'id
+					   :from 'tof
+					   :where (:= 'title title))
+				  :single)))
 	       (unless exists
 		 (create-tof title)))))
       (mapc #'ensure-tof '("A΄ Θεσσαλονίκης"
@@ -174,11 +161,12 @@
 
 (defun initall ()
   (with-db
-  (let ((user (select-unique [username]
-			     :from [webuser]
-			     :where [= [username] "gnp"])))
-    (unless user
-      (create-webuser "gnp" "gnp!scrooge" "root"))))
+    (let ((user (query (:select 'username
+				:from 'webuser
+				:where (:= 'username "gnp"))
+		       :single)))
+      (unless user
+	(create-webuser "gnp" "gnp!scrooge" "root"))))
   (create-banks)
   (create-tofs)
   (create-cities)

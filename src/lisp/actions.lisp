@@ -1,14 +1,10 @@
 (in-package :scrooge)
 
-(disable-sql-reader-syntax)
-(enable-sql-reader-syntax)
 
 (define-dynamic-page verify-login ((username string) (scrooge-password string))
     ("verify-login" :request-type :post)
   (with-db
-    (let ((user (select-unique 'webuser
-			       :where [= [username] username]
-			       :flatp t)))
+    (let ((user (select-dao-unique 'webuser (:= 'username username))))
       (if (or (null user)
 	      (string/= scrooge-password (password user)))
 	  (redirect (login))
@@ -117,21 +113,21 @@
 ;;; --- Accounts --------------------
 
 (define-dynamic-page insert-account ((parent-id integer) (basename string)
-				     (title string) (debit-account-p boolean))
+				     (title string) (debit-p boolean))
     ("actions/account/insert" :request-type :post)
   (with-auth "root"
-    (create-account parent-id basename title debit-account-p )
+    (create-account parent-id basename title debit-p )
     (redirect (accounts))))
 
 (define-dynamic-page edit-account ((account-id integer) (parent-id integer) (basename string)
-				   (title string) (debit-account-p boolean))
-    ("actions/account/edit" :request-type :post)
-  (with-auth "root"
+				   (title string) (debit-p boolean))
+    ("actions/account/edit" :request-type :post) 
+  (with-auth "root" 
     (update-account account-id
 		    :parent-id parent-id
 		    :basename basename
 		    :title title
-		    :debit-account-p debit-account-p)
+		    :debit-p debit-p)
     (redirect (account/view :account-id account-id))))
 
 (define-dynamic-page remove-account ((account-id integer))
@@ -141,28 +137,26 @@
     (redirect (accounts))))
 
 
-;;; --- Transactions --------------------
+;;; --- Transaction types --------------------
 
-(define-dynamic-page insert-tx ((title string) (tx-date string)
-				(amount integer) (tx-group-id integer))
-    ("actions/transaction/insert" :request-type :post)
+(define-dynamic-page insert-tx-type (title (debit-acc-id integer) (credit-acc-id integer))
+    ("actions/transaction-type/insert" :request-type :post)
   (with-auth "root"
-    (create-tx title tx-date amount tx-group-id)
-    (redirect (transactions))))
+    (create-tx-type title debit-acc-id credit-acc-id)
+    (redirect (transaction-types))))
 
-(define-dynamic-page edit-tx ((tx-id integer) (title string) 
-			      (tx-date string) (amount integer) (tx-group-id integer))
-    ("actions/transaction/edit" :request-type :post)
+(define-dynamic-page edit-tx-type ((tx-type-id integer) title
+				   (debit-acc-id integer) (credit-acc-id integer))
+    ("actions/transaction-type/edit" :request-type :post)
   (with-auth "root"
-    (update-tx tx-id
-	       :title title
-	       :tx-date tx-date
-	       :amount amount
-	       :tx-group-id tx-group-id)
-    (redirect (transactions))))
+    (update-tx-type tx-type-id
+		    :title title
+		    :debit-acc-id debit-acc-id
+		    :credit-acc-id credit-acc-id)
+    (redirect (transaction-types))))
 
-(define-dynamic-page remove-tx ((tx-id integer))
-    ("actions/transaction/remove" :request-type :post)
+(define-dynamic-page remove-tx-type ((tx-type-id integer))
+    ("actions/transaction-type/remove" :request-type :post)
   (with-auth "root"
-    (delete-tx tx-id)
-    (redirect (transactions))))
+    (delete-tx-type tx-type-id)
+    (redirect (transaction-types))))

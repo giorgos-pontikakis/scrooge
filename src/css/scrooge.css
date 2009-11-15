@@ -1,161 +1,337 @@
 .display-none { display: none; }
 
-#header {  
-  font-size: 13px;
-  font-weight: normal;
-  font-family: Arial, Helvetica, "Sans Serif";
+.strong {
+    font-weight: bold;
 }
 
-#header h1 {  
-  font-size: 16px;
-  font-weight: bold;
-  font-family: "Serif";
-  margin: 10px 40px;
+body {
+    font-size: 11px;
+    font-weight: normal;
+    font-family: Verdana, Arial, Helvetica, "Sans Serif";
+    background-color: white;
 }
 
-#navbar { 
-  margin: 0;
-  padding: 0;
-  width: 720px;
-  float: left;
-  list-style: none;
+a:link, a:visited {
+    color: blue;
+    text-decoration: none;
 }
 
-#navbar li { 
-  float: left;
+a:hover, a:active {
+    color: blue;
+    text-decoration: underline;
 }
 
-#navbar li a, #navbar li p  { 
-  display: block;
-  font-size: 
-  line-height: 40px;
-  padding: 7px 20px; 
-  margin: 0px 1px 0px 0px;
-  background-color: #222;
-  color: #ddd;
-  text-decoration: none;
-}
-
-#navbar li a:hover { 
-  color: #fff;
-  background-color: #c33;
-}
-
-#navbar li p.active { 
-  color: #fff;
-  background-color: #c33;
-}
-
-#content { 
-  clear: both;
-  width: 960px;
-  font-size: 13px;
-  font-weight: normal;
-  font-family: Arial, Helvetica, "Sans Serif";
-  padding-top: 10px;
-}
-
-.column { 
-  float: left;
-  width: 320px;
-}
-
-#tofs, #cities, #banks { 
-  width: 300px;
-  margin: 0px 10px;
-  border-collapse: collapse;
-}
-
-.dbtable { 
-  clear: both;
-}
-
-.dbtable thead { 
-  background-color: #222;
-  color: #ddd;
-  text-align: center;
-}
-
-.dbtable tbody { 
-  border: 1px solid grey;
-  color: #222;
-}
-
-.dbtable td { 
-  height: 30px;
-  vertical-align: middle;
-}
-
-.dbtable a, .dbtable p { 
-  text-decoration: none;
-  color: blue;
-  display: block;
-  padding: 8px 10px 2px 10px;;
-  height: 20px;
-  width: 280px;
-}
-
-.dbtable a:hover { 
-  background-color: #FFFFCC;
-}
-
-.dbtable tbody tr:hover { 
-  background-color: #ffffcc;
-}
-
-.active { 
-  background-color: #FFFF99;
+button, select, input {
+    font-size: 11px;
+    font-weight: normal;
+    font-family: Verdana, Arial, Helvetica, "Sans Serif";
+    padding: 3px 3px;
+    vertical-align: baseline;
 }
 
 
-
-
-.inline li { 
-  float: left;
-  margin: 10px 0px 10px 25px;
+input {
+    border: 1px solid #ddd;
+    /* padding: 4px; */
+    width: 300px;
 }
 
-.inline a:link, .inline a:visited { 
-  text-decoration: none;
-  color: blue;
+/* ------------------------------------------------------------ */
+/* Header */
+/* ------------------------------------------------------------ */
+#header {
+    width: 960px; 
 }
 
-.inline a:hover, .inline a:active { 
-  text-decoration: underline;
-  color: blue;
+#header h1 {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Serif";
+    margin: 10px 40px;
 }
 
-.inline p { 
-  color: grey;
+/* ------------------------------------------------------------ */
+/* Navbar */
+/* ------------------------------------------------------------ */
+#navbar {
+    margin: 0;
+    padding: 0;
+    width: 960px;
+    float: left;
+    list-style: none;
+    background-color: #000;
 }
 
-#prompt { 
-  clear: both;
-  margin-top: 40px;
-  background-color: #FFD9D9; 
-  color: green;
-  width: 960px;
-  height: 50px;
+#navbar li {
+    float: left;
 }
 
-fieldset { 
-  clear: both;
-  border: 1px solid grey;
-  padding: 10px;
+#navbar li a, #navbar li p  {
+    display: block;
+    line-height: 20px;
+    padding: 7px 20px;
+    margin: 0px 1px 0px 0px;
+    background-color: #444;
+    color: #ddd;
+    text-decoration: none;
 }
 
-label { 
-  clear: both;
-  display: block;
-  height: 20px;
-  float: left;
-  margin: 5px 10px;
-  vertical-align: middle;
+#navbar li a:hover, #navbar li a.active {
+    color: #fff;
+    background-color: #c33;
 }
 
-input, select { 
-  margin: 5px 10px;
-  width: 200px;
-  display: block;
-  float: left;
+/* ------------------------------------------------------------ */
+/* Main blocks */
+/* ------------------------------------------------------------ */
+#body {
+    clear: both;
+    width: 960px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#actions {
+    width: 960px;
+    padding: 7px 0px;
+    background-color: #eee;
+}
+
+#footer {
+    clear: both;
+    padding-top: 10px;
+}
+
+#tofs, #cities, #banks {
+    width: 300px;
+    margin: 0px 10px;
+    border-collapse: collapse;
+}
+
+/* ------------------------------------------------------------ */
+/* Vertical menu */
+/* ------------------------------------------------------------ */
+.vmenu {
+    background-color: #eee;
+    border: solid 1px #bbb;
+}
+
+.vmenu li img {
+    padding: 0px 6px 0px 10px;
+    vertical-align: text-top;
+}
+
+.vmenu li a {
+    display: block;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+}
+
+.vmenu li a:hover {
+    text-decoration: none;
+    background-color: #ccc;
+}
+
+.vmenu h3 {
+    font-weight: bold;
+    text-align: center;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+    border-bottom-style: solid;
+    border-bottom-color: #bbb ;
+    border-bottom-width: 1px;
+}
+
+.vmenu p {
+    font-weight: normal;
+    line-height: 18px;
+    padding: 4px 0px 4px 10px;
+}
+
+
+
+/* ------------------------------------------------------------ */
+/* Horizontal menu */
+/* ------------------------------------------------------------ */
+.prompt {
+    background-color: #ccc;
+    padding: 10px 10px;
+    margin: 0px 10px;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: #bbb;
+}
+
+.hmenu li {
+    display: inline;
+    padding: 6px 10px;
+}
+
+.hmenu li img {
+    padding: 0px 0px 0px 0px;
+    vertical-align: text-top;
+}
+
+.hmenu li a {
+    line-height: 18px;
+    padding: 4px 10px 4px 10px;
+}
+
+.hmenu li a:hover {
+    text-decoration: underline;
+    /* background-color: #ccc; */
+}
+
+.hmenu li a img:hover {
+    text-decoration: none;
+    /* background-color: #ccc; */
+}
+
+.hmenu h3 {
+    font-weight: bold;
+    text-align: center;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+    border-bottom-style: solid;
+    border-bottom-color: #bbb ;
+    border-bottom-width: 1px;
+}
+
+.hmenu p {
+    font-weight: normal;
+    line-height: 18px;
+    padding: 4px 0px 4px 10px;
+}
+
+
+
+/* ------------------------------------------------------------ */
+/* Database Table */
+/* ------------------------------------------------------------ */
+.dbtable {
+    background-color: #eee;
+}
+
+.dbtable caption {
+    font-weight: bold;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+}
+
+.dbtable tr {
+    border: solid 1px #bbb;
+}
+
+.dbtable tbody tr:hover {
+    background: #ffe;
+}
+
+.dbtable td {
+    line-height: 18px;
+    padding: 4px 10px 4px 10px;
+}
+
+.dbtable th {
+    text-align: center;
+    line-height: 18px;
+    padding: 4px 10px 4px 10px;
+}
+
+/* ------------------------------------------------------------ */
+/* Form Table */
+/* ------------------------------------------------------------ */
+.formtable td {
+    line-height: 18px;
+    padding: 4px 4px;
+}
+
+.formtable th {
+    line-height: 18px;
+    padding: 4px 4px;
+}
+
+.formtable input:hover, .formtable input:focus {
+    border: solid 1px #000;
+}
+
+.formtable input[readonly] {
+    background-color: #f4f4f4;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Content style: Simple form */
+/* ------------------------------------------------------------ */
+.simple-form {
+    padding: 0px 10px 0px 10px;
+    margin: 10px 10px 0px 10px;
+    background-color: #eee;
+    border: solid 1px #bbb;
+}
+
+.simple-form h2 {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 20px;
+}
+
+.simple-form p {
+    line-height: 18px;
+    padding: 4px 10px;
+}
+
+.simple-form input {
+    width: 500px;
+}
+
+.simple-form fieldset {
+    padding: 10px 10px;
+    border: #bbb 1px solid;
+    margin: 10px 10px;
+}
+
+.simple-form legend {
+    font-weight: bold;
+    padding: 0px 6px;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Content style: Summary */
+/* ------------------------------------------------------------ */
+.summary {
+    margin: 10px 10px 0px 10px;
+    border: solid 1px #fff;
+}
+
+#debit-accounts, #credit-accounts {
+    float: left;
+    width: 310px;
+    margin: 0px 0px 0px 10px;
+    padding: 0px 10px 1px 10px;
+    border: 1px solid #bbb;
+    background-color: #eee;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Auxiliary */
+/* ------------------------------------------------------------ */
+
+.col {
+    float: left;
+}
+
+.active {
+    background-color: #ccc;
+}
+
+.indent {
+    padding: 1px 0px 0px 10px;
+    margin: 1px 0px 0px 0px;
+}
+
+.invalid {
+    background-color: #fdd;
 }

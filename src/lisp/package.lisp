@@ -6,7 +6,9 @@
 	:cl-who
 	:cl-ppcre
 	:iterate
-	:clsql
-	:clsql-postgresql
 	:alexandria
+	:postmodern
+	:cl-postgres
+	:simple-date
 	:www-toolkit))
+

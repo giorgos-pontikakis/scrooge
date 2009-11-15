@@ -4,17 +4,16 @@
 
 (asdf:defsystem :scrooge
     :serial t
-    :depends-on (:www-toolkit)
-    :components ((:file "package")
+    :depends-on (:www-toolkit :postmodern :cl-postgres :simple-date)
+    :components ((:file "package") 
 		 (:file "utils")
 		 (:file "html-utils")
 		 (:file "tables")
 		 (:file "init")
 		 (:file "widgets")
 		 (:file "snippets")
+		 (:file "validators")
+		 (:file "companies")
+		 (:file "transactions")
 		 (:file "actions")
-		 (:file "pages")))
-
-
-
-
+		 (:file "pages"))) 
