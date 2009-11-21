@@ -7,44 +7,24 @@ var autocompleteDefaults = {minChars: 1,
 			    matchCase: true};
 
 function loadAll () {
-   autocompleteCompanies();
-   autocompleteTxTypes();
+   makeAutocomplete("company", "#company");
+   makeAutocomplete("tx-type", "#tx-type");
+   makeAutocomplete("tof", "#tof");
+   makeAutocomplete("city", "#city");
+   makeAutocomplete("bank", "#bank");
+   makeAutocomplete("debit-accounts", "#debit-acc");
+   makeAutocomplete("credit-accounts", "#credit-acc");
 }
 
 
-function autocompleteCompanies () {
+function makeAutocomplete (table, id, result_id) {
    var autocompleteOptions = autocompleteDefaults;
-   autocompleteOptions["extraParams"] = {table: "company"};
-   $("#company-title")
+   autocompleteOptions["extraParams"] = {table: table};
+   $(id)
       .flushCache()
       .autocomplete("/scrooge/autocomplete", autocompleteOptions)
-      .result(function (event, data, formatted) {
-		 if (data) {
-   		    $("#company-id").val(data[1]);
-		 } else {
-		    $("#company-id").val("");
-		 }
-   	      })
-      .blur(function () {
-	       $(this).search();
-	    });
-
-}
-
-function autocompleteTxTypes () {
-   var autocompleteOptions = autocompleteDefaults;
-   autocompleteOptions["extraParams"] = {table: "tx-type"};
-   $("#tx-type-title")
-      .flushCache()
-      .autocomplete("/scrooge/autocomplete", autocompleteOptions)
-      .result(function (event, data, formatted) {
-		 if (data) {
-   		    $("#tx-type-id").val(data[1]);
-		 } else {
-		    $("#tx-type-id").val("");
-		 }
-   	      })
       .blur(function () {
 	       $(this).search();
 	    });
 }
+

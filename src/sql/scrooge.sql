@@ -41,18 +41,17 @@ CREATE TABLE bank (
 
 
 
-create table account_group (
-       id               serial,
-       basename         varchar(32),
-       title		varchar(128),
-       debit_p  boolean,
-       CONSTRAINT account_group_pk PRIMARY KEY(id)
-);
+-- create table account_group (
+--        id               serial,
+--        basename         varchar(32),
+--        title		varchar(128),
+--        debit_p  boolean,
+--        CONSTRAINT account_group_pk PRIMARY KEY(id)
+-- );
 
 CREATE TABLE account (
        id		    serial,
        parent_id	    integer,
-       basename             varchar(32),
        title	   	    varchar(128),
        -- account_group_id	    integer NOT NULL,
        debit_p	    boolean,
@@ -65,10 +64,10 @@ CREATE TABLE company (
        id		serial,
        title		varchar(256),
        occupation	varchar(64),
-       tof_id       	integer NOT NULL,
-       tin       	integer,
+       tof_id       	integer,
+       tin       	char(9),
        address		varchar(256),
-       city_id		integer NOT NULL,
+       city_id		integer,
        pobox		integer,
        zipcode		integer,
        CONSTRAINT company_fk PRIMARY KEY(id),

@@ -80,30 +80,29 @@
 
 ;;; Accounts
 
-(defclass account-group ()
-  ((id       :col-type integer :reader   id)
-   (basename :col-type string  :accessor basename :initarg :basename) 
-   (title    :col-type string  :accessor title    :initarg :title)
-   (debit-p  :col-type boolean :accessor debit-p  :initarg :debit-p))
-  (:default-initargs :basename nil :title nil :debit-p nil)
-  (:metaclass dao-class)
-  (:keys id))
+;; (defclass account-group ()
+;;   ((id       :col-type integer :reader   id)
+;;    (basename :col-type string  :accessor basename :initarg :basename) 
+;;    (title    :col-type string  :accessor title    :initarg :title)
+;;    (debit-p  :col-type boolean :accessor debit-p  :initarg :debit-p))
+;;   (:default-initargs :basename nil :title nil :debit-p nil)
+;;   (:metaclass dao-class)
+;;   (:keys id))
 
-(define-table-create/update/delete account-group id (basename title debit-p))
+;; (define-table-create/update/delete account-group id (basename title debit-p))
 
 
 (defclass account ()
   ((id        :col-type integer :reader   id)
-   (parent-id :col-type integer :accessor parent-id :initarg :parent-id)
-   (basename  :col-type string  :accessor basename  :initarg :basename)
+   (parent-id :col-type integer :accessor parent-id :initarg :parent-id) 
    (title     :col-type string  :accessor title     :initarg :title) 
    (debit-p   :col-type boolean :accessor debit-p   :initarg :debit-p))
-  (:default-initargs :basename nil :title nil :account-group-id nil)
+  (:default-initargs :title nil :account-group-id nil)
   (:metaclass dao-class)
   (:keys id))
 
 (define-table-create/update/delete account id
-  (parent-id basename title debit-p))
+  (parent-id title debit-p))
 
 
 
@@ -114,7 +113,7 @@
    (title      :col-type string  :accessor title      :initarg :title)
    (occupation :col-type string  :accessor occupation :initarg :occupation)
    (tof-id     :col-type integer :accessor tof-id     :initarg :tof-id)
-   (tin        :col-type integer :accessor tin        :initarg :tin)
+   (tin        :col-type string  :accessor tin        :initarg :tin)
    (address    :col-type string  :accessor address    :initarg :address)
    (city-id    :col-type integer :accessor city-id    :initarg :city-id)
    (pobox      :col-type integer :accessor pobox      :initarg :pobox)
