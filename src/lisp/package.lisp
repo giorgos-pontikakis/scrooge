@@ -8,7 +8,6 @@
 	:iterate
 	:alexandria
 	:postmodern
-	:cl-postgres
 	:simple-date
 	:www-toolkit))
 
