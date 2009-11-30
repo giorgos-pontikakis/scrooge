@@ -16,8 +16,9 @@
 (defun positive-p (val)
   (with-db
     (or (eq :null val)
-	(zerop val)
-	(plusp val))))
+	(and (integerp val)
+	     (or (zerop val)
+		 (plusp val))))))
 
 (defun positive-nonnull-p (val)
   (with-db
@@ -27,8 +28,9 @@
 
 ;;; --- Config tables --------------------
 
-(define-existence-validator tof-exists-p        tof     title)
-(define-existence-validator city-exists-p       city    title)
+(define-existence-validator tof-exists-p  tof  title)
+(define-existence-validator city-exists-p city title)
+(define-existence-validator bank-exists-p bank title)
 
 (defun valid-tin-p (val)
   (or (eq :null val)
@@ -49,16 +51,14 @@
 ;;; --- Companies --------------------
 
 (define-existence-validator company-exists-p    company title)
-(define-existence-validator company-id-exists-p tof     id)
+(define-existence-validator company-id-exists-p company id)
 
 (defun valid-company-p (val)
-  (or (eq :null val)
-      (company-exists-p val)))
+  (company-exists-p val))
 
-(defun valid-company-id-p (val)
+(defun valid-company-id-p (val) 
   (and (positive-nonnull-p val)
        (company-id-exists-p val)))
-
 
 ;;; --- Accounts --------------------
 
@@ -66,18 +66,15 @@
 (define-existence-validator account-exists-p    account title)
 
 (defun valid-account-id-p (val)
-  (and (positive-p val)
+  (and (positive-nonnull-p val)
        (account-id-exists-p val)))
-
-
-
 
 ;;; --- Transactions --------------------
 
-(define-existence-validator tx-id-exists-p      tx      id)
+(define-existence-validator tx-id-exists-p tx id)
 
 (defun valid-tx-id-p (val)
-  (and (positive-p val)
+  (and (positive-nonnull-p val)
        (tx-id-exists-p val)))
 
 ;;; --- Transaction Types --------------------
@@ -86,10 +83,16 @@
 (define-existence-validator tx-type-exists-p    tx-type title)
 
 (defun valid-tx-type-id-p (val)
-  (and (positive-p val)
+  (and (positive-nonnull-p val)
        (tx-type-id-exists-p val)))
 
 (defun valid-tx-type-p (val)
-  (or (eq :null val)
-      (tx-type-exists-p val)))
+  (tx-type-exists-p val))
 
+;;; --- Cheques --------------------
+
+(define-existence-validator cheque-id-exists-p cheque id)
+
+(defun valid-cheque-id-p (val)
+  (and (positive-nonnull-p val)
+       (cheque-id-exists-p val)))

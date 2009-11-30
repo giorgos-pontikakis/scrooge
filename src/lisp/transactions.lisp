@@ -105,44 +105,52 @@
 ;;; --- Actions --------------------
 
 (define-dynamic-page insert-tx ((tx-date date)
-				(company string #'valid-company-p)
-				(tx-type string #'valid-tx-type-p)
-				(title string)
-				(amount integer #'positive-p))
+				(company string  #'valid-company-p)
+				(tx-type string  #'valid-tx-type-p)
+				(title   string)
+				(amount  integer #'positive-p)
+				(cheque-id integer (lambda (val)
+						     (or (eql :null val)
+							 (valid-cheque-id-p val)))))
     ("actions/transaction/insert" :request-type :post)
   (no-cache)
   (with-auth "root"
     (with-error-plist (errors)
       (if errors
-	  (redirect (transaction/insert :tx-date (or tx-date tx-date*)
-					:company (or company company*)
-					:tx-type (or tx-type tx-type*)
-					:title title
-					:amount (or amount amount*)))
+	  (see-other (transaction/insert :tx-date (or tx-date tx-date*)
+					 :company (or company company*)
+					 :tx-type (or tx-type tx-type*)
+					 :title title
+					 :amount (or amount amount*)
+					 :cheque-id (or cheque-id cheque-id*)))
 	  (with-db
 	    (let ((company-id (query (:select 'id :from 'company :where (:= 'title company))
-				     :single))
+				     :single!))
 		  (tx-type-id (query (:select 'id :from 'tx-type :where (:= 'title tx-type))
-				     :single)))
-	      (create-tx title tx-date amount tx-type-id company-id)
-	      (redirect (transactions))))))))
+				     :single!)))
+	      (create-tx title tx-date amount tx-type-id company-id cheque-id)
+	      (see-other (transactions))))))))
 
-(define-dynamic-page edit-tx ((tx-id         integer #'valid-tx-id-p)
-			      (tx-date       date)
+(define-dynamic-page edit-tx ((tx-id   integer #'valid-tx-id-p)
+			      (tx-date date)
 			      (company string  #'valid-company-p)
 			      (tx-type string  #'valid-tx-type-p)
 			      title
-			      (amount        integer #'positive-p))
+			      (amount  integer #'positive-p)
+			      (cheque-id integer (lambda (val)
+						   (or (eql :null val)
+						       (valid-cheque-id-p val)))))
     ("actions/transaction/edit" :request-type :post) 
   (no-cache)
   (with-auth "root"
     (with-error-plist (errors)
       (if errors
-	  (redirect (transaction/edit :tx-id (or tx-id tx-id*)
-				      :tx-date (or tx-date tx-date*)
-				      :company (or company company*)
-				      :tx-type (or tx-type tx-type*)
-				      :amount (or amount amount*)))
+	  (see-other (transaction/edit :tx-id (or tx-id tx-id*)
+				       :tx-date (or tx-date tx-date*)
+				       :company (or company company*)
+				       :tx-type (or tx-type tx-type*)
+				       :amount (or amount amount*)
+				       :cheque-id (or cheque-id cheque-id*)))
 	  (with-db
 	    (let ((company-id (query (:select 'id :from 'company :where (:= 'title company))
 				     :single))
@@ -153,8 +161,9 @@
 			 :title title
 			 :tx-date tx-date
 			 :amount amount
-			 :tx-type-id tx-type-id)
-	      (redirect (transactions))))))))
+			 :tx-type-id tx-type-id
+			 :cheque-id cheque-id)
+	      (see-other (transactions))))))))
 
 (define-dynamic-page remove-tx ((tx-id integer #'valid-tx-id-p))
     ("actions/transaction/remove" :request-type :post)
@@ -162,10 +171,10 @@
   (with-auth "root"
     (with-error-plist (errors)
       (if errors
-	  (redirect (transaction/notfound))
+	  (see-other (transaction/notfound))
 	  (progn
 	    (delete-tx tx-id)
-	    (redirect (transactions)))))))
+	    (see-other (transactions)))))))
 
 
 ;;; --- Pages --------------------
@@ -174,8 +183,8 @@
 				   (company-id integer #'valid-company-id-p))
     ("transactions/")
   (no-cache)
-  (cond (tx-id* (redirect (transaction/notfound)))
-	(company-id* (redirect (company/notfound)))
+  (cond (tx-id* (see-other (transaction/notfound)))
+	(company-id* (see-other (company/notfound)))
 	(t 
 	 (with-db
 	   (let ((transactions (if company-id
@@ -196,61 +205,74 @@
 		      (:div :id "content" :class "summary"
 			    (transactions-table tx-id transactions header))))))))))
 
-(define-dynamic-page transaction/insert ((tx-date date)
-					 (company string  #'valid-company-p)
-					 (tx-type string  #'valid-tx-type-p)
-					 (title   string)
-					 (amount  integer #'positive-p))
+(define-dynamic-page transaction/insert ((tx-date   date)
+					 (company   string  #'valid-company-p)
+					 (tx-type   string  #'valid-tx-type-p)
+					 (title     string)
+					 (amount    integer #'positive-p)
+					 (cheque-id integer (lambda (val)
+							      (or (eql :null val)
+								  (valid-cheque-id-p val)))))
     ("transaction/insert")
   (no-cache)
   (with-error-plist (errors)
     (with-db
-      (with-page () 
-	(:head
-	 (:title "Σκρουτζ: Εισαγωγή συναλλαγής")
-	 (css "reset.css" "scrooge.css")
-	 (js-headers))
-	(:body
-	 (:div :id "header"
-	       (logo)
-	       (navbar "Συναλλαγές")) 
-	 (:div :id "body"
-	       (:div :id "actions"
-		     (tx-menu 'insert))
-	       (when errors
-		 (tx-errorbar tx-date* company* tx-type* amount*))
-	       (:div :id "content" :class "simple-form"
-		     (:h2 "Εισαγωγή συναλλαγής")
-		     (with-form (insert-tx)
-		       (with-table (:style "formtable")
-			 ((label 'tx-date "Ημερομηνία")
-			  (textbox 'tx-date
-				   :value (or tx-date tx-date* (current-date))
-				   :style (if tx-date* "invalid" nil)))
-			 ((label 'company "Εταιρία")
-			  (textbox 'company
-				   :value (or company company*)
-				   :style (if company* "invalid" nil)))
-			 ((label 'tx-type "Τύπος συναλλαγής")
-			  (textbox 'tx-type
-				   :value (or tx-type tx-type*)
-				   :style (if tx-type* "invalid" nil)))
-			 ((label 'title "Περιγραφή")
-			  (textbox 'title :value title))
-			 ((label 'amount "Ποσό")
-			  (textbox 'amount
-				   :value (or amount amount*)
-				   :style (if amount* "invalid" nil))))
-		       (:ul :class "prompt hmenu"
-			    (:li (submit "Δημιουργία συναλλαγής"))
-			    (:li (:a :href (transactions) "Ακύρωση")))))
-	       (footer)))))))
+      (let* ((cheques (query (:select 'issuer 'due-date 'amount 'id :from 'cheque)))
+	     (cheques-alist (iter (for row in cheques) 
+				  (collect (list
+					    (format nil "~A/~A/~A"
+						    (lisp-to-html (first row))
+						    (lisp-to-html (second row))
+						    (lisp-to-html (third row)))
+					    (fourth row)))))) 
+	(with-page () 
+	  (:head
+	   (:title "Σκρουτζ: Εισαγωγή συναλλαγής")
+	   (css "reset.css" "scrooge.css")
+	   (js-headers))
+	  (:body
+	   (:div :id "header"
+		 (logo)
+		 (navbar "Συναλλαγές")) 
+	   (:div :id "body"
+		 (:div :id "actions"
+		       (tx-menu 'insert))
+		 (when errors
+		   (tx-errorbar tx-date* company* tx-type* amount*))
+		 (:div :id "content" :class "simple-form"
+		       (:h2 "Εισαγωγή συναλλαγής")
+		       (with-form (insert-tx)
+			 (with-table (:style "formtable")
+			   ((label 'tx-date "Ημερομηνία")
+			    (textbox 'tx-date
+				     :value (or tx-date tx-date* (current-date))
+				     :style (if tx-date* "invalid" nil)))
+			   ((label 'company "Εταιρία")
+			    (textbox 'company
+				     :value (or company company*)
+				     :style (if company* "invalid" nil)))
+			   ((label 'tx-type "Τύπος συναλλαγής")
+			    (textbox 'tx-type
+				     :value (or tx-type tx-type*)
+				     :style (if tx-type* "invalid" nil)))
+			   ((label 'title "Περιγραφή")
+			    (textbox 'title :value title))
+			   ((label 'amount "Μετρητά")
+			    (textbox 'amount
+				     :value (or amount amount*)
+				     :style (if amount* "invalid" nil)))
+			   ((label 'cheque "Επιταγή") 
+			    (dropdown 'cheque-id cheques-alist :selected cheque-id)))
+			 (:ul :class "prompt hmenu"
+			      (:li (submit "Δημιουργία συναλλαγής"))
+			      (:li (:a :href (transactions) "Ακύρωση")))))
+		 (footer))))))))
 
 (define-dynamic-page transaction/view ((tx-id integer #'valid-tx-id-p))
     ("transaction/view")
-  (no-cache)
+  (no-cache) 
   (if tx-id*
-      (redirect (transaction/notfound))
+      (see-other (transaction/notfound))
       (with-db
 	(let* ((tx (get-dao 'tx tx-id))
 	       (tx-type (query (:select 'title 
@@ -260,7 +282,15 @@
 	       (company (query (:select 'title 
 					:from 'company
 					:where (:= 'id (company-id tx)))
-			       :single)))
+			       :single))
+	       (cheques (query (:select 'issuer 'due-date 'amount 'id :from 'cheque)))
+	       (cheques-alist (iter (for row in cheques) 
+				    (collect (list
+					      (format nil "~A/~A/~A"
+						      (lisp-to-html (first row))
+						      (lisp-to-html (second row))
+						      (lisp-to-html (third row)))
+					      (fourth row))))))
 	  (with-page ()
 	    (:head
 	     (:title "Σκρούτζ: Προβολή συναλλαγής")
@@ -284,7 +314,10 @@
 			   ((label 'title "Περιγραφή")
 			    (textbox 'title :value (title tx) :readonlyp t)) 
 			   ((label 'amount "Ποσό")
-			    (textbox 'amount :value (amount tx) :readonlyp t)))))
+			    (textbox 'amount :value (amount tx) :readonlyp t))
+			   ((label 'cheque-id "Μετρητά")
+			    (dropdown 'cheque-id cheques-alist
+				      :selected (cheque-id tx) :readonlyp t)))))
 	     (footer)))))))
 
 (define-dynamic-page transaction/edit ((tx-id         integer #'valid-tx-id-p)
@@ -292,13 +325,24 @@
 				       (company string  #'valid-company-p)
 				       (tx-type string  #'valid-tx-type-p)
 				       title
-				       (amount        integer #'positive-p))
+				       (amount        integer #'positive-p)
+				       (cheque-id integer (lambda (val)
+							    (or (eql :null val)
+								(valid-cheque-id-p val)))))
     ("transaction/edit") 
   (no-cache)
   (if tx-id*
-      (redirect (transaction/notfound))
+      (see-other (transaction/notfound))
       (with-db
-	(let* ((tx (get-dao 'tx tx-id)))
+	(let* ((tx (get-dao 'tx tx-id))
+	       (cheques (query (:select 'issuer 'due-date 'amount 'id :from 'cheque)))
+	       (cheques-alist (iter (for row in cheques) 
+				    (collect (list
+					      (format nil "~A/~A/~A"
+						      (lisp-to-html (first row))
+						      (lisp-to-html (second row))
+						      (lisp-to-html (third row)))
+					      (fourth row))))))
 	  (with-page ()
 	    (:head
 	     (:title "Σκρούτζ: Επεξεργασία συναλλαγής")
@@ -341,10 +385,13 @@
 				       :style (if tx-type* "invalid" nil)))
 			     ((label 'title "Περιγραφή")
 			      (textbox 'title :value (or title (title tx))))
-			     ((label 'amount "Ποσό")
+			     ((label 'amount "Μετρητά")
 			      (textbox 'amount
 				       :value (or amount amount* (amount tx))
-				       :style (if amount* "invalid" nil))))
+				       :style (if amount* "invalid" nil)))
+			     ((label 'cheque-id "Επιταγή")
+			      (dropdown 'cheque-id cheques-alist
+					:selected (or cheque-id (cheque-id tx)))))
 			   (:ul :class "prompt hmenu"
 				(:li (submit "Ενημέρωση"))
 				(:li (:a :href (transactions) "Άκυρο"))))))
@@ -353,7 +400,7 @@
 (define-dynamic-page transaction/remove ((tx-id integer #'valid-tx-id-p)) ("transaction/remove")
   (no-cache)
   (if tx-id*
-      (redirect (transaction/notfound))
+      (see-other (transaction/notfound))
       (with-db
 	(let* ((tx (get-dao 'tx tx-id))
 	       (tx-type (query (:select 'title

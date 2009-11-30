@@ -18,7 +18,8 @@
 				      ("Εταιρίες" ,(companies))
 				      ("Λογαριασμοί" ,(accounts))
 				      ("Τύποι συναλλαγών" ,(transaction-types))
-				      ("Συναλλαγές" ,(transactions)))) 
+				      ("Συναλλαγές" ,(transactions))
+				      ("Επιταγές" ,(cheques)))) 
 	       (htm (:li (:a :href href
 			     :class (if (string-equal label active-label) "active" nil)
 			     (str label))))))))

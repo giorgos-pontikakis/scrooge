@@ -94,7 +94,8 @@
 				      (:img :src (url (if activep
 							  "img/bullet_red.png"
 							  "img/bullet_blue.png")))))
-			     (:td (:a :href (company/view :company-id id) (str title)))
+			     (:td (:a :href (company/view :company-id id)
+				      (str (lisp-to-html title))))
 			     (:td (:p (str (lisp-to-html tin))))
 			     (:td (:p (str (lisp-to-html doy)))))))))))))
 
@@ -305,7 +306,7 @@
 			    (:li (:a :href (companies) "Ακύρωση")))))
 	       (footer)))))))
 
-(define-dynamic-page company/view ((company-id integer)) ("company/view")
+(define-dynamic-page company/view ((company-id integer #'valid-company-id-p)) ("company/view")
   (no-cache)
   (if company-id*
       (see-other (company/notfound))
@@ -333,30 +334,29 @@
 			   (company-menu 'view company-id))
 		     (:div :id "content" :class "simple-form"
 			   (:h2 "Στοιχεία εταιρίας")
-			   (with-form (edit-company :company-id company-id) 
-			     (with-table (:style "formtable")
-			       ((:p (label 'title "Επωνυμία" :style "strong"))
-				(textbox 'title :value (title company) :readonlyp t)))
-			     (:fieldset
-			      (:legend "Φορολογικά στοιχεία")
-			      (with-table (:style "formtable")
-				((label 'occupation "Επάγγελμα")
-				 (textbox 'occupation :value (occupation company) :readonlyp t))
-				((label 'tin "Α.Φ.Μ.")
-				 (textbox 'tin :value (tin company) :readonlyp t))
-				((label 'tof "Δ.Ο.Υ.")
-				 (textbox 'tof :value tof :readonlyp t))))
-			     (:fieldset
-			      (:legend "Διεύθυνση")
-			      (with-table (:style "formtable")
-				((label 'address "Διεύθυνση:")
-				 (textbox 'address :value (address company) :readonlyp t))
-				((label 'city "Πόλη")
-				 (textbox 'address :value city :readonlyp t))
-				((label 'zipcode "Ταχυδρομικός κώδικας")
-				 (textbox 'zipcode :value (zipcode company) :readonlyp t))
-				((label 'pobox "Ταχυδρομική θυρίδα")
-				 (textbox 'pobox :value (pobox company) :readonlyp t))))))
+			   (with-table (:style "formtable")
+			     ((:p (label 'title "Επωνυμία" :style "strong"))
+			      (textbox 'title :value (title company) :readonlyp t)))
+			   (:fieldset
+			    (:legend "Φορολογικά στοιχεία")
+			    (with-table (:style "formtable")
+			      ((label 'occupation "Επάγγελμα")
+			       (textbox 'occupation :value (occupation company) :readonlyp t))
+			      ((label 'tin "Α.Φ.Μ.")
+			       (textbox 'tin :value (tin company) :readonlyp t))
+			      ((label 'tof "Δ.Ο.Υ.")
+			       (textbox 'tof :value tof :readonlyp t))))
+			   (:fieldset
+			    (:legend "Διεύθυνση")
+			    (with-table (:style "formtable")
+			      ((label 'address "Διεύθυνση:")
+			       (textbox 'address :value (address company) :readonlyp t))
+			      ((label 'city "Πόλη")
+			       (textbox 'address :value city :readonlyp t))
+			      ((label 'zipcode "Ταχυδρομικός κώδικας")
+			       (textbox 'zipcode :value (zipcode company) :readonlyp t))
+			      ((label 'pobox "Ταχυδρομική θυρίδα")
+			       (textbox 'pobox :value (pobox company) :readonlyp t)))))
 		     (footer)))))))))
 
 (define-dynamic-page company/edit ((company-id integer)
@@ -512,5 +512,5 @@
 	   (navbar "Εταιρίες"))
      (:div :id "body"
 	   (:div :id "content" :class "summary"
-		 (:p "Η εταιρία που προσπαθείτε να προσπελάσετε δεν υπάρχει πια.")
+		 (:p "Η εταιρία που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
 		 (:p "Επιστρέψτε στο μενού των εταιριών και προσπαθήστε ξανά."))))))

@@ -6,7 +6,6 @@ DROP TABLE tx_type;
 
 DROP TABLE company;
 DROP TABLE account;
-DROP TABLE account_group;
 
 DROP TABLE bank;
 DROP TABLE tof;
@@ -93,6 +92,7 @@ CREATE TABLE tx (
        tx_type_id	integer NOT NULL,
        company_id	integer NOT NULL,
        amount		integer,
+       cheque_id	integer,
        CONSTRAINT tx_pk PRIMARY KEY(id), 
        CONSTRAINT tx_type_fk FOREIGN KEY(tx_type_id) REFERENCES tx_type(id),
        CONSTRAINT company_fk FOREIGN KEY(company_id) REFERENCES company(id)
@@ -101,13 +101,11 @@ CREATE TABLE tx (
 
 CREATE TABLE cheque (
        id		serial,
-       bank_id		integer NOT NULL,
-       tx_id		integer NOT NULL,
+       bank_id          integer NOT NULL,
        issuer		varchar(256),
-       paid_p 		boolean,
        due_date		date,
+       amount		integer,
        CONSTRAINT cheque_pk PRIMARY KEY(id), 
-       CONSTRAINT tx_fk FOREIGN KEY(tx_id) REFERENCES tx(id),
        CONSTRAINT bank_fk FOREIGN KEY(bank_id) REFERENCES bank(id)
 );
 
