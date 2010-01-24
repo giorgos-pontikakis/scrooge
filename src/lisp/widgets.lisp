@@ -8,6 +8,21 @@
 	  ,@(iter (for option in li-list)
 		  (collect `(:li (str (lisp-to-html ,option))))))))
 
+;; (defmacro with-button ((&key name (value :null) disabledp style) &body body)
+;;   (if name
+;;       `(with-html
+;; 	 (:button :class ,style
+;; 		  :type "submit"
+;; 		  :name (string-downcase ,name)
+;; 		  :value (lisp-to-html ,value)
+;; 		  :disabled ,disabledp
+;; 		  ,@body))
+;;       `(with-html
+;; 	 (:button :class ,style
+;; 		  :type "submit" 
+;; 		  :disabled ,disabledp
+;; 		  ,@body))))
+
 ;;; Links (de-activateable)
 (defun link (label &key href style)
   (with-html
@@ -35,6 +50,26 @@
 						   (collect `(:td (str (lisp-to-html ,datum))))))))))
 		  `(:tbody (:tr (:td "No available data")))))))
 
+(defmacro with-table2 ((&key caption header id style) (&rest columns) &body body)
+  `(with-html
+     (:table :id ,id :class ,style
+	     ,(when caption
+		    `(:caption (str (lisp-to-html ,caption)))) 
+	     ,(when header
+		    `(:thead (:tr (iter (for label in ,header)
+					(htm (:td (str (lisp-to-html label))))))))
+	     ,(if body
+		  `(:tbody 
+		    ,@(iter (for row in body) 
+			    (collect `(:tr
+				       ,@(iter (for datum in row)
+					       (for col in (or columns (make-list (length row))))
+					       (if (and (listp datum) (keywordp (first datum)))
+						   (collect `(:td ,datum))
+						   (collect `(:td :class ,col
+								  (str (lisp-to-html ,datum))))))))))
+		  `(:tbody (:tr (:td "No available data")))))))
+
 
 (defun table (table-data &key caption header id-fn td-fn href-fn active-id id style)
   (with-html 
@@ -58,6 +93,5 @@
 						(htm (:td (:a :href href
 							      (str (lisp-to-html datum))))))))))))
 		(htm (:tbody (:tr (:td "No available data"))))))))
-
 
 

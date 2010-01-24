@@ -1,5 +1,6 @@
 ### Lisp compiled files
 *.fasl
+*.lx32fsl
 
 ### Miscellaneous files
 .directory

@@ -7,7 +7,8 @@
 	:cl-ppcre
 	:iterate
 	:alexandria
-	:postmodern
 	:simple-date
-	:www-toolkit))
+	:postmodern
+	:www-toolkit
+	:metabang-bind))
 

@@ -26,6 +26,7 @@
 	 (or (zerop val)
 	     (plusp val)))))
 
+
 ;;; --- Config tables --------------------
 
 (define-existence-validator tof-exists-p  tof  title)
@@ -34,19 +35,20 @@
 
 (defun valid-tin-p (val)
   (or (eq :null val)
-      (= (mod (iter (for m in '(256 128 64 32 16 8 4 2)) 
-		    (for i in-string val) 
-		    (sum (* m (parse-integer (string i)))))
-	      11)
-	 (parse-integer (subseq val 8)))))
+      (and (= (length val) 9)
+	   (= (mod (iter (for m in '(256 128 64 32 16 8 4 2)) 
+			 (for i in-string val) 
+			 (sum (* m (parse-integer (string i)))))
+		   11)
+	      (parse-integer (subseq val 8))))))
 
 (defun valid-tof-p (val)
   (or (eq :null val)
       (tof-exists-p val)))
 
-(defun valid-city-p (val)
-  (or (eq :null val)
-      (city-exists-p val)))
+
+(defun valid-bank-p (val)
+  (bank-exists-p val))
 
 ;;; --- Companies --------------------
 
@@ -59,6 +61,14 @@
 (defun valid-company-id-p (val) 
   (and (positive-nonnull-p val)
        (company-id-exists-p val)))
+
+;;; --- Contacts --------------------
+
+(define-existence-validator contact-id-exists-p contact id)
+
+(defun valid-contact-id-p (val)
+  (and (positive-nonnull-p val)
+       (contact-id-exists-p val)))
 
 ;;; --- Accounts --------------------
 
@@ -96,3 +106,6 @@
 (defun valid-cheque-id-p (val)
   (and (positive-nonnull-p val)
        (cheque-id-exists-p val)))
+
+(defun valid-due-date-p (val)
+  (not (eq :null val)))

@@ -1,6 +1,5 @@
 (in-package :scrooge)
 
-
 (defun string-upcase-gr (string)
   (let ((result-string (string-upcase string)))
     (mapc #'(lambda (pair)
@@ -19,15 +18,29 @@
 	    (#\ΰ . #\Ϋ)))
     result-string))
 
+;; (defun get-val-or-default (param-name params defaults)
+;;   (or (val* (find param-name params :key #'name))
+;;       (getf defaults param-name)))
 
-;;; --- Money --------------------
+;; (defun get-error-style (param-name params)
+;;   (let ((p (find param-name params :key #'name)))
+;;     (if (or (null p) (validp p)) nil "attention")))
 
-(defun cents (euros)
-  (ftruncate (+ (* (signum euros) 0.5)
-		(* 100 euros))))
+;; (defun merged-val (param defaults)
+;;   (or (val param)
+;;       (raw param)
+;;       (find (name param) defaults :test #'string-equal)))
 
-(defun euro (cents)
-  (/ cents 100))
+;; (defun make-plist (keys values)
+;;   (iter (for k in keys)
+;; 	(for v in values)
+;; 	(collect k)
+;; 	(collect v)))
 
 
+;; (defun val+ (name params)
+;;   (let ((param (find name params :key #'name)))
+;;     (if param (val param) nil)))
 
+;; (defun raw+ (name params)
+;;   (raw (find name params :key #'name)))

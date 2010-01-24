@@ -1,0 +1,602 @@
+/* ------------------------------------------------------------ */
+/* Global */
+/* ------------------------------------------------------------ */
+body {
+    font-size: 11px;
+    font-weight: normal;
+    font-family: Verdana, Arial, Helvetica, "Sans Serif";
+    background-color: white;
+}
+
+a:link, a:visited {
+    color: blue;
+    text-decoration: none;
+}
+
+a:hover, a:active {
+    color: blue;
+    text-decoration: underline;
+}
+
+button, select, input {
+    font-size: 11px;
+    font-weight: normal;
+    font-family: Verdana, Arial, Helvetica, "Sans Serif";
+    vertical-align: baseline;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Auxiliary global */
+/* ------------------------------------------------------------ */
+.col {
+    float: left;
+}
+
+/* .active { */
+/*     background-color: green; */
+/* } */
+
+.indent {
+    padding: 1px 0px 0px 10px;
+    margin: 1px 0px 0px 0px;
+}
+
+.attention {
+    background-color: #fdd;
+}
+
+.display-none { display: none; }
+
+.strong {
+    font-weight: bold;
+}
+
+/* ------------------------------------------------------------ */
+/* Header */
+/* ------------------------------------------------------------ */
+#header {
+    width: 960px; 
+}
+
+#header h1 {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: "Serif";
+    margin: 10px 40px;
+}
+
+/* ------------------------------------------------------------ */
+/* Navbar */
+/* ------------------------------------------------------------ */
+#navbar {
+    margin: 0px;
+    padding: 0px;
+    width: 960px;
+    height: 32px;
+    list-style: none;
+    background-color: #000;
+}
+
+#navbar a, #navbar p  {
+    background-color: #444;
+    color: #ddd;
+    text-decoration: none;
+}
+
+#navbar li a {
+    padding: 6px 8px;
+    line-height: 20px;
+    margin-left: 1px;
+}
+
+#navbar a:hover {
+    color: #fff;
+    background-color: #c33;
+}
+
+#navbar a.active {
+    background-color: #c33;
+}
+
+/* ------------------------------------------------------------ */
+/* Subnavbar menu */
+/* ------------------------------------------------------------ */
+#subnavbar {
+    margin: 5px 0px;
+    background-color: #ccc;
+    width: 960px;
+    height: 30px;
+}
+
+#subnavbar a, #subnavbar p  {
+    color: #000;
+    text-decoration: none;
+}
+
+#subnavbar li a {
+    padding: 6px 8px;
+    line-height: 18px;
+    margin-left: 1px;
+}
+
+#subnavbar a:hover {
+    color: #fff;
+    background-color: #c33;
+}
+
+#subnavbar a.active {
+    background-color: #c33;
+}
+
+/* ------------------------------------------------------------ */
+/* Actions menu */
+/* ------------------------------------------------------------ */
+.actions {
+    width: 100%;
+    height: 28px;
+    background-color: #ccc; 
+}
+
+.actions li a {
+    padding: 0px 8px;
+    line-height: 28px;
+    margin-left: 1px;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Horizontal menu */
+/* ------------------------------------------------------------ */
+ul.hmenu {
+    clear: both;
+
+}
+
+.hmenu li {
+    float: left;
+    /* padding: 6px 0px; */
+}
+
+.hmenu li img {
+    padding: 0px;
+    vertical-align: text-top;
+}
+
+.hmenu a {
+    display: block;
+}
+
+/* .hmenu a { */
+/*     /\* line-height: 18px; *\/ */
+/*     padding: 4px 8px 4px 8px; */
+/* } */
+
+/* .hmenu li a:hover { */
+/*     text-decoration: underline; */
+/*     /\* background-color: #ccc; *\/ */
+/* } */
+
+/* .hmenu li a img:hover { */
+/*     text-decoration: none; */
+/*     /\* background-color: #ccc; *\/ */
+/* } */
+
+/* .hmenu h3 { */
+/*     font-weight: bold; */
+/*     text-align: center; */
+/*     line-height: 18px; */
+/*     padding: 4px 0px 4px 0px; */
+/*     border-bottom-style: solid; */
+/*     border-bottom-color: #bbb ; */
+/*     border-bottom-width: 1px; */
+/* } */
+
+/* .hmenu p { */
+/*     font-weight: normal; */
+/*     line-height: 18px; */
+/*     padding: 4px 0px 4px 10px; */
+/* } */
+
+
+/* ------------------------------------------------------------ */
+/* Main blocks */
+/* ------------------------------------------------------------ */
+#body {
+    clear: both;
+    width: 960px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#footer {
+    clear: both;
+    padding-top: 10px;
+}
+
+/* ------------------------------------------------------------ */
+/* Vertical menu */
+/* ------------------------------------------------------------ */
+.vmenu {
+    background-color: #eee;
+    border: solid 1px #bbb;
+}
+
+.vmenu li img {
+    padding: 0px 6px 0px 10px;
+    vertical-align: text-top;
+}
+
+.vmenu li a {
+    display: block;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+}
+
+.vmenu li a:hover {
+    text-decoration: none;
+    background-color: #ccc;
+}
+
+.vmenu h3 {
+    font-weight: bold;
+    text-align: center;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+    border-bottom-style: solid;
+    border-bottom-color: #bbb ;
+    border-bottom-width: 1px;
+}
+
+.vmenu p {
+    font-weight: normal;
+    line-height: 18px;
+    padding: 4px 0px 4px 10px;
+}
+
+
+
+/* ------------------------------------------------------------ */
+/* Prompt menu */
+/* ------------------------------------------------------------ */
+.prompt {
+    background-color: #ccc;
+    padding: 10px 10px;
+    margin: 0px 10px;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: #bbb;
+}
+
+/* ------------------------------------------------------------ */
+/* Database Table */
+/* ------------------------------------------------------------ */
+.dbtable {
+    background-color: #eee;
+}
+
+.dbtable caption {
+    font-weight: bold;
+    line-height: 18px;
+    padding: 4px 0px 4px 0px;
+}
+
+.dbtable tr {
+    border: solid 1px #bbb;
+}
+
+.dbtable tbody tr:hover {
+    background: #ffe;
+}
+
+.dbtable td {
+    line-height: 18px;
+    padding: 4px 10px 4px 10px;
+}
+
+.dbtable th {
+    text-align: center;
+    line-height: 18px;
+    padding: 4px 10px 4px 10px;
+}
+
+/* ------------------------------------------------------------ */
+/* Form Table */
+/* ------------------------------------------------------------ */
+.formtable td, .formtable th {
+    line-height: 18px;
+    padding: 4px 0px;
+}
+
+.formtable input {
+    border: 1px solid #ddd;
+    padding: 3px;
+}
+
+.formtable input:hover, .formtable input:focus {
+    border: solid 1px #000;
+}
+
+.formtable input[readonly] {
+    background-color: #f4f4f4;
+}
+
+.formtable label {
+    padding-right: 4px;
+}
+
+/* ------------------------------------------------------------ */
+/* Content style: Window */
+/* ------------------------------------------------------------ */
+.window {
+    padding: 0px;
+    margin: 10px 10px 0px 10px;
+    background-color: #eee;
+    border: solid 1px #bbb;
+}
+
+.window h2 {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 20px;
+}
+
+.window p {
+    line-height: 18px;
+    padding: 4px 10px;
+}
+
+.window fieldset {
+    padding: 10px 10px;
+    border: #bbb 1px solid;
+    margin: 10px 10px;
+}
+
+.window legend {
+    font-weight: bold;
+    padding: 0px 6px;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Content style: Summary */
+/* ------------------------------------------------------------ */
+/* .summary { */
+/*     margin: 10px 10px 0px 10px; */
+/*     border: solid 1px #fff; */
+/* } */
+
+#debit-accounts, #credit-accounts {
+    float: left;
+    width: 310px;
+    margin: 0px 0px 0px 10px;
+    padding: 0px 10px 1px 10px;
+    border: 1px solid #bbb;
+    background-color: #eee;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Messages */
+/* ------------------------------------------------------------ */
+#msg {
+    margin: 10px 0px;
+}
+
+ul.errorbar {
+    background-color: #fdd;
+    /* border: 2px solid red; */
+    padding: 10px;
+    margin: 0px 10px 0px 10px;
+}
+
+.errorbar li {
+    color: #000;
+    /* font-weight: bold; */
+    padding: 3px 25px;
+    background: url('/scrooge/img/error.png') no-repeat scroll 0 0;
+}
+
+
+
+/* ------------------------------------------------------------ */
+/* Company Data Table */
+/* ------------------------------------------------------------ */
+#company-data {
+    width: 505px;
+    float: left;
+}
+
+.compname {
+    margin: 0px 0px 0px 27px;
+    width: 455px;
+}
+
+.compname-legend-col {
+    width: 70px;
+}
+
+.compname-field-col input {
+    width: 377px;
+}
+
+.company-name-field-col input {
+    width: 350px;
+}
+
+.address, .tax{
+    width: 460px;
+}
+
+.addr-legend-col {
+    width: 150px;
+    text-align: right;
+}
+
+.addr-field-col input {
+    width: 310px;
+}
+
+.tax-legend-col {
+    width: 100px;
+    text-align: right;
+}
+
+.tax-field-col input{
+    width: 360px;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Companies */
+/* ------------------------------------------------------------ */
+#companies {
+    width: 470px;
+}
+
+#companies-table, #tofs-table {
+    width: 450px;
+}
+
+#companies-table .data input, #companies-table .data input {
+    width: 200px;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Banks, TOFs */
+/* ------------------------------------------------------------ */
+#banks, #tofs {
+    width: 450px;
+}
+
+#banks-table, #tofs-table {
+    width: 430px;
+}
+
+#banks-table .data, #tofs-table .data {
+    width: 210px;
+}
+#banks-table .data input, #tofs-table .data input {
+    width: 200px;
+}
+
+#banks-table .id, #tofs-table .id {
+    width: 110px;
+}
+#banks-table .id input, #tofs-table .id input {
+    width: 100px;
+}
+
+/* ------------------------------------------------------------ */
+/* Cheques */
+/* ------------------------------------------------------------ */
+#cheques {
+    width: 900px;
+}
+
+#cheques-table {
+    width: 880px;
+}
+
+#cheques-table .data {
+    width: 150px;
+}
+
+#cheques-table .data input {
+    width: 140px;
+}
+/* ------------------------------------------------------------ */
+/* Contacts */
+/* ------------------------------------------------------------ */
+#contact-data {
+    width: 410px;
+    margin-left: 5px;
+    float: left;
+}
+
+#contact-data .hmenu {
+    height: 18px;
+}
+
+#contacts-table {
+    width: 390px;
+    /* margin: 0px 10px 10px 10px; */
+}
+
+#contacts-table .data input {
+    width: 135px;
+}
+
+#contacts-table .data {
+    width: 145px;
+}
+
+
+/* ------------------------------------------------------------ */
+/* Table with forms in a row */
+/* ------------------------------------------------------------ */
+.forms-in-row {
+    background-color: #eee;
+    margin: 0px 10px 10px 10px;
+}
+
+.forms-in-row tr {
+    border: solid 1px #bbb;
+    height: 32px;
+}
+
+.forms-in-row tr.active {
+    background-color: #fcfcfc;
+}
+
+.forms-in-row td, .forms-in-row th {
+    /* line-height = 32 (tr.height) -1 (tr.border) */
+    line-height: 31px; 		
+    text-align: left;
+}
+
+.forms-in-row input {
+    border: 1px solid #ddd;
+    padding: 3px;
+    margin-top: 4px;
+}
+
+.forms-in-row input:hover, .forms-in-row input:focus {
+    border: solid 1px #000;
+}
+
+.forms-in-row input[readonly] {
+    background-color: #f4f4f4;
+}
+
+.forms-in-row button {
+    padding: 0px;
+    background-color: transparent;
+    border: none;
+    position: relative;
+    top: 4px;
+}
+
+.forms-in-row button:hover {
+    cursor: pointer;
+}
+
+.forms-in-row a img {
+    vertical-align: middle;
+}
+
+.button, .button button {
+    width: 30px;
+    padding: 0px;
+}
+
+.select {
+    width: 30px;
+    padding: 0px;
+}
+
+.select a {
+    margin: 0px 7px;
+}
