@@ -14,7 +14,7 @@
 	     (insert () 
 	       (with-html
 		 (:li (:a :href (cheque/insert)
-			  (:img :src (url "img/add.png")) "Δημιουργία"))))
+			  (:img :src (url "img/add.png")) "Δημιουργία ")))) 
 	     (view (id)
 	       (if id
 		   (with-html
@@ -75,7 +75,7 @@
 			(htm (:th (str label))))))
 	    (:tbody
 	     (iter (for row in cheques) 
-		   (destructuring-bind (id issuer bank due-date amount) row
+		   (destructuring-bind (id bank issuer payee due-date amount) row
 		     (let ((activep (and active-id (= active-id id))))
 		       (htm
 			(:tr :class (if activep "active" nil)
@@ -83,8 +83,9 @@
 				      (:img :src (url (if activep
 							  "img/bullet_red.png"
 							  "img/bullet_blue.png"))))) 
-			     (:td (:p (str (lisp-to-html issuer))))
 			     (:td (:p (str (lisp-to-html bank))))
+			     (:td (:p (str (lisp-to-html issuer))))
+			     (:td (:p (str (lisp-to-html payee))))
 			     (:td (:p (str (lisp-to-html due-date))))
 			     (:td (:p (str (lisp-to-html amount)))))))))))))
 
@@ -168,10 +169,18 @@
       (see-other (cheque/notfound))
       (with-auth "root"
 	(with-db
-	  (let ((cheques (query (:select 'cheque.id 'issuer 'bank.title 'due-date 'amount 
+	  (let ((cheques
+		 (query (:union (:select 'cheque.id 'bank.title "gnp" 'payee.title 'due-date 'amount
 					 :from 'cheque
-					 :left-join 'bank :on (:= 'cheque.bank-id 'bank.id))))
-		(header '("" "Εκδότης" "Τράπεζα" "Ημερομηνία" "Ποσό")))
+					 :inner-join (:as 'company 'payee) :on (:= 'payee.id 'payee-id) 
+					 :inner-join 'bank :on (:= 'bank.id 'cheque.bank-id)
+					 :where (:is-null 'issuer-id))
+				(:select 'cheque.id 'bank.title 'issuer.title "gnp" 'due-date 'amount
+					 :from 'cheque
+					 :inner-join (:as 'company 'issuer) :on (:= 'issuer.id 'issuer-id) 
+					 :inner-join 'bank :on (:= 'bank.id 'cheque.bank-id)
+					 :where (:is-null 'payee-id)))))
+		(header '("" "Τράπεζα" "Εκδότης" "Δικαιούχος" "Ημερομηνία" "Ποσό")))
 	    (with-page ()
 	      (:head
 	       (:title "Σκρουτζ: Συναλλασσόμενοι")

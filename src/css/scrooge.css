@@ -53,7 +53,7 @@ input {
 /* ------------------------------------------------------------ */
 /* Navbar */
 /* ------------------------------------------------------------ */
-#navbar {
+ul.navbar {
     margin: 0;
     padding: 0;
     width: 960px;
@@ -62,11 +62,11 @@ input {
     background-color: #000;
 }
 
-#navbar li {
+ul.navbar li {
     float: left;
 }
 
-#navbar li a, #navbar li p  {
+ul.navbar li a, ul.navbar li p  {
     display: block;
     line-height: 20px;
     padding: 7px 20px;
@@ -76,7 +76,7 @@ input {
     text-decoration: none;
 }
 
-#navbar li a:hover, #navbar li a.active {
+ul.navbar li a:hover, ul.navbar li a.active {
     color: #fff;
     background-color: #c33;
 }

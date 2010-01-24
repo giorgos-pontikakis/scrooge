@@ -144,34 +144,36 @@
 
 
 (defclass tx ()
-  ((id         :col-type integer :reader   id) 
-   (tx-date    :col-type date	 :accessor tx-date    :initarg :tx-date)
-   (title      :col-type string	 :accessor title      :initarg :title)
-   (tx-type-id :col-type integer :accessor tx-type-id :initarg :tx-type-id)
-   (company-id :col-type integer :accessor company-id :initarg :company-id)
-   (amount     :col-type integer :accessor amount     :initarg :amount)
-   (cheque-id  :col-type integer :accessor cheque-id  :initarg :cheque-id))
+  ((id            :col-type integer :reader   id) 
+   (tx-date       :col-type date    :accessor tx-date       :initarg :tx-date)
+   (title         :col-type string  :accessor title         :initarg :title)
+   (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
+   (company-id    :col-type integer :accessor company-id    :initarg :company-id)
+   (amount        :col-type integer :accessor amount        :initarg :amount)
+   (cheque-id     :col-type integer :accessor cheque-id     :initarg :cheque-id))
   (:default-initargs :title nil :tx-date nil :amount nil :tx-type-id nil)
   (:metaclass dao-class)
   (:keys id))
 
-(define-table-create/update/delete tx id (title tx-date amount tx-type-id company-id cheque-id))
+(define-table-create/update/delete tx id (title tx-date amount debit-acc-id credit-acc-id company-id cheque-id))
 
 
 
 ;;; Cheques
 
 (defclass cheque ()
-  ((id       :col-type integer :reader   id)
-   (issuer   :col-type string  :accessor issuer   :initarg :issuer) 
-   (bank-id  :col-type integer :accessor bank-id  :initarg :bank-id) 
-   (due-date :col-type date    :accessor due-date :initarg :due-date)
-   (amount   :col-type integer :accessor amount   :initarg :amount))
+  ((id        :col-type integer :reader   id)
+   (issuer-id :col-type integer :accessor issuer-id :initarg :issuer-id) 
+   (payee-id  :col-type integer :accessor payee-id  :initarg :payee-id) 
+   (bank-id   :col-type integer :accessor bank-id   :initarg :bank-id) 
+   (due-date  :col-type date    :accessor due-date  :initarg :due-date)
+   (amount    :col-type integer :accessor amount    :initarg :amount))
   (:default-initargs :bank-id nil :issuer nil :due-date nil :amount nil)
   (:metaclass dao-class)
   (:keys id))
 
-(define-table-create/update/delete cheque id (issuer bank-id due-date amount))
+(define-table-create/update/delete cheque id (issuer-id payee-id bank-id due-date amount))
 
 
 

@@ -89,24 +89,15 @@ CREATE TABLE tx (
        id		serial,
        tx_date		date,
        title		varchar(256),
-       tx_type_id	integer NOT NULL,
+       debit_acc_id     integer NOT NULL,
+       credit_acc_id    integer NOT NULL,
        company_id	integer NOT NULL,
        amount		integer,
        cheque_id	integer,
        CONSTRAINT tx_pk PRIMARY KEY(id), 
-       CONSTRAINT tx_type_fk FOREIGN KEY(tx_type_id) REFERENCES tx_type(id),
+       CONSTRAINT debit_acc_fk FOREIGN KEY(debit_acc_id) REFERENCES account(id),
+       CONSTRAINT credit_acc_fk FOREIGN KEY(credit_acc_id) REFERENCES account(id),
        CONSTRAINT company_fk FOREIGN KEY(company_id) REFERENCES company(id)
-);
-
-
-CREATE TABLE cheque (
-       id		serial,
-       bank_id          integer NOT NULL,
-       issuer		varchar(256),
-       due_date		date,
-       amount		integer,
-       CONSTRAINT cheque_pk PRIMARY KEY(id), 
-       CONSTRAINT bank_fk FOREIGN KEY(bank_id) REFERENCES bank(id)
 );
 
 
@@ -120,3 +111,16 @@ CREATE TABLE project (
        CONSTRAINT company_fk FOREIGN KEY(company_id) REFERENCES company(id)
 );
 
+
+create table cheque (
+       id serial, 
+       bank_id integer not null, 
+       issuer_id integer,
+       payee_id integer, 
+       due_date date,
+       amount integer,
+       constraint cheque_pk primary key(id), 
+       constraint issuer_fk foreign key(issuer_id) references company(id),
+       constraint payee_fk foreign key(payee_id) references company(id),
+       constraint bank_fk foreign key(bank_id) references bank(id)
+);
