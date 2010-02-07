@@ -12,8 +12,8 @@ function loadAll () {
    makeAutocomplete("tof", "#tof");
    makeAutocomplete("city", "#city");
    makeAutocomplete("bank", "#bank");
-   makeAutocomplete("debit-account", "#debit-acc");
-   makeAutocomplete("credit-account", "#credit-acc");
+   makeAutocomplete("account", "#debit-acc");
+   makeAutocomplete("account", "#credit-acc");
 }
 
 

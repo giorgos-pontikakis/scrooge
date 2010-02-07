@@ -15,4 +15,6 @@
 	       (:file "root")
 	       (:file "config")
 	       (:file "companies")
-	       (:file "cheques"))) 
+	       (:file "cheques")
+	       (:file "accounts")
+	       (:file "tx")))

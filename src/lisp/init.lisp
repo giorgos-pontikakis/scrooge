@@ -1,5 +1,6 @@
 (in-package :scrooge)
 
+(proclaim '(optimize (safety 3) (debug 3) (compilation-speed 0) (speed 0) (space 0)))
 
 (define-cfg '(:dbhost "localhost"
 	      :dbname "scrooge"

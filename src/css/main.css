@@ -38,9 +38,15 @@ button, select, input {
 /* } */
 
 .indent {
-    padding: 1px 0px 0px 10px;
+    padding: 1px 0px 0px 15px;
     margin: 1px 0px 0px 0px;
 }
+
+ul.indent li {
+    line-height: 20px;
+}
+
+
 
 .attention {
     background-color: #fdd;
@@ -367,16 +373,6 @@ ul.hmenu {
 /*     border: solid 1px #fff; */
 /* } */
 
-#debit-accounts, #credit-accounts {
-    float: left;
-    width: 310px;
-    margin: 0px 0px 0px 10px;
-    padding: 0px 10px 1px 10px;
-    border: 1px solid #bbb;
-    background-color: #eee;
-}
-
-
 /* ------------------------------------------------------------ */
 /* Messages */
 /* ------------------------------------------------------------ */
@@ -465,7 +461,7 @@ ul.errorbar {
 
 
 /* ------------------------------------------------------------ */
-/* Banks, TOFs */
+/* Banks, TOFs, Accounts */
 /* ------------------------------------------------------------ */
 #banks, #tofs {
     width: 450px;
@@ -487,6 +483,19 @@ ul.errorbar {
 }
 #banks-table .id input, #tofs-table .id input {
     width: 100px;
+}
+
+#debit-accounts, #credit-accounts {
+    float: left;
+    width: 458px;
+}
+
+#transactions-table {
+    width: 925px;
+}
+
+#transactions-table .data input {
+    width: 120px;
 }
 
 /* ------------------------------------------------------------ */
@@ -539,7 +548,7 @@ ul.errorbar {
 /* ------------------------------------------------------------ */
 .forms-in-row {
     background-color: #eee;
-    margin: 0px 10px 10px 10px;
+    margin: 5px;
 }
 
 .forms-in-row tr {

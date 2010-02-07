@@ -25,8 +25,12 @@
 			(with-html
 			  (:li (:a :class class :href (banks) "Τράπεζες"))))
 	       'tofs (lambda (class)
-			 (with-html
-			   (:li (:a :class class :href (tofs) "Δ.Ο.Υ.")))))))
+		       (with-html
+			 (:li (:a :class class :href (tofs) "Δ.Ο.Υ."))))
+	       'accounts (lambda (class)
+				 (with-html
+				   (:li (:a :class class :href (accounts)
+					    "Λογαριασμοί")))))))
     (with-html
       (:div :id "subnavbar"
 	    (:ul :class "hmenu"
@@ -165,7 +169,8 @@
 		  (:thead
 		   (:tr (iter (for label in header) (htm (:th (str label))))))
 		  (:tbody
-		   (if (eql intent :create) (form-row-create))
+		   (when (eql intent :create)
+		     (form-row-create))
 		   (iter (for (id title) in banks)
 			 (for activep = (and active-id (string-equal active-id id)))
 			 (if activep 
@@ -181,7 +186,7 @@
       (:div :id "msg"
 	    (:ul :class "errorbar")
 	    (unless (validp id)
-	      (htm (:li "Άκυρο αναγνωριστικό (id) τράπεζας")))
+	      (htm (:li "Άκυροv αναγνωριστικό (id) τράπεζας")))
 	    (unless (validp title)
 	      (htm (:li "Αυτό το όνομα τράπεζας υπάρχει ήδη")))))))
 
@@ -363,7 +368,7 @@
 					  (url "img/bullet_red.png")
 					  (url "img/bullet_blue.png")))))
 		  (:td :class "id" (str (lisp-to-html id)))
-		  (:td :class "data"   (str (lisp-to-html title)))
+		  (:td :class "data" (str (lisp-to-html title)))
 		  (:td :class "button" "")
 		  (:td :class "button" ""))))
 	 (form-row-create ()

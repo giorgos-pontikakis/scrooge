@@ -46,7 +46,6 @@
   (or (eq :null val)
       (tof-exists-p val)))
 
-
 (defun valid-bank-p (val)
   (bank-exists-p val))
 
@@ -109,3 +108,12 @@
 
 (defun valid-due-date-p (val)
   (not (eq :null val)))
+
+;;; --- Accounts --------------------
+
+(define-existence-validator acc-id-exists-p account id)
+
+
+(defun valid-parent-acc-id-p (val)
+  (or (eql val :null)
+      (acc-id-exists-p val)))

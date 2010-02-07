@@ -295,17 +295,17 @@
     (with-html
       (:div :id "msg"
 	    (:ul :class "errorbar"
-		 (when (not (validp title))
+		 (unless (validp title)
 		   (htm (:li "Άκυρο όνομα εταιρίας")))
-		 (when (not (validp tof))
+		 (unless (validp tof)
 		   (htm (:li "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί.")))
-		 (when (not (validp tin))
+		 (unless (validp tin)
 		   (htm (:li "Άκυρος Α.Φ.Μ.")))
-		 (when (not (validp city))
+		 (unless (validp city)
 		   (htm (:li "Η πόλη αυτή δεν έχει οριστεί.")))
-		 (when (not (validp pobox))
+		 (unless (validp pobox)
 		   (htm (:li "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας.")))
-		 (when (not (validp zipcode))
+		 (unless (validp zipcode)
 		   (htm (:li "Μη αποδεκτός ταχυδρομικός κωδικός."))))))))
 
 (defun company-data-view (id defaults)
@@ -339,7 +339,7 @@
 
 ;;; Pages
 
-(define-dynamic-page companies ((id integer #'valid-company-id-p)) ("companies/")
+(define-dynamic-page companies ((id integer #'valid-company-id-p)) ("companies")
   (no-cache)
   (if (validp id)
       (with-parameter-rebinding #'val

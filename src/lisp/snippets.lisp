@@ -57,17 +57,20 @@
 (defun primary-navbar (active-item)
   (let ((options 
 	 (list 'home (lambda (class)
-		      (with-html
-			(:li (:a :class class :href (home) "Αρχική"))))
+		       (with-html
+			 (:li (:a :class class :href (home) "Αρχική"))))
 	       'config (lambda (class)
 			 (with-html
 			   (:li (:a :class class :href (config) "Ρυθμίσεις"))))
 	       'companies (lambda (class)
-			(with-html
-			  (:li (:a :class class :href (companies) "Εταιρίες"))))
+			    (with-html
+			      (:li (:a :class class :href (companies) "Εταιρίες"))))
 	       'cheques (lambda (class)
-			 (with-html
-			   (:li (:a :class class :href (cheques) "Επιταγές")))))))
+			  (with-html
+			    (:li (:a :class class :href (cheques) "Επιταγές"))))
+	       'transactions (lambda (class)
+			       (with-html
+				 (:li (:a :class class :href (transactions) "Συναλλαγές")))))))
     (with-html
       (:div :id "navbar"
 	    (:ul :class "hmenu"

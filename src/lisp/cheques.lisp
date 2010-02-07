@@ -15,13 +15,13 @@
 					    (company string #'valid-company-p)
 					    (status string)
 					    (amount integer #'positive-p))
-    ("actions/cheque/create")
+    ("actions/cheque/create" :request-type :post)
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val 
-	  (let ((bank-id (get-bank-id (val bank)))
-		(company-id (get-company-id (val company))))
+	  (let ((bank-id (get-bank-id bank))
+		(company-id (get-company-id company)))
 	    (with-db
 	      (insert-dao (make-instance 'cheque
 					 :bank-id bank-id
@@ -55,11 +55,11 @@
 					    (status string))
     ("actions/cheque/update" :request-type :post)
   (no-cache) 
-  (with-parameter-list params
-    (let ((bank-id (get-bank-id (val bank)))
-	  (company-id (get-company-id (val company))))
-      (if (and bank-id company-id (every #'validp params)) 
-	  (with-parameter-rebinding #'val 
+  (with-parameter-list params 
+    (if (every #'validp params) 
+	(with-parameter-rebinding #'val
+	  (let ((bank-id (get-bank-id bank))
+		(company-id (get-company-id company)))
 	    (with-db
 	      (execute (:update 'cheque :set
 				'bank-id bank-id
@@ -68,15 +68,15 @@
 				'amount amount
 				'status status
 				:where (:= 'id cheque-id)))
-	      (redirect (cheques :cheque-id cheque-id) :code +http-see-other+)))
-	  (with-parameter-rebinding #'raw
-	    (redirect (cheque/update :cheque-id cheque-id
-				     :bank bank
-				     :company company
-				     :due-date due-date
-				     :amount amount
-				     :status status)
-		      :code +http-see-other+))))))
+	      (redirect (cheques :cheque-id cheque-id) :code +http-see-other+))))
+	(with-parameter-rebinding #'raw
+	  (redirect (cheque/update :cheque-id cheque-id
+				   :bank bank
+				   :company company
+				   :due-date due-date
+				   :amount amount
+				   :status status)
+		    :code +http-see-other+)))))
 
 ;; Pages
 
@@ -102,21 +102,23 @@
 
 (define-dynamic-page cheque/create ((bank string #'valid-bank-p)
 				    (company string #'valid-company-p)
-				    (due-date date #'valid-due-date-p)
+				    (amount integer #'positive-p)
 				    (status string)
-				    (amount integer #'positive-p))
+				    (due-date date #'valid-due-date-p))
     ("cheque/create")
-  (no-cache) 
+  (no-cache)
   (with-parameter-list params 
     (with-page ()
       (:head
        (:title "Επιταγές")
-       (css "reset.css" "main.css"))
+       (css "reset.css" "main.css")
+       (js-headers))
       (:body
        (:div :id "header"
 	     (logo)
 	     (primary-navbar 'cheques)) 
-       (:div :id "body" 
+       (:div :id "body"
+	     (cheque-errorbar bank company amount status due-date)
 	     (:div :id "cheques" :class "window"
 		   (cheque-menu nil)
 		   (:h2 "Δημιουργία επιταγής") 
@@ -126,9 +128,9 @@
 (define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p)
 				    (bank string #'valid-bank-p)
 				    (company string #'valid-company-p)
-				    (due-date date #'valid-due-date-p)
+				    (amount integer #'positive-p)
 				    (status string)
-				    (amount integer #'positive-p))
+				    (due-date date #'valid-due-date-p))
     ("cheque/update")
   (no-cache)
   (if (validp cheque-id)
@@ -141,7 +143,8 @@
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'cheques)) 
-	   (:div :id "body" 
+	   (:div :id "body"
+		 (cheque-errorbar bank company amount status due-date)
 		 (:div :id "cheques" :class "window"
 		       (cheque-menu (val cheque-id) :view :delete)
 		       (:h2 "Επεξεργασία επιταγής")
@@ -203,7 +206,7 @@
 					    (url "img/bullet_blue.png")))))
 		    (:td :class "data" (str (lisp-to-html bank)))
 		    (:td :class "data"
-			 (:a :class "data" :href (companies :id company-id)
+			 (:a :class "data" :href (company/view :id company-id)
 			     (str (lisp-to-html company))))
 		    (:td :class "data" (str (lisp-to-html amount)))
 		    (:td :class "data" (str (lisp-to-html (status-label status))))
@@ -258,7 +261,7 @@
 			     (:img :src (url "img/bullet_red.png"))))
 		    (:td :class "data" (str (lisp-to-html bank)))
 		    (:td :class "data"
-			 (:a :class "data" :href (companies :id company-id)
+			 (:a :class "data" :href (company/view :id company-id)
 			     (str (lisp-to-html company))))
 		    (:td :class "data" (str (lisp-to-html amount)))
 		    (:td :class "data" (str (lisp-to-html (status-label status))))
@@ -324,3 +327,19 @@
 	    (:ul :class "hmenu"
 		 (iter (for opt in opt-list)
 		       (funcall (getf options opt))))))))
+
+(defun cheque-errorbar (bank company amount status due-date)
+  (unless (every #'validp (list bank company amount status due-date))
+    (with-html
+      (:div :id "msg"
+	    (:ul :class "errorbar"
+		 (unless (validp bank)
+		   (htm (:li "Άκυρο όνομα τράπεζας")))
+		 (unless (validp company)
+		   (htm (:li "Άκυρο όνομα εταιρίας")))
+		 (unless (validp amount)
+		   (htm (:li "Άκυρο ποσό")))
+		 (unless (validp status)
+		   (htm (:li "Άκυρη κατάσταση επιταγής")))
+		 (unless (validp due-date)
+		   (htm (:li "Άκυρη ημερομηνία"))))))))

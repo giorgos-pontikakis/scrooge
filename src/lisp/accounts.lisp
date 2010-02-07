@@ -1,375 +1,253 @@
 (in-package :scrooge)
 
-;;; --- Snippets --------------------
-
-(defun account-menu (state &optional id)
-  (with-db
-    (let ((children-exist-p (and id (query (:select 'id
-						    :from 'account
-						    :where (:= 'parent-id id)))))
-	  (tx-types-exist-p (and id (query (:select 'id
-						    :from 'tx-type
-						    :where (:or (:= 'debit-acc-id id)
-								(:= 'credit-acc-id id))))))) 
-      (flet ((summary (&optional id)
-	       (with-html
-		 (:li (:a :href (accounts :account-id id)
-			  (:img :src (url "img/table.png")) "Πίνακας λογαριασμών"))))
-	     (insert ()
-	       (with-html
-		 (:li (:a :href (account/insert)
-			  (:img :src (url "img/add.png")) "Δημιουργία"))))
-	     (insert-child (id)
-	       (if id
-		   (with-html
-		     (:li (:a :href (account/insert :parent-id id)
-			      (:img :src (url "img/add.png")) "Δημιουργία υπολογαριασμού")))
-		   nil))
-	     (view (id)
-	       (if id
-		   (with-html
-		     (:li (:a :href (account/view :account-id id)
-			      (:img :src (url "img/magnifier.png")) "Προβολή")))
-		   nil))
-	     (edit (id)
-	       (if id
-		   (with-html
-		     (:li (:a :href (account/edit :account-id id)
-			      (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-		   nil))
-	     (kill (id)
-	       (if (or (null id) children-exist-p tx-types-exist-p)
-		   nil
-		   (with-html
-		     (:li (:a :href (account/remove :account-id id)
-			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))
-	(with-html
-	  (:ul :class "hmenu" 
-	       (ecase state
-		 ;;
-		 (summary (progn 
-			    (insert)
-			    (view id)
-			    (edit id)
-			    (insert-child id)
-			    (kill id)))
-		 ;;
-		 (insert (summary))
-		 ;;
-		 (view (summary id)
-		       (edit id)
-		       (kill id))
-		 ;; 
-		 (edit (progn (summary id)
-			      (view id)
-			      (kill id)))
-		 ;; 
-		 (kill (progn (summary id)
-			      (view id)
-			      (edit id))))))))))
-
-(defun account-errorbar (title)
-  (with-html 
-    (:div :id "msg"
-	  (:ul :class "errorbar"
-	       (when title
-		 (htm (:li "Άκυρο όνομα λογαριασμού")))))))
-
-
-;;; --- Actions --------------------
-
-(define-dynamic-page insert-account ((parent-id integer (lambda (id)
-							  (or (eq :null id)
-							      (valid-account-id-p id)))) 
-				     (title             string #'not-db-null-p)
-				     (debit-p           boolean))
-    ("actions/account/insert" :request-type :post)
-  (no-cache)
-  (with-auth "root"
-    (with-error-plist (errors)
-      (if errors
-	  (see-other (account/insert :parent-id parent-id
-				     :title (or title title*)
-				     :debit-p debit-p))
-	  (progn
-	    (create-account parent-id title debit-p )
-	    (see-other (accounts)))))))
-
-(define-dynamic-page edit-account ((account-id integer #'valid-account-id-p)
-				   (title      string  #'not-db-null-p))
-    ("actions/account/edit" :request-type :post)
+(define-dynamic-page actions/account/create ((title       string)
+					     (parent-id   integer #'valid-parent-acc-id-p)
+					     (debit-acc-p boolean))
+    ("actions/account/create" :request-type :post)
   (no-cache) 
-  (with-auth "root"
-    (with-error-plist (errors)
-      (if errors
-	  (see-other (account/edit :account-id account-id 
-				   :title (or title title*)))
+  (with-parameter-list params 
+    (if (every #'validp params)
+	(with-parameter-rebinding #'val 
 	  (with-db
-	    (let ((account (get-dao 'account account-id)))
-	      (update-account account-id
-			      :parent-id (parent-id account) 
+	    (insert-dao (make-instance 'account
+				       :title title
+				       :parent-id parent-id
+				       :debit-p debit-acc-p))
+	    (redirect (accounts) :code +http-see-other+)))
+	(redirect (notfound)
+		  :code +http-see-other+))))
+
+(define-dynamic-page actions/account/delete ((acc-id integer #'acc-id-exists-p))
+    ("actions/account/delete" :request-type :post)
+  (no-cache)
+  (if (validp acc-id)
+      (with-db
+	(delete-dao (get-dao 'account (val acc-id))) 
+	(redirect (accounts) :code +http-see-other+))
+      (redirect (notfound) :code +http-see-other+)))
+
+(define-dynamic-page actions/account/update ((acc-id    integer #'acc-id-exists-p) 
+					     (title     string)
+					     (parent-id integer #'valid-parent-acc-id-p))
+    ("actions/account/update" :request-type :post)
+  (no-cache) 
+  (with-parameter-list params 
+    (if (every #'validp params)
+	(with-parameter-rebinding #'val
+	  (with-db
+	    (execute (:update 'account :set
 			      :title title
-			      :debit-p (debit-p account))
-	      (see-other (account/view :account-id account-id))))))))
+			      :where (:= 'id acc-id)))
+	    (redirect (accounts :acc-id acc-id) :code +http-see-other+)))
+	(redirect (notfound) :code +http-see-other+))))
 
-(define-dynamic-page remove-account ((account-id integer))
-    ("actions/accounts/remove" :request-type :post)
-  (no-cache)
-  (with-auth "root"
-    (delete-account account-id)
-    (see-other (accounts))))
-
-
-;;; --- Pages --------------------
-
-(define-dynamic-page accounts ((account-id integer #'valid-account-id-p))
+(define-dynamic-page accounts ((acc-id integer #'acc-id-exists-p))
     ("accounts/")
-  (no-cache)
-  (if account-id*
-      (see-other (account/notfound))
-      (labels ((display-accounts (accounts-list active-id &optional (level 0))
-		 (with-html
-		   (:ul :class "indent"
-			(iter (for account in accounts-list)
-			      (let ((subs (select-dao 'account (:= 'parent-id (id account)))))
-				(if (null subs)
-				    (htm
-				     (:li (:a :href (accounts :account-id (id account))
-					      :class (if (eql (id account) active-id) "active" nil)
-					      (str (title account)))))
-				    (htm
-				     (:li (:a :href (accounts :account-id (id account))
-					      :class (if (eql (id account) active-id) "active" nil)
-					      (str (title account)))
-					  (display-accounts subs active-id (1+ level)))))))))))
-	(with-db
-	  (let ((root-debit-accounts (select-dao 'account
-						 (:and (:= 'debit-p t)
-						       (:is-null 'parent-id))))
-		(root-credit-accounts (select-dao 'account (:and (:= 'debit-p nil)
-								 (:is-null 'parent-id)))))
-	    (with-page ()
-	      (:head
-	       (:title "Σκρουτζ: Λογαριασμοί")
-	       (css "reset.css" "scrooge.css"))
-	      (:body
-	       (:div :id "header"
-		     (logo)
-		     (navbar "Λογαριασμοί"))
-	       (:div :id "body"
-		     (:div :id "actions"
-			   (account-menu 'summary account-id))
-		     (:div :id "content" :class "summary"
-			   (:div :class "vmenu" :id "debit-accounts"
-				 (:h3 "Χρεωστικοί λογαριασμοί")
-				 (if root-debit-accounts
-				     (display-accounts root-debit-accounts account-id)
-				     (htm (:p "Δεν έχουν οριστεί χρεωστικοί λογαριασμοί"))))
-			   (:div :class "vmenu" :id "credit-accounts"
-				 (:h3 "Πιστωτικοί λογαριασμοί") 
-				 (if root-credit-accounts
-				     (display-accounts root-credit-accounts account-id)
-				     (htm (:p "Δεν έχουν οριστεί πιστωτικοί λογαριασμοί")))))
-		     (footer)))))))))
+  (no-cache) 
+  (if (validp acc-id)
+      (with-parameter-rebinding #'val
+	(let ((debit-p (and acc-id
+			    (with-db (query (:select 'debit-p :from 'account :where (:= 'id acc-id))
+					    :single)))))
+	  (with-page ()
+	    (:head
+	     (:title "Λογαριασμοί")
+	     (css "reset.css" "main.css"))
+	    (:body
+	     (:div :id "header"
+		   (logo)
+		   (primary-navbar 'config)
+		   (config-navbar 'accounts)) 
+	     (:div :id "body" 
+		   (:div :id "debit-accounts" :class "window"
+			 (apply #'account-menu
+				acc-id t (if debit-p '(:create :edit :delete) '(:create)))
+			 (:h2 "Χρεωστικοί Λογαριασμοί") 
+			 (display-accounts t nil acc-id :view))
+		   (:div :id "credit-accounts" :class "window" 
+			 (apply #'account-menu
+				acc-id nil (if debit-p '(:create) '(:create :edit :delete)))
+			 (:h2 "Πιστωτικοί Λογαριασμοί") 
+			 (display-accounts nil nil acc-id :view))
+		   (footer))))))
+      (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page account/insert ((parent-id integer (lambda (id)
-							  (or (eq :null id)
-							      (valid-account-id-p id))))
-				     (title     string  #'not-db-null-p)
-				     (debit-p   boolean))
-    ("account/insert")
-  (no-cache)
-  (if parent-id*
-      (see-other (account/notfound))
+(define-dynamic-page account/create ((acc-id  integer #'acc-id-exists-p)
+				     (debit-p boolean))
+    ("account/create")
+  (no-cache) 
+  (if (every #'valid (list acc-id debit-p))
       (with-page ()
 	(:head
-	 (:title "Σκρουτζ: Εισαγωγή λογαριασμού")
-	 (css "reset.css" "scrooge.css"))
+	 (:title "Λογαριασμοί")
+	 (css "reset.css" "main.css"))
 	(:body
 	 (:div :id "header"
 	       (logo)
-	       (navbar "Λογαριασμοί"))
+	       (primary-navbar 'config)
+	       (config-navbar 'accounts)) 
+	 (:div :id "body"
+	       (:div :id "debit-accounts" :class "window"
+		     (account-menu nil t)
+		     (:h2 "Χρεωστικοί Λογαριασμοί") 
+		     (display-accounts t nil (val acc-id) (if (val debit-p) :create :view)))
+	       (:div :id "debit-accounts" :class "window"
+		     (account-menu nil nil)
+		     (:h2 "Πιστωτικοί Λογαριασμοί") 
+		     (display-accounts nil nil (val acc-id) (if (val debit-p) :view :create)))
+	       (footer))))
+      (redirect (notfound) :code +http-see-other+)))
+
+(define-dynamic-page account/update ((acc-id integer #'acc-id-exists-p)
+				     (debit-p boolean))
+    ("account/update")
+  (no-cache)
+  (if (validp acc-id)
+      (with-page ()
+	(:head
+	 (:title "Λογαριασμοί")
+	 (css "reset.css" "main.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (primary-navbar 'config)
+	       (config-navbar 'accounts)) 
+	 (:div :id "body"
+	       (:div :id "debit-accounts" :class "window"
+		     (account-menu (val acc-id) t :view :delete)
+		     (:h2 "Χρεωστικοί Λογαριασμοί")
+		     (display-accounts t nil (val acc-id) (if (val debit-p) :edit :view))) 
+	       (:div :id "credit-accounts" :class "window"
+		     (account-menu (val acc-id) nil :view :delete)
+		     (:h2 "Πιστωτικοί Λογαριασμοί") 
+		     (display-accounts nil nil (val acc-id) (if (val debit-p) :view :edit)))
+	       (footer))))
+      (redirect (notfound) :code +http-see-other+)))
+
+(define-dynamic-page account/delete ((acc-id  integer #'acc-id-exists-p)
+				     (debit-p boolean))
+    ("account/delete")
+  (no-cache)
+  (if (validp acc-id)
+      (with-page ()
+	(:head
+	 (:title "Λογαριασμοί")
+	 (css "reset.css" "main.css"))
+	(:body
+	 (:div :id "header"
+	       (logo)
+	       (primary-navbar 'config)
+	       (config-navbar 'accounts)) 
 	 (:div :id "body" 
-	       (:div :id "actions" 
-		     (account-menu 'insert parent-id))
-	       (when title*
-		 (account-errorbar title*))
-	       (:div :id "content" :class "simple-form" 
-		     (if (null parent-id)
-			 ;; Root account, no parent
-			 (htm
-			  (:h2 "Εισαγωγή λογαριασμού")
-			  (with-form (insert-account :parent-id :null)
-			    (with-table (:style "formtable")
-			      ((label 'title "Ονομασία λογαριασμού")
-			       (textbox 'title
-					:value (or title title*)
-					:style (if title* "invalid" nil)))
-			      ((label 'debit-p "Είδος λογαριασμού")
-			       (radio 'debit-p '(("Χρεωστικός" t)
-						 ("Πιστωτικός" nil))
-				      :checked debit-p)))
-			    (:ul :class "prompt hmenu"
-				 (:li (submit "Δημιουργία"))
-				 (:li (:a :href (accounts) "Ακύρωση")))))
-			 ;; Non-root account, parent exists
-			 (with-db 
-			   (let ((parent-account (get-dao 'account parent-id)))
-			     (htm
-			      (:h2 "Εισαγωγή υπο-λογαριασμού")
-			      (with-form (insert-account :parent-id (id parent-account)
-							 :debit-p (debit-p parent-account))
-				(with-table (:style "formtable")
-				  ((label 'parent-title "Ονομασία λογαριασμού-γονέα")
-				   (textbox 'parent-title
-					    :value (title parent-account) 
-					    :disabledp t))
-				  ((label 'title "Ονομασία λογαριασμού")
-				   (textbox 'title
-					    :value (or title title*)
-					    :style (if title* "invalid" nil))))
-				(:ul :class "prompt hmenu"
-				     (:li (submit "Δημιουργία"))
-				     (:li (:a :href (accounts) "Ακύρωση")))))))))
-	       (footer))))))
+	       (:div :id "debit-accounts" :class "window"
+		     (account-menu (val acc-id) t :view :edit)
+		     (:h2 "Χρεωστικοί λογαριασμοί")
+		     (display-accounts t nil (val acc-id) (if (val debit-p) :delete :view)))
+	       (:div :id "credit-accounts" :class "window"
+		     (account-menu (val acc-id) nil :view :edit)
+		     (:h2 "Χρεωστικοί λογαριασμοί")
+		     (display-accounts nil nil (val acc-id) (if (val debit-p) :view :delete)))
+	       (footer))))
+      (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page account/view ((account-id integer #'valid-account-id-p)) ("account/view")
-  (no-cache)
-  (if account-id*
-      (see-other (account/notfound))
-      (with-db
-	(let* ((account (get-dao 'account account-id))
-	       (parent-account (get-dao 'account (parent-id account)))
-	       (transactions (get-transactions 'account account-id)) 
-	       (debits-sum (reduce #'+ (remove-if-not #'integerp transactions :key #'fifth)
-				   :key #'fifth)) 
-	       (credits-sum (reduce #'+ (remove-if-not #'integerp transactions :key #'sixth)
-				    :key #'sixth)))
-	  (with-page ()
-	    (:head
-	     (:title "Σκρουτζ: Λογαριασμός > " (str (title account)))
-	     (css "reset.css" "scrooge.css"))
-	    (:body
-	     (:div :id "header"
-		   (logo)
-		   (navbar "Λογαριασμοί"))
-	     (:div :id "body" 
-		   (:div :id "actions"
-			 (account-menu 'view account-id)) 
-		   (:div :id "content" :class "simple-form"
-			 (:h2 "Στοιχεία λογαριασμού")
-			 (with-table (:style "formtable")
-			   ((label 'title "Ονομασία λογαριασμού")
-			    (textbox 'title :value (title account) :readonlyp t))
-			   ((label 'parent-title "Γονέας")
-			    (textbox 'parent-title
-				     :value (if parent-account (title parent-account) :null)
-				     :readonlyp t))
-			   ((label 'debit-p "Είδος λογαριασμού")
-			    (radio 'debit-p '(("Χρεωστικός" t)
-					      ("Πιστωτικός" nil))
-				   :checked (debit-p account)
-				   :readonlyp t))))
-		   (:div :class "dbtable"
-			 (table transactions
-				:header '("Ημερομηνία" "Εταιρία" "Περιγραφή" "Χρέωση" "Πίστωση")
-				:caption "Συναλλαγές Λογαριασμού"
-				:id-fn #'first
-				:td-fn #'rest
-				:style "dbtable")
-			 (:p "Σύνολο χρεώσεων = " (str debits-sum)) 
-			 (:p "Σύνολο πιστώσεων = " (str credits-sum))
-			 (:p "Ισοζύγιο λογαριασμού: " (str (if (debit-p account)
-							       (- debits-sum credits-sum)
-							       (- credits-sum debits-sum)))))
-		   (footer))))))))
+(defun display-accounts (debit-p parent-id active-id intent)
+  (with-db
+    (let ((accounts (if (null parent-id)
+			(query (:select 'id 'title 'parent-id :from 'account
+					:where (:and (:= 'debit-p debit-p)
+						     (:is-null 'parent-id))))
+			(query (:select 'id 'title 'parent-id :from 'account
+					:where (:and (:= 'debit-p debit-p)
+						     (:= 'parent-id parent-id)))))))
+      (flet ((normal-row (acc-id title activep)
+	       (with-html
+		 (:li :class (if activep "active" nil)
+		      (if activep
+			  (htm (:a :href (accounts)
+				   (:img :src (url "img/bullet_red.png"))))
+			  (htm (:a :href (accounts :acc-id acc-id)
+				   (:img :src (url "img/bullet_blue.png"))))) 
+		      (str (lisp-to-html title)))))
+	     (form-row-create (debit-acc-p parent-id)
+	       (with-form (actions/account/create :parent-id (or parent-id :null)
+						  :debit-acc-p debit-acc-p)
+		 (:li :class "active"
+		      (htm (:a :href (accounts)
+			       (:img :src (url "img/bullet_red.png")))) 
+		      (textbox 'title) 
+		      (ok-button)
+		      (cancel-button (accounts)))))
+	     (form-row-update (acc-id title parent-id) 
+	       (with-form (actions/account/update :acc-id acc-id
+						  :parent-id (or parent-id :null))
+		 (:li :class "active"
+		      (:a :href (accounts)
+			  (:img :src (url "img/bullet_red.png"))) 
+		      (textbox 'title :value title) 
+		      (ok-button)
+		      (cancel-button (accounts :acc-id acc-id)))))
+	     (form-row-delete (acc-id title)
+	       (with-form (actions/account/delete :acc-id acc-id)
+		 (:li :class "attention"
+		      (:a :href (accounts)
+			  (:img :src (url "img/bullet_red.png"))) 
+		      (str (lisp-to-html title))
+		      (ok-button)
+		      (cancel-button (accounts :acc-id acc-id))))))
+	(with-html
+	  (:ul :class "indent forms-in-row"
+	       (when (and (eql intent :create) (eql active-id parent-id))
+		 (form-row-create debit-p parent-id))
+	       (iter (for (acc-id title parent-id) in accounts)
+		     (for activep = (and active-id (= active-id acc-id)))
+		     (if activep
+			 (case intent
+			   ((or :create :view) (normal-row acc-id title activep))
+			   (:edit (form-row-update acc-id title parent-id))
+			   (:delete (form-row-delete acc-id title)))
+			 (normal-row acc-id title activep)) 
+		     (display-accounts debit-p acc-id active-id intent))))))))
 
-(define-dynamic-page account/edit ((account-id integer #'valid-account-id-p)
-				   (title      string  #'not-db-null-p))
-    ("account/edit")
-  (no-cache)
-  (if account-id*
-      (see-other (account/notfound))
-      (with-db
-	(let ((account (get-dao 'account account-id)))
-	  (with-page ()
-	    (:head
-	     (:title "Σκρουτζ: Επεξεργασία λογαριασμού: " (title account))
-	     (css "reset.css" "scrooge.css"))
-	    (:body
-	     (:div :id "header"
-		   (logo)
-		   (navbar "Λογαριασμοί"))
-	     (:div :id "body" 
-		   (:div :id "actions"
-			 (account-menu 'edit account-id))
-		   (when title*
-		     (account-errorbar title*))
-		   (:div :id "content" :class "simple-form"
-			 (:h2 "Επεξεργασία λογαριασμού")
-			 (with-form (edit-account :account-id account-id 
-						  :debit-p (debit-p account)) 
-			   (with-table (:style "formtable")
-			     ((label 'title "Ονομασία λογαριασμού")
-			      (textbox 'title
-				       :value (or title title* (title account))
-				       :style (if title* "invalid" nil))))
-			   (:ul :class "prompt hmenu"
-				(:li (submit "Ενημέρωση"))
-				(:li (:a :href (account/view :account-id account-id)
-					 "Ακύρωση")))))
-		   (footer))))))))
+(defun account-menu (acc-id debit-p &rest opt-list)
+  (let ((options
+	 (list :create (lambda () 
+			 (with-html
+			   (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
+				    (:img :src (url "img/add.png")) "Δημιουργία"))))
+	       :view (lambda () 
+		       (if acc-id
+			   (with-html
+			     (:li (:a :href (accounts :acc-id acc-id)
+				      (:img :src (url "img/magnifier.png")) "Προβολή")))
+			   nil))
+	       :edit (lambda ()
+		       (if acc-id
+			   (with-html
+			     (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
+				      (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+			   nil))
+	       :delete (lambda ()
+			 (if (and acc-id
+				  (not (get-subaccounts acc-id))
+				  (not (get-transactions acc-id)))
+			     (with-html
+			       (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
+					(:img :src (url "img/delete.png")) "Διαγραφή")))
+			     nil)))))
+    (with-html
+      (:div :class "actions"
+	    (:ul :class "hmenu"
+		 (iter (for opt in opt-list)
+		       (funcall (getf options opt))))))))
 
-(define-dynamic-page account/remove ((account-id integer #'valid-account-id-p)) ("account/remove")
-  (no-cache)
-  (if account-id*
-      (see-other (account/notfound))
-      (with-db
-	(let* ((account (get-dao 'account account-id))
-	       (parent-account (get-dao 'account (parent-id account))))
-	  (with-page ()
-	    (:head
-	     (:title "Σκρουτζ: Λογαριασμός" (str (title account)))
-	     (css "reset.css" "scrooge.css"))
-	    (:body
-	     (:div :id "header"
-		   (logo)
-		   (navbar "Λογαριασμοί"))
-	     (:div :id "body" 
-		   (:div :id "actions"
-			 (account-menu 'kill account-id))
-		   (:div :id "content" :class "simple-form"
-			 (:h2 "Διαγραφή λογαριασμού")
-			 (with-form (remove-account :account-id account-id) 
-			   (with-table (:style "formtable")
-			     ((label 'title "Ονομασία λογαριασμού")
-			      (textbox 'title
-				       :value (title account)
-				       :readonlyp t))
-			     ((label 'parent-title "Γονέας")
-			      (textbox 'parent-title
-				       :value (if parent-account (title parent-account) :null)
-				       :readonlyp t))
-			     ((label 'debit-p "Είδος λογαριασμού")
-			      (radio 'debit-p '(("Χρεωστικός" t)
-						("Πιστωτικός" nil))
-				     :checked (debit-p account)
-				     :readonlyp t)))
-			   (:ul :class "prompt hmenu"
-				(:li (submit "Διαγραφή λογαριασμού")) 
-				(:li (:a :href (account/view :account-id account-id)
-					 "Ακύρωση"))))))))))))
+(defun get-subaccounts (acc-id)
+  (with-db
+    (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
+	   :single)))
 
-(define-dynamic-page account/notfound () ("account/notfound")
-  (with-page ()
-    (:head
-     (:title "Σκρούτζ: Άγνωστος λογαριασμός")
-     (css "reset.css" "scrooge.css"))
-    (:body
-     (:div :id "header"
-	   (logo)
-	   (navbar nil))
-     (:div :id "body"
-	   (:div :id "content" :class "summary"
-		 (:p "Ο λογαριασμός που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
-		 (:p "Επιστρέψτε στο μενού των συναλλαγών και προσπαθήστε ξανά."))))))
+(defun get-transactions (acc-id)
+  (with-db
+    (query (:select 'id
+		   :from 'tx
+		   :where (:or (:= 'debit-acc-id acc-id)
+			       (:= 'credit-acc-id acc-id))))))
