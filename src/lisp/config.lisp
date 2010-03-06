@@ -28,15 +28,19 @@
 		       (with-html
 			 (:li (:a :class class :href (tofs) "Δ.Ο.Υ."))))
 	       'accounts (lambda (class)
-				 (with-html
-				   (:li (:a :class class :href (accounts)
-					    "Λογαριασμοί")))))))
+			   (with-html
+			     (:li (:a :class class :href (accounts) "Λογαριασμοί"))))
+	       'autotx (lambda (class)
+			 (with-html
+			   (:li (:a :class class :href (autotx) "Αυτόματες Συναλλαγές")))))))
     (with-html
       (:div :id "subnavbar"
 	    (:ul :class "hmenu"
 		 (iter (for item in options by #'cddr)
 		       (for fn in (rest options) by #'cddr)
 		       (funcall fn (if (eql item active-item) "active" nil))))))))
+
+
 ;;; ------------------------------------------------------------
 ;;; Banks
 ;;; ------------------------------------------------------------

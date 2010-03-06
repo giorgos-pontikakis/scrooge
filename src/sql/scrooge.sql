@@ -46,6 +46,7 @@ create table cheque (
        ,due_date date not null
        ,amount integer not null check (amount > 0) 
        ,status varchar(8) default 'pending'
+       ,payable boolean default "f"
 -- status should be one of pending, paid, bounced, returned, transfered
 );
 
@@ -117,6 +118,12 @@ create table tx (
             or (cheque_id is not null and amount is null))
 );
 
+create table autotx (
+       id serial primary key
+       ,description varchar(256)
+       ,debit_acc_id integer not null references account(id)
+       ,credit_acc_id integer not null references account(id)
+);
 
 create table project (
        id serial primary key

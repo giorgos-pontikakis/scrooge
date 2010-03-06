@@ -17,4 +17,5 @@
 	       (:file "companies")
 	       (:file "cheques")
 	       (:file "accounts")
-	       (:file "tx")))
+	       (:file "tx")
+	       (:file "autotx")))

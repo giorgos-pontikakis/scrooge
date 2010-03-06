@@ -88,15 +88,12 @@
 
 ;;; --- Transaction Types --------------------
 
-(define-existence-validator tx-type-id-exists-p tx-type id)
-(define-existence-validator tx-type-exists-p    tx-type title)
+(define-existence-validator autotx-id-exists-p autotx id)
+(define-existence-validator autotx-exists-p    autotx description)
 
-(defun valid-tx-type-id-p (val)
+(defun valid-autotx-id-p (val)
   (and (positive-nonnull-p val)
-       (tx-type-id-exists-p val)))
-
-(defun valid-tx-type-p (val)
-  (tx-type-exists-p val))
+       (autotx-id-exists-p val)))
 
 ;;; --- Cheques --------------------
 

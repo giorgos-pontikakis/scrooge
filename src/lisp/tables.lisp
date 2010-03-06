@@ -58,7 +58,8 @@
    (company-id :col-type integer :accessor company-id :initarg :company-id)
    (due-date   :col-type date    :accessor due-date   :initarg :due-date)
    (amount     :col-type integer :accessor amount     :initarg :amount)
-   (status     :col-type string  :accessor status     :initarg :status)) 
+   (status     :col-type string  :accessor status     :initarg :status)
+   (payable    :col-type boolean :accessor payable    :initarg :payable)) 
   (:metaclass dao-class)
   (:keys id))
 
@@ -93,6 +94,14 @@
    (company-id    :col-type integer :accessor company-id    :initarg :company-id)
    (amount        :col-type integer :accessor amount        :initarg :amount)
    (cheque-id     :col-type integer :accessor cheque-id     :initarg :cheque-id)) 
+  (:metaclass dao-class)
+  (:keys id))
+
+(defclass autotx ()
+  ((id            :col-type integer :reader   id) 
+   (description   :col-type string  :accessor description   :initarg :description)
+   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
   (:metaclass dao-class)
   (:keys id))
 

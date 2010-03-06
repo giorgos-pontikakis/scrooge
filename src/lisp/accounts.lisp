@@ -1,5 +1,7 @@
 (in-package :scrooge)
 
+(declaim (optimize (speed 0) (safety 3) (debug 3)))
+
 (define-dynamic-page actions/account/create ((title       string)
 					     (parent-id   integer #'valid-parent-acc-id-p)
 					     (debit-acc-p boolean))
@@ -76,7 +78,7 @@
 				     (debit-p boolean))
     ("account/create")
   (no-cache) 
-  (if (every #'valid (list acc-id debit-p))
+  (if (every #'validp (list acc-id debit-p))
       (with-page ()
 	(:head
 	 (:title "Λογαριασμοί")
