@@ -30,9 +30,12 @@
 	       'accounts (lambda (class)
 			   (with-html
 			     (:li (:a :class class :href (accounts) "Λογαριασμοί"))))
-	       'autotx (lambda (class)
-			 (with-html
-			   (:li (:a :class class :href (autotx) "Αυτόματες Συναλλαγές")))))))
+	       'temtx (lambda (class)
+			(with-html
+			  (:li (:a :class class :href (temtx) "Πρότυπες Συναλλαγές"))))
+	       'fsm (lambda (class)
+		      (with-html
+			(:li (:a :class class :href (fsm) " FSM transitions")))))))
     (with-html
       (:div :id "subnavbar"
 	    (:ul :class "hmenu"
@@ -190,7 +193,7 @@
       (:div :id "msg"
 	    (:ul :class "errorbar")
 	    (unless (validp id)
-	      (htm (:li "Άκυροv αναγνωριστικό (id) τράπεζας")))
+	      (htm (:li "Άκυρο αναγνωριστικό (id) τράπεζας")))
 	    (unless (validp title)
 	      (htm (:li "Αυτό το όνομα τράπεζας υπάρχει ήδη")))))))
 

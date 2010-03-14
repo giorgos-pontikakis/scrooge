@@ -18,4 +18,5 @@
 	       (:file "cheques")
 	       (:file "accounts")
 	       (:file "tx")
-	       (:file "autotx")))
+	       (:file "temtx")
+	       (:file "fsm")))

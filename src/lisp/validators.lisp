@@ -86,14 +86,34 @@
   (and (positive-nonnull-p val)
        (tx-id-exists-p val)))
 
-;;; --- Transaction Types --------------------
+;;; --- Transaction Templates --------------------
 
-(define-existence-validator autotx-id-exists-p autotx id)
-(define-existence-validator autotx-exists-p    autotx description)
+(define-existence-validator temtx-id-exists-p temtx id)
+(define-existence-validator temtx-exists-p    temtx description)
 
-(defun valid-autotx-id-p (val)
-  (and (positive-nonnull-p val)
-       (autotx-id-exists-p val)))
+(defun valid-temtx-id-p (val)
+  (and (positive-p val)
+       (temtx-id-exists-p val)))
+
+(defun valid-fsm-id-p (fsm-id tbl)
+  (with-db
+    (query (:select 1
+		    :from (symbolicate (string-upcase tbl) "-FSM")
+		    :where (:= 'id fsm-id)))))
+
+(defun valid-combo (table old-status new-status)
+  (with-db
+    (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
+	   (sql-old (sql-compile `(:select 1
+					   :from ,status-table
+					   :where (or (:= status ,old-status)
+						      (:is-null ,old-status)))))
+	   (sql-new  (sql-compile `(:select 1
+					    :from ,status-table
+					    :where (:= status ,new-status)))))
+      (and (member table (fsm-tables) :test #'string-equal)
+	   (query sql-old :single)
+	   (query sql-new :single)))))
 
 ;;; --- Cheques --------------------
 
@@ -106,6 +126,11 @@
 (defun valid-due-date-p (val)
   (not (eq :null val)))
 
+(defun valid-cheque-status-p (val)
+  (with-db
+    (query (:select 1 :from 'cheque-status :where (:= 'status (if (symbolp val)
+								  (string-downcase val)
+								  val))))))
 ;;; --- Accounts --------------------
 
 (define-existence-validator acc-id-exists-p account id)

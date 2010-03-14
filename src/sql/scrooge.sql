@@ -1,8 +1,12 @@
 drop table contact;
 drop table project;
+drop table project_fsm;
+drop table project_status;
 drop table tx;
+drop table temtx;
+drop table cheque_fsm;
 drop table cheque;
--- drop table tx_type;
+drop table cheque_status;
 
 drop table company;
 -- drop table debit_account;
@@ -14,6 +18,7 @@ drop table bank;
 drop table tof;
 
 
+--- Basic config ------------------------------
 
 create table tof ( -- taxation office
        id varchar(8) primary key
@@ -25,6 +30,7 @@ create table bank (
        ,title varchar(64) unique not null
 );
 
+--- Companies and contacts ------------------------------
 
 create table company (
        id		serial primary key
@@ -39,51 +45,15 @@ create table company (
 );
 
 
-create table cheque (
+create table contact (
        id serial primary key
-       ,bank_id varchar(8) not null references bank(id)
        ,company_id integer not null references company(id)
-       ,due_date date not null
-       ,amount integer not null check (amount > 0) 
-       ,status varchar(8) default 'pending'
-       ,payable boolean default "f"
--- status should be one of pending, paid, bounced, returned, transfered
+       ,tag varchar(32)
+       ,phone varchar(32)
 );
 
 
-
-
-
--- create table account_type (
---        id  varchar (8) primary key
--- );
-
--- insert into account_type (id) values('debit');
--- insert into account_type (id) values('credit');
-
--- create table account (
---        id varchar(8) primary key
---        ,acc_type varchar(8) references account_type(id)
---        ,title varchar(128)
---        ,unique (id, acc_type)
--- );
-
--- create table debit_account (
---        id varchar(8) primary key references account(id)
---        ,acc_type varchar(8) default 'debit'
---        ,parent_id varchar(8) references debit_account(id)
---        ,check (acc_type = 'debit')
---        ,foreign key(id, acc_type) references account(id, acc_type)
--- );
-
--- create table credit_account (
---        id varchar(8) primary key references account(id)
---        ,acc_type varchar(8) default 'credit'
---        ,parent_id varchar(8) references credit_account(id)
---        ,check (acc_type = 'credit')
---        ,foreign key(id, acc_type) references account(id, acc_type)
--- );
-
+--- Cheques ------------------------------
 
 create table account (
        id serial primary key
@@ -92,37 +62,79 @@ create table account (
        ,debit_p boolean not null
 );
 
--- create table debit_account (
---        id varchar(8) primary key references account(id)
---        ,parent_id varchar(8) references debit_account(id)
---        ,title varchar(128)
--- );
 
--- create table credit_account (
---        id varchar(8) primary key references account(id)
---        ,title varchar(128)
---        ,parent_id varchar(8) references credit_account(id)
--- );
+--- Cheques ------------------------------
 
+create table cheque_status (
+       status varchar(8) primary key
+       ,description varchar(16) 
+);
+insert into cheque_status (status, description) values('pending', 'Εκκρεμούσα');
+insert into cheque_status (status, description) values('paid', 'Πληρωμένη');
+insert into cheque_status (status, description) values('bounced', 'Ακάλυπτη');
+insert into cheque_status (status, description) values('returned', 'Επιστραμμένη');
 
-create table tx (
-       id		serial primary key
-       ,tx_date		date
-       ,description	varchar(256)
-       ,debit_acc_id    integer not null references account(id)
-       ,credit_acc_id   integer not null references account(id)
-       ,company_id	integer not null references company(id)
-       ,amount          integer check (amount > 0)
-       ,cheque_id       integer references cheque(id)
-       ,check ((cheque_id is null and amount is not null) 
-            or (cheque_id is not null and amount is null))
+create table cheque_fsm (
+       id serial primary key
+       ,description varchar(256)
+       ,debit_acc_id integer references account(id)
+       ,credit_acc_id integer references account(id)
+       ,old_status varchar(16) references cheque_status(status)
+       ,new_status varchar(16) references cheque_status(status)
 );
 
-create table autotx (
+create table cheque (
        id serial primary key
+       ,bank_id varchar(8) not null references bank(id)
+       ,company_id integer not null references company(id)
+       ,due_date date not null
+       ,amount integer not null check (amount > 0) 
+       ,status varchar(8) not null references cheque_status(status) default 'pending'
+       ,payable_p boolean default 'f'
+);
+
+
+
+--- Transactions ------------------------------
+
+create table tx (
+       id serial primary key
+       ,tx_date date
        ,description varchar(256)
        ,debit_acc_id integer not null references account(id)
        ,credit_acc_id integer not null references account(id)
+       ,company_id integer not null references company(id)
+       ,amount integer check (amount > 0)
+       ,src_id integer
+       ,src_tbl varchar(16)
+);
+
+create table temtx (
+       id serial primary key
+       ,description varchar(256)
+       ,debit_acc_id integer references account(id)
+       ,credit_acc_id integer references account(id)
+);
+
+
+
+--- Projects ------------------------------
+
+create table project_status (
+       status varchar(8) primary key
+       ,description varchar(16) 
+);
+insert into project_status (status, description) values('quoted', 'Δόθηκε προσφορά');
+insert into project_status (status, description) values('ongoing', 'Σε εξέλιξη');
+insert into project_status (status, description) values('finished', 'Τελείωσε');
+
+create table project_fsm (
+       id serial primary key
+       ,description varchar(256)
+       ,debit_acc_id integer references account(id)
+       ,credit_acc_id integer references account(id)
+       ,old_status varchar(16) references project_status(status)
+       ,new_status varchar(16) references project_status(status)
 );
 
 create table project (
@@ -132,25 +144,6 @@ create table project (
        ,location varchar(64)
        ,price integer check (price > 0)
 );
-
-
-create table contact (
-       id serial primary key
-       ,company_id integer not null references company(id)
-       ,tag varchar(32)
-       ,phone varchar(32)
-);
-
--- create table tx_type (
---        id               serial
---        title		varchar(256)
---        debit_acc_id     integer not null
---        credit_acc_id    integer not null
---        constraint tx_type_pk primary key(id)
---        constraint debit_acc_fk foreign key(debit_acc_id) references account(id)
---        constraint credit_acc_fk foreign key(credit_acc_id) references account(id)
--- );
-
 
 
 

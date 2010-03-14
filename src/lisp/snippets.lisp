@@ -44,12 +44,6 @@
   (with-html
     (:h1 "Scrooge")))
 
-(defun cheque-statuses ()
-  '(("Εκκρεμεί" "pending")
-    ("Πληρώθηκε" "paid")
-    ("Επιστράφηκε" "returned")
-    ("Σφραγίστηκε" "bounced")))
-
 (defun footer ()
   (with-html
     (:div :id "footer" "Powered by lisp")))

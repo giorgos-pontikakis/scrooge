@@ -4,10 +4,10 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-(define-dynamic-page actions/autotx/create (description
+(define-dynamic-page actions/temtx/create (description
 					    (debit-acc string #'account-exists-p)
 					    (credit-acc string #'account-exists-p))
-    ("actions/autotx/create" :request-type :post)
+    ("actions/temtx/create" :request-type :post)
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
@@ -15,31 +15,31 @@
 	  (let ((debit-acc-id (get-account-id debit-acc))
 		(credit-acc-id (get-account-id credit-acc)))
 	    (with-db
-	      (insert-dao (make-instance 'autotx
+	      (insert-dao (make-instance 'temtx
 					 :description description
 					 :debit-acc-id debit-acc-id
 					 :credit-acc-id credit-acc-id))
-	      (redirect (autotx) :code +http-see-other+))))
+	      (redirect (temtx) :code +http-see-other+))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (autotx/create :description description
+	  (redirect (temtx/create :description description
 				   :debit-acc debit-acc
 				   :credit-acc credit-acc)
 		    :code +http-see-other+)))))
 
-(define-dynamic-page actions/autotx/delete ((autotx-id integer #'valid-autotx-id-p))
-    ("actions/autotx/delete" :request-type :post)
+(define-dynamic-page actions/temtx/delete ((temtx-id integer #'valid-temtx-id-p))
+    ("actions/temtx/delete" :request-type :post)
   (no-cache)
-  (if (validp autotx-id)
+  (if (validp temtx-id)
       (with-db
-	(delete-dao (get-dao 'autotx (val autotx-id)))
-	(redirect (autotx) :code +http-see-other+))
+	(delete-dao (get-dao 'temtx (val temtx-id)))
+	(redirect (temtx) :code +http-see-other+))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page actions/autotx/update ((autotx-id integer #'valid-autotx-id-p)
+(define-dynamic-page actions/temtx/update ((temtx-id integer #'valid-temtx-id-p)
 					    description
 					    (debit-acc string #'account-exists-p)
 					    (credit-acc string #'account-exists-p))
-    ("actions/autotx/update" :request-type :post)
+    ("actions/temtx/update" :request-type :post)
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
@@ -47,14 +47,14 @@
 	  (let ((debit-acc-id (get-account-id debit-acc))
 		(credit-acc-id (get-account-id credit-acc)))
 	    (with-db
-	      (execute (:update 'autotx :set
+	      (execute (:update 'temtx :set
 				'description description
 				'debit-acc-id debit-acc-id
 				'credit-acc-id credit-acc-id
-				:where (:= 'id autotx-id)))
-	      (redirect (autotx) :code +http-see-other+))))
+				:where (:= 'id temtx-id)))
+	      (redirect (temtx) :code +http-see-other+))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (autotx/update :autotx-id autotx-id
+	  (redirect (temtx/update :temtx-id temtx-id
 				   :description description
 				   :debit-acc debit-acc
 				   :credit-acc credit-acc)
@@ -62,10 +62,10 @@
 
 ;;; Pages
 
-(define-dynamic-page autotx ((autotx-id integer))
-    ("config/autotx")
+(define-dynamic-page temtx ((temtx-id integer))
+    ("config/temtx")
   (no-cache)
-  (if (validp autotx-id)
+  (if (validp temtx-id)
       (with-parameter-rebinding #'val
 	(with-page ()
 	  (:head
@@ -75,89 +75,89 @@
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'config)
-		 (config-navbar 'autotx))
+		 (config-navbar 'temtx))
 	   (:div :id "body"
-		 (:div :id "autotx" :class "window"
-		       (autotx-menu autotx-id (if autotx-id
+		 (:div :id "temtx" :class "window"
+		       (temtx-menu temtx-id (if temtx-id
 						  '(:create :update :delete)
 						  '(:create)))
-		       (display-autotx autotx-id :view))))))
+		       (display-temtx temtx-id :view))))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page autotx/create (description
+(define-dynamic-page temtx/create (description
 				    (debit-acc string #'account-exists-p)
 				    (credit-acc string #'account-exists-p))
-    ("config/autotx/create")
+    ("config/temtx/create")
   (no-cache)
   (with-parameter-list params
     (with-page ()
       (:head
-       (:title "Αυτόματες συναλλαγές: Δημιουργία")
+       (:title "Πρότυπες συναλλαγές: Δημιουργία")
        (css "reset.css" "main.css"))
       (:body
        (:div :id "header"
 	     (logo)
 	     (primary-navbar 'config)
-	     (config-navbar 'autotx))
+	     (config-navbar 'temtx))
        (:div :id "body"
-	     (:div :id "autotx" :class "window"
-		   (autotx-menu nil nil) 
-		   (display-autotx nil :create params)))))))
+	     (:div :id "temtx" :class "window"
+		   (temtx-menu nil nil) 
+		   (display-temtx nil :create params)))))))
 
-(define-dynamic-page autotx/update ((autotx-id integer)
+(define-dynamic-page temtx/update ((temtx-id integer)
 				    description 
 				    (debit-acc string #'account-exists-p) 
 				    (credit-acc string #'account-exists-p))
-    ("config/autotx/update")
+    ("config/temtx/update")
   (no-cache)
-  (if (validp autotx-id)
+  (if (validp temtx-id)
       (with-parameter-list params
 	(with-page ()
 	  (:head
-	   (:title "Αυτόματες συναλλαγές: Επεξεργασία")
+	   (:title "Πρότυπες συναλλαγές: Επεξεργασία")
 	   (css "reset.css" "main.css"))
 	  (:body
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'config)
-		 (config-navbar 'autotx))
+		 (config-navbar 'temtx))
 	   (:div :id "body"
-		 (:div :id "autotx" :class "window"
-		       (autotx-menu (val autotx-id) '(:view :delete))
-		       (display-autotx (val autotx-id) :update (rest params)))))))
+		 (:div :id "temtx" :class "window"
+		       (temtx-menu (val temtx-id) '(:view :delete))
+		       (display-temtx (val temtx-id) :update (rest params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page autotx/delete ((autotx-id integer))
-    ("config/autotx/delete")
+(define-dynamic-page temtx/delete ((temtx-id integer))
+    ("config/temtx/delete")
   (no-cache)
-  (if (validp autotx-id)
+  (if (validp temtx-id)
       (with-parameter-rebinding #'val
 	(with-page ()
 	  (:head
-	   (:title "Αυτόματες συναλλαγές: Διαγραφή")
+	   (:title "Πρότυπες συναλλαγές: Διαγραφή")
 	   (css "reset.css" "main.css"))
 	  (:body
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'config)
-		 (config-navbar 'autotx))
+		 (config-navbar 'temtx))
 	   (:div :id "body"
-		 (:div :id "autotx" :class "window"
-		       (autotx-menu autotx-id '(:view :update))
-		       (display-autotx autotx-id :delete))))))
+		 (:div :id "temtx" :class "window"
+		       (temtx-menu temtx-id '(:view :update))
+		       (display-temtx temtx-id :delete))))))
       (redirect (notfound) :code +http-see-other+)))
 
 
-(defun display-autotx (active-id intent &optional params)
-  (flet ((normal-row (id row  activep)
+(defun display-temtx (active-id intent &optional params)
+  (flet ((normal-row (id row activep)
 	   (bind (((description debit-acc credit-acc)  row))
 	     (with-html
 	       (:tr :class (if activep "active" nil)
 		    (:td :class "select"
 			 (if activep
-			     (htm (:a :href (autotx)
+			     (htm (:a :href (temtx)
 				      (:img :src (url "img/bullet_red.png"))))
-			     (htm (:a :href (autotx :autotx-id id)
+			     (htm (:a :href (temtx :temtx-id id)
 				      (:img :src (url "img/bullet_blue.png"))))))
 		    (:td :class "data" (str (lisp-to-html description)))
 		    (:td :class "data" (str (lisp-to-html debit-acc)))
@@ -165,50 +165,51 @@
 		    (:td :class "button" "")
 		    (:td :class "button" "")))))
 	 (form-row-create (row styles)
-	   (bind (((description debit-acc credit-acc)  row)
+	   (bind (((description debit-acc credit-acc) row)
 		  ((description% debit-acc% credit-acc%) styles))
-	     (with-form (actions/autotx/create)
+	     (with-form (actions/temtx/create)
 	       (:tr :class "active"
 		    (:td :class "select"
-			 (:a :href (autotx)
+			 (:a :href (temtx)
 			     (:img :src (url "img/bullet_red.png"))))
 		    (:td :class "data" (textbox 'description :value description :style description%))
 		    (:td :class "data" (textbox 'debit-acc :value debit-acc :style debit-acc%))
 		    (:td :class "data" (textbox 'credit-acc :value credit-acc :style credit-acc%))
 		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (autotx)))))))
+		    (:td :class "button" (cancel-button (temtx)))))))
 	 (form-row-update (id row styles)
 	   (bind (((description debit-acc credit-acc)  row)
 		  ((description% debit-acc% credit-acc%) styles))
-	     (with-form (actions/autotx/update :autotx-id id)
+	     (with-form (actions/temtx/update :temtx-id id)
 	       (:tr :class "active"
 		    (:td :class "select"
-			 (:a :href (autotx)
+			 (:a :href (temtx)
 			     (:img :src (url "img/bullet_red.png"))))
 		    (:td :class "data" (textbox 'description :value description :style description%))
 		    (:td :class "data" (textbox 'debit-acc :value debit-acc :style debit-acc%))
 		    (:td :class "data" (textbox 'credit-acc :value credit-acc :style credit-acc%))
 		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (autotx :autotx-id id)))))))
+		    (:td :class "button" (cancel-button (temtx :temtx-id id)))))))
 	 (form-row-delete (id row)
 	   (destructuring-bind (description debit-acc credit-acc) row
-	     (with-form (actions/autotx/delete :autotx-id id)
+	     (with-form (actions/temtx/delete :temtx-id id)
 	       (:tr :class "attention"
 		    (:td :class "select"
-			 (:a :href (autotx)
+			 (:a :href (temtx)
 			     (:img :src (url "img/bullet_red.png"))))
 		    (:td :class "data" (str (lisp-to-html description)))
 		    (:td :class "data" (str (lisp-to-html debit-acc)))
-		    (:td :class "data" (str (lisp-to-html credit-acc)))
+		    (:td :class "data" (str (lisp-to-html credit-acc))) 
 		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (autotx :autotx-id id))))))))
+		    (:td :class "button" (cancel-button (temtx :temtx-id id))))))))
     (with-db
-      (let ((auto-txs (query (:select 'autotx.id 'description 'debit-account.title 'credit-account.title
-				      :from 'autotx
+      (let ((auto-txs (query (:select 'temtx.id 'description
+				      'debit-account.title 'credit-account.title 
+				      :from 'temtx
 				      :left-join (:as 'account 'debit-account)
-				      :on (:= 'debit-account.id 'autotx.debit-acc-id)
+				      :on (:= 'debit-account.id 'temtx.debit-acc-id)
 				      :left-join (:as 'account 'credit-account)
-				      :on (:= 'credit-account.id 'autotx.credit-acc-id))))
+				      :on (:= 'credit-account.id 'temtx.credit-acc-id))))
 	    (header '("" "Περιγραφή" "Λογαριασμός Χρέωσης" "Λογαριασμός Πίστωσης" "" ""))
 	    (inputs (if params
 			(mapcar #'val* params)
@@ -217,7 +218,7 @@
 			(mapcar (lambda (p) (if (validp p) nil "attention")) params)
 			(make-list 3))))
 	(with-html
-	  (:table :id "autotx-table" :class "forms-in-row"
+	  (:table :id "temtx-table" :class "forms-in-row"
 		  (:thead
 		   (:tr (iter (for label in header) (htm (:th (str label))))))
 		  (:tbody
@@ -233,28 +234,28 @@
 				 (:delete (form-row-delete id row))))
 			     (normal-row id defaults activep))))))))))
 
-(defun autotx-menu (autotx-id opt-list)
+(defun temtx-menu (temtx-id opt-list)
   (let ((options
 	 (list :create (lambda () 
 			 (with-html
-			   (:li (:a :href (autotx/create)
+			   (:li (:a :href (temtx/create)
 				    (:img :src (url "img/add.png")) "Δημιουργία"))))
 	       :view (lambda () 
-		       (if autotx-id
+		       (if temtx-id
 			   (with-html
-			     (:li (:a :href (autotx :autotx-id autotx-id)
+			     (:li (:a :href (temtx :temtx-id temtx-id)
 				      (:img :src (url "img/magnifier.png")) "Προβολή")))
 			   nil))
 	       :update (lambda ()
-			 (if autotx-id
+			 (if temtx-id
 			     (with-html
-			       (:li (:a :href (autotx/update :autotx-id autotx-id)
+			       (:li (:a :href (temtx/update :temtx-id temtx-id)
 					(:img :src (url "img/pencil.png")) "Επεξεργασία")))
 			     nil))
 	       :delete (lambda ()
-			 (if autotx-id
+			 (if temtx-id
 			     (with-html
-			       (:li (:a :href (autotx/delete :autotx-id autotx-id)
+			       (:li (:a :href (temtx/delete :temtx-id temtx-id)
 					(:img :src (url "img/delete.png")) "Διαγραφή")))
 			     nil)))))
     (with-html

@@ -59,7 +59,23 @@
    (due-date   :col-type date    :accessor due-date   :initarg :due-date)
    (amount     :col-type integer :accessor amount     :initarg :amount)
    (status     :col-type string  :accessor status     :initarg :status)
-   (payable    :col-type boolean :accessor payable    :initarg :payable)) 
+   (payable-p  :col-type boolean :accessor payable-p  :initarg :payable-p)) 
+  (:metaclass dao-class)
+  (:keys id))
+
+(defclass cheque-status ()
+  ((status :col-type string :reader status)
+   (description :col-type string :accessor description :initarg :description))
+  (:metaclass dao-class)
+  (:keys status))
+
+(defclass cheque-fsm ()
+  ((id            :col-type integer :reader   id) 
+   (description   :col-type string  :accessor description   :initarg :description) 
+   (old-status    :col-type string  :accessor old-status    :initarg :old-status)
+   (new-status    :col-type string  :accessor new-status    :initarg :new-status)
+   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
   (:metaclass dao-class)
   (:keys id))
 
@@ -71,35 +87,23 @@
   (:metaclass dao-class)
   (:keys id))
 
-;; (defclass debit-account ()
-;;   ((id        :col-type string :accessor id        :initarg :id)
-;;    (parent-id :col-type string :accessor parent-id :initarg :parent-id) 
-;;    #|(title     :col-type string  :accessor title    :initarg :title)|#) 
-;;   (:metaclass dao-class)
-;;   (:keys id))
-
-;; (defclass credit-account ()
-;;   ((id        :col-type string  :accessor id       :initarg :id)
-;;    (parent-id :col-type string :accessor parent-id :initarg :parent-id) 
-;;    #|(title     :col-type string  :accessor title    :initarg :title)|#) 
-;;   (:metaclass dao-class)
-;;   (:keys id))
-
 (defclass tx ()
   ((id            :col-type integer :reader   id) 
    (tx-date       :col-type date    :accessor tx-date       :initarg :tx-date)
    (description   :col-type string  :accessor description   :initarg :description)
-   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)
    (company-id    :col-type integer :accessor company-id    :initarg :company-id)
    (amount        :col-type integer :accessor amount        :initarg :amount)
-   (cheque-id     :col-type integer :accessor cheque-id     :initarg :cheque-id)) 
+   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id) 
+   (src-id        :col-type src-id  :accessor src-id        :initarg :src-id)
+   (src-tbl       :col-type src-tbl :accessor src-tbl       :initarg :src-tbl)) 
   (:metaclass dao-class)
   (:keys id))
 
-(defclass autotx ()
+
+(defclass temtx ()
   ((id            :col-type integer :reader   id) 
-   (description   :col-type string  :accessor description   :initarg :description)
+   (description   :col-type string  :accessor description   :initarg :description) 
    (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
   (:metaclass dao-class)
@@ -115,7 +119,26 @@
 
 
 
+;;; Projects
 
+(defclass project ()
+  ((id         :col-type integer :reader   id)
+   (company-id :col-type integer :accessor company-id :initarg :company-id)
+   (title      :col-type string  :accessor title      :initarg :title)
+   (location   :col-type string  :accessor location   :initarg :location)
+   (price      :col-type integer :accessor price      :initarg :price))
+  (:metaclass dao-class)
+  (:keys id))
+
+(defclass project-fsm ()
+  ((id            :col-type integer :reader   id) 
+   (description   :col-type string  :accessor description   :initarg :description) 
+   (old-status    :col-type string  :accessor old-status    :initarg :old-status)
+   (new-status    :col-type string  :accessor new-status    :initarg :new-status)
+   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
+  (:metaclass dao-class)
+  (:keys id))
 
 
 ;;; Auxiliary tables
@@ -215,16 +238,6 @@
 
 
 
-;;; Projects
-
-;; (defclass project ()
-;;   ((id         :col-type integer :reader   id)
-;;    (company-id :col-type integer :accessor company-id :initarg :company-id)
-;;    (title      :col-type string  :accessor title      :initarg :title)
-;;    (location   :col-type string  :accessor location   :initarg :location)
-;;    (price      :col-type integer :accessor price      :initarg :price))
-;;   (:metaclass dao-class)
-;;   (:keys id))
 
 ;; (define-table-create/update/delete project id (company-id title location price))
 

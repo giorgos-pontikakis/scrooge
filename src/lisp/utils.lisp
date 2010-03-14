@@ -18,6 +18,15 @@
 	    (#\ΰ . #\Ϋ)))
     result-string))
 
+
+(defun merge-nonnull (initial new)
+  (if (null new)
+      initial
+      (mapcar (lambda (i n)
+		(or n i))
+	     initial new)))
+
+
 ;; (defun get-val-or-default (param-name params defaults)
 ;;   (or (val* (find param-name params :key #'name))
 ;;       (getf defaults param-name)))

@@ -53,3 +53,35 @@
 	   (:div :id "content" :class "summary"
 		 (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
 		 (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
+
+(define-dynamic-page error-page () ("error-page")
+  (no-cache)
+  (with-page ()
+    (:head
+     (:title "Generic error page")
+     (css "reset.css" "main.css"))
+    (:body
+     (:div :id "header"
+	   (logo))
+     (:div :id "body"
+	   (:div :id "content" :class "summary"
+		 (:p "An error has occured.")
+		 (:p "You are supposed to see this page because of illegal URL manipulation"))))))
+
+
+(define-dynamic-page no-fsm-data () ("no-fsm-data")
+  (no-cache)
+  (with-page ()
+    (:head
+     (:title "No fsm data")
+     (css "reset.css" "main.css"))
+    (:body
+     (:div :id "header"
+	   (logo)
+	   (primary-navbar 'companies))
+     (:div :id "body"
+	   (:div :id "content" :class "summary"
+		 (:p "No fsm transitions data found."))))))
+
+
+
