@@ -176,7 +176,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Σκρούτζ: Τύποι συναλλαγών")
-	     (css "reset.css" "scrooge.css"))
+	     (css-headers "css/reset.css" "css/scrooge.css"))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -196,8 +196,8 @@
     (with-page ()
       (:head
        (:title "Σκρούτζ: Εισαγωγή τύπου συναλλαγής")
-       (css "reset.css" "scrooge.css")
-       (js-headers))
+       (css-headers "css/reset.css" "css/scrooge.css")
+       (js-standard-headers))
       (:body
        (:div :id "header"
 	     (logo)
@@ -243,7 +243,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Σκρούτζ: Προβολή τύπου συναλλαγής")
-	     (css "reset.css" "scrooge.css"))
+	     (css-headers "css/reset.css" "css/scrooge.css"))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -275,8 +275,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Σκρούτζ: Επεξεργασία τύπου συναλλαγής")
-	     (css "reset.css" "scrooge.css")
-	     (js-headers))
+	     (css-headers "css/reset.css" "css/scrooge.css")
+	     (js-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -337,7 +337,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Σκρούτζ: Διαγραφή τύπου συναλλαγής")
-	     (css "reset.css" "scrooge.css"))
+	     (css-headers "css/reset.css" "css/scrooge.css"))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -366,7 +366,7 @@
   (with-page ()
     (:head
      (:title "Σκρούτζ: Άγνωστος τύπος συναλλαγής")
-     (css "reset.css" "scrooge.css"))
+     (css-headers "css/reset.css" "css/scrooge.css"))
     (:body
      (:div :id "header"
 	   (logo)

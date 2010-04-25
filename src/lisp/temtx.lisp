@@ -70,7 +70,7 @@
 	(with-page ()
 	  (:head
 	     (:title "Αυτόματες συναλλαγές")
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -93,7 +93,7 @@
     (with-page ()
       (:head
        (:title "Πρότυπες συναλλαγές: Δημιουργία")
-       (css "reset.css" "main.css"))
+       (css-standard-headers))
       (:body
        (:div :id "header"
 	     (logo)
@@ -115,7 +115,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Πρότυπες συναλλαγές: Επεξεργασία")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -135,7 +135,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Πρότυπες συναλλαγές: Διαγραφή")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)

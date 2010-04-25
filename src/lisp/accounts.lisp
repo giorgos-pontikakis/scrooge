@@ -54,7 +54,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Λογαριασμοί")
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -82,7 +82,7 @@
       (with-page ()
 	(:head
 	 (:title "Λογαριασμοί")
-	 (css "reset.css" "main.css"))
+	 (css-standard-headers))
 	(:body
 	 (:div :id "header"
 	       (logo)
@@ -108,7 +108,7 @@
       (with-page ()
 	(:head
 	 (:title "Λογαριασμοί")
-	 (css "reset.css" "main.css"))
+	 (css-standard-headers))
 	(:body
 	 (:div :id "header"
 	       (logo)
@@ -134,7 +134,7 @@
       (with-page ()
 	(:head
 	 (:title "Λογαριασμοί")
-	 (css "reset.css" "main.css"))
+	 (css-standard-headers))
 	(:body
 	 (:div :id "header"
 	       (logo)

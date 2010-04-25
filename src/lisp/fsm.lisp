@@ -1,15 +1,6 @@
 (in-package :scrooge)
 
 
-;; (defparameter *fsm-tables-statuses*
-;;   (with-db
-;;     (iter (for table in (mapcar #'second *fsm-tables*))
-;; 	  (for reftable = (symbolicate table "-status" ))
-;; 	  (collect (list table
-;; 			 (query (sql-compile `(:select status description
-;; 						       :from ,reftable))))))))
-
-
 ;;; Actions
 
 (declaim (optimize (speed 0) (debug 3)))
@@ -100,7 +91,7 @@
 	(with-page ()
 	  (:head
 	   (:title "FSM transitions")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -126,7 +117,7 @@
     (with-page ()
       (:head
        (:title "FSM Transitions: Δημιουργία")
-       (css "reset.css" "main.css"))
+       (css-standard-headers))
       (:body
        (:div :id "header"
 	     (logo)
@@ -151,7 +142,7 @@
 	(with-page ()
 	  (:head
 	   (:title "FSM Transitions: Επεξεργασία")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -171,7 +162,7 @@
 	(with-page ()
 	  (:head
 	   (:title "FSM Transitions: Διαγραφή")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)

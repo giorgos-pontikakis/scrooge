@@ -214,7 +214,7 @@
 	  (with-page () 
 	    (:head
 	     (:title "Επιταγές")
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -244,8 +244,8 @@
     (with-page ()
       (:head
        (:title "Επιταγές")
-       (css "reset.css" "main.css")
-       (js-headers))
+       (css-standard-headers)
+       (js-standard-headers))
       (:body
        (:div :id "header"
 	     (logo)
@@ -275,8 +275,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Επιταγές")
-	     (css "reset.css" "main.css")
-	     (js-headers))
+	     (css-standard-headers)
+	     (js-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -305,7 +305,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Επιταγές")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -331,7 +331,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Επιταγές")
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -355,7 +355,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη εταιρία")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)

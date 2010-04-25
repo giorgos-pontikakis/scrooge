@@ -11,7 +11,7 @@
   (with-page ()
     (:head
      (:title "Αρχική")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
@@ -44,7 +44,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη σελίδα")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
@@ -59,7 +59,7 @@
   (with-page ()
     (:head
      (:title "Generic error page")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo))
@@ -74,7 +74,7 @@
   (with-page ()
     (:head
      (:title "No fsm data")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)

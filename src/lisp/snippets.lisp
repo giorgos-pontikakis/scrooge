@@ -3,31 +3,29 @@
 
 ;;; HTML Header
 
-(defun css (&rest files)
-  (with-html
-    (mapc (lambda (file)
-	    (htm (:link :href (url "css/" file) :rel "stylesheet" :type "text/css")))
-	  files)))
-
-
-(defun js-headers ()
-  (insert-js-headers "lib/jquery/jquery-1.3.2.min.js"
-		     "lib/jquery.autocomplete/jquery.autocomplete.pack.js"
-		     "js/main.js")
-  (insert-css-headers "lib/jquery.autocomplete/jquery.autocomplete.css"))
-
-(defun insert-css-headers (&rest files)
-  (with-html
-    (mapc (lambda (file)
-	    (htm (:link :href (url file) :rel "stylesheet" :type "text/css")))
-	  files)))
-
-(defun insert-js-headers (&rest js-pathnames)
-  (mapc #'(lambda (pathname)
+(defun js-headers (&rest urls)
+  (mapc #'(lambda (js-url)
 	    (with-html (:script :type "text/javascript"
-				:src (url pathname))))
-	js-pathnames))
+				:src (url js-url))))
+	urls))
 
+(defun css-headers (&rest urls)
+  (mapc #'(lambda (css-url)
+	    (with-html (:link :rel "stylesheet"
+			      :type "text/css"
+			      :href (url css-url))))
+	urls))
+
+(defun js-standard-headers ()
+  (js-headers "lib/jquery/jquery-1.3.2.min.js"
+	      "lib/jquery.autocomplete/jquery.autocomplete.pack.js"
+	      "js/main.js"))
+
+
+(defun css-standard-headers ()
+  (css-headers "css/reset.css"
+	       "css/main.css"
+	       "lib/jquery.autocomplete/jquery.autocomplete.css"))
 
 
 ;;; User interface elements
@@ -119,58 +117,3 @@
 						      (second spec)))))
 		(third spec))))
 
-
-;;; (find-node 'banks (list (make-node *pagetree* nil)))
-
-
-
-
-;; (defclass navbar () (
-;;    (id    :accessor id    :initarg :id)
-;;    (class :accessor class :initarg :class) 
-;;    (items :accessor items :initarg :items)))
-
-;; (defclass navbar-item ()
-;;   ((id     :accessor id     :initarg :id) 
-;;    (title  :accessor title  :initarg :title)
-;;    (fn     :accessor fn     :initarg :fn)))
-
-;; (defparameter *navbars*
-;;   (list (make-instance 'navbar
-;; 		       :id 'company
-;; 		       :class "hmenu"
-;; 		       :items )))
-
-;; (defun make-navbar-company (company-id)
-;;   (mapcar (lambda (id title fn)
-;; 	    (make-instance 'navbar-item
-;; 			   :id id 
-;; 			   :title title
-;; 			   :fn fn))
-;; 	  '(company-list overview cheques)
-;; 	  '("Εταιρίες" "Επισκόπηση" "Επιταγές")
-;; 	  (list (lambda () (companies))
-;; 		(lambda () (company/view :id company-id))
-;; 		(lambda () (company/cheques :id company-id)))))
-
-
-
-
-
-;; (defgeneric render (widget &key &allow-other-keys))
-
-;; (defmethod render ((navbar navbar) &key &allow-other-keys)
-;;   (with-html
-;;     (:div :id (id navbar)
-;; 	  (:ul :class (class navbar)
-;; 	       (iter (for item in (items navbar))
-;; 		     (htm (:li (render item))))))))
-
-;; (defmethod render ((item navbar-item) &key active-id)
-;;   (with-html
-;;     (:a :class (if (eql (id item) active-id) "active" nil)
-;; 	:href (funcall (fn item) (id item))
-;; 	(str (title item)))))
-
-;; (defmacro define-navbar ((&rest params) &body body)
-;;   )

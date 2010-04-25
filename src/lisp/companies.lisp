@@ -346,7 +346,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Εταιρίες")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -374,8 +374,8 @@
     (with-page ()
       (:head
        (:title "Εισαγωγή εταιρίας")
-       (css "reset.css" "main.css")
-       (js-headers))
+       (css-standard-headers)
+       (js-standard-headers))
       (:body
        (:div :id "header"
 	     (logo)
@@ -400,7 +400,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Εταιρία: " (str (getf defaults 'title)))
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -429,8 +429,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Επεξεργασία εταιρίας: " (str (getf defaults 'title)))
-	     (css "reset.css" "main.css")
-	     (js-headers))
+	     (css-standard-headers)
+	     (js-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -452,7 +452,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Διαγραφή εταιρίας:" (str (getf defaults 'title)))
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -472,7 +472,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Εταιρία: " (str (getf defaults 'title)))
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -494,7 +494,7 @@
 	    (with-page ()
 	      (:head
 	       (:title "Εταιρία: " (str (getf defaults 'title)))
-	       (css "reset.css" "main.css"))
+	       (css-standard-headers))
 	      (:body
 	       (:div :id "header"
 		     (logo)
@@ -512,7 +512,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη εταιρία")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
@@ -710,7 +710,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Εταιρία: Δημιουργία επαφής")
-	     (css "reset.css" "main.css"))
+	     (css-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -735,7 +735,7 @@
 	    (with-page ()
 	      (:head
 	       (:title "Εταιρία: Επεξεργασία επαφής")
-	       (css "reset.css" "main.css"))
+	       (css-standard-headers))
 	      (:body
 	       (:div :id "header"
 		     (logo)
@@ -760,7 +760,7 @@
 	   (with-page ()
 	     (:head
 	      (:title "Εταιρία: Διαγραφή επαφής")
-	      (css "reset.css" "main.css"))
+	      (css-standard-headers))
 	     (:body
 	      (:div :id "header"
 		    (logo)

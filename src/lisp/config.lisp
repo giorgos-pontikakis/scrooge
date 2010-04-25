@@ -8,7 +8,7 @@
   (with-page ()
     (:head
      (:title "Ρυθμίσεις")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
@@ -205,7 +205,7 @@
   (with-page ()
     (:head
      (:title "Εισαγωγή τράπεζας")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
@@ -225,7 +225,7 @@
       (with-page ()
 	(:head
 	 (:title "Επεξεργασία τράπεζας")
-	 (css "reset.css" "main.css"))
+	 (css-standard-headers))
 	(:body
 	 (:div :id "header"
 	       (logo)
@@ -247,7 +247,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Διαγραφή τράπεζας")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -268,7 +268,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Τράπεζες")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -445,7 +445,7 @@
   (with-page ()
     (:head
      (:title "Εισαγωγή Δ.Ο.Υ.")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
@@ -465,7 +465,7 @@
       (with-page ()
 	(:head
 	 (:title "Επεξεργασία Δ.Ο.Υ.")
-	 (css "reset.css" "main.css"))
+	 (css-standard-headers))
 	(:body
 	 (:div :id "header"
 	       (logo)
@@ -487,7 +487,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Διαγραφή Δ.Ο.Υ.")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -508,7 +508,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Δ.Ο.Υ.")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)

@@ -107,7 +107,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Συναλλαγές")
-	   (css "reset.css" "main.css"))
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -115,10 +115,10 @@
 	   (:div :id "body" 
 		 (:div :id "transactions" :class "window" 
 		       (tx-menu tx-id (if (manual-tx-p tx-id)
-					  '(:create :edit :delete)
+					  '(:create :update :delete)
 					  '(:create))) 
 		       (:h2 "Κατάλογος συναλλαγών") 
-		       (tx-table tx-id :view))
+		       (tx-table tx-id 'view))
 		 (footer)))))
       (redirect (transaction/notfound) :code +http-see-other+)))
 
@@ -136,8 +136,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Συναλλαγές")
-	     (css "reset.css" "main.css")
-	     (js-headers))
+	     (css-standard-headers)
+	     (js-standard-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -146,7 +146,7 @@
 		   (:div :id "transactions" :class "window"
 			 (tx-menu nil nil)
 			 (:h2 "Δημιουργία συναλλαγής") 
-			 (tx-table nil :create params))
+			 (tx-table nil 'create params))
 		   (footer)))))
 	(redirect (transaction/notfound) :code +http-see-other+))))
 
@@ -164,8 +164,8 @@
 	(with-page ()
 	  (:head
 	   (:title "Συναλλαγές")
-	   (css "reset.css" "main.css")
-	   (js-headers))
+	   (css-standard-headers)
+	   (js-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -176,7 +176,7 @@
 		       (tx-menu (val tx-id) '(:view :delete))
 		       (:h2 "Επεξεργασία συναλλαγής")
 		       ;; first of params list is id, which we ignore 
-		       (tx-table (val tx-id) :edit (rest params)))
+		       (tx-table (val tx-id) 'update (rest params)))
 		 (footer)))))
       (redirect (error-page) :code +http-see-other+)))
 
@@ -188,17 +188,17 @@
 	(with-page ()
 	  (:head
 	   (:title "Συναλλαγές")
-	   (css "reset.css" "main.css")
-	   (js-headers))
+	   (css-standard-headers)
+	   (js-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'transactions)) 
 	   (:div :id "body" 
 		 (:div :id "transactions" :class "window"
-		       (tx-menu tx-id '(:view :edit))
+		       (tx-menu tx-id '(:view :update))
 		       (:h2 "Διαγραφή συναλλαγής")
-		       (tx-table tx-id :delete))
+		       (tx-table tx-id 'delete))
 		 (footer)))))
       (redirect (error-page) :code +http-see-other+)))
 
@@ -306,9 +306,9 @@
 			 (if activep
 			     (let ((data (merge-nonnull def inp)))
 			      (case intent
-				(:view (normal-row id data aux activep)) 
-				(:edit (form-row-update id data styles))
-				(:delete (form-row-delete id data aux))))
+				(view (normal-row id data aux activep)) 
+				(update (form-row-update id data styles))
+				(delete (form-row-delete id data aux))))
 			     (normal-row id def aux))))))))))
 
 (defun tx-menu (tx-id opt-list)
@@ -321,10 +321,10 @@
 		       (with-html
 			 (:li (:a :href (transactions :tx-id tx-id)
 				  (:img :src (url "img/magnifier.png")) "Προβολή"))))
-	       :edit (lambda ()
-		       (with-html
-			 (:li (:a :href (transaction/update :tx-id tx-id)
-				  (:img :src (url "img/pencil.png")) "Επεξεργασία"))))
+	       :update (lambda ()
+			 (with-html
+			   (:li (:a :href (transaction/update :tx-id tx-id)
+				    (:img :src (url "img/pencil.png")) "Επεξεργασία"))))
 	       :delete (lambda ()
 			 (with-html
 			   (:li (:a :href (transaction/delete :tx-id tx-id)
@@ -340,7 +340,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη συναλλαγή")
-     (css "reset.css" "main.css"))
+     (css-standard-headers))
     (:body
      (:div :id "header"
 	   (logo)
