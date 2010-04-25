@@ -1,6 +1,14 @@
 (in-package :scrooge)
 
 
+(define-navbar config-navbar () (:id "subnavbar" :style "hmenu")
+  (banks    (banks)    "Τράπεζες")
+  (tofs     (tofs)     "Δ.Ο.Υ.")
+  (accounts (accounts) "Λογαριασμοί")
+  (temtx    (temtx)    "Πρότυπες Συναλλαγές")
+  (fsm      (fsm)      "FSM transitions"))
+
+
 ;;; Config main page
 
 (define-dynamic-page config () ("config/")
@@ -13,35 +21,11 @@
      (:div :id "header"
 	   (logo)
 	   (primary-navbar 'config)
-	   (config-navbar))
+	   (config-navbar nil))
      (:div :id "body" 
 	   (:div :id "content" :class "window"
 		 "Don't touch")
 	   (footer)))))
-
-(defun config-navbar (&optional active-item)
-  (let ((options 
-	 (list 'banks (lambda (class)
-			(with-html
-			  (:li (:a :class class :href (banks) "Τράπεζες"))))
-	       'tofs (lambda (class)
-		       (with-html
-			 (:li (:a :class class :href (tofs) "Δ.Ο.Υ."))))
-	       'accounts (lambda (class)
-			   (with-html
-			     (:li (:a :class class :href (accounts) "Λογαριασμοί"))))
-	       'temtx (lambda (class)
-			(with-html
-			  (:li (:a :class class :href (temtx) "Πρότυπες Συναλλαγές"))))
-	       'fsm (lambda (class)
-		      (with-html
-			(:li (:a :class class :href (fsm) " FSM transitions")))))))
-    (with-html
-      (:div :id "subnavbar"
-	    (:ul :class "hmenu"
-		 (iter (for item in options by #'cddr)
-		       (for fn in (rest options) by #'cddr)
-		       (funcall fn (if (eql item active-item) "active" nil))))))))
 
 
 ;;; ------------------------------------------------------------
@@ -170,7 +154,7 @@
 		  (:td :class "button" (cancel-button (banks :id id)))))))
     (with-db
       (let ((banks (query (:select 'id 'title :from 'bank)))
-	    (header '("" "ID" "Bank Name" "" "")))
+	    (header '("" "ID" "Ονομασία Τράπεζας" "" "")))
 	(with-html
 	  (:table :id "banks-table" :class "forms-in-row"
 		  (:thead
@@ -410,7 +394,7 @@
 		  (:td :class "button" (cancel-button (tofs :id id)))))))
     (with-db
       (let ((tofs (query (:select 'id 'title :from 'tof)))
-	    (header '("" "ID" "Tof Name" "" "")))
+	    (header '("" "ID" "Ονομασία Δ.Ο.Υ." "" "")))
 	(with-html
 	  (:table :id "tofs-table" :class "forms-in-row"
 		  (:thead

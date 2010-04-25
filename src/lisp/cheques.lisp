@@ -2,6 +2,10 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
+(define-navbar cheque-navbar () (:id "subnavbar" :style "hmenu")
+  (receivable (cheques)              "Προς είσπραξη")
+  (payable    (cheques :payable-p t) "Προς πληρωμή"))
+
 (defparameter *cheque-statuses*
   (with-db
     (query (:select 'description 'status :from 'cheque-status))))
@@ -15,21 +19,6 @@
   (with-db
     (query (:select 'id :from 'company :where (:= 'title title))
 	   :single)))
-
-(defun cheque-navbar (active-item)
-  (let ((options 
-	 (list 'receivable (lambda (class)
-			     (with-html
-			       (:li (:a :class class :href (cheques) "Προς είσπραξη"))))
-	       'payable (lambda (class)
-			  (with-html
-			    (:li (:a :class class :href (cheques :payable-p t) "Προς πληρωμή")))))))
-    (with-html
-      (:div :id "subnavbar"
-	    (:ul :class "hmenu"
-		 (iter (for item in options by #'cddr)
-		       (for fn in (rest options) by #'cddr)
-		       (funcall fn (if (eql item active-item) "active" nil))))))))
 
 (defun cheque-payable-p (cheque-id)
   (with-db

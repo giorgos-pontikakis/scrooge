@@ -22,7 +22,7 @@ drop table tof;
 
 create table tof ( -- taxation office
        id varchar(8) primary key
-       ,title varchar(64) unique
+       ,title varchar(64) unique not null
 );
 
 create table bank (
@@ -39,7 +39,7 @@ create table company (
        ,tof_id       	varchar(8) references tof(id)
        ,tin       	char(9) unique
        ,address		varchar(256)
-       ,city		varchar(6400)
+       ,city		varchar(64)
        ,pobox		integer check (pobox > 10000 and pobox < 89999)
        ,zipcode		integer check (zipcode > 0)
 );
@@ -53,7 +53,7 @@ create table contact (
 );
 
 
---- Cheques ------------------------------
+--- Accounts -----------------------------
 
 create table account (
        id serial primary key
@@ -69,10 +69,10 @@ create table cheque_status (
        status varchar(8) primary key
        ,description varchar(16) 
 );
-insert into cheque_status (status, description) values('pending', 'Εκκρεμούσα');
+insert into cheque_status (status, description) values('pending', 'Εκκρεμεί');
 insert into cheque_status (status, description) values('paid', 'Πληρωμένη');
 insert into cheque_status (status, description) values('bounced', 'Ακάλυπτη');
-insert into cheque_status (status, description) values('returned', 'Επιστραμμένη');
+insert into cheque_status (status, description) values('returned', 'Επιστράφηκε');
 
 create table cheque_fsm (
        id serial primary key

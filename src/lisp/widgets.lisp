@@ -95,3 +95,23 @@
 		(htm (:tbody (:tr (:td "No available data"))))))))
 
 
+;;; ------------------------------------------------------------
+;;; Navigation bars
+;;; ------------------------------------------------------------
+(defmacro define-navbar (name (&rest arglist) (&key id style) &body body) 
+  (multiple-value-bind (items fns) (iter (for sexp in body)
+					 (destructuring-bind (sym href &rest forms) sexp
+					   (collect sym into items)
+					   (collect `(lambda (class)
+						       (with-html
+							 (:li (:a :class class
+								  :href ,href
+								  ,@forms)))) into fns)
+					   (finally (return (values items fns)))))
+    `(defun ,name (active-item ,@arglist) 
+       (with-html
+	 (:div :id ,id
+	       (:ul :class ,style
+		    (iter (for item in ',items)
+			  (for fn in (list ,@fns))
+			  (funcall fn (if (eql item active-item) "active" nil)))))))))

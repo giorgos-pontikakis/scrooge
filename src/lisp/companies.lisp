@@ -6,7 +6,7 @@
 
 ;;; Database utilities
 
-(defmethod tof-id (tof-title)
+(defmethod tof-id ((tof-title string))
   (with-db
     (or (query (:select 'id :from 'tof :where (:= 'title tof-title))
 	       :single)
@@ -21,6 +21,23 @@
 		    :on (:= 'tof.id 'company.tof-id)
 		    :where (:= 'company.id id))
 	   :row))) 
+
+
+;;; Navigation bars
+
+(define-navbar companies-navbar () (:id "subnavbar" :style "hmenu")
+  (all    (companies) (:img :src (url "img/table.png")) "Όλες")
+  (active (companies) "Με ενεργά έργα")
+  (debit  (companies) "Χρεώστριες")
+  (credit (companies) "Πιστώτριες"))
+
+(define-navbar company-navbar (company-id) (:id "subnavbar" :style "hmenu") 
+  (overview     (company/view :id company-id)
+		(:img :src (url "img/table.png")) "Επισκόπηση") 
+  (cheques      (company/cheques :company-id company-id)
+		(:img :src (url "img/table.png")) "Επιταγές")
+  (transactions (company/transactions :company-id company-id)
+		(:img :src (url "img/table.png")) "Συναλλαγές"))
 
 
 ;;; Actions
@@ -138,60 +155,6 @@
 					(str (lisp-to-html title))))
 			       (:td (:p (str (lisp-to-html tin))))
 			       (:td (:p (str (lisp-to-html doy))))))))))))))
-
-(defun companies-navbar (active-item)
-  (let ((options 
-	 (list 'all (lambda (class)
-			   (with-html
-			     (:li (:a :class class
-				      :href (companies)
-				      (:img :src (url "img/table.png")) "Όλες"))))
-	       'active (lambda (class)
-			  (with-html
-			    (:li (:a :class class
-				     :href (companies)
-				     "Με ενεργά έργα"))))
-	       'debit (lambda (class)
-			       (with-html
-				 (:li (:a :class class
-					  :href (companies)
-					  "Χρεώστριες"))))
-	       'credit (lambda (class)
-			       (with-html
-				 (:li (:a :class class
-					  :href (companies) 
-					  "Πιστώτριες")))))))
-    (with-html
-      (:div :id "subnavbar"
-	    (:ul :class "hmenu"
-		 (iter (for item in options by #'cddr)
-		       (for fn in (rest options) by #'cddr)
-		       (funcall fn (if (eql item active-item) "active" nil))))))))
-
-(defun company-navbar (active-item company-id)
-  (let ((options 
-	 (list 'overview (lambda (class)
-			   (with-html
-			     (:li (:a :class class
-				      :href (company/view :id company-id)
-				      (:img :src (url "img/table.png")) "Επισκόπηση"))))
-	       'cheques (lambda (class)
-			  (with-html
-			    (:li (:a :class class
-				     :href (company/cheques :company-id company-id)
-				     (:img :src (url "img/table.png")) "Επιταγές"))))
-	       'transactions (lambda (class)
-			       (with-html
-				 (:li (:a :class class
-					  :href (company/transactions :company-id company-id)
-					  (:img :src (url "img/table.png")) "Συναλλαγές")))))))
-    (with-html
-      (:div :id "subnavbar"
-	    (:ul :class "hmenu"
-		 (iter (for item in options by #'cddr)
-		       (for fn in (rest options) by #'cddr)
-		       (funcall fn (if (eql item active-item) "active" nil))))))))
-
 
 (defun company-menu (id &rest opt-list)
   (let ((options

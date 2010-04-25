@@ -46,29 +46,12 @@
   (with-html
     (:div :id "footer" "Powered by lisp")))
 
-(defun primary-navbar (active-item)
-  (let ((options 
-	 (list 'home (lambda (class)
-		       (with-html
-			 (:li (:a :class class :href (home) "Αρχική"))))
-	       'config (lambda (class)
-			 (with-html
-			   (:li (:a :class class :href (config) "Ρυθμίσεις"))))
-	       'companies (lambda (class)
-			    (with-html
-			      (:li (:a :class class :href (companies) "Εταιρίες"))))
-	       'cheques (lambda (class)
-			  (with-html
-			    (:li (:a :class class :href (cheques) "Επιταγές"))))
-	       'transactions (lambda (class)
-			       (with-html
-				 (:li (:a :class class :href (transactions) "Συναλλαγές")))))))
-    (with-html
-      (:div :id "navbar"
-	    (:ul :class "hmenu"
-		 (iter (for item in options by #'cddr)
-		       (for fn in (rest options) by #'cddr)
-		       (funcall fn (if (eql item active-item) "active" nil))))))))
+(define-navbar primary-navbar () (:id "navbar" :style "hmenu")
+  (home         (home)         "Αρχική")
+  (config       (config)       "Ρυθμίσεις")
+  (companies    (companies)    "Εταιρίες")
+  (cheques      (cheques)      "Επιταγές")
+  (transactions (transactions) "Συναλλαγές"))
 
 
 
