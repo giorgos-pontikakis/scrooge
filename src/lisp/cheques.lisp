@@ -211,10 +211,7 @@
 		   (cheque-navbar (if payable-p 'payable 'receivable)) 
 		   (:div :id "body" 
 			 (:div :id "cheques" :class "window"
-			       (cheque-menu cheque-id
-					    (append (list :create :update :delete)
-						    next-statuses) 
-					    payable-p) 
+			       (apply #'cheque-menu cheque-id payable-p :create :update :delete next-statuses)
 			       (:h2 "Κατάλογος επιταγών") 
 			       (cheques-table cheque-id
 					      'view
@@ -243,7 +240,7 @@
        (:div :id "body"
 	     (cheque-errorbar bank company amount due-date)
 	     (:div :id "cheques" :class "window"
-		   (cheque-menu nil nil (val payable-p))
+		   (cheque-menu nil (val payable-p))
 		   (:h2 "Δημιουργία επιταγής") 
 		   (cheques-table nil
 				  'create
@@ -275,8 +272,8 @@
 		   (cheque-errorbar bank company amount due-date)
 		   (:div :id "cheques" :class "window"
 			 (cheque-menu (val cheque-id)
-				      '(:view :delete)
-				      payable-p)
+				      payable-p
+				      :view :delete)
 			 (:h2 "Επεξεργασία επιταγής")
 			 ;; first of params list is id, which we ignore 
 			 (cheques-table (val cheque-id)
@@ -302,7 +299,7 @@
 		 (cheque-navbar (if payable-p 'payable 'receivable))) 
 	   (:div :id "body" 
 		 (:div :id "cheques" :class "window"
-		       (cheque-menu (val cheque-id) '(:view :update) payable-p)
+		       (cheque-menu (val cheque-id) payable-p :view :update)
 		       (:h2 "Διαγραφή επιταγής")
 		       (cheques-table (val cheque-id)
 				      'delete
@@ -328,7 +325,7 @@
 		   (cheque-navbar (if payable-p 'payable 'receivable))) 
 	     (:div :id "body" 
 		   (:div :id "cheques" :class "window"
-			 (cheque-menu cheque-id '(:view) payable-p)
+			 (cheque-menu cheque-id payable-p :view)
 			 (:h2 (str (case new-status
 				     (paid "Πληρωμή επιταγής")
 				     (bounced "Σφράγισμα επιταγής")
@@ -488,41 +485,28 @@
 			     (normal-row id def aux))))))))))
 
 
-(defun cheque-menu (cheque-id opt-list payable-p)
-  (let ((options
-	 (list :create (lambda ()
-			 (with-html
-			   (:li (:a :href (cheque/create :payable-p payable-p)
-				    (:img :src (url "img/add.png")) "Δημιουργία")))) 
-	       :paid (lambda () 
-		      (with-html
-			(:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
-				 (:img :src (url "img/magnifier.png")) "Πληρωμή"))))
-	       :bounced (lambda () 
-			 (with-html
-			   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
-				    (:img :src (url "img/magnifier.png")) "Σφράγισμα"))))
-	       :returned (lambda () 
-			 (with-html
-			   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
-				    (:img :src (url "img/magnifier.png")) "Επιστροφή"))))
-	       :view (lambda () 
-		       (with-html
-			 (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-				  (:img :src (url "img/magnifier.png")) "Προβολή"))))
-	       :update (lambda ()
-			 (with-html
-			   (:li (:a :href (cheque/update :cheque-id cheque-id)
-				    (:img :src (url "img/pencil.png")) "Επεξεργασία")))) 
-	       :delete (lambda ()
-			 (with-html
-			   (:li (:a :href (cheque/delete :cheque-id cheque-id)
-				    (:img :src (url "img/delete.png")) "Διαγραφή")))))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (funcall (getf options opt))))))))
+(define-menu cheque-menu (cheque-id payable-p) ()
+  (:create (with-html
+	     (:li (:a :href (cheque/create :payable-p payable-p)
+		      (:img :src (url "img/add.png")) "Δημιουργία")))) 
+  (:paid (with-html
+	   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
+		    (:img :src (url "img/magnifier.png")) "Πληρωμή"))))
+  (:bounced (with-html
+	      (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
+		       (:img :src (url "img/magnifier.png")) "Σφράγισμα"))))
+  (:returned (with-html
+	       (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
+			(:img :src (url "img/magnifier.png")) "Επιστροφή"))))
+  (:view (with-html
+	   (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
+		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
+  (:update (with-html
+	     (:li (:a :href (cheque/update :cheque-id cheque-id)
+		      (:img :src (url "img/pencil.png")) "Επεξεργασία")))) 
+  (:delete (with-html
+	     (:li (:a :href (cheque/delete :cheque-id cheque-id)
+		      (:img :src (url "img/delete.png")) "Διαγραφή")))))
 
 
 (defun cheque-errorbar (bank company amount due-date)

@@ -114,9 +114,9 @@
 		 (primary-navbar 'transactions)) 
 	   (:div :id "body" 
 		 (:div :id "transactions" :class "window" 
-		       (tx-menu tx-id (if (manual-tx-p tx-id)
-					  '(:create :update :delete)
-					  '(:create))) 
+		       (apply #'tx-menu tx-id (if (manual-tx-p tx-id)
+						  '(:create :update :delete)
+						  '(:create))) 
 		       (:h2 "Κατάλογος συναλλαγών") 
 		       (tx-table tx-id 'view))
 		 (footer)))))
@@ -144,7 +144,7 @@
 		   (primary-navbar 'transactions)) 
 	     (:div :id "body" 
 		   (:div :id "transactions" :class "window"
-			 (tx-menu nil nil)
+			 (tx-menu nil)
 			 (:h2 "Δημιουργία συναλλαγής") 
 			 (tx-table nil 'create params))
 		   (footer)))))
@@ -173,7 +173,7 @@
 	   (:div :id "body"
 		 #|(tx-errorbar bank company amount status due-date)|#
 		 (:div :id "transactions" :class "window"
-		       (tx-menu (val tx-id) '(:view :delete))
+		       (tx-menu (val tx-id) :view :delete)
 		       (:h2 "Επεξεργασία συναλλαγής")
 		       ;; first of params list is id, which we ignore 
 		       (tx-table (val tx-id) 'update (rest params)))
@@ -196,7 +196,7 @@
 		 (primary-navbar 'transactions)) 
 	   (:div :id "body" 
 		 (:div :id "transactions" :class "window"
-		       (tx-menu tx-id '(:view :update))
+		       (tx-menu tx-id :view :update)
 		       (:h2 "Διαγραφή συναλλαγής")
 		       (tx-table tx-id 'delete))
 		 (footer)))))
@@ -311,29 +311,23 @@
 				(delete (form-row-delete id data aux))))
 			     (normal-row id def aux))))))))))
 
-(defun tx-menu (tx-id opt-list)
-  (let ((options
-	 (list :create (lambda () 
-			 (with-html
-			   (:li (:a :href (transaction/create)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :view (lambda () 
-		       (with-html
-			 (:li (:a :href (transactions :tx-id tx-id)
-				  (:img :src (url "img/magnifier.png")) "Προβολή"))))
-	       :update (lambda ()
-			 (with-html
-			   (:li (:a :href (transaction/update :tx-id tx-id)
-				    (:img :src (url "img/pencil.png")) "Επεξεργασία"))))
-	       :delete (lambda ()
-			 (with-html
-			   (:li (:a :href (transaction/delete :tx-id tx-id)
-				    (:img :src (url "img/delete.png")) "Διαγραφή")))))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (funcall (getf options opt))))))))
+(define-menu tx-menu (tx-id) ()
+  (:create (lambda () 
+	     (with-html
+	       (:li (:a :href (transaction/create)
+			(:img :src (url "img/add.png")) "Δημιουργία")))))
+  (:view (lambda () 
+	   (with-html
+	     (:li (:a :href (transactions :tx-id tx-id)
+		      (:img :src (url "img/magnifier.png")) "Προβολή")))))
+  (:update (lambda ()
+	     (with-html
+	       (:li (:a :href (transaction/update :tx-id tx-id)
+			(:img :src (url "img/pencil.png")) "Επεξεργασία")))))
+  (:delete (lambda ()
+	     (with-html
+	       (:li (:a :href (transaction/delete :tx-id tx-id)
+			(:img :src (url "img/delete.png")) "Διαγραφή"))))))
 
 (define-dynamic-page transaction/notfound () ("transaction/notfound")
   (no-cache)

@@ -143,6 +143,9 @@ create table project (
        ,title varchar(64)
        ,location varchar(64)
        ,price integer check (price > 0)
+       ,start_date date 
+       ,end_date date
+       ,status
 );
 
 

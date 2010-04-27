@@ -99,9 +99,9 @@
 		 (config-navbar 'fsm))
 	   (:div :id "body"
 		 (:div :id "fsm" :class "window"
-		       (fsm-menu fsm-id tbl (if fsm-id
-						'(:create :update :delete)
-						'(:create)))
+		       (apply #'fsm-menu fsm-id tbl (if fsm-id
+							'(:create :update :delete)
+							'(:create)))
 		       (display-fsm fsm-id tbl :view))))))
       (redirect (notfound) :code +http-see-other+)))
 
@@ -125,7 +125,7 @@
 	     (config-navbar 'fsm))
        (:div :id "body"
 	     (:div :id "fsm" :class "window"
-		   (fsm-menu nil nil nil) 
+		   (fsm-menu nil nil) 
 		   (display-fsm nil (val tbl) :create (nthcdr 1 params))))))))
 
 (define-dynamic-page fsm/update ((fsm-id integer)
@@ -150,7 +150,7 @@
 		 (config-navbar 'fsm))
 	   (:div :id "body"
 		 (:div :id "fsm" :class "window"
-		       (fsm-menu (val fsm-id) (val tbl) '(:view :delete))
+		       (fsm-menu (val fsm-id) (val tbl) :view :delete)
 		       (display-fsm (val fsm-id) (val tbl) :update (nthcdr 2 params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
@@ -170,7 +170,7 @@
 		 (config-navbar 'fsm))
 	   (:div :id "body"
 		 (:div :id "fsm" :class "window"
-		       (fsm-menu fsm-id tbl '(:view :update))
+		       (fsm-menu fsm-id tbl :view :update)
 		       (display-fsm fsm-id tbl :delete))))))
       (redirect (notfound) :code +http-see-other+)))
 
@@ -279,33 +279,26 @@
 		    :left-join (:as 'account 'credit-account)
 		    :on (:= 'credit-account.id (symbolicate table '-fsm.credit-acc-id))))))
 
-(defun fsm-menu (fsm-id tbl opt-list)
-  (let ((options
-	 (list :create (lambda () 
-			 (with-html
-			   (:li (:a :href (fsm/create)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :view (lambda () 
-		       (if fsm-id
-			   (with-html
-			     (:li (:a :href (fsm :fsm-id fsm-id :tbl tbl)
-				      (:img :src (url "img/magnifier.png")) "Προβολή")))
-			   nil))
-	       :update (lambda ()
-			 (if fsm-id
-			     (with-html
-			       (:li (:a :href (fsm/update :fsm-id fsm-id :tbl tbl)
-					(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-			     nil))
-	       :delete (lambda ()
-			 (if fsm-id
-			     (with-html
-			       (:li (:a :href (fsm/delete :fsm-id fsm-id :tbl tbl)
-					(:img :src (url "img/delete.png")) "Διαγραφή")))
-			     nil)))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (let ((fn (getf options opt)))
-			 (when fn (funcall fn)))))))))
+(define-menu fsm-menu (fsm-id tbl) ()
+  (:create (lambda () 
+	     (with-html
+	       (:li (:a :href (fsm/create)
+			(:img :src (url "img/add.png")) "Δημιουργία")))))
+  (:view (lambda () 
+	   (if fsm-id
+	       (with-html
+		 (:li (:a :href (fsm :fsm-id fsm-id :tbl tbl)
+			  (:img :src (url "img/magnifier.png")) "Προβολή")))
+	       nil)))
+  (:update (lambda ()
+	     (if fsm-id
+		 (with-html
+		   (:li (:a :href (fsm/update :fsm-id fsm-id :tbl tbl)
+			    (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+		 nil)))
+  (:delete (lambda ()
+	     (if fsm-id
+		 (with-html
+		   (:li (:a :href (fsm/delete :fsm-id fsm-id :tbl tbl)
+			    (:img :src (url "img/delete.png")) "Διαγραφή")))
+		 nil))))

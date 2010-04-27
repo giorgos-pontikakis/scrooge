@@ -40,8 +40,7 @@
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
-	(with-parameter-rebinding #'val
-	  (with-db
+	(with-parameter-rebinding #'val(with-db
 	    (insert-dao (make-instance 'bank :id id :title title))
 	    (redirect (banks :id id) :code +http-see-other+)))
 	(with-parameter-rebinding #'raw
@@ -75,39 +74,33 @@
 
 ;;; Banks - Snippets
 
-(defun bank-menu (id &rest opt-list)
-  (let ((options
-	 (list :create (lambda (id)
-			 (declare (ignore id))
-			 (with-html
-			   (:li (:a :href (bank/create)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :view (lambda (id) 
-		       (with-html
-			 (:li (:a :href (banks :id id)
-				  (:img :src (url "img/magnifier.png")) "Προβολή"))))
-	       :edit (lambda (id)
-		       (if id
-			   (with-html
-			     (:li (:a :href (bank/update :id id)
-				      (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-			   nil))
-	       :delete (lambda (id)
-			 (with-db
-			   (let ((cheques-exist-p (and id
-						       (query (:select 'id
-								       :from 'cheque
-								       :where (:= 'bank-id id))))))
-			     (if (or (null id) cheques-exist-p)
-				 nil
-				 (with-html
-				   (:li (:a :href (bank/delete :id id)
-					    (:img :src (url "img/delete.png")) "Διαγραφή"))))))))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (funcall (getf options opt) id)))))))
+(define-menu bank-menu (id) ()
+  (:create (lambda (id)
+	     (declare (ignore id))
+	     (with-html
+	       (:li (:a :href (bank/create)
+			(:img :src (url "img/add.png")) "Δημιουργία")))))
+  (:view (lambda (id) 
+	   (with-html
+	     (:li (:a :href (banks :id id)
+		      (:img :src (url "img/magnifier.png")) "Προβολή")))))
+  (:edit (lambda (id)
+	   (if id
+	       (with-html
+		 (:li (:a :href (bank/update :id id)
+			  (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	       nil)))
+  (:delete (lambda (id)
+	     (with-db
+	       (let ((cheques-exist-p (and id
+					   (query (:select 'id
+							   :from 'cheque
+							   :where (:= 'bank-id id))))))
+		 (if (or (null id) cheques-exist-p)
+		     nil
+		     (with-html
+		       (:li (:a :href (bank/delete :id id)
+				(:img :src (url "img/delete.png")) "Διαγραφή")))))))))
 
 (defun banks-table (active-id intent)
   (flet ((normal-row (id title activep)
@@ -174,12 +167,11 @@
 (defun bank-errorbar (id title)
   (unless (and (validp id) (validp title))
     (with-html
-      (:div :id "msg"
-	    (:ul :class "errorbar")
-	    (unless (validp id)
-	      (htm (:li "Άκυρο αναγνωριστικό (id) τράπεζας")))
-	    (unless (validp title)
-	      (htm (:li "Αυτό το όνομα τράπεζας υπάρχει ήδη")))))))
+      (:div :id "msg" :class "error"
+	    (:ul (unless (validp id)
+		   (htm (:li "Άκυρο αναγνωριστικό (id) τράπεζας")))
+		 (unless (validp title)
+		   (htm (:li "Αυτό το όνομα τράπεζας υπάρχει ήδη"))))))))
 
 ;;; Banks - Pages
 
@@ -195,10 +187,11 @@
 	   (logo)
 	   (primary-navbar 'config)
 	   (config-navbar 'banks))
-     (:div :id "body" 
+     (:div :id "body"
+	   (:div :id "msg" :class "message"
+		 (:h2 "Εισαγωγή τράπεζας"))
 	   (:div :id "banks" :class "window"
-		 (bank-menu (val id))
-		 (:h2 "Εισαγωγή τράπεζας")
+		 (bank-menu (val id)) 
 		 (bank-errorbar id title)
 		 (banks-table nil :create))
 	   (footer)))))
@@ -216,10 +209,11 @@
 	       (primary-navbar 'config)
 	       (config-navbar 'banks)
 	       (bank-errorbar id title))
-	 (:div :id "body" 
+	 (:div :id "body"
+	       (:div :id "msg" :class "message"
+		     (:h2 "Επεξεργασία τράπεζας"))
 	       (:div :id "banks" :class "window"
-		     (bank-menu (val id) :view :delete)
-		     (:h2 "Επεξεργασία τράπεζας")
+		     (bank-menu (val id) :view :delete) 
 		     (banks-table (val id) :update))
 	       (footer))))
       (redirect (notfound) :code +http-see-other+)))
@@ -238,9 +232,10 @@
 		 (primary-navbar 'config)
 		 (config-navbar 'banks))
 	   (:div :id "body"
+		 (:div :id "msg" :class "message"
+		       (:h2 "Διαγραφή τράπεζας"))
 		 (:div :id "banks" :class "window"
-		       (bank-menu id :view :edit)
-		       (:h2 "Διαγραφή τράπεζας")
+		       (bank-menu id :view :edit) 
 		       (banks-table id :delete)))
 	   (footer))))
       (redirect (notfound) :code +http-see-other+)))
@@ -258,10 +253,11 @@
 		 (logo)
 		 (primary-navbar 'config)
 		 (config-navbar 'banks))
-	   (:div :id "body" 
+	   (:div :id "body"
+		 (:div :id "msg" :class "message"
+		       (:h2 "Κατάλογος τραπεζών"))
 		 (:div :id "banks" :class "window"
-		       (bank-menu id :create :edit :delete)
-		       (:h2 "Κατάλογος τραπεζών")
+		       (bank-menu id :create :edit :delete) 
 		       (banks-table id :view))
 		 (footer)))))
       (redirect (notfound) :code +http-see-other+)))
@@ -315,39 +311,28 @@
 
 ;;; TOFs - Snippets
 
-(defun tof-menu (id &rest opt-list)
-  (let ((options
-	 (list :view (lambda (&optional id)
-			  (with-html
-			    (:li (:a :href (tofs :id id)
-				     (:img :src (url "img/table.png")) "Προβολή"))))
-	       :create (lambda (id)
-			 (declare (ignore id))
-			 (with-html
-			   (:li (:a :href (tof/create)
-				    (:img :src (url "img/add.png")) "Δημιουργία")))) 
-	       :edit (lambda (id)
-		       (if id
-			   (with-html
-			     (:li (:a :href (tof/update :id id)
-				      (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-			   nil))
-	       :delete (lambda (id)
-			 (with-db
-			   (let ((cheques-exist-p (and id
-						       (query (:select 'id
-								       :from 'company
-								       :where (:= 'tof-id id))))))
-			     (if (or (null id) cheques-exist-p)
-				 nil
-				 (with-html
-				   (:li (:a :href (tof/delete :id id)
-					    (:img :src (url "img/delete.png")) "Διαγραφή"))))))))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (funcall (getf options opt) id)))))))
+(define-menu tof-menu (id) ()
+  (:view (with-html
+	   (:li (:a :href (tofs :id id)
+		    (:img :src (url "img/table.png")) "Προβολή"))))
+  (:create (with-html
+	     (:li (:a :href (tof/create)
+		      (:img :src (url "img/add.png")) "Δημιουργία")))) 
+  (:edit (if id
+	     (with-html
+	       (:li (:a :href (tof/update :id id)
+			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	     nil))
+  (:delete (with-db
+	     (let ((cheques-exist-p (and id
+					 (query (:select 'id
+							 :from 'company
+							 :where (:= 'tof-id id))))))
+	       (if (or (null id) cheques-exist-p)
+		   nil
+		   (with-html
+		     (:li (:a :href (tof/delete :id id)
+			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
 
 (defun tofs-table (active-id intent)
   (flet ((normal-row (id title activep)
@@ -413,12 +398,11 @@
 (defun tof-errorbar (id title)
   (unless (and (validp id) (validp title))
     (with-html
-      (:div :id "msg"
-	    (:ul :class "errorbar")
-	    (unless (validp id)
-	      (htm (:li "Άκυρο αναγνωριστικό (id) Δ.Ο.Υ.")))
-	    (unless (validp title)
-	      (htm (:li "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη")))))))
+      (:div :id "msg" :class "error"
+	    (:ul (unless (validp id)
+		   (htm (:li "Άκυρο αναγνωριστικό (id) Δ.Ο.Υ.")))
+		 (unless (validp title)
+		   (htm (:li "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη"))))))))
 
 
 ;;; TOFs - Pages
@@ -435,10 +419,11 @@
 	   (logo)
 	   (primary-navbar 'config)
 	   (config-navbar 'tofs))
-     (:div :id "body" 
+     (:div :id "body"
+	   (:div :id "msg" :class "message"
+		 (:h2 "Δημιουργία Δ.Ο.Υ."))
 	   (:div :id "tofs" :class "window"
-		 (tof-menu nil :view)
-		 (:h2 "Δημιουργία Δ.Ο.Υ.")
+		 (tof-menu nil :view) 
 		 (tof-errorbar id title)
 		 (tofs-table nil :create))
 	   (footer)))))
@@ -456,10 +441,11 @@
 	       (primary-navbar 'config)
 	       (config-navbar 'tofs))
 	 (:div :id "body"
+	       (:div :id "msg" :class "message"
+		     (:h2 "Επεξεργασία Δ.Ο.Υ."))
 	       (:div :id "tofs" :class "window"
 		     (tof-menu (val id) :view :delete) 
-		     (tof-errorbar id title)
-		     (:h2 "Επεξεργασία Δ.Ο.Υ.")
+		     (tof-errorbar id title) 
 		     (tofs-table (val id) :update))
 	       (footer))))
       (redirect (notfound) :code +http-see-other+)))
@@ -477,10 +463,11 @@
 		 (logo)
 		 (primary-navbar 'config)
 		 (config-navbar 'tofs))
-	   (:div :id "body" 
+	   (:div :id "body"
+		 (:div :id "msg" :class "message"
+		       (:h2 "Διαγραφή Δ.Ο.Υ."))
 		 (:div :id "tofs" :class "window"
-		       (tof-menu id :view :edit)
-		       (:h2 "Διαγραφή Δ.Ο.Υ. ")
+		       (tof-menu id :view :edit) 
 		       (tofs-table id :delete))
 		 (footer)))))
       (redirect (notfound) :code +http-see-other+)))
@@ -497,11 +484,12 @@
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'config)
-		 (config-navbar 'tofs))
-	   (:div :id "body" 
-		 (:div :id "tofs" :class "window"
-		       (tof-menu id :create :edit :delete)
-		       (:h2 "Κατάλογος Δ.Ο.Υ.")
+		 (config-navbar 'tofs)) 
+	   (:div :id "body"
+		 (:div :id "msg" :class "message"
+		       (:h2 "Κατάλογος Δ.Ο.Υ."))
+		 (:div :id "tofs" :class "window" 
+		       (tof-menu id :create :edit :delete) 
 		       (tofs-table id :view))
 		 (footer)))))
       (redirect (notfound) :code +http-see-other+)))

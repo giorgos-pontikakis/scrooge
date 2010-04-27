@@ -126,7 +126,10 @@
    (company-id :col-type integer :accessor company-id :initarg :company-id)
    (title      :col-type string  :accessor title      :initarg :title)
    (location   :col-type string  :accessor location   :initarg :location)
-   (price      :col-type integer :accessor price      :initarg :price))
+   (price      :col-type integer :accessor price      :initarg :price)
+   (start-date :col-type date    :accessor start-date :initarg :start-date)
+   (stop-date  :col-type date    :accessor stop-date  :initarg :stop-date)
+   (status     :col-type string  :accessor status     :initarg :status))
   (:metaclass dao-class)
   (:keys id))
 

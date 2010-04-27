@@ -69,8 +69,8 @@
       (with-parameter-rebinding #'val
 	(with-page ()
 	  (:head
-	     (:title "Αυτόματες συναλλαγές")
-	     (css-standard-headers))
+	   (:title "Αυτόματες συναλλαγές")
+	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -78,9 +78,9 @@
 		 (config-navbar 'temtx))
 	   (:div :id "body"
 		 (:div :id "temtx" :class "window"
-		       (temtx-menu temtx-id (if temtx-id
-						  '(:create :update :delete)
-						  '(:create)))
+		       (apply #'temtx-menu temtx-id (if temtx-id
+							'(:create :update :delete)
+							'(:create)))
 		       (display-temtx temtx-id :view))))))
       (redirect (notfound) :code +http-see-other+)))
 
@@ -123,7 +123,7 @@
 		 (config-navbar 'temtx))
 	   (:div :id "body"
 		 (:div :id "temtx" :class "window"
-		       (temtx-menu (val temtx-id) '(:view :delete))
+		       (temtx-menu (val temtx-id) :view :delete)
 		       (display-temtx (val temtx-id) :update (rest params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
@@ -143,7 +143,7 @@
 		 (config-navbar 'temtx))
 	   (:div :id "body"
 		 (:div :id "temtx" :class "window"
-		       (temtx-menu temtx-id '(:view :update))
+		       (temtx-menu temtx-id :view :update)
 		       (display-temtx temtx-id :delete))))))
       (redirect (notfound) :code +http-see-other+)))
 
@@ -234,33 +234,26 @@
 				 (:delete (form-row-delete id row))))
 			     (normal-row id defaults activep))))))))))
 
-(defun temtx-menu (temtx-id opt-list)
-  (let ((options
-	 (list :create (lambda () 
-			 (with-html
-			   (:li (:a :href (temtx/create)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :view (lambda () 
-		       (if temtx-id
-			   (with-html
-			     (:li (:a :href (temtx :temtx-id temtx-id)
-				      (:img :src (url "img/magnifier.png")) "Προβολή")))
-			   nil))
-	       :update (lambda ()
-			 (if temtx-id
-			     (with-html
-			       (:li (:a :href (temtx/update :temtx-id temtx-id)
-					(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-			     nil))
-	       :delete (lambda ()
-			 (if temtx-id
-			     (with-html
-			       (:li (:a :href (temtx/delete :temtx-id temtx-id)
-					(:img :src (url "img/delete.png")) "Διαγραφή")))
-			     nil)))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (let ((fn (getf options opt)))
-			 (if fn (funcall fn)))))))))
+(define-menu temtx-menu (temtx-id) ()
+  (:create (lambda () 
+	     (with-html
+	       (:li (:a :href (temtx/create)
+			(:img :src (url "img/add.png")) "Δημιουργία")))))
+  (:view (lambda () 
+	   (if temtx-id
+	       (with-html
+		 (:li (:a :href (temtx :temtx-id temtx-id)
+			  (:img :src (url "img/magnifier.png")) "Προβολή")))
+	       nil)))
+  (:update (lambda ()
+	     (if temtx-id
+		 (with-html
+		   (:li (:a :href (temtx/update :temtx-id temtx-id)
+			    (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+		 nil)))
+  (:delete (lambda ()
+	     (if temtx-id
+		 (with-html
+		   (:li (:a :href (temtx/delete :temtx-id temtx-id)
+			    (:img :src (url "img/delete.png")) "Διαγραφή")))
+		 nil))))

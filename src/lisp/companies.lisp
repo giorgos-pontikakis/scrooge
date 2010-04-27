@@ -156,40 +156,30 @@
 			       (:td (:p (str (lisp-to-html tin))))
 			       (:td (:p (str (lisp-to-html doy))))))))))))))
 
-(defun company-menu (id &rest opt-list)
-  (let ((options
-	 (list :create (lambda () 
-			 (with-html
-			   (:li (:a :href (company/create)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :view (lambda ()
-		       (if id
-			   (with-html
-			     (:li (:a :href (company/view :id id)
-				      (:img :src (url "img/magnifier.png")) "Προβολή")))
-			   nil))
-	       :edit (lambda ()
-		       (if id
-			   (with-html
-			     (:li (:a :href (company/update :id id)
-				      (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-			   nil))
-	       :delete (lambda ()
-			 (with-db
-			   (let ((tx-exist-p (and id
-						  (query (:select 'id
-								  :from 'tx
-								  :where (:= 'company-id id))))))
-			     (if (or (null id) tx-exist-p)
-				 nil
-				 (with-html
-				   (:li (:a :href (company/delete :id id)
-					    (:img :src (url "img/delete.png")) "Διαγραφή"))))))))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (funcall (getf options opt))))))))
+(define-menu company-menu (id) ()
+  (:create (with-html
+	     (:li (:a :href (company/create)
+		      (:img :src (url "img/add.png")) "Δημιουργία"))))
+  (:view (if id
+	     (with-html
+	       (:li (:a :href (company/view :id id)
+			(:img :src (url "img/magnifier.png")) "Προβολή")))
+	     nil))
+  (:edit (if id
+	     (with-html
+	       (:li (:a :href (company/update :id id)
+			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	     nil))
+  (:delete (with-db
+	     (let ((tx-exist-p (and id
+				    (query (:select 'id
+						    :from 'tx
+						    :where (:= 'company-id id))))))
+	       (if (or (null id) tx-exist-p)
+		   nil
+		   (with-html
+		     (:li (:a :href (company/delete :id id)
+			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
 
 (defun company-data-form (&key params defaults readonlyp) 
   (bind (((title occupation tof tin address city zipcode pobox)
@@ -315,10 +305,11 @@
 		 (logo)
 		 (primary-navbar 'companies)
 		 (companies-navbar 'all)) 
-	   (:div :id "body" 
+	   (:div :id "body"
+		 (:div :id "msg"
+		       (:h2 "Κατάλογος Εταιριών"))
 		 (:div :id "companies" :class "window"
-		       (company-menu id :create :view :edit :delete)
-		       (:h2 "Κατάλογος Εταιριών")
+		       (company-menu id :create :view :edit :delete) 
 		       (companies-table id))
 		 (footer)))))
       (redirect (company/notfound) :code +http-see-other+)))
@@ -344,9 +335,10 @@
 	     (logo)
 	     (primary-navbar 'companies))
        (:div :id "body" 
+	     (:div :id "msg"
+		   (:h2 "Εισαγωγή εταιρίας"))
 	     (company-errorbar title tof tin city pobox zipcode)
-	     (:div :id "content" :class "window"
-		   (:h2 "Εισαγωγή εταιρίας")
+	     (:div :id "content" :class "window" 
 		   (with-form (actions/company/create)
 		     (company-data-form :params params)
 		     (:ul :class "prompt hmenu"
@@ -535,29 +527,21 @@
 
 ;;; Snippets
 
-(defun contact-menu (company-id contact-id &rest opt-list)
-  (let ((options
-	 (list :create (lambda ()
-			 (with-html
-			   (:li (:a :href (company/create-contact :company-id company-id)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :edit (lambda ()
-		       (unless (null contact-id)
-			 (with-html
-			   (:li (:a :href (company/update-contact :contact-id contact-id)
-				    (:img :src (url "img/pencil.png")) "Επεξεργασία")))))
-	       :delete (lambda ()
-			 (unless (null contact-id)
-			   (with-html
-			     (:li (:a :href (company/delete-contact :contact-id contact-id)
-				      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (for fn = (getf options opt))
-		       (unless (null fn)
-			 (funcall fn))))))))
+(defun contact-menu (company-id contact-id)
+  (:create (lambda ()
+	     (with-html
+	       (:li (:a :href (company/create-contact :company-id company-id)
+			(:img :src (url "img/add.png")) "Δημιουργία")))))
+  (:edit (lambda ()
+	   (unless (null contact-id)
+	     (with-html
+	       (:li (:a :href (company/update-contact :contact-id contact-id)
+			(:img :src (url "img/pencil.png")) "Επεξεργασία"))))))
+  (:delete (lambda ()
+	     (unless (null contact-id)
+	       (with-html
+		 (:li (:a :href (company/delete-contact :contact-id contact-id)
+			  (:img :src (url "img/delete.png")) "Διαγραφή")))))))
 
 (defun contact-data-form-prologue (company-id contact-id intent)
   (case intent 

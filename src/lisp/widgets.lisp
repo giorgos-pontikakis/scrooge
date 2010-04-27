@@ -115,3 +115,18 @@
 		    (iter (for item in ',items)
 			  (for fn in (list ,@fns))
 			  (funcall fn (if (eql item active-item) "active" nil)))))))))
+
+(defmacro define-menu (name (&rest args) (&key (div-style "actions") (ul-style "hmenu")) &body body)
+  (with-gensyms (opt-list)
+    (let ((options (iter (for (key fn-body) in body)
+			 (collect key)
+			 (collect `(lambda ,args
+				     (declare (ignorable ,@args))
+				     ,fn-body)))))
+      `(defun ,name ,(append args `(&rest ,opt-list))
+	 (let ((fns (list ,@options)))
+	   (with-html
+	     (:div :class ,div-style
+		   (:ul :class ,ul-style
+			(iter (for key in ,opt-list)
+			      (funcall (getf fns key) ,@args))))))))))

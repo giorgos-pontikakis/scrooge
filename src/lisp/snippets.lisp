@@ -51,7 +51,8 @@
   (config       (config)       "Ρυθμίσεις")
   (companies    (companies)    "Εταιρίες")
   (cheques      (cheques)      "Επιταγές")
-  (transactions (transactions) "Συναλλαγές"))
+  (transactions (transactions) "Συναλλαγές")
+  #|(projects     (projects)     "Έργα")|#)
 
 
 

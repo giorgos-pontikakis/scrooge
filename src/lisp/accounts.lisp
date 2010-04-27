@@ -210,37 +210,31 @@
 			 (normal-row acc-id title activep)) 
 		     (display-accounts debit-p acc-id active-id intent))))))))
 
-(defun account-menu (acc-id debit-p &rest opt-list)
-  (let ((options
-	 (list :create (lambda () 
-			 (with-html
-			   (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
-				    (:img :src (url "img/add.png")) "Δημιουργία"))))
-	       :view (lambda () 
-		       (if acc-id
-			   (with-html
-			     (:li (:a :href (accounts :acc-id acc-id)
-				      (:img :src (url "img/magnifier.png")) "Προβολή")))
-			   nil))
-	       :edit (lambda ()
-		       (if acc-id
-			   (with-html
-			     (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
-				      (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-			   nil))
-	       :delete (lambda ()
-			 (if (and acc-id
-				  (not (get-subaccounts acc-id))
-				  (not (get-transactions acc-id)))
-			     (with-html
-			       (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
-					(:img :src (url "img/delete.png")) "Διαγραφή")))
-			     nil)))))
-    (with-html
-      (:div :class "actions"
-	    (:ul :class "hmenu"
-		 (iter (for opt in opt-list)
-		       (funcall (getf options opt))))))))
+(define-menu account-menu (acc-id debit-p) ()
+  (:create (lambda () 
+	     (with-html
+	       (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
+			(:img :src (url "img/add.png")) "Δημιουργία")))))
+  (:view (lambda () 
+	   (if acc-id
+	       (with-html
+		 (:li (:a :href (accounts :acc-id acc-id)
+			  (:img :src (url "img/magnifier.png")) "Προβολή")))
+	       nil)))
+  (:edit (lambda ()
+	   (if acc-id
+	       (with-html
+		 (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
+			  (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	       nil)))
+  (:delete (lambda ()
+	     (if (and acc-id
+		      (not (get-subaccounts acc-id))
+		      (not (get-transactions acc-id)))
+		 (with-html
+		   (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
+			    (:img :src (url "img/delete.png")) "Διαγραφή")))
+		 nil))))
 
 (defun get-subaccounts (acc-id)
   (with-db
