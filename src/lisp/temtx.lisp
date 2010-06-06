@@ -4,16 +4,16 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-(define-dynamic-page actions/temtx/create (description
-					    (debit-acc string #'account-exists-p)
-					    (credit-acc string #'account-exists-p))
+(define-dynamic-page actions/temtx/create ((description string #'not-db-null-p)
+					   (debit-acc string #'account-exists-p)
+					   (credit-acc string #'account-exists-p))
     ("actions/temtx/create" :request-type :post)
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (let ((debit-acc-id (get-account-id debit-acc))
-		(credit-acc-id (get-account-id credit-acc)))
+	  (let ((debit-acc-id (account-id debit-acc))
+		(credit-acc-id (account-id credit-acc)))
 	    (with-db
 	      (insert-dao (make-instance 'temtx
 					 :description description
@@ -22,8 +22,8 @@
 	      (redirect (temtx) :code +http-see-other+))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (temtx/create :description description
-				   :debit-acc debit-acc
-				   :credit-acc credit-acc)
+				  :debit-acc debit-acc
+				  :credit-acc credit-acc)
 		    :code +http-see-other+)))))
 
 (define-dynamic-page actions/temtx/delete ((temtx-id integer #'valid-temtx-id-p))
@@ -36,16 +36,16 @@
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page actions/temtx/update ((temtx-id integer #'valid-temtx-id-p)
-					    description
-					    (debit-acc string #'account-exists-p)
-					    (credit-acc string #'account-exists-p))
+					   (description string #'not-db-null-p)
+					   (debit-acc string #'account-exists-p)
+					   (credit-acc string #'account-exists-p))
     ("actions/temtx/update" :request-type :post)
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (let ((debit-acc-id (get-account-id debit-acc))
-		(credit-acc-id (get-account-id credit-acc)))
+	  (let ((debit-acc-id (account-id debit-acc))
+		(credit-acc-id (account-id credit-acc)))
 	    (with-db
 	      (execute (:update 'temtx :set
 				'description description
@@ -55,21 +55,21 @@
 	      (redirect (temtx) :code +http-see-other+))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (temtx/update :temtx-id temtx-id
-				   :description description
-				   :debit-acc debit-acc
-				   :credit-acc credit-acc)
+				  :description description
+				  :debit-acc debit-acc
+				  :credit-acc credit-acc)
 		    :code +http-see-other+)))))
 
 ;;; Pages
 
-(define-dynamic-page temtx ((temtx-id integer))
+(define-dynamic-page temtx ((temtx-id integer #'valid-temtx-id-p))
     ("config/temtx")
   (no-cache)
   (if (validp temtx-id)
       (with-parameter-rebinding #'val
 	(with-page ()
 	  (:head
-	   (:title "Αυτόματες συναλλαγές")
+	   (:title "Πρότυπες συναλλαγές")
 	   (css-standard-headers))
 	  (:body
 	   (:div :id "header"
@@ -77,37 +77,41 @@
 		 (primary-navbar 'config)
 		 (config-navbar 'temtx))
 	   (:div :id "body"
+		 (:div :class "message"
+		       (:h2 :class "info" "Κατάλογος πρότυπων συναλλαγών"))
 		 (:div :id "temtx" :class "window"
-		       (apply #'temtx-menu temtx-id (if temtx-id
-							'(:create :update :delete)
-							'(:create)))
+		       (temtx-menu temtx-id :create :update :delete)
 		       (display-temtx temtx-id :view))))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page temtx/create (description
-				    (debit-acc string #'account-exists-p)
-				    (credit-acc string #'account-exists-p))
+(define-dynamic-page temtx/create ((description string #'not-db-null-p)
+				   (debit-acc string #'account-exists-p)
+				   (credit-acc string #'account-exists-p))
     ("config/temtx/create")
   (no-cache)
   (with-parameter-list params
     (with-page ()
       (:head
        (:title "Πρότυπες συναλλαγές: Δημιουργία")
-       (css-standard-headers))
+       (css-standard-headers)
+       (js-standard-headers))
       (:body
        (:div :id "header"
 	     (logo)
 	     (primary-navbar 'config)
 	     (config-navbar 'temtx))
-       (:div :id "body"
+       (:div :id "body" 
+	     (:div :class "message"
+		   (:h2 :class "info" "Δημιουργία πρότυπης συναλλαγής")
+		   (temtx-errorbar description debit-acc credit-acc))
 	     (:div :id "temtx" :class "window"
-		   (temtx-menu nil nil) 
+		   (temtx-menu nil :view) 
 		   (display-temtx nil :create params)))))))
 
-(define-dynamic-page temtx/update ((temtx-id integer)
-				    description 
-				    (debit-acc string #'account-exists-p) 
-				    (credit-acc string #'account-exists-p))
+(define-dynamic-page temtx/update ((temtx-id integer #'valid-temtx-id-p t)
+				   (description string #'not-db-null-p) 
+				   (debit-acc string #'account-exists-p) 
+				   (credit-acc string #'account-exists-p))
     ("config/temtx/update")
   (no-cache)
   (if (validp temtx-id)
@@ -115,19 +119,23 @@
 	(with-page ()
 	  (:head
 	   (:title "Πρότυπες συναλλαγές: Επεξεργασία")
-	   (css-standard-headers))
+	   (css-standard-headers)
+	   (js-standard-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
 		 (primary-navbar 'config)
 		 (config-navbar 'temtx))
-	   (:div :id "body"
+	   (:div :id "body" 
+		 (:div :class "message"
+		       (:h2 :class "info" "Επεξεργασία πρότυπης συναλλαγής")
+		       (temtx-errorbar description debit-acc credit-acc))
 		 (:div :id "temtx" :class "window"
 		       (temtx-menu (val temtx-id) :view :delete)
 		       (display-temtx (val temtx-id) :update (rest params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page temtx/delete ((temtx-id integer))
+(define-dynamic-page temtx/delete ((temtx-id integer #'valid-temtx-id-p t))
     ("config/temtx/delete")
   (no-cache)
   (if (validp temtx-id)
@@ -142,6 +150,8 @@
 		 (primary-navbar 'config)
 		 (config-navbar 'temtx))
 	   (:div :id "body"
+		 (:div :class "message"
+		       (:h2 :class "info" "Διαγραφή πρότυπης συναλλαγής"))
 		 (:div :id "temtx" :class "window"
 		       (temtx-menu temtx-id :view :update)
 		       (display-temtx temtx-id :delete))))))
@@ -234,26 +244,25 @@
 				 (:delete (form-row-delete id row))))
 			     (normal-row id defaults activep))))))))))
 
-(define-menu temtx-menu (temtx-id) ()
-  (:create (lambda () 
-	     (with-html
-	       (:li (:a :href (temtx/create)
-			(:img :src (url "img/add.png")) "Δημιουργία")))))
-  (:view (lambda () 
-	   (if temtx-id
+(define-menu temtx-menu (temtx-id) (:div-style "actions" :ul-style "hmenu")
+  (:create (with-html
+	     (:li (:a :href (temtx/create)
+		      (:img :src (url "img/add.png")) "Δημιουργία"))))
+  (:view (with-html
+	   (:li (:a :href (temtx :temtx-id temtx-id)
+		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
+  (:update (if temtx-id
 	       (with-html
-		 (:li (:a :href (temtx :temtx-id temtx-id)
-			  (:img :src (url "img/magnifier.png")) "Προβολή")))
+		 (:li (:a :href (temtx/update :temtx-id temtx-id)
+			  (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	       nil))
+  (:delete (if temtx-id
+	       (with-html
+		 (:li (:a :href (temtx/delete :temtx-id temtx-id)
+			  (:img :src (url "img/delete.png")) "Διαγραφή")))
 	       nil)))
-  (:update (lambda ()
-	     (if temtx-id
-		 (with-html
-		   (:li (:a :href (temtx/update :temtx-id temtx-id)
-			    (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-		 nil)))
-  (:delete (lambda ()
-	     (if temtx-id
-		 (with-html
-		   (:li (:a :href (temtx/delete :temtx-id temtx-id)
-			    (:img :src (url "img/delete.png")) "Διαγραφή")))
-		 nil))))
+
+(define-errorbar temtx-errorbar (:ul-style "error")
+  (description "Η περιγραφή δεν πρέπει να είναι κενή")
+  (debit-acc "Ο χρεωστικός λογαριασμός που έχετε εισάγει δεν υπάρχει.")
+  (credit-acc "Ο πιστωτικός λογαριασμός που έχετε εισάγει δεν υπάρχει."))

@@ -17,15 +17,15 @@
 	urls))
 
 (defun js-standard-headers ()
-  (js-headers "lib/jquery/jquery-1.3.2.min.js"
-	      "lib/jquery.autocomplete/jquery.autocomplete.pack.js"
+  (js-headers "lib/jquery/jquery-1.4.2.min.js"
+	      "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js"
 	      "js/main.js"))
 
 
 (defun css-standard-headers ()
   (css-headers "css/reset.css"
 	       "css/main.css"
-	       "lib/jquery.autocomplete/jquery.autocomplete.css"))
+	       "lib/jquery-ui/css/smoothness/jquery-ui-1.8.2.custom.css"))
 
 
 ;;; User interface elements
@@ -46,13 +46,13 @@
   (with-html
     (:div :id "footer" "Powered by lisp")))
 
-(define-navbar primary-navbar () (:id "navbar" :style "hmenu")
+(define-navbar primary-navbar () (:id "navbar" :ul-style "hmenu")
   (home         (home)         "Αρχική")
   (config       (config)       "Ρυθμίσεις")
   (companies    (companies)    "Εταιρίες")
   (cheques      (cheques)      "Επιταγές")
   (transactions (transactions) "Συναλλαγές")
-  #|(projects     (projects)     "Έργα")|#)
+  (projects     (projects)     "Έργα"))
 
 
 

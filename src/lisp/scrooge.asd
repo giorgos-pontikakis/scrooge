@@ -4,7 +4,7 @@
 
 (asdf:defsystem :scrooge
   :serial t
-  :depends-on (:www-toolkit :simple-date :postmodern :metabang-bind)
+  :depends-on (:www-toolkit :simple-date :postmodern :metabang-bind :json)
   :components ((:file "package")
 	       (:file "utils")
 	       (:file "init")
@@ -19,4 +19,5 @@
 	       (:file "accounts")
 	       (:file "tx")
 	       (:file "temtx")
-	       (:file "fsm")))
+	       (:file "fsm")
+	       (:file "project")))

@@ -98,7 +98,8 @@
 ;;; ------------------------------------------------------------
 ;;; Navigation bars
 ;;; ------------------------------------------------------------
-(defmacro define-navbar (name (&rest arglist) (&key id style) &body body) 
+(defmacro define-navbar (name (&rest arglist) (&key id div-style ul-style)
+			 &body body) 
   (multiple-value-bind (items fns) (iter (for sexp in body)
 					 (destructuring-bind (sym href &rest forms) sexp
 					   (collect sym into items)
@@ -110,13 +111,14 @@
 					   (finally (return (values items fns)))))
     `(defun ,name (active-item ,@arglist) 
        (with-html
-	 (:div :id ,id
-	       (:ul :class ,style
+	 (:div :id ,id :class ,div-style
+	       (:ul :class ,ul-style 
 		    (iter (for item in ',items)
 			  (for fn in (list ,@fns))
 			  (funcall fn (if (eql item active-item) "active" nil)))))))))
 
-(defmacro define-menu (name (&rest args) (&key (div-style "actions") (ul-style "hmenu")) &body body)
+(defmacro define-menu (name (&rest args) (&key id div-style ul-style)
+		       &body body)
   (with-gensyms (opt-list)
     (let ((options (iter (for (key fn-body) in body)
 			 (collect key)
@@ -126,7 +128,20 @@
       `(defun ,name ,(append args `(&rest ,opt-list))
 	 (let ((fns (list ,@options)))
 	   (with-html
-	     (:div :class ,div-style
+	     (:div :id ,id :class ,div-style
 		   (:ul :class ,ul-style
 			(iter (for key in ,opt-list)
 			      (funcall (getf fns key) ,@args))))))))))
+
+
+(defmacro define-errorbar (name (&key id div-style ul-style)
+			   &body body)
+  (let ((arglist (mapcar #'first body)))
+    `(defun ,name ,arglist
+       (unless (every #'validp (list ,@arglist))
+	 (with-html
+	   (:div :id ,id :class ,div-style
+		 (:ul :class ,ul-style 
+		      ,@(iter (for (arg msg) in body)
+			     (collect `(unless (validp ,arg)
+					 (htm (:li ,msg))))))))))))

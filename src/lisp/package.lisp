@@ -10,5 +10,6 @@
 	:simple-date
 	:postmodern
 	:www-toolkit
-	:metabang-bind))
+	:metabang-bind
+	:json))
 

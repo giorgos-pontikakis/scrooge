@@ -26,6 +26,9 @@
 		(or n i))
 	     initial new)))
 
+(defun style-invalid (p)
+  (if (validp p) nil "attention"))
+
 
 ;; (defun get-val-or-default (param-name params defaults)
 ;;   (or (val* (find param-name params :key #'name))

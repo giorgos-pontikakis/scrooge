@@ -6,11 +6,7 @@
 
 ;;; Database utilities
 
-(defmethod tof-id ((tof-title string))
-  (with-db
-    (or (query (:select 'id :from 'tof :where (:= 'title tof-title))
-	       :single)
-	:null)))
+
 
 (defun company-defaults (id)
   (with-db 
@@ -25,13 +21,13 @@
 
 ;;; Navigation bars
 
-(define-navbar companies-navbar () (:id "subnavbar" :style "hmenu")
+(define-navbar companies-navbar () (:id "subnavbar" :ul-style "hmenu")
   (all    (companies) (:img :src (url "img/table.png")) "Όλες")
   (active (companies) "Με ενεργά έργα")
   (debit  (companies) "Χρεώστριες")
   (credit (companies) "Πιστώτριες"))
 
-(define-navbar company-navbar (company-id) (:id "subnavbar" :style "hmenu") 
+(define-navbar company-navbar (company-id) (:id "subnavbar" :ul-style "hmenu") 
   (overview     (company/view :id company-id)
 		(:img :src (url "img/table.png")) "Επισκόπηση") 
   (cheques      (company/cheques :company-id company-id)
@@ -156,7 +152,7 @@
 			       (:td (:p (str (lisp-to-html tin))))
 			       (:td (:p (str (lisp-to-html doy))))))))))))))
 
-(define-menu company-menu (id) ()
+(define-menu company-menu (id) (:div-style "actions" :ul-style "hmenu")
   (:create (with-html
 	     (:li (:a :href (company/create)
 		      (:img :src (url "img/add.png")) "Δημιουργία"))))
@@ -243,23 +239,13 @@
 		   :readonlyp readonlyp
 		   :style pobox%)))))))
 
-(defun company-errorbar (title tof tin city pobox zipcode)
-  (unless (every #'validp (list title tof tin city pobox zipcode))
-    (with-html
-      (:div :id "msg"
-	    (:ul :class "errorbar"
-		 (unless (validp title)
-		   (htm (:li "Άκυρο όνομα εταιρίας")))
-		 (unless (validp tof)
-		   (htm (:li "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί.")))
-		 (unless (validp tin)
-		   (htm (:li "Άκυρος Α.Φ.Μ.")))
-		 (unless (validp city)
-		   (htm (:li "Η πόλη αυτή δεν έχει οριστεί.")))
-		 (unless (validp pobox)
-		   (htm (:li "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας.")))
-		 (unless (validp zipcode)
-		   (htm (:li "Μη αποδεκτός ταχυδρομικός κωδικός."))))))))
+(define-errorbar company-errorbar ()
+  (title   "Άκυρο όνομα εταιρίας")
+  (tof     "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί.")
+  (tin     "Άκυρος Α.Φ.Μ.")
+  (city    "Η πόλη αυτή δεν έχει οριστεί.")
+  (pobox   "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας.")
+  (zipcode "Μη αποδεκτός ταχυδρομικός κωδικός."))
 
 (defun company-data-view (id defaults)
   (with-html
@@ -306,8 +292,8 @@
 		 (primary-navbar 'companies)
 		 (companies-navbar 'all)) 
 	   (:div :id "body"
-		 (:div :id "msg"
-		       (:h2 "Κατάλογος Εταιριών"))
+		 (:div :class "message" 
+		       (:h2 :class "info" "Κατάλογος Εταιριών"))
 		 (:div :id "companies" :class "window"
 		       (company-menu id :create :view :edit :delete) 
 		       (companies-table id))
@@ -335,9 +321,9 @@
 	     (logo)
 	     (primary-navbar 'companies))
        (:div :id "body" 
-	     (:div :id "msg"
-		   (:h2 "Εισαγωγή εταιρίας"))
-	     (company-errorbar title tof tin city pobox zipcode)
+	     (:div :class "message" 
+		   (:h2 :class "info" "Εισαγωγή εταιρίας")
+		   (company-errorbar title tof tin city pobox zipcode))
 	     (:div :id "content" :class "window" 
 		   (with-form (actions/company/create)
 		     (company-data-form :params params)
@@ -392,7 +378,9 @@
 		   (primary-navbar 'companies)
 		   (company-navbar 'overview (val id)))
 	     (:div :id "body" 
-		   (company-errorbar title tof tin city pobox zipcode)
+		   (:div :id "message"
+			 (:h2 :class "info" "Επεξεργασία εταιρίας")
+			 (company-errorbar title tof tin city pobox zipcode))
 		   (company-data-update id (rest params) defaults)
 		   (contact-data-form (val id) :view)
 		   (footer))))))
@@ -527,7 +515,7 @@
 
 ;;; Snippets
 
-(defun contact-menu (company-id contact-id)
+(define-menu contact-menu (company-id contact-id) ()
   (:create (lambda ()
 	     (with-html
 	       (:li (:a :href (company/create-contact :company-id company-id)

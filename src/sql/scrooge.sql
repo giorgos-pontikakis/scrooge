@@ -34,7 +34,7 @@ create table bank (
 
 create table company (
        id		serial primary key
-       ,title		varchar(256)
+       ,title		varchar(256) unique not null
        ,occupation	varchar(64)
        ,tof_id       	varchar(8) references tof(id)
        ,tin       	char(9) unique
@@ -57,7 +57,7 @@ create table contact (
 
 create table account (
        id serial primary key
-       ,title varchar(128)
+       ,title varchar(128) unique not null
        ,parent_id integer references account(id)
        ,debit_p boolean not null
 );
@@ -110,8 +110,8 @@ create table tx (
 );
 
 create table temtx (
-       id serial primary key
-       ,description varchar(256)
+       id serial primary key 
+       ,description varchar(256) not null
        ,debit_acc_id integer references account(id)
        ,credit_acc_id integer references account(id)
 );
@@ -126,26 +126,27 @@ create table project_status (
 );
 insert into project_status (status, description) values('quoted', 'Δόθηκε προσφορά');
 insert into project_status (status, description) values('ongoing', 'Σε εξέλιξη');
-insert into project_status (status, description) values('finished', 'Τελείωσε');
+insert into project_status (status, description) values('finished', 'Ολοκληρώθηκε');
 
 create table project_fsm (
        id serial primary key
-       ,description varchar(256)
-       ,debit_acc_id integer references account(id)
-       ,credit_acc_id integer references account(id)
-       ,old_status varchar(16) references project_status(status)
-       ,new_status varchar(16) references project_status(status)
+       ,description varchar(256) not null
+       ,debit_acc_id integer not null references account(id)
+       ,credit_acc_id integer not null references account(id)
+       ,old_status varchar(16) not null references project_status(status)
+       ,new_status varchar(16) not null references project_status(status)
 );
 
 create table project (
        id serial primary key
        ,company_id integer not null references company(id)
-       ,title varchar(64)
+       ,description varchar(64) not null
        ,location varchar(64)
        ,price integer check (price > 0)
        ,start_date date 
        ,end_date date
-       ,status
+       ,status varchar(8) not null references project_status(status) default 'quoted'
+       ,vat integer check (vat > 0)
 );
 
 

@@ -30,11 +30,22 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defmethod bank-id ((title string))
+  (with-db
+    (query (:select 'id :from 'bank :where (:= 'title title))
+	   :single)))
+
 (defclass tof () 
   ((id    :col-type string :accessor id    :initarg :id)
    (title :col-type string :accessor title :initarg :title))
   (:metaclass dao-class)
   (:keys id))
+
+(defmethod tof-id ((tof-title string))
+  (with-db
+    (or (query (:select 'id :from 'tof :where (:= 'title tof-title))
+	       :single)
+	:null)))
 
 (defclass company ()
   ((id         :col-type integer :reader   id)
@@ -51,6 +62,12 @@
       :address nil :city nil :pobox nil :zipcode nil)
   (:metaclass dao-class) 
   (:keys id))
+
+(defmethod company-id ((title string))
+  (with-db
+    (query (:select 'company-id :from 'company
+		    :where (:= 'title title))
+	   :single)))
 
 (defclass cheque ()
   ((id         :col-type integer :reader   id) 
@@ -87,6 +104,16 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defmethod account-id ((title string))
+  (with-db
+    (query (:select 'id :from 'account :where (:= 'title title))
+	   :single)))
+
+(defmethod debit-p ((acc-id integer))
+  (with-db
+    (query (:select 'debit-p :from 'account :where (:= 'id acc-id))
+	   :single)))
+
 (defclass tx ()
   ((id            :col-type integer :reader   id) 
    (tx-date       :col-type date    :accessor tx-date       :initarg :tx-date)
@@ -122,14 +149,15 @@
 ;;; Projects
 
 (defclass project ()
-  ((id         :col-type integer :reader   id)
-   (company-id :col-type integer :accessor company-id :initarg :company-id)
-   (title      :col-type string  :accessor title      :initarg :title)
-   (location   :col-type string  :accessor location   :initarg :location)
-   (price      :col-type integer :accessor price      :initarg :price)
-   (start-date :col-type date    :accessor start-date :initarg :start-date)
-   (stop-date  :col-type date    :accessor stop-date  :initarg :stop-date)
-   (status     :col-type string  :accessor status     :initarg :status))
+  ((id          :col-type integer :reader   id)
+   (company-id  :col-type integer :accessor company-id  :initarg :company-id)
+   (description :col-type string  :accessor description :initarg :description)
+   (location    :col-type string  :accessor location    :initarg :location)
+   (price       :col-type integer :accessor price       :initarg :price)
+   (start-date  :col-type date    :accessor start-date  :initarg :start-date)
+   (end-date    :col-type date    :accessor end-date    :initarg :end-date)
+   (status      :col-type string  :accessor status      :initarg :status)
+   (vat         :col-type integer :accessor vat         :initarg :vat))
   (:metaclass dao-class)
   (:keys id))
 

@@ -2,23 +2,13 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-(define-navbar cheque-navbar () (:id "subnavbar" :style "hmenu")
+(define-navbar cheque-navbar () (:id "subnavbar" :ul-style "hmenu")
   (receivable (cheques)              "Προς είσπραξη")
   (payable    (cheques :payable-p t) "Προς πληρωμή"))
 
 (defparameter *cheque-statuses*
   (with-db
     (query (:select 'description 'status :from 'cheque-status))))
-
-(defun get-bank-id (title)
-  (with-db
-    (query (:select 'id :from 'bank :where (:= 'title title))
-	   :single)))
-
-(defun get-company-id (title)
-  (with-db
-    (query (:select 'id :from 'company :where (:= 'title title))
-	   :single)))
 
 (defun cheque-payable-p (cheque-id)
   (with-db
@@ -51,8 +41,8 @@
 	(with-parameter-rebinding #'val 
 	  (with-db 
 	    (let* ((status "pending")
-		   (bank-id (get-bank-id bank))
-		   (company-id (get-company-id company))
+		   (bank-id (bank-id bank))
+		   (company-id (company-id company))
 		   (fsm-data (query (:select 'debit-acc-id 'credit-acc-id 'description
 					     :from 'cheque-fsm
 					     :where (:and (:is-null 'old-status)
@@ -117,8 +107,8 @@
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val
 	  (with-db 
-	    (let* ((bank-id (get-bank-id bank))
-		   (company-id (get-company-id company)))
+	    (let* ((bank-id (bank-id bank))
+		   (company-id (company-id company)))
 	      (with-transaction ()
 		;; First update /all/ transactions that have originated
 		;; from the cheque with this particular cheque-id
@@ -220,10 +210,10 @@
       (redirect (cheque/notfound) :code +http-see-other+)))
 
 (define-dynamic-page cheque/create ((payable-p boolean)
-				    (bank string #'valid-bank-p)
-				    (company string #'valid-company-p)
-				    (amount integer #'positive-p) 
-				    (due-date date #'valid-due-date-p))
+				    (bank      string  #'valid-bank-p)
+				    (company   string  #'valid-company-p)
+				    (amount    integer #'positive-p) 
+				    (due-date  date    #'valid-due-date-p))
     ("cheque/create")
   (no-cache)
   (with-parameter-list params 
@@ -508,21 +498,10 @@
 	     (:li (:a :href (cheque/delete :cheque-id cheque-id)
 		      (:img :src (url "img/delete.png")) "Διαγραφή")))))
 
-
-(defun cheque-errorbar (bank company amount due-date)
-  (unless (every #'validp (list bank company amount due-date))
-    (with-html
-      (:div :id "msg"
-	    (:ul :class "errorbar"
-		 (unless (validp bank)
-		   (htm (:li "Άκυρο όνομα τράπεζας")))
-		 (unless (validp company)
-		   (htm (:li "Άκυρο όνομα εταιρίας")))
-		 (unless (validp amount)
-		   (htm (:li "Άκυρο ποσό")))
-		 #|(unless (validp status)
-		   (htm (:li "Άκυρη κατάσταση επιταγής")))|#
-		 (unless (validp due-date)
-		   (htm (:li "Άκυρη ημερομηνία"))))))))
+(define-errorbar cheque-errorbar ()
+  (bank "Άκυρο όνομα τράπεζας")
+  (company "Άκυρο όνομα εταιρίας")
+  (amount "Άκυρο ποσό") 
+  (due-date "Άκυρη ημερομηνία"))
 
 

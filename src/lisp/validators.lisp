@@ -4,7 +4,7 @@
   (defmacro define-existence-validator (name table field)
     (with-gensyms (value)
       `(defun ,name (,value)
-	 (with-db
+	 (with-db 
 	   (query (:select 1 :from ',table :where (:= ',field ,value))))))))
 
 
@@ -14,24 +14,24 @@
   (not (eq :null val)))
 
 (defun positive-p (val)
-  (with-db
-    (or (eq :null val)
-	(and (integerp val)
-	     (or (zerop val)
-		 (plusp val))))))
+  (or (eq :null val)
+      (and (integerp val)
+	   (or (zerop val)
+	       (plusp val)))))
 
 (defun positive-nonnull-p (val)
-  (with-db
-    (and (not (eq :null val))
-	 (or (zerop val)
-	     (plusp val)))))
+  (and (not (eq :null val))
+       (or (zerop val)
+	   (plusp val))))
 
 
 ;;; --- Config tables --------------------
 
-(define-existence-validator tof-exists-p  tof  title)
-(define-existence-validator city-exists-p city title)
-(define-existence-validator bank-exists-p bank title)
+(define-existence-validator tof-id-exists-p  tof  id)
+(define-existence-validator tof-exists-p     tof  title)
+(define-existence-validator city-exists-p    city title)
+(define-existence-validator bank-id-exists-p bank id)
+(define-existence-validator bank-exists-p    bank title)
 
 (defun valid-tin-p (val)
   (or (eq :null val)
@@ -48,6 +48,30 @@
 
 (defun valid-bank-p (val)
   (bank-exists-p val))
+
+(defun valid-bank-id-p (id new-id)
+  (and new-id
+       (or (string-equal id new-id)
+	   (funcall (complement #'bank-id-exists-p) new-id))))
+
+(defun valid-bank-title-p (id title)
+  (and title
+       (with-db
+	 (let ((current-title (title (get-dao 'bank id))))
+	   (or (string-equal title current-title)
+	       (funcall (complement #'bank-exists-p) title))))))
+
+(defun valid-tof-id-p (id new-id)
+  (and new-id
+       (or (string-equal id new-id)
+	   (funcall (complement #'tof-id-exists-p) new-id))))
+
+(defun valid-tof-title-p (id title)
+  (and title
+       (with-db
+	 (let ((current-title (title (get-dao 'tof id))))
+	   (or (string-equal title current-title)
+	       (funcall (complement #'tof-exists-p) title))))))
 
 ;;; --- Companies --------------------
 
@@ -78,6 +102,10 @@
   (and (positive-nonnull-p val)
        (account-id-exists-p val)))
 
+(defun valid-acc-id-no-subaccounts-p (acc-id)
+  (and (acc-id-exists-p acc-id)
+       (null (get-subaccounts acc-id))))
+
 ;;; --- Transactions --------------------
 
 (define-existence-validator tx-id-exists-p tx id)
@@ -101,19 +129,17 @@
 		    :from (symbolicate (string-upcase tbl) "-FSM")
 		    :where (:= 'id fsm-id)))))
 
-(defun valid-combo (table old-status new-status)
+(defun valid-combo (table status)
   (with-db
     (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
-	   (sql-old (sql-compile `(:select 1
-					   :from ,status-table
-					   :where (or (:= status ,old-status)
-						      (:is-null ,old-status)))))
-	   (sql-new  (sql-compile `(:select 1
-					    :from ,status-table
-					    :where (:= status ,new-status)))))
-      (and (member table (fsm-tables) :test #'string-equal)
-	   (query sql-old :single)
-	   (query sql-new :single)))))
+	   (sql (sql-compile `(:select 1
+				       :from ,status-table
+				       :where (:= status ,status)))))
+      (and (valid-tbl-p table)
+	   (query sql :single)))))
+
+(defun valid-tbl-p (tbl)
+  (member tbl (fsm-tables) :test #'string-equal))
 
 ;;; --- Cheques --------------------
 
@@ -139,3 +165,8 @@
 (defun valid-parent-acc-id-p (val)
   (or (eql val :null)
       (acc-id-exists-p val)))
+
+
+;;; --- Projects --------------------
+
+(define-existence-validator valid-project-id-p project id)

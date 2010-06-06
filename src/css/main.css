@@ -56,12 +56,20 @@ ul.indent li {
     font-weight: bold;
 }
 
-.error {
-    background-color: #fdd;
+.message {
+    padding: 5px 15px;
+    margin: 5px 0px;
+    background-color: #eee;
 }
 
-.message {
-    background-color: #eee;
+.error {
+    color: red;
+    padding: 5px 15px;
+}
+
+.info {
+    color: green;
+    padding: 5px 15px;
 }
 
 /* ------------------------------------------------------------ */
@@ -162,12 +170,10 @@ ul.indent li {
 /* ------------------------------------------------------------ */
 ul.hmenu {
     clear: both;
-
 }
 
 .hmenu li {
     float: left;
-    /* padding: 6px 0px; */
 }
 
 .hmenu li img {
@@ -178,38 +184,6 @@ ul.hmenu {
 .hmenu a {
     display: block;
 }
-
-/* .hmenu a { */
-/*     /\* line-height: 18px; *\/ */
-/*     padding: 4px 8px 4px 8px; */
-/* } */
-
-/* .hmenu li a:hover { */
-/*     text-decoration: underline; */
-/*     /\* background-color: #ccc; *\/ */
-/* } */
-
-/* .hmenu li a img:hover { */
-/*     text-decoration: none; */
-/*     /\* background-color: #ccc; *\/ */
-/* } */
-
-/* .hmenu h3 { */
-/*     font-weight: bold; */
-/*     text-align: center; */
-/*     line-height: 18px; */
-/*     padding: 4px 0px 4px 0px; */
-/*     border-bottom-style: solid; */
-/*     border-bottom-color: #bbb ; */
-/*     border-bottom-width: 1px; */
-/* } */
-
-/* .hmenu p { */
-/*     font-weight: normal; */
-/*     line-height: 18px; */
-/*     padding: 4px 0px 4px 10px; */
-/* } */
-
 
 /* ------------------------------------------------------------ */
 /* Main blocks */
@@ -278,6 +252,18 @@ ul.hmenu {
     border-top-width: 1px;
     border-top-style: solid;
     border-top-color: #bbb;
+    height: 20px;
+}
+
+.prompt button {
+    display: block;
+    height: 26px;
+    padding: 1px 5px 4px 5px;
+}
+
+.prompt a {
+    height: 26px;
+    padding: 
 }
 
 /* ------------------------------------------------------------ */
@@ -382,15 +368,8 @@ ul.hmenu {
 /* ------------------------------------------------------------ */
 /* Messages */
 /* ------------------------------------------------------------ */
-#msg {
-    margin: 20px 10px 10px 10px;
-    padding: 10px;
-}
-
-#msg.error li {
-    color: #000;
-    /* font-weight: bold; */
-    padding: 3px 25px;
+ul.error li {
+    padding: 5px 25px;
     background: url('/scrooge/img/error.png') no-repeat scroll 0 0;
 }
 
@@ -451,7 +430,7 @@ ul.hmenu {
     width: 470px;
 }
 
-#companies-table, #tofs-table {
+#companies-table {
     width: 450px;
 }
 
@@ -469,6 +448,7 @@ ul.hmenu {
 
 #banks-table, #tofs-table {
     width: 430px;
+    margin: 10px;
 }
 
 #banks-table .data, #tofs-table .data {
@@ -546,9 +526,13 @@ ul.hmenu {
 /* ------------------------------------------------------------ */
 /* FSM */
 /* ------------------------------------------------------------ */
+#fsm {
+    width: 940px;
+}
+
 #fsm-table {
-    width: 880px;
-    /* margin: 0px 10px 10px 10px; */
+    width: 920px;
+    margin: 10px 10px 10px 10px;
 }
 
 #fsm-table .data {
@@ -561,11 +545,32 @@ ul.hmenu {
 
 
 /* ------------------------------------------------------------ */
+/* Template transactions (temtx) */
+/* ------------------------------------------------------------ */
+#temtx {
+    width: 900px;
+}
+
+#temtx-table {
+    width: 880px;
+    margin: 10px 10px 10px 10px;
+}
+
+#temtx-table .data {
+    width: 256px;
+}
+
+#temtx-table .data input {
+    width: 246px;
+}
+
+
+
+/* ------------------------------------------------------------ */
 /* Table with forms in a row */
 /* ------------------------------------------------------------ */
 .forms-in-row {
     background-color: #eee;
-    margin: 5px;
 }
 
 .forms-in-row tr {

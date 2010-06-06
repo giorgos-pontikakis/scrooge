@@ -3,11 +3,6 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-(defun get-account-id (title)
-  (with-db
-    (query (:select 'id :from 'account :where (:= 'title title))
-	   :single)))
-
 (defun manual-tx-p (tx-id)
   (if tx-id
       (with-db
@@ -25,9 +20,9 @@
   (with-parameter-list params
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val 
-	  (let ((company-id (get-company-id company))
-		(debit-acc-id (get-account-id debit-acc))
-		(credit-acc-id (get-account-id credit-acc)))
+	  (let ((company-id (company-id company))
+		(debit-acc-id (account-id debit-acc))
+		(credit-acc-id (account-id credit-acc)))
 	    (with-db
 	      (insert-dao (make-instance 'tx
 					 :tx-date tx-date
@@ -73,9 +68,9 @@
   (with-parameter-list params 
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val
-	  (let ((company-id (get-company-id company))
-		(debit-acc-id (get-account-id debit-acc))
-		(credit-acc-id (get-account-id credit-acc)))
+	  (let ((company-id (company-id company))
+		(debit-acc-id (account-id debit-acc))
+		(credit-acc-id (account-id credit-acc)))
 	    (with-db
 	      (execute (:update 'tx :set
 				'tx-date tx-date

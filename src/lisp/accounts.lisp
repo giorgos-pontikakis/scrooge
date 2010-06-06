@@ -19,7 +19,7 @@
 	(redirect (notfound)
 		  :code +http-see-other+))))
 
-(define-dynamic-page actions/account/delete ((acc-id integer #'acc-id-exists-p))
+(define-dynamic-page actions/account/delete ((acc-id integer #'valid-acc-id-no-subaccounts-p t))
     ("actions/account/delete" :request-type :post)
   (no-cache)
   (if (validp acc-id)
@@ -28,7 +28,7 @@
 	(redirect (accounts) :code +http-see-other+))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page actions/account/update ((acc-id    integer #'acc-id-exists-p) 
+(define-dynamic-page actions/account/update ((acc-id    integer #'valid-account-id-p t) 
 					     (title     string)
 					     (parent-id integer #'valid-parent-acc-id-p))
     ("actions/account/update" :request-type :post)
@@ -43,14 +43,12 @@
 	    (redirect (accounts :acc-id acc-id) :code +http-see-other+)))
 	(redirect (notfound) :code +http-see-other+))))
 
-(define-dynamic-page accounts ((acc-id integer #'acc-id-exists-p))
+(define-dynamic-page accounts ((acc-id integer #'valid-account-id-p))
     ("accounts/")
   (no-cache) 
   (if (validp acc-id)
       (with-parameter-rebinding #'val
-	(let ((debit-p (and acc-id
-			    (with-db (query (:select 'debit-p :from 'account :where (:= 'id acc-id))
-					    :single)))))
+	(let ((debit-p (if acc-id (debit-p acc-id) nil)))
 	  (with-page ()
 	    (:head
 	     (:title "Λογαριασμοί")
@@ -74,7 +72,7 @@
 		   (footer))))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page account/create ((acc-id  integer #'acc-id-exists-p)
+(define-dynamic-page account/create ((acc-id  integer #'valid-account-id-p)
 				     (debit-p boolean))
     ("account/create")
   (no-cache) 
@@ -100,7 +98,7 @@
 	       (footer))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page account/update ((acc-id integer #'acc-id-exists-p)
+(define-dynamic-page account/update ((acc-id integer #'valid-account-id-p t)
 				     (debit-p boolean))
     ("account/update")
   (no-cache)
@@ -126,7 +124,7 @@
 	       (footer))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page account/delete ((acc-id  integer #'acc-id-exists-p)
+(define-dynamic-page account/delete ((acc-id  integer #'valid-acc-id-no-subaccounts-p t)
 				     (debit-p boolean))
     ("account/delete")
   (no-cache)
@@ -204,37 +202,33 @@
 		     (for activep = (and active-id (= active-id acc-id)))
 		     (if activep
 			 (case intent
-			   ((or :create :view) (normal-row acc-id title activep))
+			   ((:create :view) (normal-row acc-id title activep))
 			   (:edit (form-row-update acc-id title parent-id))
 			   (:delete (form-row-delete acc-id title)))
 			 (normal-row acc-id title activep)) 
 		     (display-accounts debit-p acc-id active-id intent))))))))
 
-(define-menu account-menu (acc-id debit-p) ()
-  (:create (lambda () 
+(define-menu account-menu (acc-id debit-p) (:div-style "actions" :ul-style "hmenu")
+  (:create (with-html
+	     (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
+		      (:img :src (url "img/add.png")) "Δημιουργία"))))
+  (:view (if acc-id
 	     (with-html
-	       (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
-			(:img :src (url "img/add.png")) "Δημιουργία")))))
-  (:view (lambda () 
-	   (if acc-id
+	       (:li (:a :href (accounts :acc-id acc-id)
+			(:img :src (url "img/magnifier.png")) "Προβολή")))
+	     nil))
+  (:edit (if acc-id
+	     (with-html
+	       (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
+			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	     nil))
+  (:delete (if (and acc-id
+		    (not (get-subaccounts acc-id))
+		    (not (get-transactions acc-id)))
 	       (with-html
-		 (:li (:a :href (accounts :acc-id acc-id)
-			  (:img :src (url "img/magnifier.png")) "Προβολή")))
+		 (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
+			  (:img :src (url "img/delete.png")) "Διαγραφή")))
 	       nil)))
-  (:edit (lambda ()
-	   (if acc-id
-	       (with-html
-		 (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
-			  (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-	       nil)))
-  (:delete (lambda ()
-	     (if (and acc-id
-		      (not (get-subaccounts acc-id))
-		      (not (get-transactions acc-id)))
-		 (with-html
-		   (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
-			    (:img :src (url "img/delete.png")) "Διαγραφή")))
-		 nil))))
 
 (defun get-subaccounts (acc-id)
   (with-db

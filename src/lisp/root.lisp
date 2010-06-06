@@ -22,17 +22,33 @@
 
 ;;; --- Autocomplete --------------------
 
-(define-dynamic-page autocomplete (table q) ("autocomplete" :content-type "text/plain")
+;; (define-dynamic-page autocomplete (table q) ("autocomplete" :content-type "text/plain")
+;;   (with-db
+;;     (with-parameter-rebinding #'val
+;;      (let ((results (query (:select 'id 'title :from (intern table)))))
+;;        (if results
+;; 	   (with-html-output (*standard-output* nil :indent nil :prologue nil) 
+;; 	     (iter (for (key val) in results)
+;; 		   (when (search (string-upcase-gr q) (string-upcase-gr val))
+;; 		     (fmt "~A|~A~&" val key))))
+;; 	   (with-html-output (*standard-output* nil :indent nil :prologue nil)
+;; 	     "|"))))))
+
+(define-dynamic-page autocomplete ((table symbol)
+				   (column symbol)
+				   (term string))
+    ("autocomplete" :content-type "text/plain")
   (with-db
     (with-parameter-rebinding #'val
-     (let ((results (query (:select 'id 'title :from (intern table)))))
-       (if results
-	   (with-html-output (*standard-output* nil :indent nil :prologue nil) 
-	     (iter (for (key val) in results)
-		   (when (search (string-upcase-gr q) (string-upcase-gr val))
-		     (fmt "~A|~A~&" val key))))
-	   (with-html-output (*standard-output* nil :indent nil :prologue nil)
-	     "|"))))))
+      (let ((results (query (:select column :from table
+				     :where (:like column (concatenate 'string
+								       "%" term "%")))
+			    :column)))
+	(if results
+	    (with-html-output (*standard-output* nil :indent nil :prologue nil) 
+	      (write-json (map 'vector #'identity results)))
+	    (with-html-output (*standard-output* nil :indent nil :prologue nil)
+	      "[]"))))))
 
 ;;; --- Generic error --------------------
 
@@ -81,7 +97,7 @@
 	   (primary-navbar 'companies))
      (:div :id "body"
 	   (:div :id "content" :class "summary"
-		 (:p "No fsm transitions data found."))))))
+		 (:p "No FSM Transitions data found."))))))
 
 
 
