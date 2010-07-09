@@ -66,8 +66,8 @@ create table account (
 --- Cheques ------------------------------
 
 create table cheque_status (
-       status varchar(8) primary key
-       ,description varchar(16) 
+       status varchar(32) primary key
+       ,description varchar(32) 
 );
 insert into cheque_status (status, description) values('pending', 'Εκκρεμεί');
 insert into cheque_status (status, description) values('paid', 'Πληρωμένη');
@@ -121,8 +121,8 @@ create table temtx (
 --- Projects ------------------------------
 
 create table project_status (
-       status varchar(8) primary key
-       ,description varchar(16) 
+       status varchar(32) primary key
+       ,description varchar(32) 
 );
 insert into project_status (status, description) values('quoted', 'Δόθηκε προσφορά');
 insert into project_status (status, description) values('ongoing', 'Σε εξέλιξη');
