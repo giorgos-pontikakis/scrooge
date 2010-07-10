@@ -18,7 +18,7 @@
 
 (defun js-standard-headers ()
   (js-headers "lib/jquery/jquery-1.4.2.min.js"
-	      "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js"
+	      "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js" 
 	      "js/main.js"))
 
 
@@ -27,6 +27,14 @@
 	       "css/main.css"
 	       "lib/jquery-ui/css/smoothness/jquery-ui-1.8.2.custom.css"))
 
+(defun data-tables-headers ()
+  (js-headers "lib/dataTables-1.6/media/js/jquery.dataTables.min.js")
+  (css-headers "css/table.css"))
+
+(defun bank-headers ()
+  (css-standard-headers)
+  (js-standard-headers)
+  (data-tables-headers))
 
 ;;; User interface elements
 

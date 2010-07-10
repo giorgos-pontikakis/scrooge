@@ -158,7 +158,7 @@
 	    (input-row (mapcar #'val* params))
 	    (styles (mapcar #'style-invalid params)))
 	(with-html
-	  (:table :id "banks-table" :class "forms-in-row"
+	  (:table :id "banks-table" :class "table-half forms-in-row"
 		  (:thead
 		   (:tr (iter (for label in header) (htm (:th (str label))))))
 		  (:tbody
@@ -260,7 +260,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Τράπεζες")
-	   (css-standard-headers))
+	   (bank-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)

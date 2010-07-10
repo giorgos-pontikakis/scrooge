@@ -25,6 +25,11 @@ button, select, input {
     vertical-align: baseline;
 }
 
+input {
+    border: 1px solid #ddd;
+    padding: 3px;
+}
+
 
 /* ------------------------------------------------------------ */
 /* Auxiliary global */
@@ -446,24 +451,25 @@ ul.error li {
     width: 450px;
 }
 
-#banks-table, #tofs-table {
-    width: 430px;
-    margin: 10px;
-}
+/* #banks-table, #tofs-table { */
+/*     width: 430px; */
+/*     margin: 10px; */
+/*     clear: both; */
+/* } */
 
-#banks-table .data, #tofs-table .data {
-    width: 210px;
-}
-#banks-table .data input, #tofs-table .data input {
-    width: 200px;
-}
+/* #banks-table .data, #tofs-table .data { */
+/*     width: 210px; */
+/* } */
+/* #banks-table .data input, #tofs-table .data input { */
+/*     width: 200px; */
+/* } */
 
-#banks-table .id, #tofs-table .id {
-    width: 110px;
-}
-#banks-table .id input, #tofs-table .id input {
-    width: 100px;
-}
+/* #banks-table .id, #tofs-table .id { */
+/*     width: 110px; */
+/* } */
+/* #banks-table .id input, #tofs-table .id input { */
+/*     width: 100px; */
+/* } */
 
 #debit-accounts, #credit-accounts {
     float: left;
@@ -566,68 +572,3 @@ ul.error li {
 
 
 
-/* ------------------------------------------------------------ */
-/* Table with forms in a row */
-/* ------------------------------------------------------------ */
-.forms-in-row {
-    background-color: #eee;
-}
-
-.forms-in-row tr {
-    border: solid 1px #bbb;
-    height: 32px;
-}
-
-.forms-in-row tr.active {
-    background-color: #fcfcfc;
-}
-
-.forms-in-row td, .forms-in-row th {
-    /* line-height = 32 (tr.height) -1 (tr.border) */
-    line-height: 31px; 		
-    text-align: left;
-}
-
-.forms-in-row input {
-    border: 1px solid #ddd;
-    padding: 3px;
-    margin-top: 4px;
-}
-
-.forms-in-row input:hover, .forms-in-row input:focus {
-    border: solid 1px #000;
-}
-
-.forms-in-row input[readonly] {
-    background-color: #f4f4f4;
-}
-
-.forms-in-row button {
-    padding: 0px;
-    background-color: transparent;
-    border: none;
-    position: relative;
-    top: 4px;
-}
-
-.forms-in-row button:hover {
-    cursor: pointer;
-}
-
-.forms-in-row a img {
-    vertical-align: middle;
-}
-
-.button, .button button {
-    width: 30px;
-    padding: 0px;
-}
-
-.select {
-    width: 30px;
-    padding: 0px;
-}
-
-.select a {
-    margin: 0px 7px;
-}
