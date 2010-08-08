@@ -21,5 +21,5 @@
 	       (:file "accounts")
 	       (:file "tx")
 	       (:file "temtx")
-	       (:file "fsm")
+	       (:file "stran")
 	       (:file "project")))

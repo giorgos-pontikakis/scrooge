@@ -128,50 +128,59 @@
 ;;;----------------------------------------------------------------------
 ;;; Helper macros
 
-(defmacro define-row-display (name fn id-key data-keys css-classes) 
-  `(defun ,name (active-id values)
-     (let ((activep (and active-id (eql active-id (getf values ,id-key))))) 
+(defmacro define-row-display (name fn id-keys data-keys css-classes) 
+  (let ((id-syms (mapcar #'symbolicate id-keys)))
+    `(defun ,name (,@id-syms values)
+       (let ((activep (and ,@(mapcar (lambda (id-key id-sym)
+                                       `(equal ,id-sym (getf values ,id-key)))
+                                     id-keys id-syms)))) 
+         (with-html
+           (:tr :class (if activep "active" nil)
+                (:td :class "select"
+                     (if activep
+                         (active-row-anchor (,fn))
+                         (inactive-row-anchor (,fn ,@(mapcan (lambda (id-key)
+                                                               `(,id-key (getf values ,id-key)))
+                                                             id-keys)))))
+                ,@(data-rows-td data-keys css-classes) 
+                (:td :class "button" "")
+                (:td :class "button" "")))))))
+
+(defmacro define-row-create (name fn action id-keys data-keys css-classes)
+  (let ((id-syms (mapcar #'symbolicate id-keys)))
+    `(defun ,name (,@id-syms values styles)
+       (declare (ignore ,@id-syms))
        (with-html
-         (:tr :class (if activep "active" nil)
-              (:td :class "select"
-                   (if activep
-                       (active-row-anchor (,fn) active-id)
-                       (inactive-row-anchor (,fn ,id-key (getf values ,id-key)))))
-              ,@(data-rows-td data-keys css-classes) 
-              (:td :class "button" "")
-              (:td :class "button" ""))))))
+         (:tr :class "active"
+              (with-form (,action)
+                (:td :class "select" (active-row-anchor (,fn)))
+                ,@(data-rows-input data-keys css-classes)
+                (:td :class "button" (ok-button))
+                (:td :class "button" (cancel-button (,fn)))))))))
 
-(defmacro define-row-create (name fn action data-keys css-classes)
-  `(defun ,name (active-id values styles)
-     (with-html
-       (:tr :class "active"
-            (with-form (,action)
-              (:td :class "select" (active-row-anchor (,fn) active-id))
-              ,@(data-rows-input data-keys css-classes)
-              (:td :class "button" (ok-button))
-              (:td :class "button" (cancel-button (,fn))))))))
+(defmacro define-row-update (name fn action id-keys data-keys css-classes)
+  (let ((id-syms (mapcar #'symbolicate id-keys)))
+   `(defun ,name (,@id-syms values styles) 
+      (with-html
+        (:tr :class "active"
+             (with-form (,action ,@(zip id-keys id-syms))
+               (:td :class "select"
+                    (active-row-anchor (,fn ,@(zip id-keys id-syms))))
+               ,@(data-rows-input data-keys css-classes)
+               (:td :class "button" (ok-button))
+               (:td :class "button" (cancel-button (,fn ,@(zip id-keys id-syms))))))))))
 
-(defmacro define-row-update (name fn action id-key data-keys css-classes)
-  `(defun ,name (active-id values styles) 
-     (with-html
-       (:tr :class "active"
-            (with-form (,action ,id-key active-id)
-              (:td :class "select"
-                   (active-row-anchor (,fn ,id-key active-id) active-id))
-              ,@(data-rows-input data-keys css-classes)
-              (:td :class "button" (ok-button))
-              (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))
-
-(defmacro define-row-delete (name fn action id-key data-keys css-classes) 
-  `(defun ,name (active-id values) 
-     (with-html
-       (:tr :class "attention"
-            (with-form (,action ,id-key active-id)
-              (:td :class "select"
-                   (active-row-anchor (,fn ,id-key active-id) active-id))
-              ,@(data-rows-td data-keys css-classes)
-              (:td :class "button" (ok-button))
-              (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))
+(defmacro define-row-delete (name fn action id-keys data-keys css-classes) 
+  (let ((id-syms (mapcar #'symbolicate id-keys)))
+    `(defun ,name (,@id-syms values) 
+       (with-html
+         (:tr :class "attention"
+              (with-form (,action ,@(zip id-keys id-syms))
+                (:td :class "select"
+                     (active-row-anchor (,fn ,@(zip id-keys id-syms))))
+                ,@(data-rows-td data-keys css-classes)
+                (:td :class "button" (ok-button))
+                (:td :class "button" (cancel-button (,fn ,@(zip id-keys id-syms))))))))))
 
 (defun active-row-img ()
   (with-html
@@ -184,11 +193,11 @@
 
 (defun active-row-anchor (href &optional name)
   (with-html
-    (:a :href href :name name (:img :src (url "img/bullet_red.png")))))
+    (:a :href href :name name (active-row-img))))
 
 (defun inactive-row-anchor (href &optional name)
   (with-html
-    (:a :href href :name name (:img :src (url "img/bullet_blue.png")))))
+    (:a :href href :name name (inactive-row-img))))
 
 (defun data-rows-td (data-keys css-classes)
   (mapcar (lambda (key class)
@@ -202,3 +211,59 @@
                                          :style (getf styles ,key))))
           data-keys css-classes))
 
+
+;; (defun data-rows-td (data-keys css-classes input-widgets)
+;;   (mapcar (lambda (key class widget)
+;;             (case widget
+;;               (:text `(:td :class ,class (str (lisp-to-html (getf values ,key)))))
+;;               (:textbox `(:td :class ,class (textbox ,key
+;;                                                      :value (getf values ,key)
+;;                                                      :style (getf styles ,key))))
+;;               (:dropdown `)
+;;               (otherwise (error "Unimplemented widget."))))
+;;           data-keys css-classes))
+
+;; (defmacro define-row-display (name fn id-key data-keys css-classes) 
+;;   `(defun ,name (active-id values)
+;;      (let ((activep (and active-id (eql active-id (getf values ,id-key))))) 
+;;        (with-html
+;;          (:tr :class (if activep "active" nil)
+;;               (:td :class "select"
+;;                    (if activep
+;;                        (active-row-anchor (,fn) active-id)
+;;                        (inactive-row-anchor (,fn ,id-key (getf values ,id-key)))))
+;;               ,@(data-rows-td data-keys css-classes) 
+;;               (:td :class "button" "")
+;;               (:td :class "button" ""))))))
+
+;; (defmacro define-row-create (name fn action data-keys css-classes)
+;;   `(defun ,name (active-id values styles)
+;;      (with-html
+;;        (:tr :class "active"
+;;             (with-form (,action)
+;;               (:td :class "select" (active-row-anchor (,fn) active-id))
+;;               ,@(data-rows-input data-keys css-classes)
+;;               (:td :class "button" (ok-button))
+;;               (:td :class "button" (cancel-button (,fn))))))))
+
+;; (defmacro define-row-update (name fn action id-key data-keys css-classes)
+;;   `(defun ,name (active-id values styles) 
+;;      (with-html
+;;        (:tr :class "active"
+;;             (with-form (,action ,id-key active-id)
+;;               (:td :class "select"
+;;                    (active-row-anchor (,fn ,id-key active-id) active-id))
+;;               ,@(data-rows-input data-keys css-classes)
+;;               (:td :class "button" (ok-button))
+;;               (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))
+
+;; (defmacro define-row-delete (name fn action id-key data-keys css-classes) 
+;;   `(defun ,name (active-id values) 
+;;      (with-html
+;;        (:tr :class "attention"
+;;             (with-form (,action ,id-key active-id)
+;;               (:td :class "select"
+;;                    (active-row-anchor (,fn ,id-key active-id) active-id))
+;;               ,@(data-rows-td data-keys css-classes)
+;;               (:td :class "button" (ok-button))
+;;               (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))

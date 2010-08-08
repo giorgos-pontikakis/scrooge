@@ -6,7 +6,7 @@
 ;;; Banks - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/bank/create ((title string (complement #'bank-title-exists-p)))
+(define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p)))
     ("actions/bank/create" :request-type :post) 
   (no-cache)
   (with-parameter-list params 
@@ -71,13 +71,13 @@
 		     (:li (:a :href (bank/delete :id id)
 			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
 
-(define-row-display bank-row-display banks :id (:title) ("data"))
+(define-row-display bank-row-display banks (:id) (:title) ("data"))
 
-(define-row-create bank-row-create banks actions/bank/create (:title) ("data"))
+(define-row-create bank-row-create banks actions/bank/create (:id) (:title) ("data"))
 
-(define-row-update bank-row-update banks actions/bank/update :id (:title) ("data"))
+(define-row-update bank-row-update banks actions/bank/update (:id) (:title) ("data"))
 
-(define-row-delete bank-row-delete banks actions/bank/delete :id (:title) ("data"))
+(define-row-delete bank-row-delete banks actions/bank/delete (:id) (:title) ("data"))
 
 (defun banks-table (intent filter active-id title)
   (let ((params (list title)))
@@ -141,7 +141,7 @@
                (footer))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page bank/create ((title string (complement #'bank-title-exists-p)))
+(define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
     ("config/bank/create") 
   (no-cache)
   (with-page ()

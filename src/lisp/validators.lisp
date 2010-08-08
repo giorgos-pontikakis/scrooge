@@ -27,8 +27,8 @@
 
 ;;; --- Banks --------------------
 
-(define-existence-validator bank-id-exists-p    bank id)
-(define-existence-validator bank-title-exists-p bank title)
+(define-existence-validator bank-id-exists-p bank id)
+(define-existence-validator bank-exists-p bank title)
 
 (defun valid-bank-title-p (id title)
   (and id
@@ -36,12 +36,12 @@
        (with-db
          (let ((current-title (title (get-dao 'bank id))))
            (or (string-equal title current-title)
-               (funcall (complement #'bank-title-exists-p) title))))))
+               (funcall (complement #'bank-exists-p) title))))))
 
 ;;; --- Taxation Offices --------------------
 
-(define-existence-validator tof-id-exists-p  tof  id)
-(define-existence-validator tof-title-exists-p     tof  title)
+(define-existence-validator tof-id-exists-p tof id)
+(define-existence-validator tof-exists-p tof title)
 
 (defun valid-tof-title-p (id title)
   (and id
@@ -49,11 +49,13 @@
        (with-db
 	 (let ((current-title (title (get-dao 'tof id))))
 	   (or (string-equal title current-title)
-	       (funcall (complement #'tof-title-exists-p) title))))))
+	       (funcall (complement #'tof-exists-p) title))))))
 
 ;;; --- Cities --------------------
 
 (define-existence-validator city-exists-p    city title)
+
+;;; --- TIN --------------------
 
 (defun valid-tin-p (val)
   (or (eq :null val)
@@ -115,11 +117,11 @@
   (and (positive-p val)
        (temtx-id-exists-p val)))
 
-(defun valid-fsm-id-p (fsm-id tbl)
+(defun valid-st-id-p (st-id tbl)
   (with-db
     (query (:select 1
-		    :from (symbolicate (string-upcase tbl) "-FSM")
-		    :where (:= 'id fsm-id)))))
+		    :from (symbolicate (string-upcase tbl) "-ST")
+		    :where (:= 'id st-id)))))
 
 (defun valid-combo (table status)
   (with-db
@@ -131,7 +133,7 @@
 	   (query sql :single)))))
 
 (defun valid-tbl-p (tbl)
-  (member tbl (fsm-tables) :test #'string-equal))
+  (member tbl (stran-tables) :test #'string-equal))
 
 ;;; --- Cheques --------------------
 
@@ -162,3 +164,8 @@
 ;;; --- Projects --------------------
 
 (define-existence-validator valid-project-id-p project id)
+
+
+;;; --- State transitions --------------------
+
+(define-existence-validator stran-id-exists-p stran id)

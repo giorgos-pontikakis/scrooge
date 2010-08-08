@@ -6,7 +6,7 @@
 ;;; TOFs - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/tof/create ((title string (complement #'tof-title-exists-p)))
+(define-dynamic-page actions/tof/create ((title string (complement #'tof-exists-p)))
     ("actions/tof/create" :request-type :post)
   (no-cache)
   (with-parameter-list params
@@ -70,13 +70,13 @@
 		     (:li (:a :href (tof/delete :id id)
 			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
 
-(define-row-display tof-row-display tofs :id (:title) ("data"))
+(define-row-display tof-row-display tofs (:id) (:title) ("data"))
 
-(define-row-create tof-row-create tofs actions/tof/create (:title) ("data"))
+(define-row-create tof-row-create tofs actions/tof/create (:id) (:title) ("data"))
 
-(define-row-update tof-row-update tofs actions/tof/update :id (:title) ("data"))
+(define-row-update tof-row-update tofs actions/tof/update (:id) (:title) ("data"))
 
-(define-row-delete tof-row-delete tofs actions/tof/delete :id (:title) ("data"))
+(define-row-delete tof-row-delete tofs actions/tof/delete (:id) (:title) ("data"))
 
 (defun tofs-table (intent filter active-id title)
   (let ((params (list title)))
@@ -139,7 +139,7 @@
                (footer))))
       (redirect (notfound) :code +http-see-other+)))
 
-(define-dynamic-page tof/create ((title string (complement #'tof-title-exists-p)))
+(define-dynamic-page tof/create ((title string (complement #'tof-exists-p)))
     ("config/tof/create")
   (no-cache)
   (with-page ()

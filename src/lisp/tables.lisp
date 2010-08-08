@@ -86,7 +86,7 @@
   (:metaclass dao-class)
   (:keys status))
 
-(defclass cheque-fsm ()
+(defclass cheque-stran ()
   ((id            :col-type integer :reader   id) 
    (description   :col-type string  :accessor description   :initarg :description) 
    (old-status    :col-type string  :accessor old-status    :initarg :old-status)
@@ -161,7 +161,7 @@
   (:metaclass dao-class)
   (:keys id))
 
-(defclass project-fsm ()
+(defclass project-stran ()
   ((id            :col-type integer :reader   id) 
    (description   :col-type string  :accessor description   :initarg :description) 
    (old-status    :col-type string  :accessor old-status    :initarg :old-status)
