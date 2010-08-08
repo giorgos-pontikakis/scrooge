@@ -14,6 +14,8 @@
 	       (:file "tables")
 	       (:file "root")
 	       (:file "config")
+               (:file "banks")
+               (:file "tofs")
 	       (:file "companies")
 	       (:file "cheques")
 	       (:file "accounts")

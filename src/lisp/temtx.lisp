@@ -1,6 +1,10 @@
 (in-package :scrooge)
 
-;;; Actions
+(declaim (optimize (speed 0) (debug 3)))
+
+;;; ------------------------------------------------------------
+;;; Transaction templates - Actions
+;;; ------------------------------------------------------------
 
 (declaim (optimize (speed 0) (debug 3)))
 
@@ -60,7 +64,40 @@
 				  :credit-acc credit-acc)
 		    :code +http-see-other+)))))
 
-;;; Pages
+
+
+;;; ------------------------------------------------------------
+;;; Transaction templates - Snippets
+;;; ------------------------------------------------------------
+
+(define-menu temtx-menu (temtx-id) (:div-style "actions" :ul-style "hmenu")
+  (:create (with-html
+	     (:li (:a :href (temtx/create)
+		      (:img :src (url "img/add.png")) "Δημιουργία"))))
+  (:view (with-html
+	   (:li (:a :href (temtx :temtx-id temtx-id)
+		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
+  (:update (if temtx-id
+	       (with-html
+		 (:li (:a :href (temtx/update :temtx-id temtx-id)
+			  (:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	       nil))
+  (:delete (if temtx-id
+	       (with-html
+		 (:li (:a :href (temtx/delete :temtx-id temtx-id)
+			  (:img :src (url "img/delete.png")) "Διαγραφή")))
+	       nil)))
+
+(define-errorbar temtx-errorbar (:ul-style "error")
+  (description "Η περιγραφή δεν πρέπει να είναι κενή")
+  (debit-acc "Ο χρεωστικός λογαριασμός που έχετε εισάγει δεν υπάρχει.")
+  (credit-acc "Ο πιστωτικός λογαριασμός που έχετε εισάγει δεν υπάρχει."))
+
+
+
+;;; ------------------------------------------------------------
+;;; Transaction templates - Pages
+;;; ------------------------------------------------------------
 
 (define-dynamic-page temtx ((temtx-id integer #'valid-temtx-id-p))
     ("config/temtx")
@@ -243,26 +280,3 @@
 				 (:update (form-row-update id row styles))
 				 (:delete (form-row-delete id row))))
 			     (normal-row id defaults activep))))))))))
-
-(define-menu temtx-menu (temtx-id) (:div-style "actions" :ul-style "hmenu")
-  (:create (with-html
-	     (:li (:a :href (temtx/create)
-		      (:img :src (url "img/add.png")) "Δημιουργία"))))
-  (:view (with-html
-	   (:li (:a :href (temtx :temtx-id temtx-id)
-		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
-  (:update (if temtx-id
-	       (with-html
-		 (:li (:a :href (temtx/update :temtx-id temtx-id)
-			  (:img :src (url "img/pencil.png")) "Επεξεργασία")))
-	       nil))
-  (:delete (if temtx-id
-	       (with-html
-		 (:li (:a :href (temtx/delete :temtx-id temtx-id)
-			  (:img :src (url "img/delete.png")) "Διαγραφή")))
-	       nil)))
-
-(define-errorbar temtx-errorbar (:ul-style "error")
-  (description "Η περιγραφή δεν πρέπει να είναι κενή")
-  (debit-acc "Ο χρεωστικός λογαριασμός που έχετε εισάγει δεν υπάρχει.")
-  (credit-acc "Ο πιστωτικός λογαριασμός που έχετε εισάγει δεν υπάρχει."))

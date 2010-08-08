@@ -21,12 +21,12 @@ drop table tof;
 --- Basic config ------------------------------
 
 create table tof ( -- taxation office
-       id varchar(8) primary key
+       id serial primary key
        ,title varchar(64) unique not null
 );
 
 create table bank (
-       id varchar(8) primary key
+       id serial primary key
        ,title varchar(64) unique not null
 );
 
@@ -36,7 +36,7 @@ create table company (
        id		serial primary key
        ,title		varchar(256) unique not null
        ,occupation	varchar(64)
-       ,tof_id       	varchar(8) references tof(id)
+       ,tof_id       	integer references tof(id)
        ,tin       	char(9) unique
        ,address		varchar(256)
        ,city		varchar(64)
@@ -85,7 +85,7 @@ create table cheque_fsm (
 
 create table cheque (
        id serial primary key
-       ,bank_id varchar(8) not null references bank(id)
+       ,bank_id integer not null references bank(id)
        ,company_id integer not null references company(id)
        ,due_date date not null
        ,amount integer not null check (amount > 0) 

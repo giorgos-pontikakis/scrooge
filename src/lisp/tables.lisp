@@ -25,8 +25,8 @@
 ;;; Class definitions
 
 (defclass bank () 
-  ((id    :col-type string :accessor id    :initarg :id)
-   (title :col-type string :accessor title :initarg :title))
+  ((id    :col-type integer :reader   id)
+   (title :col-type string  :accessor title :initarg :title))
   (:metaclass dao-class)
   (:keys id))
 
@@ -36,7 +36,7 @@
 	   :single)))
 
 (defclass tof () 
-  ((id    :col-type string :accessor id    :initarg :id)
+  ((id    :col-type integer :reader id)
    (title :col-type string :accessor title :initarg :title))
   (:metaclass dao-class)
   (:keys id))

@@ -25,13 +25,35 @@
 	   (plusp val))))
 
 
-;;; --- Config tables --------------------
+;;; --- Banks --------------------
+
+(define-existence-validator bank-id-exists-p    bank id)
+(define-existence-validator bank-title-exists-p bank title)
+
+(defun valid-bank-title-p (id title)
+  (and id
+       title
+       (with-db
+         (let ((current-title (title (get-dao 'bank id))))
+           (or (string-equal title current-title)
+               (funcall (complement #'bank-title-exists-p) title))))))
+
+;;; --- Taxation Offices --------------------
 
 (define-existence-validator tof-id-exists-p  tof  id)
-(define-existence-validator tof-exists-p     tof  title)
+(define-existence-validator tof-title-exists-p     tof  title)
+
+(defun valid-tof-title-p (id title)
+  (and id
+       title
+       (with-db
+	 (let ((current-title (title (get-dao 'tof id))))
+	   (or (string-equal title current-title)
+	       (funcall (complement #'tof-title-exists-p) title))))))
+
+;;; --- Cities --------------------
+
 (define-existence-validator city-exists-p    city title)
-(define-existence-validator bank-id-exists-p bank id)
-(define-existence-validator bank-exists-p    bank title)
 
 (defun valid-tin-p (val)
   (or (eq :null val)
@@ -42,36 +64,6 @@
 		   11)
 	      (parse-integer (subseq val 8))))))
 
-(defun valid-tof-p (val)
-  (or (eq :null val)
-      (tof-exists-p val)))
-
-(defun valid-bank-p (val)
-  (bank-exists-p val))
-
-(defun valid-bank-id-p (id new-id)
-  (and new-id
-       (or (string-equal id new-id)
-	   (funcall (complement #'bank-id-exists-p) new-id))))
-
-(defun valid-bank-title-p (id title)
-  (and title
-       (with-db
-	 (let ((current-title (title (get-dao 'bank id))))
-	   (or (string-equal title current-title)
-	       (funcall (complement #'bank-exists-p) title))))))
-
-(defun valid-tof-id-p (id new-id)
-  (and new-id
-       (or (string-equal id new-id)
-	   (funcall (complement #'tof-id-exists-p) new-id))))
-
-(defun valid-tof-title-p (id title)
-  (and title
-       (with-db
-	 (let ((current-title (title (get-dao 'tof id))))
-	   (or (string-equal title current-title)
-	       (funcall (complement #'tof-exists-p) title))))))
 
 ;;; --- Companies --------------------
 

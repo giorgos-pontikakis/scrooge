@@ -6,8 +6,6 @@
 
 ;;; Database utilities
 
-
-
 (defun company-defaults (id)
   (with-db 
     (query (:select 'company.title 'occupation 'tof.title 'tin
@@ -122,6 +120,7 @@
 				    :zipcode zipcode
 				    :pobox pobox)
 		    :code +http-see-other+)))))
+
 
 ;;; Snippets
 
@@ -275,6 +274,7 @@
 	    (:ul :class "prompt hmenu"
 		 (:li (submit "Διαγραφή"))
 		 (:li (:a :href (company/view :id id) "Ακύρωση")))))))
+
 
 ;;; Pages
 

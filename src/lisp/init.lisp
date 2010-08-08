@@ -15,10 +15,10 @@
 (defun init-accounts ()
   )
 
+;; (defun init-fsm ()
+;;   (mapc (lambda (rec)
+;; 	  (bind (((description old-status new-status debit-acc-id credit-acc-id))) (create-row )))))
 
-(defun init-fsm ()
-  (mapc (lambda (rec)
-	  (bind (((description old-status new-status debit-acc-id credit-acc-id))) (create-row )))))
 (define-cfg '(:dbhost "localhost"
 	      :dbname "scrooge"
 	      :dbadapter 'postgresql
@@ -29,49 +29,49 @@
 	      :debug t))
 
 (defun init-banks ()
-  (mapc (lambda (pair)
+  (mapc (lambda (arg)
 	  (ignore-errors
-	    (create-row 'bank :id (first pair) :title (second pair))))
-	'(("alpha" "Alpha Bank")
-          ("agrotiki" "Αγροτική Τράπεζα της Ελλάδος")
-          ("aspis" "Aspis Bank")
-          ("nbg" "Εθνική Τράπεζα της Ελλάδος")
-          ("cyprus" "Τράπεζα Κύπρου")
-          ("tt" "Ταχυδρομικό Ταμιευτήριο")
-          ("piraeus" "Τράπεζα Πειραιώς")
-          ("marfin" "Marfin Egnatia Bank")
-          ("attica" "Attica Bank")
-          ("eurobank" "EFG Eurobank Εργασίας")
-          ("barclays" "Barclays Bank")
-          ("hsbc" "HSBC")
-          ("citibank" "Citibank Ελλάδα")
-          ("probank" "Probank")
-          ("greek" "Ελληνική Τράπεζα")
-          ("millenium" "Millenium bank")
-          ("proton" "Proton Bank"))))
+	    (create-row 'bank :title arg)))
+	'("Alpha Bank"
+          "Αγροτική Τράπεζα της Ελλάδος"
+          "Aspis Bank"
+          "Εθνική Τράπεζα της Ελλάδος"
+          "Τράπεζα Κύπρου"
+          "Ταχυδρομικό Ταμιευτήριο"
+          "Τράπεζα Πειραιώς"
+          "Marfin Egnatia Bank"
+          "Attica Bank"
+          "EFG Eurobank Εργασίας"
+          "Barclays Bank"
+          "HSBC"
+          "Citibank Ελλάδα"
+          "Probank"
+          "Ελληνική Τράπεζα"
+          "Millenium bank"
+          "Proton Bank")))
 
 (defun init-tofs ()
-  (mapc (lambda (pair)
+  (mapc (lambda (arg)
 	  (ignore-errors
-	    (create-row 'tof :id (string-downcase (first pair)) :title (second pair))))
-	'((a-thes "Α' Θεσσαλονίκης")
-	  (b-thes "Β' Θεσσαλονίκης")
-	  (g-thes "Γ' Θεσσαλονίκης")
-	  (d-thes "Δ' Θεσσαλονίκης")
-	  (e-thes "Ε' Θεσσαλονίκης")
-	  (st-thes "ΣΤ' Θεσσαλονίκης")
-	  (z-thes "Ζ' Θεσσαλονίκης")
-	  (h-thes "Η' Θεσσαλονίκης")
-	  (th-thes "Θ' Θεσσαλονίκης")
-	  (i-thes "Ι' Θεσσαλονίκης")
-	  (ampelokipon "Αμπελοκήπων Θεσσαλονίκης")
-	  (toumpas "Τούμπας Θεσσαλονίκης")
-	  (ionias "Ιωνίας Θεσσαλονίκης")
-	  (kalamarias "Καλαμαριάς")
-	  (neapolis "Νεάπολης") 
-	  (polygyrou "Πολυγύρου")
-	  (a-xan "Α' Ξάνθης")
-	  (faeth "Φ.Α.Ε. Θεσσαλονίκης"))))
+	    (create-row 'tof :title arg)))
+	'("Α' Θεσσαλονίκης"
+	  "Β' Θεσσαλονίκης"
+	  "Γ' Θεσσαλονίκης"
+	  "Δ' Θεσσαλονίκης"
+	  "Ε' Θεσσαλονίκης"
+	  "ΣΤ' Θεσσαλονίκης"
+	  "Ζ' Θεσσαλονίκης"
+	  "Η' Θεσσαλονίκης"
+	  "Θ' Θεσσαλονίκης"
+	  "Ι' Θεσσαλονίκης"
+	  "Αμπελοκήπων Θεσσαλονίκης"
+	  "Τούμπας Θεσσαλονίκης"
+	  "Ιωνίας Θεσσαqλονίκης"
+	  "Καλαμαριάς"
+	  "Νεάπολης" 
+	  "Πολυγύρου"
+	  "Α' Ξάνθης"
+	  "Φ.Α.Ε. Θεσσαλονίκης")))
 
 (defun init-companies ()
   (mapc (lambda (rec)
@@ -82,7 +82,7 @@
 	    (apply #'create-row 'company list)))
 	'(("Ε. Καφφές Α.Ε."
 	   "Εμπορία"
-	   "faeth"
+	   1
 	   "094307730"
 	   "Προέκταση Σμύρνης"
 	   "Θεσσαλονίκη"
@@ -90,7 +90,7 @@
 	   :null)
 	  ("Κωνσταντίνα Γαβριήλ"
 	   "Εμπορία"
-	   "a-xan"
+	   2
 	   "063565898"
 	   "Λευκίππου 1Α"
 	   "Ξάνθη"
@@ -98,7 +98,7 @@
 	   :null)
 	  ("Κλιμαμηχανική Α.Ε."
 	   "Κλιματισμός"
-	   "faeth"
+	   1
 	   "123456789"
 	   "Βενιζέλου 5, Καλαμαριά"
 	   "Θεσσαλονίκη"

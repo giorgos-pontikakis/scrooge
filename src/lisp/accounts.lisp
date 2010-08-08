@@ -2,6 +2,10 @@
 
 (declaim (optimize (speed 0) (safety 3) (debug 3)))
 
+;;; ------------------------------------------------------------
+;;; Accounts - Actions
+;;; ------------------------------------------------------------
+
 (define-dynamic-page actions/account/create ((title       string)
 					     (parent-id   integer #'valid-parent-acc-id-p)
 					     (debit-acc-p boolean))
@@ -42,6 +46,49 @@
 			      :where (:= 'id acc-id)))
 	    (redirect (accounts :acc-id acc-id) :code +http-see-other+)))
 	(redirect (notfound) :code +http-see-other+))))
+
+;;; ------------------------------------------------------------
+;;; Banks - Snippets
+;;; ------------------------------------------------------------
+
+(define-menu account-menu (acc-id debit-p) (:div-style "actions" :ul-style "hmenu")
+  (:create (with-html
+	     (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
+		      (:img :src (url "img/add.png")) "Δημιουργία"))))
+  (:view (if acc-id
+	     (with-html
+	       (:li (:a :href (accounts :acc-id acc-id)
+			(:img :src (url "img/magnifier.png")) "Προβολή")))
+	     nil))
+  (:edit (if acc-id
+	     (with-html
+	       (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
+			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
+	     nil))
+  (:delete (if (and acc-id
+		    (not (get-subaccounts acc-id))
+		    (not (get-transactions acc-id)))
+	       (with-html
+		 (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
+			  (:img :src (url "img/delete.png")) "Διαγραφή")))
+	       nil)))
+
+(defun get-subaccounts (acc-id)
+  (with-db
+    (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
+	   :single)))
+
+(defun get-transactions (acc-id)
+  (with-db
+    (query (:select 'id
+		   :from 'tx
+		   :where (:or (:= 'debit-acc-id acc-id)
+			       (:= 'credit-acc-id acc-id))))))
+
+
+;;; ------------------------------------------------------------
+;;; Banks - Pages
+;;; ------------------------------------------------------------
 
 (define-dynamic-page accounts ((acc-id integer #'valid-account-id-p))
     ("accounts/")
@@ -208,36 +255,3 @@
 			 (normal-row acc-id title activep)) 
 		     (display-accounts debit-p acc-id active-id intent))))))))
 
-(define-menu account-menu (acc-id debit-p) (:div-style "actions" :ul-style "hmenu")
-  (:create (with-html
-	     (:li (:a :href (account/create :acc-id acc-id :debit-p debit-p)
-		      (:img :src (url "img/add.png")) "Δημιουργία"))))
-  (:view (if acc-id
-	     (with-html
-	       (:li (:a :href (accounts :acc-id acc-id)
-			(:img :src (url "img/magnifier.png")) "Προβολή")))
-	     nil))
-  (:edit (if acc-id
-	     (with-html
-	       (:li (:a :href (account/update :acc-id acc-id :debit-p debit-p)
-			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-	     nil))
-  (:delete (if (and acc-id
-		    (not (get-subaccounts acc-id))
-		    (not (get-transactions acc-id)))
-	       (with-html
-		 (:li (:a :href (account/delete :acc-id acc-id :debit-p debit-p)
-			  (:img :src (url "img/delete.png")) "Διαγραφή")))
-	       nil)))
-
-(defun get-subaccounts (acc-id)
-  (with-db
-    (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
-	   :single)))
-
-(defun get-transactions (acc-id)
-  (with-db
-    (query (:select 'id
-		   :from 'tx
-		   :where (:or (:= 'debit-acc-id acc-id)
-			       (:= 'credit-acc-id acc-id))))))

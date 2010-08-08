@@ -2,6 +2,7 @@
 
 (defpackage :scrooge
   (:use :common-lisp
+        :lisputils
 	:hunchentoot
 	:cl-who
 	:cl-ppcre

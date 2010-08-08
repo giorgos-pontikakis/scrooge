@@ -14,30 +14,34 @@ function loadAll () {
    makeAutocomplete("bank", "title", "#bank");
    makeAutocomplete("account", "title", "#debit-acc");
    makeAutocomplete("account", "title", "#credit-acc");
-   $("#banks-table").dataTable({
-      "bAutoWidth": false,
-      "bJQueryUI": false,
-      "bLengthChange": true,
-      "bPaginate": true,
-      "bInfo": true, 
-      "bSort": true,
-      "bStateSave": true,
-      "bProcessing": true,
-      "aaSorting": [
-         [1, "asc"],
-         [2, "asc"]
-      ],
-      "aoColumns": [
-         {"bSortable": false,
-          "bSearchable": false},
-         null,
-         null,
-         {"bSortable": false,
-          "bSearchable": false},
-         {"bSortable": false,
-          "bSearchable": false}
-      ]
-   });
+   // $(".table-half").dataTable({
+   //    "bAutoWidth": false,
+   //    "bJQueryUI": false,
+   //    "bLengthChange": true,
+   //    "bPaginate": true,
+   //    "bInfo": true, 
+   //    "bSort": true,
+   //    "bStateSave": false,
+   //    "bProcessing": true,
+   //    "bServerSide": true,
+   //    "sAjaxSource": "/scrooge/data/banks",
+   //    "aaSorting": [
+   //       [0, "asc"],
+   //       [1, "asc"],
+   //       [2, "asc"]
+   //    ]
+   //    //,
+   //    // "aoColumns": [
+   //    //    {"bSortable": false,
+   //    //     "bSearchable": false},
+   //    //    null,
+   //    //    null,
+   //    //    {"bSortable": false,
+   //    //     "bSearchable": false},
+   //    //    {"bSortable": false,
+   //    //     "bSearchable": false}
+   //    // ]
+   // });
 }
 
 

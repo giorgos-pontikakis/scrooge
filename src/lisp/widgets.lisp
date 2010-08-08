@@ -145,3 +145,8 @@
 		      ,@(iter (for (arg msg) in body)
 			     (collect `(unless (validp ,arg)
 					 (htm (:li ,msg))))))))))))
+
+(defmacro filter (action id filter disabledp)
+  `(with-form (,action :id ,id)
+     (with-html
+       (:p "Φίλτρο: " (textbox 'filter :value ,filter :disabledp ,disabledp) (ok-button)))))

@@ -26,33 +26,27 @@
 		(or n i))
 	     initial new)))
 
-(defun style-invalid (p)
-  (if (validp p) nil "attention"))
+(defparameter *styles*
+  '((attention . "attention")))
+
+(defun style (symbol)
+  (cdr (assoc symbol *styles*)))
+
+;; (defun style-invalid-fn ()
+;;   (lambda (param)
+;;     (if (validp param) nil (style 'attention))))
+
+(defun style-invalid-p (param)
+  (if (or (null param) (validp param)) nil (style 'attention)))
 
 
-;; (defun get-val-or-default (param-name params defaults)
-;;   (or (val* (find param-name params :key #'name))
-;;       (getf defaults param-name)))
-
-;; (defun get-error-style (param-name params)
-;;   (let ((p (find param-name params :key #'name)))
-;;     (if (or (null p) (validp p)) nil "attention")))
-
-;; (defun merged-val (param defaults)
-;;   (or (val param)
-;;       (raw param)
-;;       (find (name param) defaults :test #'string-equal)))
-
-;; (defun make-plist (keys values)
-;;   (iter (for k in keys)
-;; 	(for v in values)
-;; 	(collect k)
-;; 	(collect v)))
+;; (defun merge-values (values db-values)
+;;   (iter (for key in db-values by #'cddr) 
+;;         (for db-val in (rest db-values) by #'cddr)
+;;         (collect key)
+;;         (let ((val (getf values key)))
+;;           (if val (collect val) (collect db-val)))))
 
 
-;; (defun val+ (name params)
-;;   (let ((param (find name params :key #'name)))
-;;     (if param (val param) nil)))
 
-;; (defun raw+ (name params)
-;;   (raw (find name params :key #'name)))
+
