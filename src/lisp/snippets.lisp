@@ -128,6 +128,66 @@
 ;;;----------------------------------------------------------------------
 ;;; Helper macros
 
+(defmacro html-fn (&rest forms)
+  `(lambda ()
+    (with-html
+      ,@forms)))
+
+(defun parallel (list1 list2 item1 &key (test #'eql))
+  (let ((pos (position item1 list1 :test test)))
+    (when pos
+      (nth pos list2))))
+
+(defun durl (url)
+  (destructuring-bind (script-string query-string) (cl-ppcre:split "\\?" url)
+    (let* ((script-sym (symbolicate
+                        (string-upcase
+                         (second (split (cfg :webroot) script-string)))))
+           (query-pairs (mapcar (lambda (pair-string)
+                                  (destructuring-bind (param value) (split "=" pair-string)
+                                    (let* ((keyparam (make-keyword (string-upcase param)))
+                                           (page (page script-sym))
+                                           (keyparams (www-toolkit::keyparams page))
+                                           (types (www-toolkit::types page))
+                                           (type (parallel keyparams types keyparam)))
+                                      (if keyparam
+                                          (cons keyparam (html-to-lisp value type))
+                                          (error "Unknown parameter in query string.")))))
+                                (split "&" query-string))))
+      (list script-sym query-pairs))))
+
+;; (defun make-form (call-form html-fn) 
+;;   (destructuring-bind (page-sym &rest keyword-args) call-form
+;;     (let ((page (page page-sym)))
+;;      (with-html
+;;        (:form :method (www-toolkit::request-type page)
+;;               :action (url (www-toolkit::base-url page))
+;;               (iter (for key in keyword-args by #'cddr)
+;;                     (for val in (rest keyword-args) by #'cddr)
+;;                     (with-html
+;;                       (:input :type "hidden"
+;;                               :id (string-downcase key)
+;;                               :class "display-none"
+;;                               :name (string-downcase key)
+;;                               :value (lisp-to-html val))))
+;;               (funcall html-fn))))))
+
+(defun make-form (url html-fn) 
+  (destructuring-bind (page-sym param-alist) (durl url)
+    (let ((page (page page-sym)))
+     (with-html
+       (:form :method (www-toolkit::request-type page)
+              :action (url (www-toolkit::base-url page))
+              (iter (for (key . val) in param-alist)
+                    (with-html
+                      (:input :type "hidden"
+                              :id (string-downcase key)
+                              :class "display-none"
+                              :name (string-downcase key)
+                              :value (lisp-to-html val))))
+              (funcall html-fn))))))
+
+
 (defmacro define-row-display (name fn id-keys data-keys css-classes) 
   (let ((id-syms (mapcar #'symbolicate id-keys)))
     `(defun ,name (,@id-syms values)
@@ -267,3 +327,5 @@
 ;;               ,@(data-rows-td data-keys css-classes)
 ;;               (:td :class "button" (ok-button))
 ;;               (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))
+
+
