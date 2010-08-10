@@ -42,10 +42,10 @@
 (define-dynamic-page actions/stran/delete ((stran-id integer)
                                            (tbl string))
     ("actions/stran/delete" :request-type :post
-                            :validators (((stran-id tbl) (stran-id-exists-p stran-id tbl))))
+                            :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache) 
   (with-parameter-list params
-    (if (every #'validp params) 
+    (if (every #'validp params)
 	(with-parameter-rebinding #'val
 	  (with-db 
 	    (delete-dao (get-dao (symbolicate (string-upcase tbl) "-STRAN") stran-id))
@@ -63,7 +63,7 @@
      :request-type :post
      :validators ((old-status (valid-combo tbl old-status))
 		  (new-status (valid-combo tbl new-status))
-		  (stran-id (stran-id-exists-p stran-id tbl))))
+		  ((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
@@ -105,6 +105,8 @@
                     :on (:= 'credit-account.id (symbolicate table '-stran.credit-acc-id)))
            :plists)))
 
+
+
 (define-menu stran-menu (stran-id tbl) (:div-style "actions" :ul-style "hmenu")
   (:create (with-html
 	     (:li (:a :href (stran/create)
@@ -130,118 +132,97 @@
   (old-status "Άκυρη αρχική κατάσταση")
   (new-status "Άκυρη τελική κατάσταση"))
 
-(defun stran-form-row (intent submit cancel values styles &rest args)
-  (make-form (apply submit args)
-             (html ()
-               (:tr :class "active"
-                    (selector-td t (apply cancel args))
-                    (:td :class "data" (dropdown 'tbl *stran-tables* :selected (getf args :tbl)))
-                    (row-td '(:description :old-status :new-status :debit-acc :credit-acc)
-                            (intent->widget intent) values styles) 
-                    (:td :class "button" (ok-button))
-                    (:td :class "button" (cancel-button (funcall cancel)))))))
+;;; View row
 
-(defun stran-view-row (intent activep cancel values styles &key stran-id tbl) 
+(defun stran-view-row (intent activep cancel values styles &key tbl) 
   (with-html 
     (:tr :class "active"
-         (selector-td activep (funcall cancel :stran-id stran-id :tbl tbl))
-         (:td :class "data" (dropdown 'tbl *stran-tables* :selected tbl)) 
+         (selector-td activep (if activep
+                                  (funcall cancel)
+                                  (funcall cancel :stran-id (getf values :id) :tbl tbl)))
+         (:td :class "data" (str (stran-table-label tbl))) 
          (row-td '(:description :old-status :new-status :debit-acc :credit-acc)
-          (intent->widget intent) values styles) 
+                 *stran-td-styles*
+                 intent values styles) 
          (:td :class "button" "")
          (:td :class "button" ""))))
 
-(defun stran-row-view (id tbl values activep) 
-  (stran-view-row :view activep #'stran values nil :stran-id id :tbl tbl))
+(defun stran-row-view (activep tbl values styles) 
+  (stran-view-row :view
+                  activep
+                  #'stran
+                  values
+                  styles
+                  :tbl tbl))
+
+;;; Form row
+
+(defun stran-form-row (intent submit cancel values styles &rest args)
+  (make-form (apply submit args)
+             (html ()
+               (:tr :class (if (eql intent :delete) "attention" "active")
+                    (selector-td t (funcall cancel))
+                    (:td :class "data" (dropdown 'tbl *stran-tables*
+                                                 :selected (getf args :tbl)
+                                                 :disabledp (not (eql intent :create))
+                                                 :readonlyp (not (eql intent :create))))
+                    (row-td *stran-td-keys* *stran-td-styles*
+                            intent values styles) 
+                    (:td :class "button" (ok-button))
+                    (:td :class "button" (cancel-button (funcall cancel)))))))
 
 (defun stran-row-create (tbl values styles)
-  (stran-form-row :create #'actions/stran/create #'stran values styles :tbl tbl))
+  (stran-form-row :create
+                  #'actions/stran/create
+                  #'stran
+                  values
+                  styles
+                  :tbl tbl))
 
 (defun stran-row-update (id tbl values styles)
-  (stran-form-row :update #'actions/stran/update #'stran values styles :stran-id id :tbl tbl))
+  (stran-form-row :update
+                  #'actions/stran/update
+                  #'stran
+                  values
+                  styles
+                  :stran-id id :tbl tbl))
 
-(defun stran-row-delete (id tbl values)
-  (stran-form-row :delete #'actions/stran/delete #'stran values nil :stran-id id :tbl tbl))
+(defun stran-row-delete (id tbl values styles) 
+  (stran-form-row :delete
+                  #'actions/stran/delete
+                  #'stran
+                  values
+                  styles
+                  :stran-id id :tbl tbl))
+
+;;; Table
 
 (defun stran-html-table (intent active-id active-tbl &rest params) 
   (let* ((header '("" "Πίνακας" "Περιγραφή" "Αρχική Κατάσταση"
                    "Τελική Κατάσταση" "Λογ. Χρέωσης" "Λογ. Πίστωσης" "" "")) 
-         (values (zip params params :key1 #'name :key2 #'val*))
-         (styles (zip params params :key1 #'name :key2 #'style-invalid-p))
-         (header-styles '("select" "data" "data" "data" "data" "data" "data" "button" "button")))
+         (in-values (zip params params :key1 #'name :key2 #'val*))
+         (in-styles (zip params params :key1 #'name :key2 #'style-invalid-p)))
     (with-html
       (:table :id "stran-table" :class "forms-in-row"
               (:thead
-               (:tr (iter (for label in header)
-                          (for style in header-styles)
-                          (htm (:th :class style (str label))))))
+               (:tr (iter (for label in header) 
+                          (htm (:th (str label))))))
               (:tbody
                (when (eql intent :create) 
-                 (stran-row-create active-tbl values styles))
+                 (stran-row-create active-tbl in-values in-styles))
                (iter (for tbl in (stran-tables))
-                     (iter (for db-row in (get-stran-data tbl)) 
+                     (iter (for db-values in (get-stran-data tbl)) 
                            (let ((activep (and active-id active-tbl
-                                               (equal active-id (getf db-row :id))
-                                               (equal active-tbl tbl))))
+                                               (equal active-id (getf db-values :id))
+                                               (equal active-tbl tbl)))) 
                              (if activep
-                                 (let ((row (plist-union values db-row))) 
+                                 (let ((values (plist-union in-values db-values))) 
                                    (case intent
-                                     (:view (stran-row-view active-id tbl row activep))
-                                     (:update (stran-row-update active-id tbl row styles))
-                                     (:delete (stran-row-delete active-id tbl row))))
-                                 (stran-row-view active-id tbl db-row activep))))))))))
+                                     (:view (stran-row-view activep tbl values in-styles))
+                                     (:update (stran-row-update active-id tbl values in-styles))
+                                     (:delete (stran-row-delete active-id tbl values in-styles))))
+                                 (stran-row-view activep tbl db-values in-styles))))))))))
 
-
-;; (defun stran-row-update (id tbl values styles)
-;;   (with-html
-;;     (:tr :class "active"
-;;          (with-form (actions/stran/update :stran-id id :tbl tbl)
-;;            (:td :class "select"
-;;                 (active-row-anchor (stran :stran-id id :tbl tbl)))
-;;            (:td :class "data" (dropdown 'tbl *stran-tables* :selected tbl))
-;;            (:td :class "data" (textbox 'description
-;;                                        :value (getf values :description)
-;;                                        :style (getf styles :description)))
-;;            (:td :class "data" (textbox 'old-status
-;;                                        :value (getf values :old-status)
-;;                                        :style (getf styles :old-status)))
-;;            (:td :class "data" (textbox 'new-status
-;;                                        :value (getf values :new-status)
-;;                                        :style (getf styles :new-status)))
-;;            (:td :class "data" (textbox 'debit-acc
-;;                                        :value (getf values :debit-acc)
-;;                                        :style (getf styles :debit-acc)))
-;;            (:td :class "data" (textbox 'credit-acc
-;;                                        :value (getf values :credit-acc)
-;;                                        :style (getf styles :credit-acc))) 
-;;            (:td :class "button" (ok-button))
-;;            (:td :class "button" (cancel-button (stran)))))))
-
-;; (defun stran-row-create (id tbl values styles)
-;;   (declare (ignore id))
-;;   (with-html
-;;     (:tr :class "active"
-;;          (with-form (actions/stran/create)
-;;            (:td :class "select"
-;;                 (active-row-anchor (stran))) 
-;;            (:td :class "data" (dropdown 'tbl *stran-tables* :selected tbl))
-;;            (:td :class "data" (textbox 'description
-;;                                        :value (getf values :description)
-;;                                        :style (getf styles :description)))
-;;            (:td :class "data" (textbox 'old-status
-;;                                        :value (getf values :old-status)
-;;                                        :style (getf styles :old-status)))
-;;            (:td :class "data" (textbox 'new-status
-;;                                        :value (getf values :new-status)
-;;                                        :style (getf styles :new-status)))
-;;            (:td :class "data" (textbox 'debit-acc
-;;                                        :value (getf values :debit-acc)
-;;                                        :style (getf styles :debit-acc)))
-;;            (:td :class "data" (textbox 'credit-acc
-;;                                        :value (getf values :credit-acc)
-;;                                        :style (getf styles :credit-acc))) 
-;;            (:td :class "button" (ok-button))
-;;            (:td :class "button" (cancel-button (stran)))))))
 
 
 ;;; ------------------------------------------------------------
@@ -250,7 +231,7 @@
 
 (define-dynamic-page stran ((stran-id integer)
                             (tbl string))
-    ("config/stran"  (((stran-id tbl) (stran-id-exists-p stran-id tbl))))
+    ("config/stran" :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
@@ -258,7 +239,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Καταστατικές Μεταβολές")
-	     (css-standard-headers))
+	     (config-headers))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -286,8 +267,7 @@
       (with-page ()
         (:head
          (:title "Καταστατικές Μεταβολές: Δημιουργία")
-         (css-standard-headers)
-         (js-standard-headers))
+         (config-headers))
         (:body
          (:div :id "header"
                (logo)
@@ -312,14 +292,13 @@
                                    (new-status  string))
     ("config/stran/update" :validators ((old-status (valid-combo tbl old-status))
                                         (new-status (valid-combo tbl new-status))
-                                        (stran-id (stran-id-exists-p stran-id tbl))))
+                                        ((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache)
   (if (validp stran-id)
       (with-page ()
         (:head
          (:title "Καταστατικές Μεταβολές: Επεξεργασία")
-         (css-standard-headers)
-         (js-standard-headers))
+         (config-headers))
         (:body
          (:div :id "header"
                (logo)
@@ -337,14 +316,14 @@
 
 (define-dynamic-page stran/delete ((stran-id integer)
                                    (tbl string #'valid-tbl-p))
-    ("config/stran/delete" :validators ((stran-id (stran-id-exists-p stran-id tbl))))
+    ("config/stran/delete" :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache) 
   (if (validp stran-id)
       (with-parameter-rebinding #'val
 	(with-page ()
 	  (:head
 	   (:title "Καταστατικές Μεταβολές: Διαγραφή")
-	   (css-standard-headers))
+	   (config-headers))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -451,3 +430,55 @@
 ;; 				     (:update (form-row-update id tbl row styles))
 ;; 				     (:delete (form-row-delete id tbl row))))
 ;; 				 (normal-row id tbl defaults activep))))))))))
+
+
+;; (defun stran-row-update (id tbl values styles)
+;;   (with-html
+;;     (:tr :class "active"
+;;          (with-form (actions/stran/update :stran-id id :tbl tbl)
+;;            (:td :class "select"
+;;                 (active-row-anchor (stran :stran-id id :tbl tbl)))
+;;            (:td :class "data" (dropdown 'tbl *stran-tables* :selected tbl))
+;;            (:td :class "data" (textbox 'description
+;;                                        :value (getf values :description)
+;;                                        :style (getf styles :description)))
+;;            (:td :class "data" (textbox 'old-status
+;;                                        :value (getf values :old-status)
+;;                                        :style (getf styles :old-status)))
+;;            (:td :class "data" (textbox 'new-status
+;;                                        :value (getf values :new-status)
+;;                                        :style (getf styles :new-status)))
+;;            (:td :class "data" (textbox 'debit-acc
+;;                                        :value (getf values :debit-acc)
+;;                                        :style (getf styles :debit-acc)))
+;;            (:td :class "data" (textbox 'credit-acc
+;;                                        :value (getf values :credit-acc)
+;;                                        :style (getf styles :credit-acc))) 
+;;            (:td :class "button" (ok-button))
+;;            (:td :class "button" (cancel-button (stran)))))))
+
+;; (defun stran-row-create (id tbl values styles)
+;;   (declare (ignore id))
+;;   (with-html
+;;     (:tr :class "active"
+;;          (with-form (actions/stran/create)
+;;            (:td :class "select"
+;;                 (active-row-anchor (stran))) 
+;;            (:td :class "data" (dropdown 'tbl *stran-tables* :selected tbl))
+;;            (:td :class "data" (textbox 'description
+;;                                        :value (getf values :description)
+;;                                        :style (getf styles :description)))
+;;            (:td :class "data" (textbox 'old-status
+;;                                        :value (getf values :old-status)
+;;                                        :style (getf styles :old-status)))
+;;            (:td :class "data" (textbox 'new-status
+;;                                        :value (getf values :new-status)
+;;                                        :style (getf styles :new-status)))
+;;            (:td :class "data" (textbox 'debit-acc
+;;                                        :value (getf values :debit-acc)
+;;                                        :style (getf styles :debit-acc)))
+;;            (:td :class "data" (textbox 'credit-acc
+;;                                        :value (getf values :credit-acc)
+;;                                        :style (getf styles :credit-acc))) 
+;;            (:td :class "button" (ok-button))
+;;            (:td :class "button" (cancel-button (stran)))))))

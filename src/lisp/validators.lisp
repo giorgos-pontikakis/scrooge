@@ -117,24 +117,6 @@
   (and (positive-p val)
        (temtx-id-exists-p val)))
 
-(defun valid-st-id-p (st-id tbl)
-  (with-db
-    (query (:select 1
-		    :from (symbolicate (string-upcase tbl) "-ST")
-		    :where (:= 'id st-id)))))
-
-(defun valid-combo (table status)
-  (with-db
-    (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
-	   (sql (sql-compile `(:select 1
-				       :from ,status-table
-				       :where (:= status ,status)))))
-      (and (valid-tbl-p table)
-	   (query sql :single)))))
-
-(defun valid-tbl-p (tbl)
-  (member tbl (stran-tables) :test #'string-equal))
-
 ;;; --- Cheques --------------------
 
 (define-existence-validator cheque-id-exists-p cheque id)
@@ -168,4 +150,20 @@
 
 ;;; --- State transitions --------------------
 
-;; (define-existence-validator stran-id-exists-p stran id)
+(defun valid-stran-id-p (stran-id tbl)
+  (with-db
+    (query (:select 1
+		    :from (symbolicate (string-upcase tbl) "-STRAN")
+		    :where (:= 'id stran-id)))))
+
+(defun valid-tbl-p (tbl)
+  (member tbl (stran-tables) :test #'string-equal))
+
+(defun valid-combo (table status)
+  (with-db
+    (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
+	   (sql (sql-compile `(:select 1
+				       :from ,status-table
+				       :where (:= status ,status)))))
+      (and (valid-tbl-p table)
+	   (query sql :single)))))

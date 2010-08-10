@@ -126,7 +126,7 @@
 
 
 ;;;----------------------------------------------------------------------
-;;; Helper macros
+;;; Helper macros for banks/tofs, SHOULD BE DELETED SOMETIME
 
 (defmacro define-row-display (name fn id-keys data-keys css-classes) 
   (let ((id-syms (mapcar #'symbolicate id-keys)))
@@ -194,77 +194,33 @@
                                          :style (getf styles ,key))))
           data-keys css-classes))
 
-;;; ------------------------------------------------------------
-;;; Row selectors
-;;; ------------------------------------------------------------
 
-(defun active-row-anchor (href)
-  (with-html
-    (:a :href href (active-row-img))))
-
-(defun inactive-row-anchor (href)
-  (with-html
-    (:a :href href (inactive-row-img))))
-
-(defun active-row-img ()
-  (with-html
-    (:img :src (url "img/bullet_red.png"))))
-
-(defun inactive-row-img ()
-  (with-html
-    (:img :src (url "img/bullet_blue.png"))))
-
-;; (defun selector-td (activep &key active-href inactive-href)
-;;   (with-html
-;;     (if activep
-;;         (:td :class "active"   (active-row-anchor active-href))
-;;         (:td :class "inactive" (inactive-row-anchor inactive-href)))))
-
-(defun selector-td (activep href)
-  (with-html
-    (:td :class (if activep "active" nil)
-         (:a :href href
-             (if activep
-                 (htm (:img :src (url "img/bullet_red.png")))
-                 (htm (:img :src (url "img/bullet_blue.png"))))))))
 
 ;;; ------------------------------------------------------------
 ;;; Generate TD tags for a row
 ;;; ------------------------------------------------------------
 
-;; (defgeneric row-td (widget values styles))
-
-;; (defmethod row-td ((widget (eql 'textbox)) values styles) 
-;;   (with-html
-;;     (iter (for key in values by #'cddr)
-;;           (for val in (rest values) by #'cddr)
-;;           (for sty in (rest styles) by #'cddr)
-;;           (break)
-;;           (htm
-;;            (:td :class sty (textbox key :value val :style sty))))))
-
-;; (defmethod row-td ((widget (eql 'str)) values styles) 
-;;   (with-html
-;;     (iter (for key in values by #'cddr)
-;;           (for val in (rest values) by #'cddr)
-;;           (for sty in (rest styles) by #'cddr)
-;;           (break)
-;;           (htm
-;;            (:td :class sty (str (lisp-to-html val)))))))
+(defun selector-td (activep href)
+  (with-html
+    (:td :class "select"
+         (:a :href href
+             (if activep
+                 (htm (:img :src (url "img/bullet_red.png")))
+                 (htm (:img :src (url "img/bullet_blue.png"))))))))
 
 
-
-(defun row-td (keys widget values styles) 
-  (iter (for key in keys) 
-        (let ((val (getf values key))
-              (sty (getf styles key)))
-          #|(print (list "***" key val sty values styles))|#
-          (ecase widget
-            (:str (with-html
-                    (:td :class sty (str (lisp-to-html val)))))
-            (:textbox (with-html
-                        (:td :class sty
-                             (textbox key :value val :style sty))))))))
+(defun row-td (td-keys td-styles intent values styles) 
+  (iter (for td-key in td-keys) 
+        (let ((val (getf values td-key))
+              (sty (getf styles td-key))
+              (td-sty (getf td-styles td-key)))
+          (ecase intent
+            ((:view :delete) (with-html
+                               (:td :class td-sty
+                                    (str (lisp-to-html val)))))
+            ((:create :update) (with-html
+                                 (:td :class td-sty
+                                      (textbox td-key :value val :style sty))))))))
 
 
 

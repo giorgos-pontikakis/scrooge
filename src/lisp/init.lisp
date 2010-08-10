@@ -4,10 +4,10 @@
 
 
 (defparameter *stran-tables* '(("Επιταγή" "cheque")
-			     ("Έργο" "project")))
+                               ("Έργο" "project")))
 
-(defun stran-table-label (label)
-  (first (find label *stran-tables* :key #'second :test #'string-equal)))
+(defun stran-table-label (tbl)
+  (first (find tbl *stran-tables* :key #'second :test #'string-equal)))
 
 (defun stran-tables ()
   (mapcar #'second *stran-tables*))

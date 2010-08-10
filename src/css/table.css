@@ -1,7 +1,6 @@
 /* ------------------------------------------------------------ */
 /* Half-width Tables */
 /* ------------------------------------------------------------ */
-
 .table-half {
     width: 430px;
     margin: 10px;
@@ -13,13 +12,6 @@
 }
 .table-half .data input {
     width: 200px;
-}
-
-.table-half .id {
-    width: 110px;
-}
-.table-half .id input {
-    width: 100px;
 }
 
 
@@ -74,16 +66,16 @@
 }
 
 
-.button, .button button {
+.forms-in-row .button, .forms-in-row .button button {
     width: 30px;
     padding: 0px;
 }
 
-.select {
+.forms-in-row .select {
     width: 30px;
     padding: 0px;
 }
 
-.select a {
+.forms-in-row .select a {
     margin: 0px 7px;
 }

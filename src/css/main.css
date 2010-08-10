@@ -451,26 +451,6 @@ ul.error li {
     width: 450px;
 }
 
-/* #banks-table, #tofs-table { */
-/*     width: 430px; */
-/*     margin: 10px; */
-/*     clear: both; */
-/* } */
-
-/* #banks-table .data, #tofs-table .data { */
-/*     width: 210px; */
-/* } */
-/* #banks-table .data input, #tofs-table .data input { */
-/*     width: 200px; */
-/* } */
-
-/* #banks-table .id, #tofs-table .id { */
-/*     width: 110px; */
-/* } */
-/* #banks-table .id input, #tofs-table .id input { */
-/*     width: 100px; */
-/* } */
-
 #debit-accounts, #credit-accounts {
     float: left;
     width: 458px;
@@ -530,22 +510,22 @@ ul.error li {
 
 
 /* ------------------------------------------------------------ */
-/* FSM */
+/* STRAN */
 /* ------------------------------------------------------------ */
-#fsm {
+#stran {
     width: 940px;
 }
 
-#fsm-table {
+#stran-table {
     width: 920px;
     margin: 10px 10px 10px 10px;
 }
 
-#fsm-table .data {
+#stran-table .data {
     width: 150px;
 }
 
-#fsm-table .data input {
+#stran-table .data input {
     width: 140px;
 }
 
