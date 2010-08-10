@@ -127,6 +127,22 @@
 
 ;;;----------------------------------------------------------------------
 ;;; Helper macros for banks/tofs, SHOULD BE DELETED SOMETIME
+(defun active-row-img ()
+  (with-html
+    (:img :src (url "img/bullet_red.png"))))
+
+(defun inactive-row-img ()
+  (with-html
+    (:img :src (url "img/bullet_blue.png"))))
+
+
+(defun active-row-anchor (href &optional name)
+  (with-html
+    (:a :href href :name name (active-row-img))))
+
+(defun inactive-row-anchor (href &optional name)
+  (with-html
+    (:a :href href :name name (inactive-row-img))))
 
 (defmacro define-row-display (name fn id-keys data-keys css-classes) 
   (let ((id-syms (mapcar #'symbolicate id-keys)))

@@ -21,7 +21,7 @@
 (define-dynamic-page actions/bank/update ((id integer #'bank-id-exists-p)
                                           (title string))
     ("actions/bank/update" :request-type :post
-                           :validators ((title (valid-bank-title-p id title))))
+                           :validators ((title (valid-bank-p id title))))
   (no-cache) 
   (with-parameter-list params
     (if (every #'validp params)
@@ -164,7 +164,7 @@
 
 (define-dynamic-page bank/update ((id integer #'bank-id-exists-p) 
                                   (title string))
-    ("config/bank/update" :validators ((title (valid-bank-title-p id title))))
+    ("config/bank/update" :validators ((title (valid-bank-p id title))))
   (if (validp id)
       (with-page ()
         (:head
@@ -209,71 +209,4 @@
 
 
 
-
-
-;; (defun bank-filter (id filter &key disabledp)
-;;   (with-form (banks :id id)
-;;     (with-html
-;;       (:p "Φίλτρο: " (textbox 'filter :value filter :disabledp disabledp) (ok-button)))))
-
-
-;; (defun bank-row-normal (values activep)
-;;   (with-html
-;;     (:tr :class (if activep "active" nil)
-;;          (:td :class "select"
-;;               (if activep
-;;                   (htm (:a :href (banks)
-;;                            (:img :src (url "img/bullet_red.png"))))
-;;                   (htm (:a :href (banks :id (getf values 'id))
-;;                            (:img :src (url "img/bullet_blue.png"))))))
-;;          (:td :class "id" (str (lisp-to-html (getf values 'id))))
-;;          (:td :class "data"  (str (lisp-to-html (getf values 'title))))
-;;          (:td :class "button" "")
-;;          (:td :class "button" ""))))
-
-;; (defun bank-row-create (values styles)
-;;   (with-html
-;;     (:tr :class "active"
-;;          (with-form (actions/bank/create)
-;;            (:td :class "select"
-;;                 (:a :href (banks)
-;;                     (:img :src (url "img/bullet_red.png"))))
-;;            (:td :class "id"  (textbox 'id
-;;                                       :value (getf values 'id)
-;;                                       :style (getf styles 'id)))
-;;            (:td :class "data"  (textbox 'title               
-;;                                         :value (getf values 'title)
-;;                                         :style (getf styles 'title)))
-;;            (:td :class "button" (ok-button))
-;;            (:td :class "button" (cancel-button (banks)))))))
-
-
-;; (defun bank-row-update (active-id values styles) 
-;;   (with-html
-;;     (:tr :class "active"
-;;          (with-form (actions/bank/update :id active-id)
-;;            (:td :class "select"
-;;                 (:a :href (banks :id active-id)
-;;                     (:img :src (url "img/bullet_red.png"))))
-;;            (:td :class "id" (textbox 'new-id
-;;                                      :value (getf values 'id)
-;;                                      :style (getf styles 'id)))
-;;            (:td :class "data" (textbox 'title
-;;                                        :value (getf values 'title)
-;;                                        :style (getf styles 'title)))
-;;            (:td :class "button" (ok-button))
-;;            (:td :class "button" (cancel-button (banks :id active-id)))))))
-
-
-;; (defun bank-row-delete (active-id values) 
-;;   (with-html
-;;     (:tr :class "attention"
-;;          (with-form  (actions/bank/delete :id active-id)
-;;            (:td :class "select"
-;;                 (:a :href (banks :id active-id)
-;;                     (:img :src (url "img/bullet_red.png"))))
-;;            (:td :class "id" (str (lisp-to-html (getf values 'id))))
-;;            (:td :class "data" (str (lisp-to-html (getf values 'title))))
-;;            (:td :class "button" (ok-button))
-;;            (:td :class "button" (cancel-button (banks :id active-id)))))))
 

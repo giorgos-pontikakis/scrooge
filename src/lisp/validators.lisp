@@ -30,7 +30,7 @@
 (define-existence-validator bank-id-exists-p bank id)
 (define-existence-validator bank-exists-p bank title)
 
-(defun valid-bank-title-p (id title)
+(defun valid-bank-p (id title)
   (and id
        title
        (with-db
