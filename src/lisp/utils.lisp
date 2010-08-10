@@ -10,7 +10,7 @@
   (if (or (null param) (validp param)) nil (style 'attention)))
 
 (defun intent->widget (intent)
-  (case intent
+  (ecase intent
     ((:view :delete) :str)
     ((:create :update) :textbox)))
 

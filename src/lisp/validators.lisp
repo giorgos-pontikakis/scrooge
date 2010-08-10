@@ -168,4 +168,4 @@
 
 ;;; --- State transitions --------------------
 
-(define-existence-validator stran-id-exists-p stran id)
+;; (define-existence-validator stran-id-exists-p stran id)

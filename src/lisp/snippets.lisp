@@ -232,23 +232,45 @@
 ;;; Generate TD tags for a row
 ;;; ------------------------------------------------------------
 
-(defgeneric row-td (widget values styles))
+;; (defgeneric row-td (widget values styles))
 
-(defmethod row-td ((widget (eql :textbox)) values styles) 
-  (with-html
-    (iter (for key in values by #'cddr)
-          (for val in (rest values) by #'cddr)
-          (for sty in (rest styles) by #'cddr)
-          (htm
-           (:td :class sty (textbox key :value val :style sty))))))
+;; (defmethod row-td ((widget (eql 'textbox)) values styles) 
+;;   (with-html
+;;     (iter (for key in values by #'cddr)
+;;           (for val in (rest values) by #'cddr)
+;;           (for sty in (rest styles) by #'cddr)
+;;           (break)
+;;           (htm
+;;            (:td :class sty (textbox key :value val :style sty))))))
 
-(defmethod row-td ((widget (eql :str)) values styles) 
-  (with-html
-    (iter (for key in values by #'cddr)
-          (for val in (rest values) by #'cddr)
-          (for sty in (rest styles) by #'cddr)
-          (htm
-            (:td :class sty (str (lisp-to-html val)))))))
+;; (defmethod row-td ((widget (eql 'str)) values styles) 
+;;   (with-html
+;;     (iter (for key in values by #'cddr)
+;;           (for val in (rest values) by #'cddr)
+;;           (for sty in (rest styles) by #'cddr)
+;;           (break)
+;;           (htm
+;;            (:td :class sty (str (lisp-to-html val)))))))
+
+
+
+(defun row-td (keys widget values styles) 
+  (iter (for key in keys) 
+        (let ((val (getf values key))
+              (sty (getf styles key)))
+          #|(print (list "***" key val sty values styles))|#
+          (ecase widget
+            (:str (with-html
+                    (:td :class sty (str (lisp-to-html val)))))
+            (:textbox (with-html
+                        (:td :class sty
+                             (textbox key :value val :style sty))))))))
+
+
+
+
+
+
 
 
 
