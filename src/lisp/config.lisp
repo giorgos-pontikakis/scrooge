@@ -7,7 +7,7 @@
   (tofs     (tofs)     "Δ.Ο.Υ.")
   (accounts (accounts) "Λογαριασμοί")
   (temtx    (temtx)    "Πρότυπες Συναλλαγές")
-  (fsm      (fsm)      "Καταστατικές Μεταβολές"))
+  (stran    (stran)      "Καταστατικές Μεταβολές"))
 
 
 ;;; Config main page

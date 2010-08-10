@@ -1,10 +1,10 @@
 drop table contact;
 drop table project;
-drop table project_fsm;
+drop table project_stran;
 drop table project_status;
 drop table tx;
 drop table temtx;
-drop table cheque_fsm;
+drop table cheque_stran;
 drop table cheque;
 drop table cheque_status;
 
@@ -74,7 +74,7 @@ insert into cheque_status (status, description) values('paid', 'Πληρωμέν
 insert into cheque_status (status, description) values('bounced', 'Ακάλυπτη');
 insert into cheque_status (status, description) values('returned', 'Επιστράφηκε');
 
-create table cheque_fsm (
+create table cheque_stran (
        id serial primary key
        ,description varchar(256)
        ,debit_acc_id integer references account(id)
@@ -127,8 +127,10 @@ create table project_status (
 insert into project_status (status, description) values('quoted', 'Δόθηκε προσφορά');
 insert into project_status (status, description) values('ongoing', 'Σε εξέλιξη');
 insert into project_status (status, description) values('finished', 'Ολοκληρώθηκε');
+insert into project_status (status, description) values('cancelled', 'Ακυρώθηκε');
 
-create table project_fsm (
+-- project status transitions
+create table project_stran (
        id serial primary key
        ,description varchar(256) not null
        ,debit_acc_id integer not null references account(id)

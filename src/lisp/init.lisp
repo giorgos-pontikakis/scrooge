@@ -3,14 +3,14 @@
 (declaim (optimize (safety 3) (debug 3) (compilation-speed 0) (speed 0) (space 0)))
 
 
-(defparameter *fsm-tables* '(("Επιταγή" "cheque")
+(defparameter *stran-tables* '(("Επιταγή" "cheque")
 			     ("Έργο" "project")))
 
-(defun fsm-table-label (label)
-  (first (find label *fsm-tables* :key #'second :test #'string-equal)))
+(defun stran-table-label (label)
+  (first (find label *stran-tables* :key #'second :test #'string-equal)))
 
-(defun fsm-tables ()
-  (mapcar #'second *fsm-tables*))
+(defun stran-tables ()
+  (mapcar #'second *stran-tables*))
 
 (defun init-accounts ()
   )
