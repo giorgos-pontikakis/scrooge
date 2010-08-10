@@ -128,66 +128,6 @@
 ;;;----------------------------------------------------------------------
 ;;; Helper macros
 
-(defmacro html-fn (&rest forms)
-  `(lambda ()
-    (with-html
-      ,@forms)))
-
-(defun parallel (list1 list2 item1 &key (test #'eql))
-  (let ((pos (position item1 list1 :test test)))
-    (when pos
-      (nth pos list2))))
-
-(defun durl (url)
-  (destructuring-bind (script-string query-string) (cl-ppcre:split "\\?" url)
-    (let* ((script-sym (symbolicate
-                        (string-upcase
-                         (second (split (cfg :webroot) script-string)))))
-           (query-pairs (mapcar (lambda (pair-string)
-                                  (destructuring-bind (param value) (split "=" pair-string)
-                                    (let* ((keyparam (make-keyword (string-upcase param)))
-                                           (page (page script-sym))
-                                           (keyparams (www-toolkit::keyparams page))
-                                           (types (www-toolkit::types page))
-                                           (type (parallel keyparams types keyparam)))
-                                      (if keyparam
-                                          (cons keyparam (html-to-lisp value type))
-                                          (error "Unknown parameter in query string.")))))
-                                (split "&" query-string))))
-      (list script-sym query-pairs))))
-
-;; (defun make-form (call-form html-fn) 
-;;   (destructuring-bind (page-sym &rest keyword-args) call-form
-;;     (let ((page (page page-sym)))
-;;      (with-html
-;;        (:form :method (www-toolkit::request-type page)
-;;               :action (url (www-toolkit::base-url page))
-;;               (iter (for key in keyword-args by #'cddr)
-;;                     (for val in (rest keyword-args) by #'cddr)
-;;                     (with-html
-;;                       (:input :type "hidden"
-;;                               :id (string-downcase key)
-;;                               :class "display-none"
-;;                               :name (string-downcase key)
-;;                               :value (lisp-to-html val))))
-;;               (funcall html-fn))))))
-
-(defun make-form (url html-fn) 
-  (destructuring-bind (page-sym param-alist) (durl url)
-    (let ((page (page page-sym)))
-     (with-html
-       (:form :method (www-toolkit::request-type page)
-              :action (url (www-toolkit::base-url page))
-              (iter (for (key . val) in param-alist)
-                    (with-html
-                      (:input :type "hidden"
-                              :id (string-downcase key)
-                              :class "display-none"
-                              :name (string-downcase key)
-                              :value (lisp-to-html val))))
-              (funcall html-fn))))))
-
-
 (defmacro define-row-display (name fn id-keys data-keys css-classes) 
   (let ((id-syms (mapcar #'symbolicate id-keys)))
     `(defun ,name (,@id-syms values)
@@ -242,23 +182,6 @@
                 (:td :class "button" (ok-button))
                 (:td :class "button" (cancel-button (,fn ,@(zip id-keys id-syms))))))))))
 
-(defun active-row-img ()
-  (with-html
-    (:img :src (url "img/bullet_red.png"))))
-
-(defun inactive-row-img ()
-  (with-html
-    (:img :src (url "img/bullet_blue.png"))))
-
-
-(defun active-row-anchor (href &optional name)
-  (with-html
-    (:a :href href :name name (active-row-img))))
-
-(defun inactive-row-anchor (href &optional name)
-  (with-html
-    (:a :href href :name name (inactive-row-img))))
-
 (defun data-rows-td (data-keys css-classes)
   (mapcar (lambda (key class)
             `(:td :class ,class (str (lisp-to-html (getf values ,key)))))
@@ -271,61 +194,62 @@
                                          :style (getf styles ,key))))
           data-keys css-classes))
 
+;;; ------------------------------------------------------------
+;;; Row selectors
+;;; ------------------------------------------------------------
 
-;; (defun data-rows-td (data-keys css-classes input-widgets)
-;;   (mapcar (lambda (key class widget)
-;;             (case widget
-;;               (:text `(:td :class ,class (str (lisp-to-html (getf values ,key)))))
-;;               (:textbox `(:td :class ,class (textbox ,key
-;;                                                      :value (getf values ,key)
-;;                                                      :style (getf styles ,key))))
-;;               (:dropdown `)
-;;               (otherwise (error "Unimplemented widget."))))
-;;           data-keys css-classes))
+(defun active-row-anchor (href)
+  (with-html
+    (:a :href href (active-row-img))))
 
-;; (defmacro define-row-display (name fn id-key data-keys css-classes) 
-;;   `(defun ,name (active-id values)
-;;      (let ((activep (and active-id (eql active-id (getf values ,id-key))))) 
-;;        (with-html
-;;          (:tr :class (if activep "active" nil)
-;;               (:td :class "select"
-;;                    (if activep
-;;                        (active-row-anchor (,fn) active-id)
-;;                        (inactive-row-anchor (,fn ,id-key (getf values ,id-key)))))
-;;               ,@(data-rows-td data-keys css-classes) 
-;;               (:td :class "button" "")
-;;               (:td :class "button" ""))))))
+(defun inactive-row-anchor (href)
+  (with-html
+    (:a :href href (inactive-row-img))))
 
-;; (defmacro define-row-create (name fn action data-keys css-classes)
-;;   `(defun ,name (active-id values styles)
-;;      (with-html
-;;        (:tr :class "active"
-;;             (with-form (,action)
-;;               (:td :class "select" (active-row-anchor (,fn) active-id))
-;;               ,@(data-rows-input data-keys css-classes)
-;;               (:td :class "button" (ok-button))
-;;               (:td :class "button" (cancel-button (,fn))))))))
+(defun active-row-img ()
+  (with-html
+    (:img :src (url "img/bullet_red.png"))))
 
-;; (defmacro define-row-update (name fn action id-key data-keys css-classes)
-;;   `(defun ,name (active-id values styles) 
-;;      (with-html
-;;        (:tr :class "active"
-;;             (with-form (,action ,id-key active-id)
-;;               (:td :class "select"
-;;                    (active-row-anchor (,fn ,id-key active-id) active-id))
-;;               ,@(data-rows-input data-keys css-classes)
-;;               (:td :class "button" (ok-button))
-;;               (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))
+(defun inactive-row-img ()
+  (with-html
+    (:img :src (url "img/bullet_blue.png"))))
 
-;; (defmacro define-row-delete (name fn action id-key data-keys css-classes) 
-;;   `(defun ,name (active-id values) 
-;;      (with-html
-;;        (:tr :class "attention"
-;;             (with-form (,action ,id-key active-id)
-;;               (:td :class "select"
-;;                    (active-row-anchor (,fn ,id-key active-id) active-id))
-;;               ,@(data-rows-td data-keys css-classes)
-;;               (:td :class "button" (ok-button))
-;;               (:td :class "button" (cancel-button (,fn ,id-key active-id))))))))
+;; (defun selector-td (activep &key active-href inactive-href)
+;;   (with-html
+;;     (if activep
+;;         (:td :class "active"   (active-row-anchor active-href))
+;;         (:td :class "inactive" (inactive-row-anchor inactive-href)))))
+
+(defun selector-td (activep href)
+  (with-html
+    (:td :class (if activep "active" nil)
+         (:a :href href
+             (if activep
+                 (htm (:img :src (url "img/bullet_red.png")))
+                 (htm (:img :src (url "img/bullet_blue.png"))))))))
+
+;;; ------------------------------------------------------------
+;;; Generate TD tags for a row
+;;; ------------------------------------------------------------
+
+(defgeneric row-td (widget values styles))
+
+(defmethod row-td ((widget (eql :textbox)) values styles) 
+  (with-html
+    (iter (for key in values by #'cddr)
+          (for val in (rest values) by #'cddr)
+          (for sty in (rest styles) by #'cddr)
+          (htm
+           (:td :class sty (textbox key :value val :style sty))))))
+
+(defmethod row-td ((widget (eql :str)) values styles) 
+  (with-html
+    (iter (for key in values by #'cddr)
+          (for val in (rest values) by #'cddr)
+          (for sty in (rest styles) by #'cddr)
+          (htm
+            (:td :class sty (str (lisp-to-html val)))))))
+
+
 
 
