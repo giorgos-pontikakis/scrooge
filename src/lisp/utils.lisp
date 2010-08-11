@@ -30,14 +30,17 @@
   (iter (for key in (rest plist) by #'cddr)
         (collect key)))
 
-(defun params->plist (objlist fn keys)
+(defun objects->plist (objlist fn keys)
   (mapcan (lambda (key)
             (let ((param (find key objlist :key fn)))
               (list key param)))
           keys))
 
 
-
+(defun plist-map (fn plist)
+  (iter (for key in plist by #'cddr)
+        (for val in (rest plist) by #'cddr)
+        (nconcing (list key (funcall fn val)))))
 
 
 

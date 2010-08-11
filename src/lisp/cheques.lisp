@@ -39,14 +39,14 @@
                                                                  :payable-p payable-p))))
                       (insert-dao (make-instance 'tx
                                                  :tx-date (current-date)
-                                                 :description (getf description description)
+                                                 :description (getf stran-data :description)
                                                  :company-id company-id
                                                  :amount amount
-                                                 :credit-acc-id (getf stran-data credit-acc-id)
-                                                 :debit-acc-id (getf stran-data debit-acc-id)
+                                                 :credit-acc-id (getf stran-data :credit-acc-id)
+                                                 :debit-acc-id (getf stran-data :debit-acc-id)
                                                  :src-tbl "cheque"
                                                  :src-id (id cheque-dao)))))
-		  (redirect (no-stran-data) :code +http-see-other+)))))
+		  (redirect (notfound) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (cheque/create :bank bank
 				   :company company
@@ -146,7 +146,7 @@
 					:where (:= 'id cheque-id))))
 		    (redirect (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))
 			      :code +http-see-other+))
-		  (redirect (no-stran-data) :code +http-see-other+)))))
+		  (redirect (notfound) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw
 	  (redirect (cheque/chstat :cheque-id cheque-id
 				   :new-status new-status)
@@ -158,36 +158,41 @@
 
 (define-page-group 'cheques
     :id-keys '(:id)
-    :data-keys '(:bank :due-date :company :amount) 
+    :data-keys '(:bank :due-date :company :amount :status) 
     :filter-keys '(:payable-p)
-    :post-urls '(:create #'actions/cheque/create
-                 :update #'actions/cheque/update
-                 :delete #'actions/cheque/delete
-                 :chstat #'actions/cheque/chstat) 
-    :get-urls '(:view #'cheques
-                :create #'cheque/create
-                :update #'cheque/update
-                :delete #'cheque/delete
-                :chstat #'cheque/chstat
-                :not-found #'cheque/not-found))
+    :post-urls (list :create 'actions/cheque/create
+                     :update 'actions/cheque/update
+                     :delete 'actions/cheque/delete
+                     :chstat 'actions/cheque/chstat) 
+    :get-urls (list :view 'cheques
+                    :create 'cheque/create
+                    :update 'cheque/update
+                    :delete 'cheque/delete
+                    :chstat 'cheque/chstat))
 
-(defparameter *cheques-table*
-  (make-instance 'html-table-inline
-                 :page-group-name 'cheques 
-                 :data-header '("Τράπεζα" "Εταιρία" "Ποσόν" "Κατάσταση" "Ημερομηνία πληρωμής")
-                 :data-styles '(:bank "data"
-                                :due-date "data"
-                                :company "data"
-                                :amount "data"
-                                :status "data")
-                 :data-widgets '(:bank 
-                                 :due-date "data"
-                                 :company "data"
-                                 :amount "data"
-                                 :status "data")
-                 :css '(:table-style "forms-in-row")))
+(define-widget 'cheques-table 'table-inline-form 
+  :id-keys '(:id)
+  :data-keys '(:bank :due-date :company :amount :status) 
+  :filter-keys '(:payable-p)
+  :post-urls (list :create 'actions/cheque/create
+                   :update 'actions/cheque/update
+                   :delete 'actions/cheque/delete
+                   :chstat 'actions/cheque/chstat) 
+  :get-urls (list :view 'cheques
+                  :create 'cheque/create
+                  :update 'cheque/update
+                  :delete 'cheque/delete
+                  :chstat 'cheque/chstat)
+  :page-group-name 'cheques 
+  :data-header '("Τράπεζα" "Εταιρία" "Ποσόν" "Κατάσταση" "Ημερομηνία πληρωμής") 
+  :data-widgets (list :bank (make-cell-str "data")
+                      :due-date (make-cell-str "data")
+                      :company (make-cell-str "data")
+                      :amount (make-cell-str "data")
+                      :status (make-cell-str "data"))
+  :table-styles '(:table-style "forms-in-row"))
 
-(define-db-data 'cheques
+(define-db-data (get-widget 'cheques-table)
     #'(lambda (filters)
         (with-db
           (query (:select 'cheque.id 'bank.title 'company.title
@@ -199,7 +204,7 @@
                           :left-join 'bank
                           :on (:= 'bank.id 'cheque.bank-id)
                           :where (:= 'cheque.payable-p
-                                     (getf filters :payable-p)))
+                                     (val* (getf filters :payable-p))))
                  :plists))))
 
 ;;; ------------------------------------------------------------
@@ -247,25 +252,24 @@
 	       (eql (cheque-payable-p (val cheque-id))
 		    (val payable-p))
 	       t))
-      (with-parameter-rebinding #'val
-	(let ((next-statuses (next-statuses cheque-id))) 
-	  (with-page () 
-	    (:head
-	     (:title "Επιταγές")
-	     (css-standard-headers))
-	    (:body
-	     (:div :id "header"
-		   (logo)
-		   (primary-navbar 'cheques)
-		   (cheque-navbar (if payable-p 'payable 'receivable)) 
-		   (:div :id "body" 
-			 (:div :id "cheques" :class "window"
-			       (apply #'cheque-menu cheque-id payable-p :create :update :delete next-statuses)
-			       (:h2 "Κατάλογος επιταγών") 
-			       (cheques-table cheque-id
-					      'view
-					      :payable-p payable-p))
-			 (footer)))))))
+      (with-parameter-list params
+        (let ((next-statuses (next-statuses (val cheque-id)))) 
+          (with-page () 
+            (:head
+             (:title "Επιταγές")
+             (css-standard-headers))
+            (:body
+             (:div :id "header"
+                   (logo)
+                   (primary-navbar 'cheques)
+                   (cheque-navbar (if payable-p 'payable 'receivable)) 
+                   (:div :id "body" 
+                         (:div :id "cheques" :class "window"
+                               (apply #'cheque-menu (val cheque-id) (val payable-p)
+                                      :create :update :delete next-statuses)
+                               (:h2 "Κατάλογος επιταγών") 
+                               (render (get-widget 'cheques-table) params :view))
+                         (footer)))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
 (define-dynamic-page cheque/create ((payable-p boolean)
@@ -290,11 +294,8 @@
 	     (cheque-errorbar bank company amount due-date)
 	     (:div :id "cheques" :class "window"
 		   (cheque-menu nil (val payable-p))
-		   (:h2 "Δημιουργία επιταγής") 
-		   (cheques-table nil
-				  'create
-				  :params (rest params)
-				  :payable-p (val payable-p)))
+		   (:h2 "Δημιουργία επιταγής")
+                   (render (get-widget 'cheques-table) params :create))
 	     (footer))))))
 
 (define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p t) 
@@ -324,11 +325,7 @@
 				      payable-p
 				      :view :delete)
 			 (:h2 "Επεξεργασία επιταγής")
-			 ;; first of params list is id, which we ignore 
-			 (cheques-table (val cheque-id)
-					'update
-					:params (rest params)
-					:payable-p payable-p))
+			 (render (get-widget 'cheques-table) :params params :intent :update))
 		   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -336,24 +333,23 @@
     ("cheque/delete")
   (no-cache)
   (if (validp cheque-id)
-      (let ((payable-p (cheque-payable-p (val cheque-id))))
-	(with-page ()
-	  (:head
-	   (:title "Επιταγές")
-	   (css-standard-headers))
-	  (:body
-	   (:div :id "header"
-		 (logo)
-		 (primary-navbar 'cheques)
-		 (cheque-navbar (if payable-p 'payable 'receivable))) 
-	   (:div :id "body" 
-		 (:div :id "cheques" :class "window"
-		       (cheque-menu (val cheque-id) payable-p :view :update)
-		       (:h2 "Διαγραφή επιταγής")
-		       (cheques-table (val cheque-id)
-				      'delete
-				      :payable-p payable-p))
-		 (footer)))))
+      (with-parameter-list params
+        (let ((payable-p (cheque-payable-p (val cheque-id))))
+          (with-page ()
+            (:head
+             (:title "Επιταγές")
+             (css-standard-headers))
+            (:body
+             (:div :id "header"
+                   (logo)
+                   (primary-navbar 'cheques)
+                   (cheque-navbar (if payable-p 'payable 'receivable))) 
+             (:div :id "body" 
+                   (:div :id "cheques" :class "window"
+                         (cheque-menu (val cheque-id) payable-p :view :update)
+                         (:h2 "Διαγραφή επιταγής")
+                         (render (get-widget 'cheques-table) :params params :intent :delete))
+                   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
 (define-dynamic-page cheque/chstat ((cheque-id integer #'valid-cheque-id-p t)
@@ -361,28 +357,26 @@
     ("cheque/chstat")
   (no-cache)
   (if (and (validp cheque-id) (validp new-status))
-      (with-parameter-rebinding #'val
-	(let ((payable-p (cheque-payable-p cheque-id)))
-	  (with-page ()
-	    (:head
-	     (:title "Επιταγές")
-	     (css-standard-headers))
-	    (:body
-	     (:div :id "header"
-		   (logo)
-		   (primary-navbar 'cheques)
-		   (cheque-navbar (if payable-p 'payable 'receivable))) 
-	     (:div :id "body" 
-		   (:div :id "cheques" :class "window"
-			 (cheque-menu cheque-id payable-p :view)
-			 (:h2 (str (case new-status
-				     (paid "Πληρωμή επιταγής")
-				     (bounced "Σφράγισμα επιταγής")
-				     (returned "Επιστροφή επιταγής"))))
-			 (cheques-table cheque-id
-					new-status
-					:payable-p payable-p))
-		   (footer))))))
+      (with-parameter-list params
+        (let ((payable-p (cheque-payable-p (val cheque-id))))
+          (with-page ()
+            (:head
+             (:title "Επιταγές")
+             (css-standard-headers))
+            (:body
+             (:div :id "header"
+                   (logo)
+                   (primary-navbar 'cheques)
+                   (cheque-navbar (if payable-p 'payable 'receivable))) 
+             (:div :id "body" 
+                   (:div :id "cheques" :class "window"
+                         (cheque-menu (val cheque-id) (val payable-p) :view)
+                         (:h2 (str (case new-status
+                                     (paid "Πληρωμή επιταγής")
+                                     (bounced "Σφράγισμα επιταγής")
+                                     (returned "Επιστροφή επιταγής"))))
+                         (render (get-widget 'cheques-table) :params params :intent :chstat))
+                   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
 (define-dynamic-page cheque/notfound () ("cheque/notfound")
@@ -404,135 +398,6 @@
 
 (defun status-label (status)
   (first (find status *cheque-statuses* :key #'second :test #'string-equal)))
-
-(defun cheques-table (active-id intent &key payable-p params)
-  (flet ((normal-row (cheque-id data aux &optional activep)
-	   (bind (((bank company amount due-date) data)
-		  ((company-id status) aux)) 
-	     (with-html
-	       (:tr :class (if activep "active" nil)
-		    (:td :class "select"
-			 (if activep
-			     (htm (:a :href (cheques :payable-p payable-p)
-				      (:img :src (url "img/bullet_red.png"))))
-			     (htm (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-				      (:img :src (url "img/bullet_blue.png"))))))
-		    (:td :class "data" (str (lisp-to-html bank)))
-		    (:td :class "data"
-			 (:a :class "data" :href (company/view :id company-id)
-			     (str (lisp-to-html company))))
-		    (:td :class "data" (str (lisp-to-html amount)))
-		    (:td :class "data" (str (lisp-to-html (status-label status))))
-		    (:td :class "data" (str (lisp-to-html due-date)))
-		    (:td :class "button" "")
-		    (:td :class "button" "")))))
-	 (form-row-create (data styles)
-	   (bind (((&optional bank company amount due-date) data)
-		  ((&optional bank% company% amount% due-date%) styles)
-		  (status "pending")) 
-	     (with-form (actions/cheque/create :payable-p payable-p)
-	       (:tr :class "active"
-		    (:td :class "select"
-			 (:a :href (cheques :payable-p payable-p)
-			     (:img :src (url "img/bullet_red.png"))))
-		    (:td :class "data" (textbox 'bank :value bank :style bank%))
-		    (:td :class "data" (textbox 'company :value company :style company%))
-		    (:td :class "data" (textbox 'amount :value amount :style amount%))
-		    (:td :class "data" (str (lisp-to-html (status-label status))))
-		    (:td :class "data" (textbox 'due-date :value due-date :style due-date%))
-		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (cheques :payable-p payable-p)))))))
-	 (form-row-update (cheque-id data aux styles) 
-	   (bind (((&optional bank company amount due-date) data)
-		  ((&optional bank% company% amount% due-date%) styles)
-		  ((company-id status) aux))
-	     (declare (ignore company-id))
-	     (with-form (actions/cheque/update :cheque-id cheque-id)
-	       (:tr :class "active"
-		    (:td :class "select"
-			 (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-			     (:img :src (url "img/bullet_red.png"))))
-		    (:td :class "data" (textbox 'bank :value bank :style bank%))
-		    (:td :class "data" (textbox 'company :value company :style company%))
-		    (:td :class "data" (textbox 'amount :value amount :style amount%))
-		    (:td :class "data" (str (lisp-to-html (status-label status))))
-		    (:td :class "data" (textbox 'due-date :value due-date :style due-date%))
-		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (cheques :cheque-id cheque-id
-								 :payable-p payable-p)))))))
-	 (form-row-chstat (cheque-id data aux) 
-	   (bind (((bank company amount due-date) data)
-		  ((company-id status) aux)) 
-	     (with-form (actions/cheque/chstat :cheque-id cheque-id :new-status intent)
-	       (:tr :class "active"
-		    (:td :class "select"
-			 (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-			     (:img :src (url "img/bullet_red.png"))))
-		    (:td :class "data" (str (lisp-to-html bank)))
-		    (:td :class "data"
-			 (:a :class "data" :href (company/view :id company-id)
-			     (str (lisp-to-html company)))) 
-		    (:td :class "data" (str (lisp-to-html amount)))
-		    (:td :class "data" (str (lisp-to-html (status-label status))))
-		    (:td :class "data" (str (lisp-to-html due-date)))
-		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (cheques :cheque-id cheque-id
-								 :payable-p payable-p)))))))
-	 (form-row-delete (cheque-id data aux)
-	   (bind (((bank company amount due-date) data)
-		  ((company-id status) aux))
-	     (with-form (actions/cheque/delete :cheque-id cheque-id :payable-p payable-p)
-	       (:tr :class "attention"
-		    (:td :class "select"
-			 (:a :href (cheques :cheque-id cheque-id)
-			     (:img :src (url "img/bullet_red.png"))))
-		    (:td :class "data" (str (lisp-to-html bank)))
-		    (:td :class "data"
-			 (:a :class "data" :href (company/view :id company-id)
-			     (str (lisp-to-html company))))
-		    (:td :class "data" (str (lisp-to-html amount)))
-		    (:td :class "data" (str (lisp-to-html (status-label status))))
-		    (:td :class "data" (str (lisp-to-html due-date)))
-		    (:td :class "button" (ok-button))
-		    (:td :class "button" (cancel-button (cheques :cheque-id cheque-id
-								 :payable-p payable-p))))))))
-    (with-db
-      (let ((cheques (query (:select 'cheque.id 'bank.title 'company.title
-				     'cheque.amount 'cheque.due-date
-				     'company-id 'cheque.status
-				     :from 'cheque
-				     :left-join 'company
-				     :on (:= 'company.id 'cheque.company-id)
-				     :left-join 'bank
-				     :on (:= 'bank.id 'cheque.bank-id)
-				     :where (:= 'cheque.payable-p payable-p)))) 
-	    (header '("" "Τράπεζα" "Εταιρία" "Ποσόν" "Κατάσταση" "Ημερομηνία πληρωμής"))
-	    (hstyles '("select" "data" "data" "data" "data" "data" "button" "button"))
-	    (inp (mapcar #'val* params))
-	    (styles (mapcar (lambda (p) (if (validp p) nil "attention")) params))) 
-	(with-html
-	  (:table :id "cheques-table" :class "forms-in-row"
-		  (:thead
-		   (:tr (iter (for label in header)
-			      (for sty in hstyles)
-			      (htm (:th :class sty (str label))))))
-		  (:tbody 
-		   (when (eql intent 'create)
-		     (form-row-create inp styles))
-		   (iter (for row in cheques)
-			 (for id = (first row))
-			 (for def = (subseq row 1 5))
-			 (for aux = (subseq row 5 7))
-			 (for activep = (and active-id (= active-id id))) 
-			 (if activep 
-			     (let ((data (merge-nonnull def inp)))
-			       (case intent
-				 (view (normal-row id data aux activep)) 
-				 (update (form-row-update id data aux styles))
-				 (delete (form-row-delete id data aux))
-				 ((paid bounced returned) (form-row-chstat id data aux))))
-			     (normal-row id def aux))))))))))
-
 
 (define-menu cheque-menu (cheque-id payable-p) ()
   (:create (with-html
