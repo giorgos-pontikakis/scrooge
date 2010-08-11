@@ -16,4 +16,29 @@
   '(:description :old-status :new-status :debit-acc :credit-acc))
 
 
-#|(defmacro define-action )|#
+
+(defun plist-subset (plist keys)
+  (mapcan (lambda (key)
+            (list key (second (member key plist))))
+          keys))
+
+(defun plist-keys (plist)
+  (iter (for key in plist by #'cddr)
+        (collect key)))
+
+(defun plist-vals (plist)
+  (iter (for key in (rest plist) by #'cddr)
+        (collect key)))
+
+(defun params->plist (objlist fn keys)
+  (mapcan (lambda (key)
+            (let ((param (find key objlist :key fn)))
+              (list key param)))
+          keys))
+
+
+
+
+
+
+

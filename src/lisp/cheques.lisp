@@ -2,32 +2,10 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-(define-navbar cheque-navbar () (:id "subnavbar" :ul-style "hmenu")
-  (receivable (cheques)              "Προς είσπραξη")
-  (payable    (cheques :payable-p t) "Προς πληρωμή"))
 
-(defparameter *cheque-statuses*
-  (with-db
-    (query (:select 'description 'status :from 'cheque-status))))
-
-(defun cheque-payable-p (cheque-id)
-  (with-db
-    (query (:select 'payable-p :from 'cheque :where (:= 'id cheque-id)) :single)))
-
-(defun next-statuses (cheque-id)
-  (if cheque-id
-      (with-db
-	(mapcar (compose #'make-keyword #'string-upcase)
-		(query (:select 'new-status
-				:from 'cheque-fsm
-				:where (:= 'old-status
-					   (:select 'status
-						    :from 'cheque
-						    :where (:= 'id cheque-id))))
-		       :column)))
-      nil))
-
+;;; ------------------------------------------------------------
 ;;; Actions
+;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/cheque/create ((payable-p boolean)
 					    (bank string #'valid-bank-p t)
@@ -40,37 +18,35 @@
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val 
 	  (with-db 
-	    (let* ((status "pending")
+	    (let* ((status "pending") ;; default status for new cheques
 		   (bank-id (bank-id bank))
 		   (company-id (company-id company))
-		   (fsm-data (query (:select 'debit-acc-id 'credit-acc-id 'description
-					     :from 'cheque-fsm
-					     :where (:and (:is-null 'old-status)
-							  (:= 'new-status status)))
-				    :row)))
-	      (if fsm-data
-		  (destructuring-bind (debit-acc-id credit-acc-id description) fsm-data
-		    (with-transaction ()
-		      ;; Store the dao of the new cheque, we need its id
-		      ;; for the auto-generated transaction 
-		      (let ((cheque-dao (insert-dao (make-instance 'cheque
-								   :bank-id bank-id
-								   :company-id company-id
-								   :due-date due-date
-								   :amount amount
-								   :status status
-								   :payable-p payable-p))))
-			(insert-dao (make-instance 'tx
-						   :tx-date (current-date)
-						   :description description
-						   :company-id company-id
-						   :amount amount
-						   :credit-acc-id credit-acc-id
-						   :debit-acc-id debit-acc-id
-						   :src-tbl "cheque"
-						   :src-id (id cheque-dao)))))
-		    (redirect (cheques :payable-p payable-p) :code +http-see-other+))
-		  (redirect (no-fsm-data) :code +http-see-other+)))))
+		   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
+                                               :from 'cheque-stran
+                                               :where (:and (:is-null 'old-status)
+                                                            (:= 'new-status status)))
+                                      :plist)))
+	      (if stran-data
+		  (with-transaction ()
+                    ;; Store the dao of the new cheque, we need its id
+                    ;; for the auto-generated transaction below
+                    (let ((cheque-dao (insert-dao (make-instance 'cheque
+                                                                 :bank-id bank-id
+                                                                 :company-id company-id
+                                                                 :due-date due-date
+                                                                 :amount amount
+                                                                 :status status
+                                                                 :payable-p payable-p))))
+                      (insert-dao (make-instance 'tx
+                                                 :tx-date (current-date)
+                                                 :description (getf description description)
+                                                 :company-id company-id
+                                                 :amount amount
+                                                 :credit-acc-id (getf stran-data credit-acc-id)
+                                                 :debit-acc-id (getf stran-data debit-acc-id)
+                                                 :src-tbl "cheque"
+                                                 :src-id (id cheque-dao)))))
+		  (redirect (no-stran-data) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (cheque/create :bank bank
 				   :company company
@@ -146,13 +122,13 @@
 								   :from 'cheque
 								   :where (:= 'id cheque-id))
 							  :row))
-		   (fsm-data (query (:select 'debit-acc-id 'credit-acc-id 'description
-					     :from 'cheque-fsm
+		   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
+					     :from 'cheque-stran
 					     :where (:and (:= 'old-status old-status)
 							  (:= 'new-status new-status)))
 				    :row)))
-	      (if fsm-data 
-		  (destructuring-bind (debit-acc-id credit-acc-id description) fsm-data
+	      (if stran-data 
+		  (destructuring-bind (debit-acc-id credit-acc-id description) stran-data
 		    (with-transaction ()
 		      ;; Create a new transaction which points to our cheque
 		      (execute (:insert-into 'tx :set
@@ -170,14 +146,97 @@
 					:where (:= 'id cheque-id))))
 		    (redirect (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))
 			      :code +http-see-other+))
-		  (redirect (no-fsm-data) :code +http-see-other+)))))
+		  (redirect (no-stran-data) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw
 	  (redirect (cheque/chstat :cheque-id cheque-id
 				   :new-status new-status)
 		    :code +http-see-other+)))))
 
-;; Pages
+;;; ------------------------------------------------------------
+;;; Definition
+;;; ------------------------------------------------------------
 
+(define-page-group 'cheques
+    :id-keys '(:id)
+    :data-keys '(:bank :due-date :company :amount) 
+    :filter-keys '(:payable-p)
+    :post-urls '(:create #'actions/cheque/create
+                 :update #'actions/cheque/update
+                 :delete #'actions/cheque/delete
+                 :chstat #'actions/cheque/chstat) 
+    :get-urls '(:view #'cheques
+                :create #'cheque/create
+                :update #'cheque/update
+                :delete #'cheque/delete
+                :chstat #'cheque/chstat
+                :not-found #'cheque/not-found))
+
+(defparameter *cheques-table*
+  (make-instance 'html-table-inline
+                 :page-group-name 'cheques 
+                 :data-header '("Τράπεζα" "Εταιρία" "Ποσόν" "Κατάσταση" "Ημερομηνία πληρωμής")
+                 :data-styles '(:bank "data"
+                                :due-date "data"
+                                :company "data"
+                                :amount "data"
+                                :status "data")
+                 :data-widgets '(:bank 
+                                 :due-date "data"
+                                 :company "data"
+                                 :amount "data"
+                                 :status "data")
+                 :css '(:table-style "forms-in-row")))
+
+(define-db-data 'cheques
+    #'(lambda (filters)
+        (with-db
+          (query (:select 'cheque.id 'bank.title 'company.title
+                          'cheque.amount 'cheque.due-date
+                          'company-id 'cheque.status
+                          :from 'cheque
+                          :left-join 'company
+                          :on (:= 'company.id 'cheque.company-id)
+                          :left-join 'bank
+                          :on (:= 'bank.id 'cheque.bank-id)
+                          :where (:= 'cheque.payable-p
+                                     (getf filters :payable-p)))
+                 :plists))))
+
+;;; ------------------------------------------------------------
+;;; Snippets
+;;; ------------------------------------------------------------
+
+(define-navbar cheque-navbar () (:id "subnavbar" :ul-style "hmenu")
+  (receivable (cheques)              "Προς είσπραξη")
+  (payable    (cheques :payable-p t) "Προς πληρωμή"))
+
+(defparameter *cheque-statuses*
+  (with-db
+    (query (:select 'description 'status :from 'cheque-status))))
+
+(defun cheque-payable-p (cheque-id)
+  (with-db
+    (query (:select 'payable-p :from 'cheque :where (:= 'id cheque-id)) :single)))
+
+(defun next-statuses (cheque-id)
+  (if cheque-id
+      (with-db
+	(mapcar (compose #'make-keyword #'string-upcase)
+		(query (:select 'new-status
+				:from 'cheque-stran
+				:where (:= 'old-status
+					   (:select 'status
+						    :from 'cheque
+						    :where (:= 'id cheque-id))))
+		       :column)))
+      nil))
+
+
+
+
+;;; ------------------------------------------------------------
+;;; Pages
+;;; ------------------------------------------------------------
 (define-dynamic-page cheques ((cheque-id integer #'valid-cheque-id-p)
 			      (payable-p boolean))
     ("cheques")
