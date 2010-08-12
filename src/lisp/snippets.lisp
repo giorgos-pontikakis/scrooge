@@ -67,55 +67,10 @@
 
 
 
-;;; Breadcrumb navigation
-
-(defparameter *pagetree*
-  '(home "Start" ((companies "Εταιρίες" ((company/view "Προβολή" nil)
-					 (company/create "Δημιουργία" nil)
-					 (company/update "Επεξεργασία" nil)
-					 (company/delete "Διαγραφή" nil)))
-		  (config "Ρυθμίσεις" ((banks "Τράπεζες" ((bank/view "Προβολή" nil)
-							  (bank/create "Δημιουργία" nil)
-							  (bank/update "Επεξεργασία" nil)
-							  (bank/delete "Διαγραφή" nil)))
-				       (accounts "Λογαριασμοί" ((account/view "Προβολή" nil)
-								(account/create "Δημιουργία" nil)
-								(account/update "Επεξεργασία" nil)
-								(account/delete "Διαγραφή" nil))))))))
-
-
-;;; node = (page-name parent-list label children-spec)
-
-(defun target-node-p (target node)
-  (eql target (first node)))
-
-(defun find-node (target fringe)
-  (let ((node (first fringe)))
-    (if (null node)
-	:not-found
-	(if (target-node-p target node)
-	    (append (second node) (list (first node) (third node)))
-	    (find-node target 
-		       (append (fourth node)
-			       (rest fringe)))))))
-
-
-
-
-(defun make-node (spec parent)
-  (list (first spec)
-	parent
-	(second spec)
-	(mapcar (lambda (child-spec)
-		  (make-node child-spec (append parent
-						(list (first spec)
-						      (second spec)))))
-		(third spec))))
-
-
 
 ;;;----------------------------------------------------------------------
-;;; sql utilities
+;;; SQL utilities
+;;;----------------------------------------------------------------------
 
 (defun ilike (filter)
   (if (or (null filter)
@@ -127,6 +82,7 @@
 
 ;;;----------------------------------------------------------------------
 ;;; Helper macros for banks/tofs, SHOULD BE DELETED SOMETIME
+
 (defun active-row-img ()
   (with-html
     (:img :src (url "img/bullet_red.png"))))

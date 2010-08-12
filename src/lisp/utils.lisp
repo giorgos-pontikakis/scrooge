@@ -16,31 +16,11 @@
   '(:description :old-status :new-status :debit-acc :credit-acc))
 
 
-
-(defun plist-subset (plist keys)
+(defun objects->plist (objlist fn keys) 
   (mapcan (lambda (key)
-            (list key (second (member key plist))))
+            (let ((obj (find key objlist :key fn)))
+              (list key obj)))
           keys))
-
-(defun plist-keys (plist)
-  (iter (for key in plist by #'cddr)
-        (collect key)))
-
-(defun plist-vals (plist)
-  (iter (for key in (rest plist) by #'cddr)
-        (collect key)))
-
-(defun objects->plist (objlist fn keys)
-  (mapcan (lambda (key)
-            (let ((param (find key objlist :key fn)))
-              (list key param)))
-          keys))
-
-
-(defun plist-map (fn plist)
-  (iter (for key in plist by #'cddr)
-        (for val in (rest plist) by #'cddr)
-        (nconcing (list key (funcall fn val)))))
 
 
 

@@ -101,7 +101,7 @@
                      (tof-row-create active-id values styles))
                    (iter (for row in db-data) 
                          (if (and active-id (eql active-id (getf row :id)))
-                             (let ((merged (plist-union values row)))
+                             (let ((merged (unionf values row)))
                                (case intent
                                  (:view (tof-row-display active-id merged)) 
                                  (:update (tof-row-update active-id merged styles))

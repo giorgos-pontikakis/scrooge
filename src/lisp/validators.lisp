@@ -30,13 +30,8 @@
 (define-existence-validator bank-id-exists-p bank id)
 (define-existence-validator bank-exists-p bank title)
 
-(defun valid-bank-p (id title)
-  (and id
-       title
-       (with-db
-         (let ((current-title (title (get-dao 'bank id))))
-           (or (string-equal title current-title)
-               (funcall (complement #'bank-exists-p) title))))))
+(defun valid-bank-p (title)
+  (bank-exists-p title))
 
 ;;; --- Taxation Offices --------------------
 

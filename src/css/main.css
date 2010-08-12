@@ -468,11 +468,12 @@ ul.error li {
 /* Cheques */
 /* ------------------------------------------------------------ */
 #cheques {
-    width: 900px;
+    width: 940px;
 }
 
 #cheques-table {
-    width: 880px;
+    width: 920px;
+    margin: 10px 10px 10px 10px;
 }
 
 #cheques-table .data {

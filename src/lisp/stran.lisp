@@ -215,7 +215,7 @@
                                                (equal active-id (getf db-values :id))
                                                (equal active-tbl tbl)))) 
                              (if activep
-                                 (let ((values (plist-union in-values db-values))) 
+                                 (let ((values (unionf in-values db-values))) 
                                    (case intent
                                      (:view (stran-row-view activep tbl values in-styles))
                                      (:update (stran-row-update active-id tbl values in-styles))
