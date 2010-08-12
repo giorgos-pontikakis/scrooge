@@ -275,7 +275,8 @@
 (defmethod form-row ((obj table-inline-form))
   #'(lambda (intent get-fn post-fn ids data styles) 
       (make-form (apply post-fn
-                        (collectf (keyparams (page post-fn)) ids)) 
+                        (mapf #'val
+                              (collectf (keyparams (page post-fn)) ids))) 
                  (html () 
                    (:tr :class (if (eql intent :delete) "attention" "active")
                         (selector-td t (funcall get-fn))
@@ -290,7 +291,7 @@
               (let ((val (getf data key))
                     (sty (getf styles key)) 
                     (widget (find key data-widgets :key #'name)))
-                (render widget val sty))))))
+                (render widget (val* val) sty))))))
 
 #|(defmethod define-db-getter ((obj table-inline-form) fn)
   (setf (db-getter obj) fn))|#
@@ -346,10 +347,11 @@
 (defclass cell-dropdown (cell) (
    (pairs :accessor pairs :initarg :pairs)))
 
-(defun make-cell-dropdown (name td-style)
+(defun make-cell-dropdown (name td-style pairs)
   (make-instance 'cell-dropdown
                  :name name
-                 :td-style td-style))
+                 :td-style td-style
+                 :pairs pairs))
 
 (defmethod renderer ((widget cell-dropdown))
   (with-slots (name td-style pairs) widget

@@ -82,6 +82,7 @@ create table cheque_stran (
        ,old_status varchar(16) references cheque_status(status)
        ,new_status varchar(16) references cheque_status(status)
 );
+insert into cheque_status (status, description) values(NULL, 'Εκκρεμεί');
 
 create table cheque (
        id serial primary key

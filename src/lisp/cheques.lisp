@@ -25,7 +25,7 @@
                                                :from 'cheque-stran
                                                :where (:and (:is-null 'old-status)
                                                             (:= 'new-status status)))
-                                      :plist)))
+                                      :plist))) 
 	      (if stran-data
 		  (with-transaction ()
                     ;; Store the dao of the new cheque, we need its id
@@ -46,6 +46,7 @@
                                                  :debit-acc-id (getf stran-data :debit-acc-id)
                                                  :src-tbl "cheque"
                                                  :src-id (id cheque-dao)))))
+                  
 		  (redirect (notfound) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (cheque/create :bank bank
@@ -175,7 +176,7 @@
                       (make-cell-textbox :due-date "data")
                       (make-cell-textbox :company "data")
                       (make-cell-textbox :amount "data")
-                      (make-cell-textbox :status "data"))
+                      (make-cell-dropdown :status "data" (cheque-statuses)))
   :table-styles '(:table-style "forms-in-row"))
 
 (setf (db-getter (get-widget 'cheques))
@@ -201,7 +202,7 @@
   (receivable (cheques)              "Προς είσπραξη")
   (payable    (cheques :payable-p t) "Προς πληρωμή"))
 
-(defparameter *cheque-statuses*
+(defun cheque-statuses ()
   (with-db
     (query (:select 'description 'status :from 'cheque-status))))
 

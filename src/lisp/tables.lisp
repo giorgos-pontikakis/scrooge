@@ -65,7 +65,7 @@
 
 (defmethod company-id ((title string))
   (with-db
-    (query (:select 'company-id :from 'company
+    (query (:select 'id :from 'company
 		    :where (:= 'title title))
 	   :single)))
 
