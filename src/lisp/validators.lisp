@@ -38,7 +38,7 @@
 (define-existence-validator tof-id-exists-p tof id)
 (define-existence-validator tof-exists-p tof title)
 
-(defun valid-tof-title-p (id title)
+(defun valid-tof-p (id title)
   (and id
        title
        (with-db
@@ -152,7 +152,10 @@
 		    :where (:= 'id stran-id)))))
 
 (defun valid-tbl-p (tbl)
-  (member tbl (stran-tables) :test #'string-equal))
+  (with-db
+    (query (:select 1
+                    :from 'stran-tables
+                    :where (:= tbl 'id)))))
 
 (defun valid-combo (table status)
   (with-db

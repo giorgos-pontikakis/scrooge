@@ -21,7 +21,7 @@
 (define-dynamic-page actions/tof/update ((id    integer #'tof-id-exists-p) 
                                          (title string))
     ("actions/tof/update" :request-type :post
-                          :validators ((title  (valid-tof-title-p id title))))
+                          :validators ((title  (valid-tof-p id title))))
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
@@ -162,7 +162,7 @@
 
 (define-dynamic-page tof/update ((id integer #'tof-id-exists-p)
                                  (title string))
-    ("config/tof/update" :validators ((title (valid-tof-title-p id title)))) 
+    ("config/tof/update" :validators ((title (valid-tof-p id title)))) 
   (if (validp id)
       (with-page ()
         (:head

@@ -3,14 +3,14 @@
 (declaim (optimize (safety 3) (debug 3) (compilation-speed 0) (speed 0) (space 0)))
 
 
-(defparameter *stran-tables* '(("Επιταγή" "cheque")
-                               ("Έργο" "project")))
+;; (defparameter *stran-tables* '(("Επιταγή" "cheque")
+;;                                ("Έργο" "project")))
 
 (defun stran-table-label (tbl)
   (first (find tbl *stran-tables* :key #'second :test #'string-equal)))
 
-(defun stran-tables ()
-  (mapcar #'second *stran-tables*))
+;; (defun stran-tables ()
+;;   (mapcar #'second *stran-tables*))
 
 (defun init-accounts ()
   )

@@ -4,6 +4,36 @@
 
 
 ;;; ------------------------------------------------------------
+;;; Snippets
+;;; ------------------------------------------------------------
+
+(define-navbar cheque-navbar () (:id "subnavbar" :ul-style "hmenu")
+  (receivable (cheques)              "Προς είσπραξη")
+  (payable    (cheques :payable-p t) "Προς πληρωμή"))
+
+(defun cheque-statuses ()
+  (with-db
+    (query (:select 'description 'status :from 'cheque-status))))
+
+(defun cheque-payable-p (cheque-id)
+  (with-db
+    (query (:select 'payable-p :from 'cheque :where (:= 'id cheque-id)) :single)))
+
+(defun next-statuses (cheque-id)
+  (if cheque-id
+      (with-db
+	(mapcar (compose #'make-keyword #'string-upcase)
+		(query (:select 'new-status
+				:from 'cheque-stran
+				:where (:= 'old-status
+					   (:select 'status
+						    :from 'cheque
+						    :where (:= 'id cheque-id))))
+		       :column)))
+      nil))
+
+
+;;; ------------------------------------------------------------
 ;;; Actions
 ;;; ------------------------------------------------------------
 
@@ -47,7 +77,7 @@
                                                  :src-tbl "cheque"
                                                  :src-id (id cheque-dao)))))
                   
-		  (redirect (notfound) :code +http-see-other+)))))
+		  (redirect (cheque/stran-notfound) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (cheque/create :bank bank
 				   :company company
@@ -194,34 +224,6 @@
                                        (val* (getf filters :payable-p))))
                    :plists))))
 
-;;; ------------------------------------------------------------
-;;; Snippets
-;;; ------------------------------------------------------------
-
-(define-navbar cheque-navbar () (:id "subnavbar" :ul-style "hmenu")
-  (receivable (cheques)              "Προς είσπραξη")
-  (payable    (cheques :payable-p t) "Προς πληρωμή"))
-
-(defun cheque-statuses ()
-  (with-db
-    (query (:select 'description 'status :from 'cheque-status))))
-
-(defun cheque-payable-p (cheque-id)
-  (with-db
-    (query (:select 'payable-p :from 'cheque :where (:= 'id cheque-id)) :single)))
-
-(defun next-statuses (cheque-id)
-  (if cheque-id
-      (with-db
-	(mapcar (compose #'make-keyword #'string-upcase)
-		(query (:select 'new-status
-				:from 'cheque-stran
-				:where (:= 'old-status
-					   (:select 'status
-						    :from 'cheque
-						    :where (:= 'id cheque-id))))
-		       :column)))
-      nil))
 
 
 
@@ -386,7 +388,7 @@
 ;;; Snippets
 
 (defun status-label (status)
-  (first (find status *cheque-statuses* :key #'second :test #'string-equal)))
+  (first (find status (cheque-statuses) :key #'second :test #'string-equal)))
 
 (define-menu cheque-menu (cheque-id payable-p) ()
   (:create (with-html
@@ -418,3 +420,17 @@
   (due-date "Άκυρη ημερομηνία"))
 
 
+(define-dynamic-page cheque/stran-notfound () ("notfound")
+  (no-cache)
+  (with-page ()
+    (:head
+     (:title "Άγνωστη σελίδα")
+     (css-standard-headers))
+    (:body
+     (:div :id "header"
+	   (logo)
+	   (primary-navbar 'cheques))
+     (:div :id "body"
+	   (:div :id "content" :class "summary"
+		 (:p "Δεν έχουν δημιουργηθεί οι κατάλληλες καταστατικές μεταβολές.")
+		 (:p "Επιστρέψτε στο μενού των καταστατικών μεταβολών και ορίστε."))))))

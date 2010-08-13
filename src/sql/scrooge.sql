@@ -4,6 +4,7 @@ drop table project_stran;
 drop table project_status;
 drop table tx;
 drop table temtx;
+drop table stran_tables;
 drop table cheque_stran;
 drop table cheque;
 drop table cheque_status;
@@ -63,38 +64,6 @@ create table account (
 );
 
 
---- Cheques ------------------------------
-
-create table cheque_status (
-       status varchar(32) primary key
-       ,description varchar(32) 
-);
-insert into cheque_status (status, description) values('pending', 'Εκκρεμεί');
-insert into cheque_status (status, description) values('paid', 'Πληρωμένη');
-insert into cheque_status (status, description) values('bounced', 'Ακάλυπτη');
-insert into cheque_status (status, description) values('returned', 'Επιστράφηκε');
-
-create table cheque_stran (
-       id serial primary key
-       ,description varchar(256)
-       ,debit_acc_id integer references account(id)
-       ,credit_acc_id integer references account(id)
-       ,old_status varchar(16) references cheque_status(status)
-       ,new_status varchar(16) references cheque_status(status)
-);
-insert into cheque_status (status, description) values(NULL, 'Εκκρεμεί');
-
-create table cheque (
-       id serial primary key
-       ,bank_id integer not null references bank(id)
-       ,company_id integer not null references company(id)
-       ,due_date date not null
-       ,amount integer not null check (amount > 0) 
-       ,status varchar(8) not null references cheque_status(status) default 'pending'
-       ,payable_p boolean default 'f'
-);
-
-
 
 --- Transactions ------------------------------
 
@@ -115,6 +84,48 @@ create table temtx (
        ,description varchar(256) not null
        ,debit_acc_id integer references account(id)
        ,credit_acc_id integer references account(id)
+);
+
+
+--- State transitions ------------------------------
+
+create table stran_tables (
+       id varchar(16) primary key
+       ,description varchar(32)  
+);
+insert into stran_tables (id, description) values ('cheque', 'Επιταγή');
+insert into stran_tables (id, description) values ('project', 'Έργο');
+
+
+--- Cheques ------------------------------
+
+create table cheque_status (
+       id serial primary key
+       ,status varchar(32)
+       ,description varchar(32) 
+);
+insert into cheque_status (status, description) values('pending', 'Εκκρεμεί');
+insert into cheque_status (status, description) values('paid', 'Πληρωμένη');
+insert into cheque_status (status, description) values('bounced', 'Ακάλυπτη');
+insert into cheque_status (status, description) values('returned', 'Επιστράφηκε');
+
+create table cheque_stran (
+       id serial primary key
+       ,description varchar(256)
+       ,debit_acc_id integer references account(id)
+       ,credit_acc_id integer references account(id)
+       ,old_status integer references cheque_status(id)
+       ,new_status integer references cheque_status(id)
+);
+
+create table cheque (
+       id serial primary key
+       ,bank_id integer not null references bank(id)
+       ,company_id integer not null references company(id)
+       ,due_date date not null
+       ,amount integer not null check (amount > 0) 
+       ,status integer not null references cheque_status(id)
+       ,payable_p boolean default 'f'
 );
 
 
