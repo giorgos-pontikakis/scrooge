@@ -2,6 +2,99 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
+;;; ------------------------------------------------------------
+;;; Definition
+;;; ------------------------------------------------------------
+(defclass cheques-table-inline-form (table-inline-form)
+  ((id-cols :initform '(:cheque-id))
+   (filter-keys :initform '(:payable-p))
+   (cols :initform '(:id
+                     :bank
+                     :due-date
+                     :company
+                     :amount
+                     :status
+                     :submit
+                     :cancel)) 
+   (header :initform '(:id       ""
+                       :bank     "Τράπεζα"
+                       :due-date "Ημερομηνία πληρωμής"
+                       :company  "Εταιρία"
+                       :amount   "Ποσόν"
+                       :status   "Κατάσταση"
+                       :submit   ""
+                       :cancel   ""))
+   (styles :initform '(:cols (:id       "select"
+                              :bank     "data"
+                              :due-date "data"
+                              :company  "data"
+                              :amount   "data"
+                              :status   "data"
+                              :submit   "button"
+                              :cancel   "button")
+                       :table "forms-in-row"))
+   (post-urls :initform '(:create actions/cheque/create
+                          :update actions/cheque/update
+                          :delete actions/cheque/delete
+                          :chstat actions/cheque/chstat)) 
+   (get-urls :initform '(:view   cheques
+                         :create cheque/create
+                         :update cheque/update
+                         :delete cheque/delete
+                         :chstat cheque/chstat))))
+
+(register-widget 'cheques 'cheques-table-inline-form)
+
+
+(defmethod read-db ((obj cheques-table-inline-form) &key filters)
+  (with-db
+    (query (:select 'cheque.id 'bank.title 'company.title
+                    'cheque.amount 'cheque.due-date
+                    'company-id 'cheque.status
+                    :from 'cheque
+                    :left-join 'company
+                    :on (:= 'company.id 'cheque.company-id)
+                    :left-join 'bank
+                    :on (:= 'bank.id 'cheque.bank-id)
+                    :where (:= 'cheque.payable-p
+                               (getf filters :payable-p)))
+           :plists)))
+
+(defmethod form-row ((obj cheques-table-inline-form) row-id row-data intent params) 
+  (flet ((style (indicator)
+           (if (validp (find indicator params :key #'name)) nil "attention"))
+         (datum (indicator)
+           (getf row-data indicator)))
+    (with-db
+      (let ((pairs (query (:select 'description 'id :from 'cheque-status)))
+            (actionfn (getf (post-urls obj) intent))
+            (viewfn (getf (get-urls obj) :view)))
+        (make-form (funcall actionfn)
+                   (html ()
+                     (:tr :style (if activep "active" nil)
+                          (cell-selector obj
+                                         :col :id
+                                         :href (funcall viewfn)
+                                         :activep activep)
+                          (cell-textbox obj
+                                        :col :bank
+                                        :value (datum :bank)
+                                        :style (style :bank))
+                          (cell-textbox obj
+                                        :col :company
+                                        :value (datum :company)
+                                        :style (style :company))
+                          (cell-textbox obj
+                                        :col :amount
+                                        :value (datum :amount)
+                                        :style (style :amount))
+                          (cell-dropdown obj
+                                         :col (datum :status)
+                                         :pairs pairs)
+                          (cell-submit obj :col :submit)
+                          (cell-anchor obj
+                                       :col :cancel
+                                       :href (funcall viewfn)))))))))
 
 ;;; ------------------------------------------------------------
 ;;; Snippets
@@ -10,6 +103,35 @@
 (define-navbar cheque-navbar () (:id "subnavbar" :ul-style "hmenu")
   (receivable (cheques)              "Προς είσπραξη")
   (payable    (cheques :payable-p t) "Προς πληρωμή"))
+
+(define-menu cheque-menu (cheque-id payable-p) ()
+  (:create (with-html
+	     (:li (:a :href (cheque/create :payable-p payable-p)
+		      (:img :src (url "img/add.png")) "Δημιουργία")))) 
+  (:paid (with-html
+	   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
+		    (:img :src (url "img/magnifier.png")) "Πληρωμή"))))
+  (:bounced (with-html
+	      (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
+		       (:img :src (url "img/magnifier.png")) "Σφράγισμα"))))
+  (:returned (with-html
+	       (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
+			(:img :src (url "img/magnifier.png")) "Επιστροφή"))))
+  (:view (with-html
+	   (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
+		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
+  (:update (with-html
+	     (:li (:a :href (cheque/update :cheque-id cheque-id)
+		      (:img :src (url "img/pencil.png")) "Επεξεργασία")))) 
+  (:delete (with-html
+	     (:li (:a :href (cheque/delete :cheque-id cheque-id)
+		      (:img :src (url "img/delete.png")) "Διαγραφή")))))
+
+(define-errorbar cheque-errorbar (:ul-style "error")
+  (bank "Άκυρο όνομα τράπεζας")
+  (company "Άκυρο όνομα εταιρίας")
+  (amount "Άκυρο ποσό") 
+  (due-date "Άκυρη ημερομηνία"))
 
 (defun cheque-statuses ()
   (with-db
@@ -31,6 +153,9 @@
 						    :where (:= 'id cheque-id))))
 		       :column)))
       nil))
+
+(defun status-label (status)
+  (first (find status (cheque-statuses) :key #'second :test #'string-equal)))
 
 
 ;;; ------------------------------------------------------------
@@ -183,48 +308,6 @@
 				   :new-status new-status)
 		    :code +http-see-other+)))))
 
-;;; ------------------------------------------------------------
-;;; Definition
-;;; ------------------------------------------------------------
-
-(define-widget 'cheques 'table-inline-form 
-  :id-keys '(:cheque-id)
-  :data-keys '(:bank :due-date :company :amount :status) 
-  :filter-keys '(:payable-p)
-  :post-urls (list :create 'actions/cheque/create
-                   :update 'actions/cheque/update
-                   :delete 'actions/cheque/delete
-                   :chstat 'actions/cheque/chstat) 
-  :get-urls (list :view 'cheques
-                  :create 'cheque/create
-                  :update 'cheque/update
-                  :delete 'cheque/delete
-                  :chstat 'cheque/chstat)
-  :page-group-name 'cheques 
-  :data-header '("Τράπεζα" "Ημερομηνία πληρωμής" "Εταιρία" "Ποσόν" "Κατάσταση") 
-  :data-widgets (list (make-cell-textbox :bank "data")
-                      (make-cell-textbox :due-date "data")
-                      (make-cell-textbox :company "data")
-                      (make-cell-textbox :amount "data")
-                      (make-cell-dropdown :status "data" (cheque-statuses)))
-  :table-styles '(:table-style "forms-in-row"))
-
-(setf (db-getter (get-widget 'cheques))
-      #'(lambda (filters)
-          (with-db
-            (query (:select 'cheque.id 'bank.title 'company.title
-                            'cheque.amount 'cheque.due-date
-                            'company-id 'cheque.status
-                            :from 'cheque
-                            :left-join 'company
-                            :on (:= 'company.id 'cheque.company-id)
-                            :left-join 'bank
-                            :on (:= 'bank.id 'cheque.bank-id)
-                            :where (:= 'cheque.payable-p
-                                       (val* (getf filters :payable-p))))
-                   :plists))))
-
-
 
 
 
@@ -259,7 +342,7 @@
                    (:div :id "cheques" :class "window"
                          (apply #'cheque-menu (val cheque-id) (val payable-p)
                                 :create :update :delete next-statuses) 
-                         (render (get-widget 'cheques) :view params))
+                         (render (find-widget 'cheques) :intent :view :params params))
                    (footer)))))
         (redirect (cheque/notfound) :code +http-see-other+))))
 
@@ -286,7 +369,7 @@
                    (cheque-errorbar bank company amount due-date))
 	     (:div :id "cheques" :class "window"
 		   (cheque-menu nil (val payable-p)) 
-                   (render (get-widget 'cheques) :create params))
+                   (render (find-widget 'cheques) :intent :create :params params))
 	     (footer))))))
 
 (define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p t) 
@@ -316,7 +399,7 @@
 				      payable-p
 				      :view :delete)
 			 (:h2 "Επεξεργασία επιταγής")
-			 (render (get-widget 'cheques) :update params))
+			 (render (find-widget 'cheques) :intent :update :params params))
 		   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -339,7 +422,7 @@
                    (:div :id "cheques" :class "window"
                          (cheque-menu (val cheque-id) payable-p :view :update)
                          (:h2 "Διαγραφή επιταγής")
-                         (render (get-widget 'cheques) :delete params))
+                         (render (find-widget 'cheques) :intent :delete :params params))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -366,7 +449,7 @@
                                      (paid "Πληρωμή επιταγής")
                                      (bounced "Σφράγισμα επιταγής")
                                      (returned "Επιστροφή επιταγής"))))
-                         (render (get-widget 'cheques) :chstat params))
+                         (render (find-widget 'cheques) :intent :chstat :params params))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -385,40 +468,6 @@
 		 (:p "Η επιταγή που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
 		 (:p "Επιστρέψτε στο μενού των επιταγών και προσπαθήστε ξανά."))))))
 
-;;; Snippets
-
-(defun status-label (status)
-  (first (find status (cheque-statuses) :key #'second :test #'string-equal)))
-
-(define-menu cheque-menu (cheque-id payable-p) ()
-  (:create (with-html
-	     (:li (:a :href (cheque/create :payable-p payable-p)
-		      (:img :src (url "img/add.png")) "Δημιουργία")))) 
-  (:paid (with-html
-	   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
-		    (:img :src (url "img/magnifier.png")) "Πληρωμή"))))
-  (:bounced (with-html
-	      (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
-		       (:img :src (url "img/magnifier.png")) "Σφράγισμα"))))
-  (:returned (with-html
-	       (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
-			(:img :src (url "img/magnifier.png")) "Επιστροφή"))))
-  (:view (with-html
-	   (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
-  (:update (with-html
-	     (:li (:a :href (cheque/update :cheque-id cheque-id)
-		      (:img :src (url "img/pencil.png")) "Επεξεργασία")))) 
-  (:delete (with-html
-	     (:li (:a :href (cheque/delete :cheque-id cheque-id)
-		      (:img :src (url "img/delete.png")) "Διαγραφή")))))
-
-(define-errorbar cheque-errorbar (:ul-style "error")
-  (bank "Άκυρο όνομα τράπεζας")
-  (company "Άκυρο όνομα εταιρίας")
-  (amount "Άκυρο ποσό") 
-  (due-date "Άκυρη ημερομηνία"))
-
 
 (define-dynamic-page cheque/stran-notfound () ("notfound")
   (no-cache)
@@ -433,4 +482,10 @@
      (:div :id "body"
 	   (:div :id "content" :class "summary"
 		 (:p "Δεν έχουν δημιουργηθεί οι κατάλληλες καταστατικές μεταβολές.")
-		 (:p "Επιστρέψτε στο μενού των καταστατικών μεταβολών και ορίστε."))))))
+		 (:p "Επιστρέψτε στο μενού των καταστατικών μεταβολών και ορίστε τις."))))))
+
+
+
+
+
+

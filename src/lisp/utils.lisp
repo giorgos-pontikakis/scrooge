@@ -16,11 +16,11 @@
   '(:description :old-status :new-status :debit-acc :credit-acc))
 
 
-(defun objects->plist (objlist fn keys) 
+(defun params->plist (bag params) 
   (mapcan (lambda (key)
-            (let ((obj (find key objlist :key fn)))
-              (list key obj)))
-          keys))
+            (let ((par (find key params :key #'name)))
+              (list key par)))
+          bag))
 
 
 

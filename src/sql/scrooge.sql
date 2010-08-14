@@ -89,12 +89,12 @@ create table temtx (
 
 --- State transitions ------------------------------
 
-create table stran_tables (
+create table stran (
        id varchar(16) primary key
        ,description varchar(32)  
 );
-insert into stran_tables (id, description) values ('cheque', 'Επιταγή');
-insert into stran_tables (id, description) values ('project', 'Έργο');
+insert into stran(id, description) values ('cheque', 'Επιταγή');
+insert into stran(id, description) values ('project', 'Έργο');
 
 
 --- Cheques ------------------------------

@@ -154,7 +154,7 @@
 (defun valid-tbl-p (tbl)
   (with-db
     (query (:select 1
-                    :from 'stran-tables
+                    :from 'stran
                     :where (:= tbl 'id)))))
 
 (defun valid-combo (table status)

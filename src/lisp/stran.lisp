@@ -1,69 +1,157 @@
 (in-package :scrooge)
 
+(declaim (optimize (speed 0) (debug 3)))
 
 ;;; ------------------------------------------------------------
 ;;; Definition
 ;;; ------------------------------------------------------------
+(defclass stran-table-inline-form (table-inline-form)
+  ((id-cols :initform '(:stran-id :tbl))
+   (data-cols :initform '(:tbl
+                          :description
+                          :old-status
+                          :new-status
+                          :debit-acc
+                          :credit-acc))
+   (filter-keys :initform '())
+   #|(cols :initform '(:id
+                     :tbl
+                     :tbl
+                     :description
+                     :debit-acc
+                     :credit-acc
+                     :old-status
+                     :new-status
+                     :submit
+                     :cancel))|# 
+   (header :initform '(:id          ""
+                       :tbl         "Πίνακας"
+                       :description "Περιγραφή"         
+                       :old-status  "Αρχική Κατάσταση"  
+                       :new-status  "Τελική Κατάσταση"
+                       :debit-acc   "Λογ. Χρέωσης"      
+                       :credit-acc  "Λογ. Πίστωσης"     
+                       :submit      ""
+                       :cancel      ""))
+   (styles :initform '(:cols (:id "select"
+                              :tbl "data"
+                              :description "data"
+                              :old-status "data"
+                              :new-status "data"
+                              :debit-acc "data"
+                              :credit-acc "data"
+                              :submit "button"
+                              :cancel "button")
+                       :table "forms-in-row"))
+   (post-urls :initform '(:create actions/stran/create
+                          :update actions/stran/update
+                          :delete actions/stran/delete)) 
+   (get-urls :initform '(:view   stran
+                         :create stran/screate
+                         :update stran/supdate
+                         :delete stran/sdelete))))
 
-(defun get-statuses (tbl)
-  (with-db
-    (query (:select 'description 'id
-                    :from (symbolicate (concatenate 'string tbl "-STATUS"))))))
+(register-widget 'stran 'stran-table-inline-form)
 
-(defun stran-getter-maker ()
-  #'(lambda (filters)
-      (declare (ignore filters))
-      (iter (for tbl in (list "cheque" "project"))
-            (appending
-             (with-db
-               (query (:select (symbolicate tbl '-stran.id)
-                               'description 'old-status 'new-status
-                               (:as 'debit-account.title 'debit-acc)
-                               (:as 'credit-account.title 'credit-acc) 
-                               :from (symbolicate table '-stran) 
-                               :left-join (:as 'account 'debit-account)
-                               :on (:= 'debit-account.id
-                                       (symbolicate table '-stran.debit-acc-id))
-                               :left-join (:as 'account 'credit-account)
-                               :on (:= 'credit-account.id
-                                       (symbolicate table '-stran.credit-acc-id)))
-                      :plists))))))
+(defmethod read-db ((obj stran-table-inline-form) &key filters)
+  (declare (ignore filters))
+  (flet ((select (table)
+           `(:select (:as ,(symbolicate table '-stran.id) 'stran-id)
+                     (:as 'stran.id 'tbl)
+                     ,(symbolicate table '-stran.description)
+                     'old-status 'new-status 
+                     (:as 'debit-account.title 'debit-acc)
+                     (:as 'credit-account.title 'credit-acc) 
 
-(defun cell-dropdown-maker (name td-style)
-  (lambda (pairs)
-    (make-cell-dropdown name td-style-pairs)))
+                     :from ,(symbolicate table '-stran)
+                     
+                     :left-join 'stran
+                     :on (:= 'stran.id ,table)
 
-(push (make-table-inline-form
-       :id-keys '(:stran-id :tbl)
-       :data-keys '(:description :debit-acc :credit-acc :old-status :new-status) 
-       :filter-keys '()
-       :post-urls (list :create 'actions/stran/create
-                        :update 'actions/stran/update
-                        :delete 'actions/stran/delete
-                        :chstat 'actions/stran/chstat) 
-       :get-urls (list :view 'stran
-                       :create 'stran/create
-                       :update 'stran/update
-                       :delete 'stran/delete
-                       :chstat 'stran/chstat)
-       :data-header '("Πίνακας" "Περιγραφή" "Αρχική Κατάσταση"
-                      "Τελική Κατάσταση" "Λογ. Χρέωσης" "Λογ. Πίστωσης") 
-       :data-widgets (list (make-cell-textbox :description "data")
-                           (make-cell-textbox :debit-acc "data")
-                           (make-cell-textbox :credit-acc "data")
-                           (cell-dropdown-maker :old-status "data")
-                           (cell-dropdown-maker :new-status "data"))
-       :table-styles '(:table-style "forms-in-row")
-       :db-getter (stran-getter-maker))
-      *widgets*)
+                     :left-join (:as 'account 'debit-account)
+                     :on (:= 'debit-account.id
+                             ,(symbolicate table '-stran.debit-acc-id))
+
+                     :left-join (:as 'account 'credit-account)
+                     :on (:= 'credit-account.id
+                             ,(symbolicate table '-stran.credit-acc-id)))))
+    (with-db
+      (query (sql-compile `(:union ,(select "project")
+                                   ,(select "cheque")))
+             :plists))))
+
+;; (defmethod read-db ((obj stran-table-inline-form) &key filters)
+;;   (declare (ignore filters))
+;;   (flet ((select (table)
+;;            `(:select (:as ,(symbolicate table '-stran.id) 'stran-id)
+;;                      (:as )
+;;                      'description 'old-status 'new-status
+;;                      (:as 'debit-account.title 'debit-acc)
+;;                      (:as 'credit-account.title 'credit-acc) 
+;;                      :from ,(symbolicate table '-stran) 
+;;                      :left-join (:as 'account 'debit-account)
+;;                      :on (:= 'debit-account.id
+;;                              ,(symbolicate table '-stran.debit-acc-id))
+;;                      :left-join (:as 'account 'credit-account)
+;;                      :on (:= 'credit-account.id
+;;                              ,(symbolicate table '-stran.credit-acc-id)))))
+;;     (with-db
+;;       (query (sql-compile `(:union ,(append '(:tbl "project") (select "project"))
+;;                                    ,(append '(:tbl "cheque") (select "cheque"))))
+;;              :plists))))
+
+(defmethod form-row ((obj stran-table-inline-form) row-id row-data intent params) 
+  (flet ((style (indicator)
+           (if (validp (find indicator params :key #'name)) nil "attention"))
+         (datum (indicator)
+           (getf row-data indicator))
+         (stran-tables ()
+           (with-db
+             (query (:select 'description 'id :from 'stran))))) 
+    (with-db
+      (let ((actionfn (getf (post-urls obj) intent))
+            (viewfn (getf (get-urls obj) :view))) 
+        (make-form (funcall actionfn)
+                   (html ()
+                     (:tr :style "active"
+                          (cell-selector obj
+                                         :col :id
+                                         :href (funcall viewfn)
+                                         :activep t)
+                          (cell-dropdown obj
+                                         :col :tbl
+                                         :value (datum :tbl)
+                                         :pairs (stran-tables))
+                          (cell-textbox  obj
+                                         :col :description
+                                         :value (datum :description)
+                                         :style (style :description))
+                          (cell-textbox obj
+                                        :col :old-status
+                                        :value (datum :old-status)
+                                        :style (style :old-status))
+                          (cell-textbox obj
+                                        :col :new-status
+                                        :value (datum :new-status)
+                                        :style (style :new-status))
+                          (cell-textbox obj
+                                        :col :debit-acc
+                                        :value (datum :debit-acc)
+                                        :style (style :debit-acc))
+                          (cell-textbox obj
+                                        :col :credit-acc
+                                        :value (datum :credit-acc)
+                                        :style (style :credit-acc)) 
+                          (cell-submit obj :col :submit)
+                          (cell-anchor obj
+                                       :col :cancel
+                                       :href (funcall viewfn)))))))))
 
 
 
 ;;; ------------------------------------------------------------
 ;;; State transitions - Actions
 ;;; ------------------------------------------------------------
-
-(declaim (optimize (speed 0) (debug 3)))
 
 (define-dynamic-page actions/stran/create ((tbl string)
                                            (description string #'not-db-null-p)
@@ -182,32 +270,29 @@
 ;;; State transitions - Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page stran ((stran-id integer)
-                          (tbl string))
+(define-dynamic-page stran ((stran-id integer)
+                            (tbl string))
     ("config/stran/" :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
-        (with-register-vector registers
-          (let ((tbl))
-            (with-parameter-rebinding #'val
-              (with-page ()
-                (:head
-                 (:title "Καταστατικές Μεταβολές")
-                 (config-headers))
-                (:body
-                 (:div :id "header"
-                       (logo)
-                       (primary-navbar 'config)
-                       (config-navbar 'stran))
-                 (:div :id "body"
-                       (:div :class "message"
-                             (:h2 :class "info" "Κατάλογος Καταστατικών Μεταβολών"))
-                       (iter (for ) (:div :id "stran" :class "window"
-                              (stran-menu stran-id tbl :create :update :delete)
-                              (render (stran-table-maker tbl))
-                              (stran-html-table :view stran-id tbl))))
-                 (footer))))))
+        (with-page ()
+          (:head
+           (:title "Καταστατικές Μεταβολές")
+           (config-headers))
+          (:body
+           (:div :id "header"
+                 (logo)
+                 (primary-navbar 'config)
+                 (config-navbar 'stran))
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Κατάλογος Καταστατικών Μεταβολών"))
+                 (:div :id "stran" :class "window"
+                       (stran-menu (val stran-id) (val tbl) :create :update :delete) 
+                       (render (find-widget 'stran)
+                               :intent :view :params params)))
+           (footer)))
 	(redirect (notfound) :code +http-see-other+))))
 
 (define-dynamic-page stran/create ((tbl         string #'valid-tbl-p)
@@ -220,23 +305,24 @@
                                         (new-status (valid-combo tbl new-status))))
   (no-cache)
   (if (validp tbl)
-      (with-page ()
-        (:head
-         (:title "Καταστατικές Μεταβολές: Δημιουργία")
-         (config-headers))
-        (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'stran))
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Δημιουργία μετάβασης")
-                     (stran-errorbar description debit-acc credit-acc old-status new-status)) 
-               (:div :id "stran" :class "window"
-                     (stran-menu nil (val tbl) :view) 
-                     (stran-html-table :create nil (val tbl)
-                                       description old-status new-status debit-acc credit-acc)))))
+      (with-parameter-list params
+        (with-page ()
+          (:head
+           (:title "Καταστατικές Μεταβολές: Δημιουργία")
+           (config-headers))
+          (:body
+           (:div :id "header"
+                 (logo)
+                 (primary-navbar 'config)
+                 (config-navbar 'stran))
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Δημιουργία μετάβασης")
+                       (stran-errorbar description debit-acc credit-acc old-status new-status)) 
+                 (:div :id "stran" :class "window"
+                       (stran-menu nil (val tbl) :view)
+                       (render (find-widget 'stran)
+                               :intent :create :params params))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page stran/update ((stran-id      integer)
@@ -251,23 +337,24 @@
                                         ((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache)
   (if (validp stran-id)
-      (with-page ()
-        (:head
-         (:title "Καταστατικές Μεταβολές: Επεξεργασία")
-         (config-headers))
-        (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'stran))
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Επεξεργασία μετάβασης")
-                     (stran-errorbar description debit-acc credit-acc old-status new-status))
-               (:div :id "stran" :class "window" 
-                     (stran-menu (val stran-id) (val tbl) :view :delete) 
-                     (stran-html-table :update (val stran-id) (val tbl)
-                                       description old-status new-status debit-acc credit-acc)))))
+      (with-parameter-list params
+        (with-page ()
+          (:head
+           (:title "Καταστατικές Μεταβολές: Επεξεργασία")
+           (config-headers))
+          (:body
+           (:div :id "header"
+                 (logo)
+                 (primary-navbar 'config)
+                 (config-navbar 'stran))
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Επεξεργασία μετάβασης")
+                       (stran-errorbar description debit-acc credit-acc old-status new-status))
+                 (:div :id "stran" :class "window" 
+                       (stran-menu (val stran-id) (val tbl) :view :delete)
+                       (render (find-widget 'stran)
+                               :intent :update :params params))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page stran/delete ((stran-id integer)
@@ -275,7 +362,7 @@
     ("config/stran/delete" :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
   (no-cache) 
   (if (validp stran-id)
-      (with-parameter-rebinding #'val
+      (with-parameter-list params
 	(with-page ()
 	  (:head
 	   (:title "Καταστατικές Μεταβολές: Διαγραφή")
@@ -289,8 +376,9 @@
 		 (:div :class "message"
 		       (:h2 :class "info" "Διαγραφή μετάβασης")) 
 		 (:div :id "stran" :class "window"
-		       (stran-menu stran-id tbl :view :update)
-		       (stran-html-table :delete stran-id tbl))))))
+		       (stran-menu (val stran-id) (val tbl) :view :update)
+		       (render (find-widget 'stran)
+                                 :intent :delete :params params))))))
       (redirect (notfound) :code +http-see-other+)))
 
 
