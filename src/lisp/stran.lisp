@@ -14,16 +14,6 @@
                           :debit-acc
                           :credit-acc))
    (filter-keys :initform '())
-   #|(cols :initform '(:id
-                     :tbl
-                     :tbl
-                     :description
-                     :debit-acc
-                     :credit-acc
-                     :old-status
-                     :new-status
-                     :submit
-                     :cancel))|# 
    (header :initform '(:id          ""
                        :tbl         "Πίνακας"
                        :description "Περιγραφή"         
@@ -80,72 +70,51 @@
                                    ,(select "cheque")))
              :plists))))
 
-;; (defmethod read-db ((obj stran-table-inline-form) &key filters)
-;;   (declare (ignore filters))
-;;   (flet ((select (table)
-;;            `(:select (:as ,(symbolicate table '-stran.id) 'stran-id)
-;;                      (:as )
-;;                      'description 'old-status 'new-status
-;;                      (:as 'debit-account.title 'debit-acc)
-;;                      (:as 'credit-account.title 'credit-acc) 
-;;                      :from ,(symbolicate table '-stran) 
-;;                      :left-join (:as 'account 'debit-account)
-;;                      :on (:= 'debit-account.id
-;;                              ,(symbolicate table '-stran.debit-acc-id))
-;;                      :left-join (:as 'account 'credit-account)
-;;                      :on (:= 'credit-account.id
-;;                              ,(symbolicate table '-stran.credit-acc-id)))))
-;;     (with-db
-;;       (query (sql-compile `(:union ,(append '(:tbl "project") (select "project"))
-;;                                    ,(append '(:tbl "cheque") (select "cheque"))))
-;;              :plists))))
-
 (defmethod form-row ((obj stran-table-inline-form) row-id row-data intent params) 
-  (flet ((style (indicator)
-           (if (validp (find indicator params :key #'name)) nil "attention"))
-         (datum (indicator)
-           (getf row-data indicator))
-         (stran-tables ()
-           (with-db
-             (query (:select 'description 'id :from 'stran))))) 
-    (with-db
-      (let ((actionfn (getf (post-urls obj) intent))
-            (viewfn (getf (get-urls obj) :view))) 
-        (make-form (funcall actionfn)
-                   (html ()
-                     (:tr :style "active"
+  (with-db
+    (let ((pairs (with-db (query (:select 'description 'id :from 'stran))))
+          (actionfn (getf (post-urls obj) intent))
+          (viewfn (getf (get-urls obj) :view))) 
+      (with-html
+        (:tr :class (if (eql intent :delete) "attention" "active")
+             (make-form (apply actionfn row-id)
+                        (html () 
                           (cell-selector obj
                                          :col :id
                                          :href (funcall viewfn)
                                          :activep t)
                           (cell-dropdown obj
                                          :col :tbl
-                                         :value (datum :tbl)
-                                         :pairs (stran-tables))
-                          (cell-textbox  obj
-                                         :col :description
-                                         :value (datum :description)
-                                         :style (style :description))
+                                         :value (datum :tbl row-data)
+                                         :pairs pairs
+                                         :style (style :tbl params intent))
+                          (cell-textbox obj
+                                        :col :description
+                                        :value (datum :description row-data)
+                                        :style (style :description params intent))
                           (cell-textbox obj
                                         :col :old-status
-                                        :value (datum :old-status)
-                                        :style (style :old-status))
+                                        :value (datum :old-status row-data)
+                                        :style (style :old-status params intent))
                           (cell-textbox obj
                                         :col :new-status
-                                        :value (datum :new-status)
-                                        :style (style :new-status))
+                                        :value (datum :new-status row-data)
+                                        :style (style :new-status params intent))
                           (cell-textbox obj
                                         :col :debit-acc
-                                        :value (datum :debit-acc)
-                                        :style (style :debit-acc))
+                                        :value (datum :debit-acc row-data)
+                                        :style (style :debit-acc params intent))
                           (cell-textbox obj
                                         :col :credit-acc
-                                        :value (datum :credit-acc)
-                                        :style (style :credit-acc)) 
+                                        :value (datum :credit-acc row-data)
+                                        :style (style :credit-acc params intent)) 
                           (cell-submit obj :col :submit)
                           (cell-anchor obj
                                        :col :cancel
                                        :href (funcall viewfn)))))))))
+
+
+
 
 
 

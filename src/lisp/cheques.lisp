@@ -8,14 +8,13 @@
 (defclass cheques-table-inline-form (table-inline-form)
   ((id-cols :initform '(:cheque-id))
    (filter-keys :initform '(:payable-p))
-   (cols :initform '(:id
-                     :bank
-                     :due-date
-                     :company
-                     :amount
-                     :status
-                     :submit
-                     :cancel)) 
+   (data-cols :initform '(:bank
+                          :due-date
+                          :company
+                          :amount
+                          :status
+                          :submit
+                          :cancel)) 
    (header :initform '(:id       ""
                        :bank     "Τράπεζα"
                        :due-date "Ημερομηνία πληρωμής"
@@ -45,7 +44,6 @@
 
 (register-widget 'cheques 'cheques-table-inline-form)
 
-
 (defmethod read-db ((obj cheques-table-inline-form) &key filters)
   (with-db
     (query (:select 'cheque.id 'bank.title 'company.title
@@ -61,40 +59,36 @@
            :plists)))
 
 (defmethod form-row ((obj cheques-table-inline-form) row-id row-data intent params) 
-  (flet ((style (indicator)
-           (if (validp (find indicator params :key #'name)) nil "attention"))
-         (datum (indicator)
-           (getf row-data indicator)))
-    (with-db
-      (let ((pairs (query (:select 'description 'id :from 'cheque-status)))
-            (actionfn (getf (post-urls obj) intent))
-            (viewfn (getf (get-urls obj) :view)))
-        (make-form (funcall actionfn)
-                   (html ()
-                     (:tr :style (if activep "active" nil)
-                          (cell-selector obj
-                                         :col :id
-                                         :href (funcall viewfn)
-                                         :activep activep)
-                          (cell-textbox obj
-                                        :col :bank
-                                        :value (datum :bank)
-                                        :style (style :bank))
-                          (cell-textbox obj
-                                        :col :company
-                                        :value (datum :company)
-                                        :style (style :company))
-                          (cell-textbox obj
-                                        :col :amount
-                                        :value (datum :amount)
-                                        :style (style :amount))
-                          (cell-dropdown obj
-                                         :col (datum :status)
-                                         :pairs pairs)
-                          (cell-submit obj :col :submit)
-                          (cell-anchor obj
-                                       :col :cancel
-                                       :href (funcall viewfn)))))))))
+  (with-db
+    (let ((pairs (query (:select 'description 'id :from 'cheque-status)))
+          (actionfn (getf (post-urls obj) intent))
+          (viewfn (getf (get-urls obj) :view)))
+      (make-form (funcall actionfn)
+                 (html ()
+                   (:tr :style "active"
+                        (cell-selector obj
+                                       :col :id
+                                       :href (funcall viewfn)
+                                       :activep t)
+                        (cell-textbox obj
+                                      :col :bank
+                                      :value (datum :bank row-data)
+                                      :style (style :bank params))
+                        (cell-textbox obj
+                                      :col :company
+                                      :value (datum :company row-data)
+                                      :style (style :company params))
+                        (cell-textbox obj
+                                      :col :amount
+                                      :value (datum :amount row-data)
+                                      :style (style :amount params))
+                        (cell-dropdown obj
+                                       :col (datum :status row-data)
+                                       :pairs pairs)
+                        (cell-submit obj :col :submit)
+                        (cell-anchor obj
+                                     :col :cancel
+                                     :href (funcall viewfn))))))))
 
 ;;; ------------------------------------------------------------
 ;;; Snippets

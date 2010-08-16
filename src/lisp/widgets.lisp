@@ -127,7 +127,7 @@
                                           params) 
                                 (simple-row obj
                                             row-id
-                                            row-db-data
+                                            row-data
                                             intent
                                             params))))))))))))
 
@@ -142,8 +142,7 @@
         (filters (params->plist (filter-keys obj) params))
         (viewfn (getf (get-urls obj) :view))) 
     (with-html
-      (:tr :class (if activep "active" nil)
-           (cell-selector obj
+      (:tr (cell-selector obj
                           :col :id
                           :href (if activep
                                     (funcall viewfn)
@@ -176,11 +175,15 @@
                                                  (funcall viewfn)
                                                  (apply viewfn (append row-id filters)))
                                        :activep activep)
-                        (mapc (lambda (col value param)
+                        (mapc (lambda (col val par)
                                 (cell-textbox obj
                                               :col col
-                                              :value value
-                                              :style (if (validp param) nil "attention")))
+                                              :value val
+                                              :style (if (eql intent :delete)
+                                                         nil
+                                                         (if (or (null par) (validp par))
+                                                             ""
+                                                             "attention"))))
                               (data-cols obj) row-data (params->plist (data-cols obj) params))
                         (cell-submit obj :col :submit)
                         (cell-anchor obj
@@ -243,7 +246,7 @@
 (defgeneric cell-textbox (container &key col)
   (:documentation "Render a cell with a text input box."))
 
-(defmethod cell-textbox ((obj table-inline-form) &key col value style)
+(defmethod cell-textbox ((obj table-inline-form) &key col value)
   (with-html
     (:td :class (cell-style obj :col col)
          (textbox col
@@ -261,6 +264,10 @@
     (:td :class (cell-style obj :col col)
          (dropdown col pairs
                    :selected value))))
+
+(defmethod cell-dropdown ((obj table-inline-form) &key col value pairs style)
+  (declare (ignore style pairs))
+  (cell-text obj :col col :value value))
 
 
 ;; Submit cells
