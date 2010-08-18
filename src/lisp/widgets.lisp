@@ -32,10 +32,8 @@
 (defvar *widgets* (make-hash-table))
 
 (defclass widget ()
-  ((name      :accessor name      :initarg :name)))
-
-(defgeneric render (widget &key)
-  (:documentation "A function that produces html from the widget object"))
+  ((name :accessor name :initarg :name)
+   (body :accessor body :initarg :body)))
 
 (defun find-widget (widget-name)
   (gethash widget-name *widgets*)) 
@@ -45,278 +43,420 @@
     (setf (gethash widget-name *widgets*) widget)
     widget))
 
+(defgeneric style (widget))
 
+(defgeneric render (thing &key)
+  (:documentation "A function that produces html from the widget object"))
 
-;;; ------------------------------------------------------------
-;;; Table-inline-form class
-;;; ------------------------------------------------------------
+(defmethod render ((fn function) &key)
+  (funcall fn))
 
-(defclass table-inline-form (widget)
-  (;; columns
-   (cols              :accessor cols              :initarg :cols) 
-   (id-cols           :accessor id-cols           :initarg :id-cols)
-   (data-cols         :accessor data-cols         :initarg :data-cols) 
-   (filter-keys       :accessor filter-keys       :initarg :filter-keys) 
-   ;; urls
-   (post-urls         :accessor post-urls         :initarg :post-urls)
-   (get-urls          :accessor get-urls          :initarg :get-urls)
-   ;; display
-   (header            :accessor header            :initarg :header)
-   (styles            :accessor styles            :initarg :styles)))
+(defmethod render ((value t) &key) 
+  (with-html
+    (str (lisp-to-html value))))
 
-(defun make-table-inline-form (id-cols data-cols filter-keys post-urls get-urls header styles)
-  (make-instance 'table-inline-form
-                 :id-cols id-cols		
-                 :data-cols data-cols
-                 :filter-keys filter-keys
-                 :post-urls post-urls	 
-                 :get-urls get-urls		    
-                 :header header	 
-                 :styles styles))
-
-(defmethod render ((obj table-inline-form) &key intent params)
-  (flet ((row-id (row-db-data)
-           (collectf (id-cols obj) row-db-data))
-         (row-data (row-db-data)
-           (collectf (data-cols obj) row-db-data)))
-    (let* ((filters (params->plist params (filter-keys obj))) 
-           (db-table (read-db obj :filters filters))) 
-      (with-html
-        (:table :id (conc (string-downcase (symbol-name (name obj))) "-table")
-                :class (getf (styles obj) :table)
-                (:thead
-                 (:tr (dof (lambda (key label)
-                             (declare (ignore key))
-                             (htm (:th (str label))))
-                           (header obj))))
-                (:tbody 
-                 (case intent
-                   (:view 
-                    (iter (for row-db-data in db-table) 
-                          (simple-row obj
-                                      (row-id row-db-data)
-                                      (row-data row-db-data)
-                                      intent
-                                      params)))
-                   (:create 
-                    (form-row obj
-                              (mapvalf #'val*
-                                       (params->plist (id-cols obj) params))
-                              (mapvalf #'val*
-                                       (params->plist (data-cols obj) params))
-                              intent
-                              params) 
-                    (iter (for row-db-data in db-table) 
-                          (simple-row obj
-                                      (row-id row-db-data)
-                                      (row-data row-db-data)
-                                      intent
-                                      params)))
-                   ((:update :delete)
-                    (iter (for row-db-data in db-table)
-                          (let ((row-id (row-id row-db-data))
-                                (row-data (unionf (mapvalf #'val*
-                                                           (params->plist (data-cols obj)
-                                                                          params))
-                                                  (collectf (data-cols obj) row-db-data))))
-                            (if (active-row-p obj row-id params)
-                                (form-row obj
-                                          row-id
-                                          row-data
-                                          intent
-                                          params) 
-                                (simple-row obj
-                                            row-id
-                                            row-data
-                                            intent
-                                            params))))))))))))
-
-(defgeneric read-db (table-inline-form &key filters))
-
-;; Simple rows
-
-(defgeneric simple-row (table row-id row-data intent params))
-
-(defmethod simple-row ((obj table-inline-form) row-id row-data intent params)
-  (let ((activep (active-row-p obj row-id params))
-        (filters (params->plist (filter-keys obj) params))
-        (viewfn (getf (get-urls obj) :view))) 
-    (with-html
-      (:tr (cell-selector obj
-                          :col :id
-                          :href (if activep
-                                    (funcall viewfn)
-                                    (apply viewfn (append row-id filters)))
-                          :activep activep)
-           (dof (lambda (col value) 
-                  (cell-text obj
-                             :col col
-                             :value value))
-                row-data)
-           (:td :class "button" "")
-           (:td :class "button" "")))))
-
-;; Forms
-
-(defgeneric form-row (table row-id row-data intent params))
-
-(defmethod form-row ((obj table-inline-form) row-id row-data intent params) 
-  (with-db
-    (let ((actionfn (getf (post-urls obj) intent))
-          (viewfn (getf (get-urls obj) :view)) 
-          (activep (active-row-p obj row-id params))
-          (filters (params->plist params (filter-keys obj))))
-      (make-form (funcall actionfn)
-                 (html ()
-                   (:tr :style (if activep "active" nil)
-                        (cell-selector obj
-                                       :col :select
-                                       :href (if activep
-                                                 (funcall viewfn)
-                                                 (apply viewfn (append row-id filters)))
-                                       :activep activep)
-                        (mapc (lambda (col val par)
-                                (cell-textbox obj
-                                              :col col
-                                              :value val
-                                              :style (if (eql intent :delete)
-                                                         nil
-                                                         (if (or (null par) (validp par))
-                                                             ""
-                                                             "attention"))))
-                              (data-cols obj) row-data (params->plist (data-cols obj) params))
-                        (cell-submit obj :col :submit)
-                        (cell-anchor obj
-                                     :col :cancel
-                                     :href (funcall viewfn row-id filters)))))))) 
-
-
+(defmethod render ((list list) &key) 
+  (with-html
+    (mapc #'render list)))
 
 
 ;;; ------------------------------------------------------------
 ;;; Table cells
 ;;; ------------------------------------------------------------
 
-;; Utilities
+(defclass cell (widget)
+  ((name             :accessor name             :initarg :name)
+   (row              :accessor row              :initarg :row)
+   (style            :accessor style            :initarg :style)
+   (disabled-intents :accessor disabled-intents :initarg :disabled-intents)))
 
-(defgeneric active-row-p (table-inline-form row-id params))
-
-(defmethod active-row-p ((obj table-inline-form) row-id params)
-  (set-equal row-id
-             (mapvalf #'val* (params->plist (id-cols obj) params))
-             :test #'equal))
-
-;; Selector cells
-
-(defgeneric cell-style (container &key col)
-  (:documentation "Get the CSS style of a cell."))
-
-(defmethod cell-style ((obj table-inline-form) &key col)
-  (getf (getf (styles obj) :cols) col))
-
-
-;; Selector cells
-
-(defgeneric cell-selector (container &key col)
-  (:documentation "Render the cell of a table"))
-
-(defmethod cell-selector ((obj table-inline-form) &key col href activep)
+(defmethod render ((cell cell) &key)
   (with-html
-    (:td :class (cell-style obj :col col)
-         (if activep 
-             (htm (:a :href href
+    (:td :class (style cell)
+         (str (lisp-to-html (value cell))))))
+
+(defgeneric disabledp (widget))
+
+(defmethod param ((cell cell))
+  (find (name cell) (params (table (row cell))) :key #'name))
+
+(defmethod disabledp ((cell cell)) 
+  (or (member (intent (table (row cell))) (disabled-intents cell))
+      (not (active-row-p (row cell)))))
+
+
+;;; Selector
+
+(defclass cell-selector (cell)
+  ())
+
+(defmethod render ((cell cell-selector) &key) 
+  (with-html 
+    (:td :class (style cell)
+         (if (active-row-p (row cell))
+             (htm (:a :href (get-url (row cell) :barep t)
                       (htm (:img :src (url "img/bullet_red.png")))))
-             (htm (:a :href href
+             (htm (:a :href (get-url (row cell))
                       (htm (:img :src (url "img/bullet_blue.png")))))))))
 
-
-;; Text cells
-
-(defgeneric cell-text (container &key col)
-  (:documentation "Render a text-only cell."))
-
-(defmethod cell-text ((obj table-inline-form) &key col value) 
-  (with-html
-    (:td :class (cell-style obj :col col)
-         (str (lisp-to-html value)))))
+(defun make-cell-selector (&key row name style disabled-intents)
+  (make-instance 'cell-selector
+                 :name name 
+                 :row row
+                 :style style
+                 :disabled-intents disabled-intents))
 
 
-;; Textbox cells
+;;; Textbox
 
-(defgeneric cell-textbox (container &key col)
-  (:documentation "Render a cell with a text input box."))
+(defclass cell-textbox (cell)
+  ((value :accessor value :initarg :value)))
 
-(defmethod cell-textbox ((obj table-inline-form) &key col value)
-  (with-html
-    (:td :class (cell-style obj :col col)
-         (textbox col
-                  :value value
-                  :style style))))  
+(defmethod render ((cell cell-textbox) &key)
+  
+  (if (disabledp cell)
+      (call-next-method)
+      (flet ((box-style ()
+               (let ((p (param cell)))
+                 (if (or (null p) (validp p)) "" "attention"))))
+        (with-html
+          (:td :class (style cell) 
+               (textbox (name cell)
+                        :value (value cell)
+                        :style (box-style)))))))
 
-
-;; Dropdown cells
-
-(defgeneric cell-dropdown (container &key col)
-  (:documentation "Render a cell with a dropdown menu."))
-
-(defmethod cell-dropdown ((obj table-inline-form) &key col value pairs)
-  (with-html
-    (:td :class (cell-style obj :col col)
-         (dropdown col pairs
-                   :selected value))))
-
-(defmethod cell-dropdown ((obj table-inline-form) &key col value pairs style)
-  (declare (ignore style pairs))
-  (cell-text obj :col col :value value))
+(defun make-cell-textbox (&key row name value style disabled-intents)
+  (make-instance 'cell-textbox
+                 :name name 
+                 :row row
+                 :value value
+                 :style style
+                 :disabled-intents disabled-intents))
 
 
-;; Submit cells
+;;; Dropdown
 
-(defgeneric cell-submit (container &key col)
-  (:documentation "Render a cell with a submit button."))
+(defclass cell-dropdown (cell)
+  ((pairs :accessor pairs :initarg :pairs)
+   (value :accessor value :initarg :value)))
 
-(defmethod cell-submit ((obj table-inline-form) &key col)
-  (with-html
-      (:td :class (cell-style obj :col col)
-           (:button :type "submit"
-                    (:img :src (url "img/tick.png"))))))
+(defmethod render ((cell cell-dropdown) &key)
+  (if (disabledp cell)
+      (call-next-method)
+      (with-html
+        (:td :class (style cell)
+             (dropdown (name cell)
+                       (pairs cell)
+                       :selected (value cell))))))
+
+(defun make-cell-dropdown (&key row name pairs value style disabled-intents)
+  (make-instance 'cell-dropdown
+                 :row row
+                 :name name
+                 :style style
+                 :value value
+                 :pairs pairs
+                 :disabled-intents disabled-intents))
 
 
-;; Anchor cells
+;; Submit
 
-(defgeneric cell-anchor (container &key col)
-  (:documentation "Render a cell with a dropdown menu."))
+(defclass cell-submit (cell)
+  ())
 
-(defmethod cell-anchor ((obj table-inline-form) &key col href)
-  (with-html
-      (:td :class (cell-style obj :col col)
-           (:a :href href
-               (:img :src (url "img/cancel.png"))))))
+(defmethod render ((cell cell-submit) &key)
+  (if (disabledp cell)
+      (with-html
+        "")
+      (with-html
+        (:td :class (style cell)
+             (:button :type "submit"
+                      (:img :src (url "img/tick.png")))))))
 
+(defun make-cell-submit (&key row name style disabled-intents)
+  (make-instance 'cell-submit
+                 :row row
+                 :name name
+                 :style style
+                 :disabled-intents disabled-intents))
+
+
+;; Cancel
+
+(defclass cell-cancel (cell)
+  ())
+
+(defmethod render ((cell cell-cancel) &key)
+  (if (disabledp cell)
+      (with-html
+        "")
+      (with-html
+        (:td :class (style cell)
+             (:a :href (get-url (row cell))
+                 (:img :src (url "img/cancel.png")))))))
+
+(defun make-cell-cancel (&key row name style disabled-intents)
+  (make-instance 'cell-cancel
+                 :row row
+                 :name name
+                 :style style
+                 :disabled-intents disabled-intents))
+
+
+
+;;; ------------------------------------------------------------
+;;; Rows
+;;; ------------------------------------------------------------
+
+;;; Base row class
+
+(defclass row (widget)
+  ((table    :accessor table    :initarg :table)
+   (style    :accessor style    :initarg :style) 
+   (data     :accessor data     :initarg :data))
+  (:default-initargs :style ""))
+
+(defun make-row (&key name table style cols data)
+  (make-instance 'row
+                 :name name
+                 :table table
+                 :style style
+                 :cols cols
+                 :data data))
+
+(defmethod render ((row row) &key)
+  (let ((cells (apply (cells-constructor (table row))
+                      row
+                      (data row)))) 
+    (with-html
+      (:tr :class (style row)
+           (render cells)))))
+
+
+;;; Selectable row subclass
+
+(defclass row-with-id (row)
+  ((active-row-style :accessor active-row-style :initarg :active-row-style))
+  (:default-initargs :active-row-style ""))
+
+(defgeneric active-row-p (row-with-id))
+
+(defmethod active-row-p ((row row))
+  (set-equal (collectf (id-keys (table row)) (data row))
+             (id-param-plist (table row))
+             :test #'equal))
+
+(defmethod render ((row row-with-id) &key)
+  (let ((cells (apply (cells-constructor (table row))
+                      row
+                      (data row)))) 
+    (with-html
+      (:tr :class (if (active-row-p row)
+                      (conc (style row) " " (active-row-style row))
+                      (style row)) 
+           (render cells)))))
+
+(defgeneric get-url (obj &key barep))
+
+(defmethod get-url ((row row-with-id) &key barep)
+  (apply (get-url-fn (table row))
+         (if barep
+             (filter-param-plist (table row))
+             (append (collectf (id-keys (table row)) (data row))
+                     (filter-param-plist (table row))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Forms
+;;; ------------------------------------------------------------
+(defclass form (widget)
+  ((submit-page  :accessor submit-page  :initarg :submit-page) 
+   (hidden     :accessor hidden     :initarg :hidden)
+   (body       :accessor body       :initarg :body)))
+
+(defmethod render ((form form) &key)
+  (let ((page (page (submit-page form))))
+    (with-html
+      (:form :method (request-type page)
+             :action (url (base-url page))
+             (iter (for key in (hidden form) by #'cddr)
+                   (for val in (rest (hidden form)) by #'cddr)
+                   (with-html
+                     (:input :type "hidden"
+                             :id (string-downcase key)
+                             :class "display-none"
+                             :name (string-downcase key)
+                             :value (lisp-to-html val))))
+             (render (body form))))))
+
+(defun make-form (&key submit-page hidden body)
+  (make-instance 'form
+                 :submit-page submit-page
+                 :hidden hidden 
+                 :body body))
+
+
+
+;;; ------------------------------------------------------------
+;;; Tables 
+;;; ------------------------------------------------------------
+
+(defclass table (widget)
+  ((header     :accessor header     :initarg :header)
+   (styles     :accessor styles     :initarg :styles)
+   (cells      :accessor cells      :initarg :cells)))
+
+(defun make-table (col-keys header styles)
+  (make-instance 'table 
+                 :header header
+                 :styles styles))
+
+
+
+;;; ------------------------------------------------------------
+;;; Page interface 
+;;; ------------------------------------------------------------
+
+(defclass page-interface ()
+  ((params      :accessor params      :initarg :params)
+   (id-keys     :accessor id-keys     :initarg :id-keys)
+   (data-keys   :accessor data-keys   :initarg :data-keys) 
+   (filter-keys :accessor filter-keys :initarg :filter-keys)))
+
+(defun params->plist (bag params) 
+  (mapcan (lambda (key)
+            (let ((par (find key params :key #'name)))
+              (list key par)))
+          bag))
+
+(defgeneric id-param-plist (obj))
+
+(defmethod id-param-plist ((obj page-interface))
+  (mapvalf #'val*
+           (params->plist (id-keys obj) (params obj))))
+
+(defmethod data-param-plist ((obj page-interface))
+  (mapvalf #'val*
+           (params->plist (data-keys obj) (params obj))))
+
+(defmethod filter-param-plist ((obj page-interface))
+  (mapvalf #'val*
+           (params->plist (filter-keys obj) (params obj))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Table CRUD 
+;;; ------------------------------------------------------------
+
+(defclass table-crud (table page-interface)
+  ((intent      :accessor intent      :initarg :intent)
+   (get-url-fn  :accessor get-url-fn  :initarg :get-url-fn)
+   (post-url-fn :accessor post-url-fn :initarg :post-url-fn)))
+
+(defmethod get-url ((tbl table-crud) &key barep)
+  (apply (get-url-fn tbl)
+         (if barep
+             (filter-param-plist tbl)
+             (append (id-param-plist tbl)
+                     (filter-param-plist tbl)))))
+
+(defun make-table-crud (&key
+                        header styles  
+                        params id-keys data-keys filter-keys
+                        intent get-url-fn post-url-fn)
+  (make-instance 'table-crud
+                 ;; table
+                 :header header
+                 :styles styles  
+                 ;; page-interface
+                 :params params
+                 :id-keys id-keys
+                 :data-keys data-keys
+                 :filter-keys filter-keys
+                 ;; crud
+                 :intent intent
+                 :get-url-fn get-url-fn
+                 :post-url-fn post-url-fn))
+
+(defmethod render ((table table-crud) &key)
+  (let* ((db-table (read-db table))) 
+    (with-html 
+      (:table :id (name table)
+              :class (getf (styles table) :table)
+              (:thead
+               (:tr (dof (lambda (key label)
+                           (declare (ignore key))
+                           (htm (:th (str label))))
+                         (header table))))
+              (:tbody 
+               (case (intent table)
+                 (:view 
+                  (iter (for db-row in db-table) 
+                        (render (make-instance 'row-with-id
+                                               :table table 
+                                               :data db-row))))
+                 (:create
+                  (render (make-form :submit-page (post-url-fn table) 
+                                     :body (make-instance 'row-with-id
+                                                          :table table 
+                                                          :data (id-param-plist table) ;; hack?
+                                                          :active-row-style "active"))) 
+                  (iter (for db-row in db-table)
+                        (render (make-instance 'row-with-id
+                                               :table table 
+                                               :data db-row))))
+                 ((:update :delete)
+                  (iter (for db-row in db-table)
+                        (for row = (make-instance 'row-with-id
+                                                  :table table 
+                                                  :active-row-style (if (eql intent :delete)
+                                                                        "attention" "active") 
+                                                  :data (unionf db-row
+                                                                (data-param-plist table))))
+                        (render
+                         (make-form :submit-page (post-url-fn table)
+                                    :hidden (id-param-plist table)
+                                    :body row))))))))))
+
+
+(defgeneric read-db (table-crud &key filters)
+  (:documentation
+   "Read the database, returning a list of rows as property
+   lists. Returned rows must be compatible with the keyword
+   arguments of cells-constructor."))
+
+(defgeneric cells-constructor (table)
+  (:documentation
+   "Return a function which accepts a row as a first argument followed
+   by keyword arguments which correspond to the the plist of a
+   database row."))
 
 
 ;;; ------------------------------------------------------------
 ;;; Navigation bars
 ;;; ------------------------------------------------------------
+  
 
 (defmacro define-navbar (name (&rest arglist) (&key id div-style ul-style)
-			 &body body) 
+                         &body body) 
   (multiple-value-bind (items fns) (iter (for sexp in body)
-					 (destructuring-bind (sym href &rest forms) sexp
-					   (collect sym into items)
-					   (collect `(lambda (class)
-						       (with-html
-                                                           (:li (:a :class class
-                                                                    :href ,href
-                                                                    ,@forms)))) into fns)
-					   (finally (return (values items fns)))))
+                                         (destructuring-bind (sym href &rest forms) sexp
+                                           (collect sym into items)
+                                           (collect `(lambda (class)
+                                                       (with-html
+                                                         (:li (:a :class class
+                                                                  :href ,href
+                                                                  ,@forms)))) into fns)
+                                           (finally (return (values items fns)))))
     `(defun ,name (active-item ,@arglist) 
        (with-html
-           (:div :id ,id :class ,div-style
-                 (:ul :class ,ul-style 
-                      (iter (for item in ',items)
-                            (for fn in (list ,@fns))
-                            (funcall fn (if (eql item active-item) "active" nil)))))))))
+         (:div :id ,id :class ,div-style
+               (:ul :class ,ul-style 
+                    (iter (for item in ',items)
+                          (for fn in (list ,@fns))
+                          (funcall fn (if (eql item active-item) "active" nil)))))))))
 
 (defmacro define-menu (name (&rest args) (&key id div-style ul-style)
 		       &body body)
@@ -356,114 +496,6 @@
 
 
 
-
-;; (defmethod render ((cell cell-dropdown) &key id ids values pairs cell-style)
-;;   (with-html
-;;     (:td :class cell-style
-;;          (dropdown id
-;;                    (pairs cell)
-;;                    :selected value))))
-
-;; (defgeneric simple-row ())
-
-
-;; (defmethod simple-row ((obj table-inline-form) get-url-fn ids data styles)
-;;   (let ((activep (activep ids data)))
-;;     (with-html
-;;       (:tr :class (if activep "active" nil)
-;;            (selector-td activep (if activep
-;;                                     (funcall get-url-fn)
-;;                                     (apply get-url-fn ids)))
-;;            (row-cells obj data styles)
-;;            (:td :class "button" "")
-;;            (:td :class "button" "")))))
-
-;; (defmethod form-row ((obj table-inline-form) intent get-url-fn post-url-fn ids data styles)
-;;   (make-form (apply post-url-fn
-;;                     (mapvalf #'val
-;;                           (collectf (keyparams (page post-url-fn)) ids))) 
-;;              (html () 
-;;                (:tr :class (if (eql intent :delete) "attention" "active")
-;;                     (selector-td t (funcall get-url-fn))
-;;                     (row-cells obj data styles)
-;;                     (:td :class "button" (ok-button))
-;;                     (:td :class "button" (cancel-button (funcall get-url-fn)))))))
-
-
-;; (defgeneric render (widget &rest args))
-
-;; (defmethod render ((obj widget) &rest args)
-;;   (apply (renderer obj) args))
-
-;; (defmethod db-get ((obj widget) &key filters)
-;;   (funcall (db-getter obj) filters))
-
-
-
-;;; ------------------------------------------------------------
-;;; Table with inline form
-;;; ------------------------------------------------------------
-
-;; (defmethod header ((obj table-inline-form))
-;;   (cons "" (append (data-header obj) (list "" ""))))
-
-;; (defmethod styles (params (obj table-inline-form))
-;;   (mapvalf (lambda (param)
-;;                (if (or (null param) (validp param))
-;;                    nil
-;;                    "attention"))
-;;              (data params obj)))
-
-;; (defmethod widgets (params (obj table-inline-form))
-;;   (funcall (getf data-widgets param)))
-
-;; (lambda (data-param)
-;;   (getf data-widgets (name )))
-
-;; (defmethod render ((obj table-inline-form) &key intent params)
-;;   (let ((header (header obj))
-;;         (filters (filters params obj))
-;;         (ids (ids params obj)) 
-;;         (data (data params obj)) 
-;;         (styles (styles params obj))
-;;         (widgets (widgets params obj))) 
-;;     (with-html
-;;       (:table :id (concatenate 'string
-;;                                (string-downcase (symbol-name (name obj)))
-;;                                "-table")
-;;               :class (getf (table-styles obj) :table-style)
-;;               (:thead
-;;                (:tr (iter (for label in header) 
-;;                           (htm (:th (str label))))))
-;;               (:tbody
-;;                (when (eql intent :create) 
-;;                  (html-row obj
-;;                            :intent intent
-;;                            :ids ids
-;;                            :data data
-;;                            :styles styles
-;;                            :widgets ))
-;;                (iter (for db-data in (funcall (db-getter obj) filters)) 
-;;                      (html-row obj
-;;                                :intent intent
-;;                                :ids ids
-;;                                :data (if (activep ids db-data)
-;;                                          (unionf data db-data)
-;;                                          db-data)
-;;                                :styles styles)))))))
-
-
-;; (defmethod row-cells ((obj table-inline-form) data styles)
-;;   (iter (for key in (data-keys obj))
-;;         (let ((val (val* (getf data key)))
-;;               (sty (getf styles key)) 
-;;               (widget (let ((w (find (data-widgets obj) :key #'name)))
-;;                         (if (functionp w)
-;;                             (funcall w )))))
-;;           (render widget
-;;                   :value val
-;;                   :style style
-;;                   :allow-other-keys t))))
 
 
 

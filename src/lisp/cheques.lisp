@@ -5,16 +5,9 @@
 ;;; ------------------------------------------------------------
 ;;; Definition
 ;;; ------------------------------------------------------------
-(defclass cheques-table-inline-form (table-inline-form)
-  ((id-cols :initform '(:cheque-id))
-   (filter-keys :initform '(:payable-p))
-   (data-cols :initform '(:bank
-                          :due-date
-                          :company
-                          :amount
-                          :status
-                          :submit
-                          :cancel)) 
+(defclass cheques-table-crud (table-crud)
+  ;; table
+  ((name :initform "cheques-table")
    (header :initform '(:id       ""
                        :bank     "Τράπεζα"
                        :due-date "Ημερομηνία πληρωμής"
@@ -23,28 +16,28 @@
                        :status   "Κατάσταση"
                        :submit   ""
                        :cancel   ""))
-   (styles :initform '(:cols (:id       "select"
-                              :bank     "data"
-                              :due-date "data"
-                              :company  "data"
-                              :amount   "data"
-                              :status   "data"
-                              :submit   "button"
-                              :cancel   "button")
-                       :table "forms-in-row"))
-   (post-urls :initform '(:create actions/cheque/create
-                          :update actions/cheque/update
-                          :delete actions/cheque/delete
-                          :chstat actions/cheque/chstat)) 
-   (get-urls :initform '(:view   cheques
-                         :create cheque/create
-                         :update cheque/update
-                         :delete cheque/delete
-                         :chstat cheque/chstat))))
+   (styles :initform '(:row "" :table "forms-in-row")) 
+   ;; page interface
+   (id-keys :initform '(:cheque-id))
+   (data-keys :initform '(:bank
+                          :due-date
+                          :company
+                          :amount
+                          :status
+                          :submit
+                          :cancel))
+   (filter-keys :initform '(:payable-p))))
 
-(register-widget 'cheques 'cheques-table-inline-form)
+(register-widget 'cheques 'cheques-table-crud)
 
-(defmethod read-db ((obj cheques-table-inline-form) &key filters)
+(defun make-cheques-table-crud (&key get-url-fn post-url-fn intent params)
+  (make-instance 'cheques-table-crud 
+                 :get-url-fn get-url-fn
+                 :post-url-fn post-url-fn
+                 :intent intent
+                 :params params))
+
+(defmethod read-db ((obj cheques-table-crud) &key filters)
   (with-db
     (query (:select 'cheque.id 'bank.title 'company.title
                     'cheque.amount 'cheque.due-date
@@ -58,37 +51,41 @@
                                (getf filters :payable-p)))
            :plists)))
 
-(defmethod form-row ((obj cheques-table-inline-form) row-id row-data intent params) 
-  (with-db
-    (let ((pairs (query (:select 'description 'id :from 'cheque-status)))
-          (actionfn (getf (post-urls obj) intent))
-          (viewfn (getf (get-urls obj) :view)))
-      (make-form (funcall actionfn)
-                 (html ()
-                   (:tr :style "active"
-                        (cell-selector obj
-                                       :col :id
-                                       :href (funcall viewfn)
-                                       :activep t)
-                        (cell-textbox obj
-                                      :col :bank
-                                      :value (datum :bank row-data)
-                                      :style (style :bank params))
-                        (cell-textbox obj
-                                      :col :company
-                                      :value (datum :company row-data)
-                                      :style (style :company params))
-                        (cell-textbox obj
-                                      :col :amount
-                                      :value (datum :amount row-data)
-                                      :style (style :amount params))
-                        (cell-dropdown obj
-                                       :col (datum :status row-data)
-                                       :pairs pairs)
-                        (cell-submit obj :col :submit)
-                        (cell-anchor obj
-                                     :col :cancel
-                                     :href (funcall viewfn))))))))
+(defmethod cells-constructor ((table cheques-table-crud)) 
+  (lambda (row &key id bank company amount status)
+    (declare (ignore id))
+    (with-db
+      (let ((pairs (query (:select 'description 'id :from 'cheque-status))))
+        (list (make-cell-selector :row row
+                                  :name :id
+                                  :style "select")
+              (make-cell-textbox :row row
+                                 :name :bank
+                                 :value bank
+                                 :style "data"
+                                 :disabled-intents '(:view :delete))
+              (make-cell-textbox :row row
+                                 :name :company
+                                 :value company)
+              (make-cell-textbox :row row
+                                 :name :amount 
+                                 :value amount
+                                 :style "data"
+                                 :disabled-intents '(:view :delete))
+              (make-cell-dropdown :row row
+                                  :name :status
+                                  :value status
+                                  :style "data"
+                                  :disabled-intents '(:view :delete)
+                                  :pairs pairs)
+              (make-cell-submit :row row
+                                :name :submit
+                                :style "data"
+                                :disabled-intents '(:view))
+              (make-cell-cancel :row row
+                                :name :cancel
+                                :style "data"
+                                :disabled-intents '(:view)))))))
 
 ;;; ------------------------------------------------------------
 ;;; Snippets
@@ -336,7 +333,9 @@
                    (:div :id "cheques" :class "window"
                          (apply #'cheque-menu (val cheque-id) (val payable-p)
                                 :create :update :delete next-statuses) 
-                         (render (find-widget 'cheques) :intent :view :params params))
+                         (render (make-cheques-table-crud :get-url-fn #'stran
+                                                          :intent :view
+                                                          :params params)))
                    (footer)))))
         (redirect (cheque/notfound) :code +http-see-other+))))
 
@@ -363,7 +362,10 @@
                    (cheque-errorbar bank company amount due-date))
 	     (:div :id "cheques" :class "window"
 		   (cheque-menu nil (val payable-p)) 
-                   (render (find-widget 'cheques) :intent :create :params params))
+                   (render (make-cheques-table-crud :get-url-fn #'stran
+                                                    :post-url-fn #'actions/cheque/create
+                                                    :intent :create
+                                                    :params params)))
 	     (footer))))))
 
 (define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p t) 
@@ -393,7 +395,10 @@
 				      payable-p
 				      :view :delete)
 			 (:h2 "Επεξεργασία επιταγής")
-			 (render (find-widget 'cheques) :intent :update :params params))
+			 (render (make-cheques-table-crud :get-url-fn #'stran
+                                                          :post-url-fn #'actions/cheque/update
+                                                          :intent :update
+                                                          :params params)))
 		   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -416,7 +421,10 @@
                    (:div :id "cheques" :class "window"
                          (cheque-menu (val cheque-id) payable-p :view :update)
                          (:h2 "Διαγραφή επιταγής")
-                         (render (find-widget 'cheques) :intent :delete :params params))
+                         (render (make-cheques-table-crud :get-url-fn #'stran
+                                                          :post-url-fn #'actions/cheque/delete
+                                                          :intent :delete
+                                                          :params params)))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -443,7 +451,10 @@
                                      (paid "Πληρωμή επιταγής")
                                      (bounced "Σφράγισμα επιταγής")
                                      (returned "Επιστροφή επιταγής"))))
-                         (render (find-widget 'cheques) :intent :chstat :params params))
+                         (render (make-cheques-table-crud :get-url-fn #'stran
+                                                          :post-url-fn #'actions/cheque/chstat
+                                                          :intent :chstat
+                                                          :params params)))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 

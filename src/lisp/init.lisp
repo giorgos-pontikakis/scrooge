@@ -3,22 +3,6 @@
 (declaim (optimize (safety 3) (debug 3) (compilation-speed 0) (speed 0) (space 0)))
 
 
-;; (defparameter *stran-tables* '(("Επιταγή" "cheque")
-;;                                ("Έργο" "project")))
-
-(defun stran-table-label (tbl)
-  (first (find tbl *stran-tables* :key #'second :test #'string-equal)))
-
-;; (defun stran-tables ()
-;;   (mapcar #'second *stran-tables*))
-
-(defun init-accounts ()
-  )
-
-;; (defun init-fsm ()
-;;   (mapc (lambda (rec)
-;; 	  (bind (((description old-status new-status debit-acc-id credit-acc-id))) (create-row )))))
-
 (define-cfg '(:dbhost "localhost"
 	      :dbname "scrooge"
 	      :dbadapter 'postgresql

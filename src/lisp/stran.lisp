@@ -5,16 +5,10 @@
 ;;; ------------------------------------------------------------
 ;;; Definition
 ;;; ------------------------------------------------------------
-(defclass stran-table-inline-form (table-inline-form)
-  ((id-cols :initform '(:stran-id :tbl))
-   (data-cols :initform '(:tbl
-                          :description
-                          :old-status
-                          :new-status
-                          :debit-acc
-                          :credit-acc))
-   (filter-keys :initform '())
-   (header :initform '(:id          ""
+(defclass stran-table-crud (table-crud)
+  ;; table
+  ((name :initform "stran-table")
+   (header :initform '(:selector    ""
                        :tbl         "Πίνακας"
                        :description "Περιγραφή"         
                        :old-status  "Αρχική Κατάσταση"  
@@ -23,35 +17,33 @@
                        :credit-acc  "Λογ. Πίστωσης"     
                        :submit      ""
                        :cancel      ""))
-   (styles :initform '(:cols (:id "select"
-                              :tbl "data"
-                              :description "data"
-                              :old-status "data"
-                              :new-status "data"
-                              :debit-acc "data"
-                              :credit-acc "data"
-                              :submit "button"
-                              :cancel "button")
-                       :table "forms-in-row"))
-   (post-urls :initform '(:create actions/stran/create
-                          :update actions/stran/update
-                          :delete actions/stran/delete)) 
-   (get-urls :initform '(:view   stran
-                         :create stran/screate
-                         :update stran/supdate
-                         :delete stran/sdelete))))
+   (styles :initform '(:row "" :table "forms-in-row")) 
+   ;; page interface
+   (id-keys :initform '(:stran-id :tbl))
+   (data-keys :initform '(:description
+                          :old-status
+                          :new-status
+                          :debit-acc
+                          :credit-acc)) 
+   (filter-keys :initform '())))
 
-(register-widget 'stran 'stran-table-inline-form)
+(defun make-stran-table-crud (&key get-url-fn post-url-fn intent params)
+  (make-instance 'stran-table-crud 
+                 :get-url-fn get-url-fn
+                 :post-url-fn post-url-fn
+                 :intent intent
+                 :params params))
 
-(defmethod read-db ((obj stran-table-inline-form) &key filters)
+(defmethod read-db ((obj stran-table-crud) &key filters)
   (declare (ignore filters))
   (flet ((select (table)
-           `(:select (:as ,(symbolicate table '-stran.id) 'stran-id)
-                     (:as 'stran.id 'tbl)
-                     ,(symbolicate table '-stran.description)
-                     'old-status 'new-status 
-                     (:as 'debit-account.title 'debit-acc)
-                     (:as 'credit-account.title 'credit-acc) 
+           `(:select (:as ,(symbolicate table '-stran.id) 'stran-id) ;; :stran-id
+                     (:as 'stran.id 'tbl)                            ;; :tbl
+                     ,(symbolicate table '-stran.description)        ;; :description
+                     'old-status                                     ;; :old-status
+                     'new-status                                     ;; :new-status 
+                     (:as 'debit-account.title 'debit-acc)           ;; :debit-acc
+                     (:as 'credit-account.title 'credit-acc)         ;; :credit-acc
 
                      :from ,(symbolicate table '-stran)
                      
@@ -70,52 +62,54 @@
                                    ,(select "cheque")))
              :plists))))
 
-(defmethod form-row ((obj stran-table-inline-form) row-id row-data intent params) 
-  (with-db
-    (let ((pairs (with-db (query (:select 'description 'id :from 'stran))))
-          (actionfn (getf (post-urls obj) intent))
-          (viewfn (getf (get-urls obj) :view))) 
-      (with-html
-        (:tr :class (if (eql intent :delete) "attention" "active")
-             (make-form (apply actionfn row-id)
-                        (html () 
-                          (cell-selector obj
-                                         :col :id
-                                         :href (funcall viewfn)
-                                         :activep t)
-                          (cell-dropdown obj
-                                         :col :tbl
-                                         :value (datum :tbl row-data)
-                                         :pairs pairs
-                                         :style (style :tbl params intent))
-                          (cell-textbox obj
-                                        :col :description
-                                        :value (datum :description row-data)
-                                        :style (style :description params intent))
-                          (cell-textbox obj
-                                        :col :old-status
-                                        :value (datum :old-status row-data)
-                                        :style (style :old-status params intent))
-                          (cell-textbox obj
-                                        :col :new-status
-                                        :value (datum :new-status row-data)
-                                        :style (style :new-status params intent))
-                          (cell-textbox obj
-                                        :col :debit-acc
-                                        :value (datum :debit-acc row-data)
-                                        :style (style :debit-acc params intent))
-                          (cell-textbox obj
-                                        :col :credit-acc
-                                        :value (datum :credit-acc row-data)
-                                        :style (style :credit-acc params intent)) 
-                          (cell-submit obj :col :submit)
-                          (cell-anchor obj
-                                       :col :cancel
-                                       :href (funcall viewfn)))))))))
+(defmethod cells-constructor ((table stran-table-crud))
+  (lambda (row &key stran-id tbl description old-status new-status debit-acc credit-acc)
+    (declare (ignore stran-id))
+    (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
+      (list (make-cell-selector :row row
+                                :name :selector
+                                :style "select")
+            (make-cell-dropdown :row row
+                                :name :tbl 
+                                :pairs pairs
+                                :value tbl
+                                :style "data"
+                                :disabled-intents '(:view :delete :update))
+            (make-cell-textbox :row row
+                               :name :description
+                               :value description
+                               :style "data"
+                               :disabled-intents '(:view :delete))
+            (make-cell-textbox :row row
+                               :name :old-status
+                               :value old-status
+                               :style "data"
+                               :disabled-intents '(:view :delete))
+            (make-cell-textbox :row row
+                               :name :new-status
+                               :value new-status
+                               :style "data"
+                               :disabled-intents '(:view :delete))
+            (make-cell-textbox :row row
+                               :name :debit-acc
+                               :value debit-acc
+                               :style "data"
+                               :disabled-intents '(:view :delete))
+            (make-cell-textbox :row row
+                               :name :credit-acc
+                               :value credit-acc
+                               :style "data"
+                               :disabled-intents '(:view :delete))
+            (make-cell-submit :row row
+                              :name :submit
+                              :style "button"
+                              :disabled-intents '(:view))
+            (make-cell-cancel :row row
+                              :name :cancel
+                              :style "button"
+                              :disabled-intents '(:view))))))
 
-
-
-
+(register-widget 'stran 'stran-table-crud)
 
 
 ;;; ------------------------------------------------------------
@@ -259,8 +253,9 @@
                        (:h2 :class "info" "Κατάλογος Καταστατικών Μεταβολών"))
                  (:div :id "stran" :class "window"
                        (stran-menu (val stran-id) (val tbl) :create :update :delete) 
-                       (render (find-widget 'stran)
-                               :intent :view :params params)))
+                       (render (make-stran-table-crud :get-url-fn #'stran 
+                                                      :intent :view
+                                                      :params params))))
            (footer)))
 	(redirect (notfound) :code +http-see-other+))))
 
@@ -290,8 +285,10 @@
                        (stran-errorbar description debit-acc credit-acc old-status new-status)) 
                  (:div :id "stran" :class "window"
                        (stran-menu nil (val tbl) :view)
-                       (render (find-widget 'stran)
-                               :intent :create :params params))))))
+                       (render (make-stran-table-crud :get-url-fn 'stran
+                                                      :post-url-fn 'actions/stran/create 
+                                                      :intent :create
+                                                      :params params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page stran/update ((stran-id      integer)
@@ -322,8 +319,10 @@
                        (stran-errorbar description debit-acc credit-acc old-status new-status))
                  (:div :id "stran" :class "window" 
                        (stran-menu (val stran-id) (val tbl) :view :delete)
-                       (render (find-widget 'stran)
-                               :intent :update :params params))))))
+                       (render (make-stran-table-crud :get-url-fn #'stran
+                                                      :post-url-fn 'actions/stran/update
+                                                      :intent :update
+                                                      :params params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page stran/delete ((stran-id integer)
@@ -346,8 +345,10 @@
 		       (:h2 :class "info" "Διαγραφή μετάβασης")) 
 		 (:div :id "stran" :class "window"
 		       (stran-menu (val stran-id) (val tbl) :view :update)
-		       (render (find-widget 'stran)
-                                 :intent :delete :params params))))))
+		       (render (make-stran-table-crud :get-url-fn #'stran
+                                                      :post-url-fn 'actions/stran/delete
+                                                      :intent :delete
+                                                      :params params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
 
