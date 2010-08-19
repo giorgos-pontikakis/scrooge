@@ -1,6 +1,15 @@
 (in-package :scrooge)
 
 
+;;;----------------------------------------------------------------------
+;;; SQL utilities
+;;;----------------------------------------------------------------------
 
-;; (defun datum (indicator row-data)
-;;   (getf row-data indicator))
+(defun ilike (filter)
+  (if (or (null filter)
+          (eq filter :null))
+      "%"
+      (concatenate 'string "%" filter "%")))
+
+
+

@@ -5,6 +5,7 @@
 ;;; ------------------------------------------------------------
 ;;; Definition
 ;;; ------------------------------------------------------------
+
 (defclass stran-table-crud (table-crud)
   ;; table
   ((name :initform "stran-table")

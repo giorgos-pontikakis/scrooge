@@ -30,3 +30,6 @@
 
 
 
+(defun make-sql-config (table-name)
+  (sql-compile
+   `(:select 'id 'title :from ,table-name)))

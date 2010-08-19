@@ -30,25 +30,17 @@
 (define-existence-validator bank-id-exists-p bank id)
 (define-existence-validator bank-exists-p bank title)
 
-(defun valid-bank-p (title)
-  (bank-exists-p title))
 
 ;;; --- Taxation Offices --------------------
 
 (define-existence-validator tof-id-exists-p tof id)
 (define-existence-validator tof-exists-p tof title)
 
-(defun valid-tof-p (id title)
-  (and id
-       title
-       (with-db
-	 (let ((current-title (title (get-dao 'tof id))))
-	   (or (string-equal title current-title)
-	       (funcall (complement #'tof-exists-p) title))))))
 
 ;;; --- Cities --------------------
 
 (define-existence-validator city-exists-p    city title)
+
 
 ;;; --- TIN --------------------
 
@@ -74,6 +66,7 @@
   (and (positive-nonnull-p val)
        (company-id-exists-p val)))
 
+
 ;;; --- Contacts --------------------
 
 (define-existence-validator contact-id-exists-p contact id)
@@ -81,6 +74,7 @@
 (defun valid-contact-id-p (val)
   (and (positive-nonnull-p val)
        (contact-id-exists-p val)))
+
 
 ;;; --- Accounts --------------------
 
@@ -94,6 +88,7 @@
 (defun valid-acc-id-no-subaccounts-p (acc-id)
   (and (acc-id-exists-p acc-id)
        (null (get-subaccounts acc-id))))
+
 
 ;;; --- Transactions --------------------
 

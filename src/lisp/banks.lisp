@@ -3,6 +3,58 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 ;;; ------------------------------------------------------------
+;;; Banks - Definitions
+;;; ------------------------------------------------------------
+
+(defclass bank-table-crud (table-crud)
+  ;; table
+  ((name :initform "banks-table")
+   (header :initform '(:selector    "" 
+                       :title "Τράπεζα" 
+                       :submit      ""
+                       :cancel      ""))
+   (styles :initform '(:row "" :table "forms-in-row table-half")) 
+   ;; page interface
+   (id-keys :initform '(:id))
+   (data-keys :initform '(:title))
+   (main-page :initform 'banks)
+   (submit-pages :initform '(:create actions/bank/create
+                             :update actions/bank/update
+                             :delete actions/bank/delete))
+   (filter-keys :initform '())
+   (cells :initform
+          (lambda (row) 
+            (list (make-cell-selector :row row
+                                      :name :selector
+                                      :style "select") 
+                  (make-cell-textbox :row row
+                                     :name :title
+                                     :value (getf (data row) :title)
+                                     :style "data"
+                                     :operations '(:create :update)) 
+                  (make-cell-submit :row row
+                                    :name :submit
+                                    :style "button"
+                                    :operations '(:create :update :delete))
+                  (make-cell-cancel :row row
+                                    :name :cancel
+                                    :style "button"
+                                    :operations '(:create :update :delete)))))))
+
+(defun make-bank-table-crud (&key operation params)
+  (make-instance 'bank-table-crud 
+                 :operation operation
+                 :params params))
+
+(defmethod read-db ((obj bank-table-crud) &key filters)
+  (declare (ignore filters))
+  (with-db
+    (query (make-sql-config 'bank) ;; rows keys are :id :title
+           :plists)))
+
+
+
+;;; ------------------------------------------------------------
 ;;; Banks - Actions
 ;;; ------------------------------------------------------------
 
@@ -18,10 +70,9 @@
 	(with-parameter-rebinding #'raw 
 	  (redirect (bank/create :title title) :code +http-see-other+)))))
 
-(define-dynamic-page actions/bank/update ((id integer #'bank-id-exists-p)
-                                          (title string))
-    ("actions/bank/update" :request-type :post
-                           :validators ((title (valid-bank-p id title))))
+(define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
+                                          (title string  (complement #'bank-exists-p)))
+    ("actions/bank/update" :request-type :post)
   (no-cache) 
   (with-parameter-list params
     (if (every #'validp params)
@@ -71,44 +122,6 @@
 		     (:li (:a :href (bank/delete :id id)
 			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
 
-(define-row-display bank-row-display banks (:id) (:title) ("data"))
-
-(define-row-create bank-row-create banks actions/bank/create (:id) (:title) ("data"))
-
-(define-row-update bank-row-update banks actions/bank/update (:id) (:title) ("data"))
-
-(define-row-delete bank-row-delete banks actions/bank/delete (:id) (:title) ("data"))
-
-(defun banks-table (intent filter active-id title)
-  (let ((params (list title)))
-    (with-db
-      (let ((db-data (query
-                      (sql-compile
-                       `(:select 'id 'title :from 'bank
-                                 :where (:or (:ilike 'title ,(ilike filter))
-                                             ,(if active-id
-                                                  `(:= 'id ,active-id)
-                                                  nil))))
-                      :plists))
-            (header '("" "Ονομασία Τράπεζας" "" ""))
-            (values (zip '(:title) (mapcar #'val* params)))
-            (styles (zip '(:title) (mapcar #'style-invalid-p params)))) 
-        (with-html
-          (:table :id "banks-table" :class "table-half forms-in-row"
-                  (:thead
-                   (:tr (iter (for label in header) (htm (:th (str label))))))
-                  (:tbody  
-                   (when (eql intent :create)
-                     (bank-row-create active-id values styles))
-                   (iter (for row in db-data) 
-                         (if (and active-id (eql active-id (getf row :id)))
-                             (let ((merged (unionf values row))) 
-                               (case intent 
-                                 (:view (bank-row-display active-id merged))
-                                 (:update (bank-row-update active-id merged styles))
-                                 (:delete (bank-row-delete active-id merged))))
-                             (bank-row-display active-id row))))))))))
-
 (define-errorbar bank-errorbar (:ul-style "error") 
   (title "Αυτό το όνομα τράπεζας υπάρχει ήδη.")) 
 
@@ -122,88 +135,96 @@
                             (filter string))
     ("config/banks")
   (if (validp id)
-      (with-page ()
-        (:head
-         (:title "Τράπεζες")
-         (config-headers))
-        (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'banks))
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Κατάλογος τραπεζών"))
-               (:div :id "banks" :class "window"
-                     (bank-menu (val id) :create :edit :delete)
-                     (filter banks (val id) (val filter) nil)
-                     (banks-table :view (val filter) (val id) nil))
-               (footer))))
+      (with-parameter-list params
+        (with-page ()
+          (:head
+           (:title "Τράπεζες")
+           (config-headers))
+          (:body
+           (:div :id "header"
+                 (logo)
+                 (primary-navbar 'config)
+                 (config-navbar 'banks))
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Κατάλογος τραπεζών"))
+                 (:div :id "banks" :class "window"
+                       (bank-menu (val id) :create :edit :delete)
+                       (filter banks (val id) (val filter) nil)
+                       (render (make-bank-table-crud :operation :view
+                                                     :params params)))
+                 (footer)))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
     ("config/bank/create") 
   (no-cache)
-  (with-page ()
-    (:head
-     (:title "Εισαγωγή τράπεζας")
-     (config-headers))
-    (:body
-     (:div :id "header"
-           (logo)
-           (primary-navbar 'config)
-           (config-navbar 'banks))
-     (:div :id "body"
-           (:div :class "message"
-                 (:h2 :class "info" "Δημιουργία τράπεζας")
-                 (bank-errorbar title))
-           (:div :id "banks" :class "window"
-                 (bank-menu nil :view) 
-                 (banks-table :create nil nil title))
-           (footer)))))
+  (with-parameter-list params
+    (with-page ()
+      (:head
+       (:title "Εισαγωγή τράπεζας")
+       (config-headers))
+      (:body
+       (:div :id "header"
+             (logo)
+             (primary-navbar 'config)
+             (config-navbar 'banks))
+       (:div :id "body"
+             (:div :class "message"
+                   (:h2 :class "info" "Δημιουργία τράπεζας")
+                   (bank-errorbar title))
+             (:div :id "banks" :class "window"
+                   (bank-menu nil :view) 
+                   (render (make-bank-table-crud :operation :create
+                                                 :params params)))
+             (footer))))))
 
-(define-dynamic-page bank/update ((id integer #'bank-id-exists-p) 
-                                  (title string))
-    ("config/bank/update" :validators ((title (valid-bank-p id title))))
+(define-dynamic-page bank/update ((id    integer #'bank-id-exists-p) 
+                                  (title string  (complement #'bank-exists-p)))
+    ("config/bank/update" )
   (if (validp id)
-      (with-page ()
-        (:head
-         (:title "Επεξεργασία τράπεζας")
-         (config-headers))
-        (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'banks))
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Επεξεργασία τράπεζας")
-                     (bank-errorbar title))
-               (:div :id "banks" :class "window"
-                     (bank-menu (val id) :view :delete) 
-                     (banks-table :update nil (val id) title))
-               (footer))))
+      (with-parameter-list params
+        (with-page ()
+          (:head
+           (:title "Επεξεργασία τράπεζας")
+           (config-headers))
+          (:body
+           (:div :id "header"
+                 (logo)
+                 (primary-navbar 'config)
+                 (config-navbar 'banks))
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Επεξεργασία τράπεζας")
+                       (bank-errorbar title))
+                 (:div :id "banks" :class "window"
+                       (bank-menu (val id) :view :delete) 
+                       (render (make-bank-table-crud :operation :update
+                                                    :params params)))
+                 (footer)))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page bank/delete ((id integer #'bank-id-exists-p))
     ("config/bank/delete")
   (if (validp id)
-      (with-page ()
-        (:head
-         (:title "Διαγραφή τράπεζας")
-         (config-headers))
-        (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'banks))
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Διαγραφή τράπεζας"))
-               (:div :id "banks" :class "window"
-                     (bank-menu (val id) :view :edit) 
-                     (banks-table :delete nil (val id) nil)))
-         (footer)))
+      (with-parameter-list params
+        (with-page ()
+          (:head
+           (:title "Διαγραφή τράπεζας")
+           (config-headers))
+          (:body
+           (:div :id "header"
+                 (logo)
+                 (primary-navbar 'config)
+                 (config-navbar 'banks))
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Διαγραφή τράπεζας"))
+                 (:div :id "banks" :class "window"
+                       (bank-menu (val id) :view :edit) 
+                       (render (make-bank-table-crud :operation :delete
+                                                     :params params))))
+           (footer))))
       (redirect (notfound) :code +http-see-other+)))
 
 
