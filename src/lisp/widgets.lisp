@@ -35,13 +35,13 @@
   ((name :accessor name :initarg :name)
    (body :accessor body :initarg :body)))
 
-(defun find-widget (widget-name)
-  (gethash widget-name *widgets*)) 
+;; (defun find-widget (widget-name)
+;;   (gethash widget-name *widgets*)) 
 
-(defun register-widget (widget-name widget-class &rest args)
-  (let ((widget (apply #'make-instance widget-class :name widget-name args)))
-    (setf (gethash widget-name *widgets*) widget)
-    widget))
+;; (defun register-widget (widget-name widget-class &rest args)
+;;   (let ((widget (apply #'make-instance widget-class :name widget-name args)))
+;;     (setf (gethash widget-name *widgets*) widget)
+;;     widget))
 
 (defgeneric style (widget))
 
@@ -58,212 +58,6 @@
 (defmethod render ((list list) &key) 
   (with-html
     (mapc #'render list)))
-
-
-;;; ------------------------------------------------------------
-;;; Table cells
-;;; ------------------------------------------------------------
-
-(defclass cell (widget)
-  ((name             :accessor name             :initarg :name)
-   (row              :accessor row              :initarg :row)
-   (style            :accessor style            :initarg :style)
-   (disabled-intents :accessor disabled-intents :initarg :disabled-intents)))
-
-(defmethod render ((cell cell) &key)
-  (with-html
-    (:td :class (style cell)
-         (str (lisp-to-html (value cell))))))
-
-(defgeneric disabledp (widget))
-
-(defmethod param ((cell cell))
-  (find (name cell) (params (table (row cell))) :key #'name))
-
-(defmethod disabledp ((cell cell)) 
-  (or (member (intent (table (row cell))) (disabled-intents cell))
-      (not (active-row-p (row cell)))))
-
-
-;;; Selector
-
-(defclass cell-selector (cell)
-  ())
-
-(defmethod render ((cell cell-selector) &key) 
-  (with-html 
-    (:td :class (style cell)
-         (if (active-row-p (row cell))
-             (htm (:a :href (get-url (row cell) :barep t)
-                      (htm (:img :src (url "img/bullet_red.png")))))
-             (htm (:a :href (get-url (row cell))
-                      (htm (:img :src (url "img/bullet_blue.png")))))))))
-
-(defun make-cell-selector (&key row name style disabled-intents)
-  (make-instance 'cell-selector
-                 :name name 
-                 :row row
-                 :style style
-                 :disabled-intents disabled-intents))
-
-
-;;; Textbox
-
-(defclass cell-textbox (cell)
-  ((value :accessor value :initarg :value)))
-
-(defmethod render ((cell cell-textbox) &key)
-  
-  (if (disabledp cell)
-      (call-next-method)
-      (flet ((box-style ()
-               (let ((p (param cell)))
-                 (if (or (null p) (validp p)) "" "attention"))))
-        (with-html
-          (:td :class (style cell) 
-               (textbox (name cell)
-                        :value (value cell)
-                        :style (box-style)))))))
-
-(defun make-cell-textbox (&key row name value style disabled-intents)
-  (make-instance 'cell-textbox
-                 :name name 
-                 :row row
-                 :value value
-                 :style style
-                 :disabled-intents disabled-intents))
-
-
-;;; Dropdown
-
-(defclass cell-dropdown (cell)
-  ((pairs :accessor pairs :initarg :pairs)
-   (value :accessor value :initarg :value)))
-
-(defmethod render ((cell cell-dropdown) &key)
-  (if (disabledp cell)
-      (call-next-method)
-      (with-html
-        (:td :class (style cell)
-             (dropdown (name cell)
-                       (pairs cell)
-                       :selected (value cell))))))
-
-(defun make-cell-dropdown (&key row name pairs value style disabled-intents)
-  (make-instance 'cell-dropdown
-                 :row row
-                 :name name
-                 :style style
-                 :value value
-                 :pairs pairs
-                 :disabled-intents disabled-intents))
-
-
-;; Submit
-
-(defclass cell-submit (cell)
-  ())
-
-(defmethod render ((cell cell-submit) &key)
-  (if (disabledp cell)
-      (with-html
-        "")
-      (with-html
-        (:td :class (style cell)
-             (:button :type "submit"
-                      (:img :src (url "img/tick.png")))))))
-
-(defun make-cell-submit (&key row name style disabled-intents)
-  (make-instance 'cell-submit
-                 :row row
-                 :name name
-                 :style style
-                 :disabled-intents disabled-intents))
-
-
-;; Cancel
-
-(defclass cell-cancel (cell)
-  ())
-
-(defmethod render ((cell cell-cancel) &key)
-  (if (disabledp cell)
-      (with-html
-        "")
-      (with-html
-        (:td :class (style cell)
-             (:a :href (get-url (row cell))
-                 (:img :src (url "img/cancel.png")))))))
-
-(defun make-cell-cancel (&key row name style disabled-intents)
-  (make-instance 'cell-cancel
-                 :row row
-                 :name name
-                 :style style
-                 :disabled-intents disabled-intents))
-
-
-
-;;; ------------------------------------------------------------
-;;; Rows
-;;; ------------------------------------------------------------
-
-;;; Base row class
-
-(defclass row (widget)
-  ((table    :accessor table    :initarg :table)
-   (style    :accessor style    :initarg :style) 
-   (data     :accessor data     :initarg :data))
-  (:default-initargs :style ""))
-
-(defun make-row (&key name table style cols data)
-  (make-instance 'row
-                 :name name
-                 :table table
-                 :style style
-                 :cols cols
-                 :data data))
-
-(defmethod render ((row row) &key)
-  (let ((cells (apply (cells-constructor (table row))
-                      row
-                      (data row)))) 
-    (with-html
-      (:tr :class (style row)
-           (render cells)))))
-
-
-;;; Selectable row subclass
-
-(defclass row-with-id (row)
-  ((active-row-style :accessor active-row-style :initarg :active-row-style))
-  (:default-initargs :active-row-style ""))
-
-(defgeneric active-row-p (row-with-id))
-
-(defmethod active-row-p ((row row))
-  (set-equal (collectf (id-keys (table row)) (data row))
-             (id-param-plist (table row))
-             :test #'equal))
-
-(defmethod render ((row row-with-id) &key)
-  (let ((cells (apply (cells-constructor (table row))
-                      row
-                      (data row)))) 
-    (with-html
-      (:tr :class (if (active-row-p row)
-                      (conc (style row) " " (active-row-style row))
-                      (style row)) 
-           (render cells)))))
-
-(defgeneric get-url (obj &key barep))
-
-(defmethod get-url ((row row-with-id) &key barep)
-  (apply (get-url-fn (table row))
-         (if barep
-             (filter-param-plist (table row))
-             (append (collectf (id-keys (table row)) (data row))
-                     (filter-param-plist (table row))))))
 
 
 
@@ -304,13 +98,77 @@
 
 (defclass table (widget)
   ((header     :accessor header     :initarg :header)
-   (styles     :accessor styles     :initarg :styles)
-   (cells      :accessor cells      :initarg :cells)))
+   (styles     :accessor styles     :initarg :styles)))
 
-(defun make-table (col-keys header styles)
+(defun make-table (header styles)
   (make-instance 'table 
                  :header header
                  :styles styles))
+
+(defgeneric read-db (table-crud &key filters)
+  (:documentation
+   "Read the database, returning a list of rows as property
+   lists. Returned rows must be compatible with the accepted arguments
+   of cells-constructor."))
+
+(defgeneric cells-constructor (table)
+  (:documentation
+   "Return a function which accepts a row as a first argument followed
+   by keyword arguments which correspond to the the plist of a
+   database row."))
+
+(defmethod cells-constructor ((tbl table))
+  (lambda (&rest args)
+    (make-list (length args) :initial-element #'identity)))
+
+
+
+;;; ------------------------------------------------------------
+;;; Rows
+;;; ------------------------------------------------------------
+
+(defclass row (widget)
+  ((table    :accessor table    :initarg :table)
+   (style    :accessor style    :initarg :style) 
+   (data     :accessor data     :initarg :data))
+  (:default-initargs :style ""))
+
+(defun make-row (&key name table style data)
+  (make-instance 'row
+                 :name name
+                 :table table
+                 :style style 
+                 :data data))
+
+(defmethod render ((row row) &key)
+  (let ((cells (apply (cells-constructor (table row))
+                      row
+                      (data row)))) 
+    (with-html
+      (:tr :class (style row)
+           (render cells)))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Cells 
+;;; ------------------------------------------------------------
+
+(defclass cell (widget)
+  ((row   :accessor row   :initarg :row)
+   (style :accessor style :initarg :style)
+   (value :accessor value :initarg :value)))
+
+(defun make-cell (&key row value style)
+  (make-instance 'cell
+                 :row row
+                 :value value
+                 :style style))
+
+(defmethod render ((cell cell) &key)
+  (with-html
+    (:td :class (style cell)
+         (str (lisp-to-html (value cell))))))
 
 
 
@@ -330,42 +188,34 @@
               (list key par)))
           bag))
 
-(defgeneric id-param-plist (obj))
-
-(defmethod id-param-plist ((obj page-interface))
+(defmethod id ((obj page-interface))
   (mapvalf #'val*
            (params->plist (id-keys obj) (params obj))))
 
-(defmethod data-param-plist ((obj page-interface))
+(defmethod data ((obj page-interface))
   (mapvalf #'val*
            (params->plist (data-keys obj) (params obj))))
 
-(defmethod filter-param-plist ((obj page-interface))
+(defmethod filters ((obj page-interface))
   (mapvalf #'val*
            (params->plist (filter-keys obj) (params obj))))
 
 
 
 ;;; ------------------------------------------------------------
-;;; Table CRUD 
+;;; Table-CRUD 
 ;;; ------------------------------------------------------------
 
 (defclass table-crud (table page-interface)
-  ((intent      :accessor intent      :initarg :intent)
-   (get-url-fn  :accessor get-url-fn  :initarg :get-url-fn)
-   (post-url-fn :accessor post-url-fn :initarg :post-url-fn)))
+  ((operation    :accessor operation    :initarg :operation)
+   (main-page    :accessor main-page    :initarg :main-page) 
+   (submit-pages :accessor submit-pages :initarg :submit-pages)))
 
-(defmethod get-url ((tbl table-crud) &key barep)
-  (apply (get-url-fn tbl)
-         (if barep
-             (filter-param-plist tbl)
-             (append (id-param-plist tbl)
-                     (filter-param-plist tbl)))))
 
 (defun make-table-crud (&key
                         header styles  
                         params id-keys data-keys filter-keys
-                        intent get-url-fn post-url-fn)
+                        operation get-pages submit-pages)
   (make-instance 'table-crud
                  ;; table
                  :header header
@@ -376,9 +226,15 @@
                  :data-keys data-keys
                  :filter-keys filter-keys
                  ;; crud
-                 :intent intent
-                 :get-url-fn get-url-fn
-                 :post-url-fn post-url-fn))
+                 :operation operation
+                 :get-pages get-pages
+                 :submit-pages submit-pages))
+
+(defgeneric submit-page (table))
+
+(defmethod submit-page ((tbl table-crud))
+  (getf (submit-pages tbl) (operation tbl)))
+
 
 (defmethod render ((table table-crud) &key)
   (let* ((db-table (read-db table))) 
@@ -391,53 +247,231 @@
                            (htm (:th (str label))))
                          (header table))))
               (:tbody 
-               (case (intent table)
+               (case (operation table)
                  (:view 
                   (iter (for db-row in db-table) 
-                        (render (make-instance 'row-with-id
+                        (render (make-instance 'row-crud
                                                :table table 
                                                :data db-row))))
                  (:create
-                  (render (make-form :submit-page (post-url-fn table) 
-                                     :body (make-instance 'row-with-id
+                  (render (make-form :submit-page (submit-page table) 
+                                     :body (make-instance 'row-crud
                                                           :table table 
-                                                          :data (id-param-plist table) ;; hack?
-                                                          :active-row-style "active"))) 
+                                                          :data (append (id table) (data table))
+                                                          :active-style "active"))) 
                   (iter (for db-row in db-table)
-                        (render (make-instance 'row-with-id
+                        (render (make-instance 'row-crud
                                                :table table 
                                                :data db-row))))
                  ((:update :delete)
                   (iter (for db-row in db-table)
-                        (for row = (make-instance 'row-with-id
+                        (for activep = (set-equal (collectf (id-keys table) db-row)
+                                                  (id table)
+                                                  :test #'equal))
+                        (for row = (make-instance 'row-crud
                                                   :table table 
-                                                  :active-row-style (if (eql intent :delete)
-                                                                        "attention" "active") 
-                                                  :data (unionf db-row
-                                                                (data-param-plist table))))
+                                                  :active-style (if (eql (operation table)
+                                                                         :delete)
+                                                                    "attention"
+                                                                    "active") 
+                                                  :data (if activep
+                                                            (unionf (append (id table) (data table))
+                                                                    db-row)
+                                                            db-row)))
                         (render
-                         (make-form :submit-page (post-url-fn table)
-                                    :hidden (id-param-plist table)
+                         (make-form :submit-page (submit-page table)
+                                    :hidden (id table)
                                     :body row))))))))))
 
 
-(defgeneric read-db (table-crud &key filters)
-  (:documentation
-   "Read the database, returning a list of rows as property
-   lists. Returned rows must be compatible with the keyword
-   arguments of cells-constructor."))
 
-(defgeneric cells-constructor (table)
-  (:documentation
-   "Return a function which accepts a row as a first argument followed
-   by keyword arguments which correspond to the the plist of a
-   database row."))
+;;; ------------------------------------------------------------
+;;; Row-CRUD
+;;; ------------------------------------------------------------
+
+(defclass row-crud (row)
+  ((active-style :accessor active-style :initarg :active-style))
+  (:default-initargs :active-style ""))
+
+(defun make-row-crud (&key name table style data active-style)
+  (make-instance 'row-crud
+                 :name name
+                 :table table
+                 :style style 
+                 :data data
+                 :active-style active-style))
+
+(defgeneric id (table-or-row))
+
+(defmethod id ((row row-crud))
+  (collectf (id-keys (table row)) (data row)))
+
+
+(defgeneric active-row-p (row-crud))
+
+(defmethod active-row-p ((row row))
+  (set-equal (id row)
+             (id (table row))
+             :test #'equal))
+
+
+(defmethod render ((row row-crud) &key)
+  (let ((cells (apply (cells-constructor (table row))
+                      row
+                      (data row)))) 
+    (with-html
+      (:tr :class (if (active-row-p row)
+                      (conc (style row) " " (active-style row))
+                      (style row)) 
+           (render cells)))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Cells for Table-CRUD
+;;; ------------------------------------------------------------
+
+(defclass cell-crud (cell)
+  ((operations :accessor operations :initarg :operations)))
+
+(defgeneric enabledp (cell-crud))
+
+(defmethod enabledp ((cell cell-crud)) 
+  (and (member (operation (table (row cell))) (operations cell))
+       (active-row-p (row cell))))
+
+
+;;; Selector
+
+(defclass cell-selector (cell-crud)
+  ())
+
+(defmethod render ((cell cell-selector) &key)
+  (flet ((selector-href (row &key barep)
+           (apply (main-page (table row))
+                  (if barep
+                      (filters (table row))
+                      (append (id row) 
+                              (filters (table row)))))))
+    (with-html 
+      (:td :class (style cell)
+           (if (active-row-p (row cell))
+               (htm (:a :href (selector-href (row cell) :barep t)
+                        (htm (:img :src (url "img/bullet_red.png")))))
+               (htm (:a :href (selector-href (row cell))
+                        (htm (:img :src (url "img/bullet_blue.png"))))))))))
+
+(defun make-cell-selector (&key row name style operations)
+  (make-instance 'cell-selector
+                 :name name 
+                 :row row
+                 :style style
+                 :operations operations))
+
+
+;;; Textbox
+
+(defclass cell-textbox (cell-crud)
+  ())
+
+(defmethod render ((cell cell-textbox) &key)
+  (labels ((param (cell)
+             (find (name cell) (params (table (row cell))) :key #'name))
+           (box-style ()
+             (let ((p (param cell)))
+               (if (or (null p) (validp p)) "" "attention"))))
+    (if (enabledp cell) 
+        (with-html
+          (:td :class (style cell) 
+               (textbox (name cell)
+                        :value (value cell)
+                        :style (box-style))))
+        (call-next-method))))
+
+(defun make-cell-textbox (&key row name value style operations)
+  (make-instance 'cell-textbox
+                 :name name 
+                 :row row
+                 :value value
+                 :style style
+                 :operations operations))
+
+
+;;; Dropdown
+
+(defclass cell-dropdown (cell-crud)
+  ((pairs :accessor pairs :initarg :pairs)))
+
+(defmethod render ((cell cell-dropdown) &key)
+  (if (enabledp cell)
+      (with-html
+        (:td :class (style cell)
+             (dropdown (name cell)
+                       (pairs cell)
+                       :selected (value cell))))
+      (call-next-method)))
+
+(defun make-cell-dropdown (&key row name pairs value style operations)
+  (make-instance 'cell-dropdown
+                 :row row
+                 :name name
+                 :style style
+                 :value value
+                 :pairs pairs
+                 :operations operations))
+
+
+;; Submit
+
+(defclass cell-submit (cell-crud)
+  ())
+
+(defmethod render ((cell cell-submit) &key)
+  (if (enabledp cell)
+      (with-html
+        (:td :class (style cell)
+             (:button :type "submit"
+                      (:img :src (url "img/tick.png")))))
+      (with-html
+        "")))
+
+(defun make-cell-submit (&key row name style operations)
+  (make-instance 'cell-submit
+                 :row row
+                 :name name
+                 :style style
+                 :operations operations))
+
+
+;; Cancel
+
+(defclass cell-cancel (cell-crud)
+  ())
+
+(defmethod render ((cell cell-cancel) &key)
+  (flet ((cancel-href (row)
+           (apply (main-page (table row))
+                  (filters (table row)))))
+    (if (enabledp cell)
+        (with-html
+          (:td :class (style cell)
+               (:a :href (cancel-href (row cell))
+                   (:img :src (url "img/cancel.png")))))
+        (with-html
+          ""))))
+
+(defun make-cell-cancel (&key row name style operations)
+  (make-instance 'cell-cancel
+                 :row row
+                 :name name
+                 :style style
+                 :operations operations))
+
 
 
 ;;; ------------------------------------------------------------
 ;;; Navigation bars
 ;;; ------------------------------------------------------------
-  
 
 (defmacro define-navbar (name (&rest arglist) (&key id div-style ul-style)
                          &body body) 
@@ -484,8 +518,8 @@
 	   (:div :id ,id :class ,div-style
 		 (:ul :class ,ul-style 
 		      ,@(iter (for (arg msg) in body)
-			     (collect `(unless (validp ,arg)
-					 (htm (:li ,msg))))))))))))
+                              (collect `(unless (validp ,arg)
+                                          (htm (:li ,msg))))))))))))
 
 (defmacro filter (action id filter disabledp)
   `(with-form (,action :id ,id)

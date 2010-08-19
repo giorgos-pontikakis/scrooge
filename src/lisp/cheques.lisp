@@ -23,18 +23,17 @@
                           :due-date
                           :company
                           :amount
-                          :status
-                          :submit
-                          :cancel))
+                          :status))
+   (main-page :initform 'cheques)
+   (submit-pages :initform '(:create actions/cheque/create
+                             :update actions/cheque/update
+                             :delete actions/cheque/delete
+                             :chstat actions/cheque/chstat))
    (filter-keys :initform '(:payable-p))))
 
-(register-widget 'cheques 'cheques-table-crud)
-
-(defun make-cheques-table-crud (&key get-url-fn post-url-fn intent params)
-  (make-instance 'cheques-table-crud 
-                 :get-url-fn get-url-fn
-                 :post-url-fn post-url-fn
-                 :intent intent
+(defun make-cheques-table-crud (&key operation params)
+  (make-instance 'cheques-table-crud
+                 :operation operation
                  :params params))
 
 (defmethod read-db ((obj cheques-table-crud) &key filters)
@@ -52,10 +51,10 @@
            :plists)))
 
 (defmethod cells-constructor ((table cheques-table-crud)) 
-  (lambda (row &key id bank company amount status)
-    (declare (ignore id))
+  (lambda (row &key cheque-id bank due-date company amount status)
+    (declare (ignore cheque-id))
     (with-db
-      (let ((pairs (query (:select 'description 'id :from 'cheque-status))))
+      (let ((pairs (query (:select 'description 'status :from 'cheque-status))))
         (list (make-cell-selector :row row
                                   :name :id
                                   :style "select")
@@ -63,29 +62,36 @@
                                  :name :bank
                                  :value bank
                                  :style "data"
-                                 :disabled-intents '(:view :delete))
+                                 :operations '(:create :update))
+              (make-cell-textbox :row row
+                                 :name :due-date
+                                 :value due-date
+                                 :style "data"
+                                 :operations '(:create :update))
               (make-cell-textbox :row row
                                  :name :company
-                                 :value company)
+                                 :value company
+                                 :style "data"
+                                 :operations '(:create :update))
               (make-cell-textbox :row row
                                  :name :amount 
                                  :value amount
                                  :style "data"
-                                 :disabled-intents '(:view :delete))
+                                 :operations '(:create :update))
               (make-cell-dropdown :row row
                                   :name :status
                                   :value status
                                   :style "data"
-                                  :disabled-intents '(:view :delete)
+                                  :operations '(:create :update)
                                   :pairs pairs)
               (make-cell-submit :row row
                                 :name :submit
-                                :style "data"
-                                :disabled-intents '(:view))
+                                :style "button"
+                                :operations '(:create :update :delete))
               (make-cell-cancel :row row
                                 :name :cancel
-                                :style "data"
-                                :disabled-intents '(:view)))))))
+                                :style "button"
+                                :operations '(:create :update :delete)))))))
 
 ;;; ------------------------------------------------------------
 ;;; Snippets
@@ -171,7 +177,8 @@
                                                :from 'cheque-stran
                                                :where (:and (:is-null 'old-status)
                                                             (:= 'new-status status)))
-                                      :plist))) 
+                                      :plist)))
+              (break)
 	      (if stran-data
 		  (with-transaction ()
                     ;; Store the dao of the new cheque, we need its id
@@ -191,8 +198,8 @@
                                                  :credit-acc-id (getf stran-data :credit-acc-id)
                                                  :debit-acc-id (getf stran-data :debit-acc-id)
                                                  :src-tbl "cheque"
-                                                 :src-id (id cheque-dao)))))
-                  
+                                                 :src-id (id cheque-dao)))
+                      (redirect (cheques) :code +http-see-other+))) 
 		  (redirect (cheque/stran-notfound) :code +http-see-other+)))))
 	(with-parameter-rebinding #'raw 
 	  (redirect (cheque/create :bank bank
@@ -270,10 +277,10 @@
 								   :where (:= 'id cheque-id))
 							  :row))
 		   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
-					     :from 'cheque-stran
-					     :where (:and (:= 'old-status old-status)
-							  (:= 'new-status new-status)))
-				    :row)))
+                                               :from 'cheque-stran
+                                               :where (:and (:= 'old-status old-status)
+                                                            (:= 'new-status new-status)))
+                                      :row)))
 	      (if stran-data 
 		  (destructuring-bind (debit-acc-id credit-acc-id description) stran-data
 		    (with-transaction ()
@@ -321,7 +328,7 @@
           (with-page () 
             (:head
              (:title "Επιταγές")
-             (css-standard-headers))
+             (config-headers))
             (:body
              (:div :id "header"
                    (logo)
@@ -333,10 +340,9 @@
                    (:div :id "cheques" :class "window"
                          (apply #'cheque-menu (val cheque-id) (val payable-p)
                                 :create :update :delete next-statuses) 
-                         (render (make-cheques-table-crud :get-url-fn #'stran
-                                                          :intent :view
-                                                          :params params)))
-                   (footer)))))
+                         (render (make-cheques-table-crud :operation :view
+                                                          :params params))))
+             (footer))))
         (redirect (cheque/notfound) :code +http-see-other+))))
 
 (define-dynamic-page cheque/create ((payable-p boolean)
@@ -362,9 +368,7 @@
                    (cheque-errorbar bank company amount due-date))
 	     (:div :id "cheques" :class "window"
 		   (cheque-menu nil (val payable-p)) 
-                   (render (make-cheques-table-crud :get-url-fn #'stran
-                                                    :post-url-fn #'actions/cheque/create
-                                                    :intent :create
+                   (render (make-cheques-table-crud :operation :create
                                                     :params params)))
 	     (footer))))))
 
@@ -395,9 +399,7 @@
 				      payable-p
 				      :view :delete)
 			 (:h2 "Επεξεργασία επιταγής")
-			 (render (make-cheques-table-crud :get-url-fn #'stran
-                                                          :post-url-fn #'actions/cheque/update
-                                                          :intent :update
+			 (render (make-cheques-table-crud :operation :update
                                                           :params params)))
 		   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
@@ -421,9 +423,7 @@
                    (:div :id "cheques" :class "window"
                          (cheque-menu (val cheque-id) payable-p :view :update)
                          (:h2 "Διαγραφή επιταγής")
-                         (render (make-cheques-table-crud :get-url-fn #'stran
-                                                          :post-url-fn #'actions/cheque/delete
-                                                          :intent :delete
+                         (render (make-cheques-table-crud :operation :delete
                                                           :params params)))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
@@ -451,9 +451,7 @@
                                      (paid "Πληρωμή επιταγής")
                                      (bounced "Σφράγισμα επιταγής")
                                      (returned "Επιστροφή επιταγής"))))
-                         (render (make-cheques-table-crud :get-url-fn #'stran
-                                                          :post-url-fn #'actions/cheque/chstat
-                                                          :intent :chstat
+                         (render (make-cheques-table-crud :operation :chstat
                                                           :params params)))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
@@ -474,7 +472,7 @@
 		 (:p "Επιστρέψτε στο μενού των επιταγών και προσπαθήστε ξανά."))))))
 
 
-(define-dynamic-page cheque/stran-notfound () ("notfound")
+(define-dynamic-page cheque/stran-notfound () ("cheque/stran-not-found")
   (no-cache)
   (with-page ()
     (:head
