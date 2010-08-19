@@ -64,3 +64,4 @@
   (cheques      (cheques)      "Επιταγές")
   (transactions (transactions) "Συναλλαγές")
   (projects     (projects)     "Έργα"))
+

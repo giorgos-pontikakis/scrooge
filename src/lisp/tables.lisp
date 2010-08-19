@@ -47,6 +47,17 @@
 	       :single)
 	:null)))
 
+(defclass city () 
+  ((id    :col-type integer :reader   id)
+   (title :col-type string  :accessor title :initarg :title))
+  (:metaclass dao-class)
+  (:keys id))
+
+(defmethod city-id ((title string))
+  (with-db
+    (query (:select 'id :from 'city :where (:= 'title title))
+	   :single)))
+
 (defclass company ()
   ((id         :col-type integer :reader   id)
    (title      :col-type string  :accessor title      :initarg :title)
@@ -54,7 +65,7 @@
    (tof-id     :col-type string  :accessor tof-id     :initarg :tof-id)
    (tin        :col-type string  :accessor tin        :initarg :tin)
    (address    :col-type string  :accessor address    :initarg :address)
-   (city       :col-type string  :accessor city       :initarg :city)
+   (city-id    :col-type string  :accessor city-id    :initarg :city-id)
    (pobox      :col-type integer :accessor pobox      :initarg :pobox)
    (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode)) 
   (:default-initargs

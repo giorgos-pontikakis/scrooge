@@ -15,9 +15,9 @@ drop table company;
 drop table account;
 -- drop table account_type;
 
+drop table city;
 drop table bank;
 drop table tof;
-
 
 --- Basic config ------------------------------
 
@@ -27,6 +27,11 @@ create table tof ( -- taxation office
 );
 
 create table bank (
+       id serial primary key
+       ,title varchar(64) unique not null
+);
+
+create table city (
        id serial primary key
        ,title varchar(64) unique not null
 );

@@ -22,24 +22,7 @@
                              :update actions/tof/update
                              :delete actions/tof/delete))
    (filter-keys :initform '())
-   (cells :initform
-          (lambda (row) 
-            (list (make-cell-selector :row row
-                                      :name :selector
-                                      :style "select") 
-                  (make-cell-textbox :row row
-                                     :name :title
-                                     :value (getf (data row) :title)
-                                     :style "data"
-                                     :operations '(:create :update)) 
-                  (make-cell-submit :row row
-                                    :name :submit
-                                    :style "button"
-                                    :operations '(:create :update :delete))
-                  (make-cell-cancel :row row
-                                    :name :cancel
-                                    :style "button"
-                                    :operations '(:create :update :delete)))))))
+   (cells :initform (simple-table-cells))))
 
 (defun make-tof-table-crud (&key operation params)
   (make-instance 'tof-table-crud 
@@ -130,100 +113,63 @@
 ;;; TOFs - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page tofs ((id integer #'tof-id-exists-p) 
-                           (filter string))
+(define-dynamic-page tofs ((id integer #'tof-id-exists-p))
     ("config/tofs")
+  (no-cache)
   (if (validp id)
       (with-parameter-list params
-        (with-page ()
-          (:head
-           (:title "Δ.Ο.Υ.")
-           (config-headers))
-          (:body
-           (:div :id "header"
-                 (logo)
-                 (primary-navbar 'config)
-                 (config-navbar 'tofs)) 
-           (:div :id "body"
-                 (:div :class "message"
-                       (:h2 :class "info" "Κατάλογος Δ.Ο.Υ."))
-                 (:div :id "tofs" :class "window" 
-                       (tof-menu (val id) :create :edit :delete)
-                       (filter tofs (val id) (val filter) nil)
-                       (render (make-tof-table-crud :operation :view
-                                                    :params params)))
-                 (footer)))))
+        (render
+         (make-config-page :name 'tofs
+                           :title "Δ.Ο.Υ."
+                           :message "Κατάλογος Δ.Ο.Υ."
+                           :body (html ()
+                                   (tof-menu (val id) :create :edit :delete) 
+                                   (render (make-tof-table-crud :operation :view
+                                                                :params params))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page tof/create ((title string (complement #'tof-exists-p)))
     ("config/tof/create")
   (no-cache)
   (with-parameter-list params
-    (with-page ()
-      (:head
-       (:title "Εισαγωγή Δ.Ο.Υ.")
-       (config-headers))
-      (:body
-       (:div :id "header"
-             (logo)
-             (primary-navbar 'config)
-             (config-navbar 'tofs))
-       (:div :id "body"
-             (:div :class "message"
-                   (:h2 :class "info" "Δημιουργία Δ.Ο.Υ.")
-                   (tof-errorbar title))
-             (:div :id "tofs" :class "window"
-                   (tof-menu nil :view) 
-                   (render (make-tof-table-crud :operation :create
-                                                :params params)))
-             (footer))))))
+    (render
+     (make-config-page :name 'tofs
+                       :title "Εισαγωγή Δ.Ο.Υ."
+                       :message "Εισαγωγή Δ.Ο.Υ."
+                       :body (html ()
+                               (tof-menu nil :view) 
+                               (render (make-tof-table-crud :operation :create
+                                                            :params params)))))))
 
 (define-dynamic-page tof/update ((id integer #'tof-id-exists-p)
                                  (title string (complement #'tof-exists-p)))
-    ("config/tof/update") 
+    ("config/tof/update")
+  (no-cache)
   (if (validp id)
       (with-parameter-list params
-        (with-page ()
-          (:head
-           (:title "Επεξεργασία Δ.Ο.Υ.")
-           (config-headers))
-          (:body
-           (:div :id "header"
-                 (logo)
-                 (primary-navbar 'config)
-                 (config-navbar 'tofs))
-           (:div :id "body"
-                 (:div :class "message"
-                       (:h2 :class "info" "Επεξεργασία Δ.Ο.Υ.")
-                       (tof-errorbar title))
-                 (:div :id "tofs" :class "window"
-                       (tof-menu (val id) :view :delete) 
-                       (render (make-tof-table-crud :operation :update
-                                                    :params params)))
-                 (footer)))))
+        (render
+         (make-config-page :name 'tofs
+                           :title "Επεξεργασία Δ.Ο.Υ."
+                           :message "Επεξεργασία Δ.Ο.Υ."
+                           :body (html ()
+                                   (tof-menu (val id) :view :delete) 
+                                   (render (make-tof-table-crud :operation :update
+                                                                :params params))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page tof/delete ((id integer #'tof-id-exists-p))
     ("config/tof/delete")
+  (no-cache)
   (if (validp id)
       (with-parameter-list params
-        (with-page ()
-          (:head
-           (:title "Διαγραφή Δ.Ο.Υ.")
-           (config-headers))
-          (:body
-           (:div :id "header"
-                 (logo)
-                 (primary-navbar 'config)
-                 (config-navbar 'tofs))
-           (:div :id "body"
-                 (:div :class "message"
-                       (:h2 :class "info" "Διαγραφή Δ.Ο.Υ."))
-                 (:div :id "tofs" :class "window"
-                       (tof-menu (val id) :view :edit) 
-                       (render (make-tof-table-crud :operation :delete
-                                                    :params params)))
-                 (footer)))))
+        (render
+         (make-config-page :name 'tofs
+                           :title "Διαγραφή Δ.Ο.Υ."
+                           :message "Διαγραφή Δ.Ο.Υ."
+                           :body (html ()
+                                   (tof-menu (val id) :view :edit) 
+                                   (render (make-tof-table-crud :operation :delete
+                                                                :params params))))))
       (redirect (notfound) :code +http-see-other+)))
 
 

@@ -39,7 +39,10 @@
 
 ;;; --- Cities --------------------
 
-(define-existence-validator city-exists-p    city title)
+(define-existence-validator city-id-exists-p city id)
+(define-existence-validator city-exists-p city title)
+
+
 
 
 ;;; --- TIN --------------------

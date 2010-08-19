@@ -16,6 +16,7 @@
 	       (:file "config")
                (:file "banks")
                (:file "tofs")
+               (:file "cities")
 	       (:file "companies")
 	       (:file "cheques")
 	       (:file "accounts")
