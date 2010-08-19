@@ -29,7 +29,50 @@
                              :update actions/cheque/update
                              :delete actions/cheque/delete
                              :chstat actions/cheque/chstat))
-   (filter-keys :initform '(:payable-p))))
+   (filter-keys :initform '(:payable-p))
+   (cells :initform
+          (lambda (row)
+            (destructuring-bind (&key cheque-id bank due-date company amount status) row
+              (declare (ignore cheque-id))
+              (with-db
+                (let ((pairs (query (:select 'description 'status :from 'cheque-status))))
+                  (list (make-cell-selector :row row
+                                            :name :id
+                                            :style "select")
+                        (make-cell-textbox :row row
+                                           :name :bank
+                                           :value bank
+                                           :style "data"
+                                           :operations '(:create :update))
+                        (make-cell-textbox :row row
+                                           :name :due-date
+                                           :value due-date
+                                           :style "data"
+                                           :operations '(:create :update))
+                        (make-cell-textbox :row row
+                                           :name :company
+                                           :value company
+                                           :style "data"
+                                           :operations '(:create :update))
+                        (make-cell-textbox :row row
+                                           :name :amount 
+                                           :value amount
+                                           :style "data"
+                                           :operations '(:create :update))
+                        (make-cell-dropdown :row row
+                                            :name :status
+                                            :value status
+                                            :style "data"
+                                            :operations '(:create :update)
+                                            :pairs pairs)
+                        (make-cell-submit :row row
+                                          :name :submit
+                                          :style "button"
+                                          :operations '(:create :update :delete))
+                        (make-cell-cancel :row row
+                                          :name :cancel
+                                          :style "button"
+                                          :operations '(:create :update :delete))))))))))
 
 (defun make-cheques-table-crud (&key operation params)
   (make-instance 'cheques-table-crud
@@ -50,48 +93,7 @@
                                (getf filters :payable-p)))
            :plists)))
 
-(defmethod cells-constructor ((table cheques-table-crud)) 
-  (lambda (row &key cheque-id bank due-date company amount status)
-    (declare (ignore cheque-id))
-    (with-db
-      (let ((pairs (query (:select 'description 'status :from 'cheque-status))))
-        (list (make-cell-selector :row row
-                                  :name :id
-                                  :style "select")
-              (make-cell-textbox :row row
-                                 :name :bank
-                                 :value bank
-                                 :style "data"
-                                 :operations '(:create :update))
-              (make-cell-textbox :row row
-                                 :name :due-date
-                                 :value due-date
-                                 :style "data"
-                                 :operations '(:create :update))
-              (make-cell-textbox :row row
-                                 :name :company
-                                 :value company
-                                 :style "data"
-                                 :operations '(:create :update))
-              (make-cell-textbox :row row
-                                 :name :amount 
-                                 :value amount
-                                 :style "data"
-                                 :operations '(:create :update))
-              (make-cell-dropdown :row row
-                                  :name :status
-                                  :value status
-                                  :style "data"
-                                  :operations '(:create :update)
-                                  :pairs pairs)
-              (make-cell-submit :row row
-                                :name :submit
-                                :style "button"
-                                :operations '(:create :update :delete))
-              (make-cell-cancel :row row
-                                :name :cancel
-                                :style "button"
-                                :operations '(:create :update :delete)))))))
+
 
 ;;; ------------------------------------------------------------
 ;;; Snippets

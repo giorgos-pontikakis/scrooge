@@ -111,15 +111,15 @@
    lists. Returned rows must be compatible with the accepted arguments
    of cells-constructor."))
 
-(defgeneric cells-constructor (table)
-  (:documentation
-   "Return a function which accepts a row as a first argument followed
-   by keyword arguments which correspond to the the plist of a
-   database row."))
+;; (defgeneric cells-constructor (table)
+;;   (:documentation
+;;    "Return a function which accepts a row as a first argument followed
+;;    by keyword arguments which correspond to the the plist of a
+;;    database row."))
 
-(defmethod cells-constructor ((tbl table))
-  (lambda (&rest args)
-    (make-list (length args) :initial-element #'identity)))
+;; (defmethod cells-constructor ((tbl table))
+;;   (lambda (&rest args)
+;;     (make-list (length args) :initial-element #'identity)))
 
 
 
@@ -141,12 +141,10 @@
                  :data data))
 
 (defmethod render ((row row) &key)
-  (let ((cells (apply (cells-constructor (table row))
-                      row
-                      (data row)))) 
-    (with-html
-      (:tr :class (style row)
-           (render cells)))))
+  (let ((cells-list (funcall (cells (table row)) row)))
+   (with-html
+     (:tr :class (style row)
+          (render cells-list)))))
 
 
 
@@ -189,16 +187,16 @@
           bag))
 
 (defmethod id ((obj page-interface))
-  (mapvalf #'val*
-           (params->plist (id-keys obj) (params obj))))
+  (plist-map-vals #'val*
+                  (params->plist (id-keys obj) (params obj))))
 
 (defmethod data ((obj page-interface))
-  (mapvalf #'val*
-           (params->plist (data-keys obj) (params obj))))
+  (plist-map-vals #'val*
+                  (params->plist (data-keys obj) (params obj))))
 
 (defmethod filters ((obj page-interface))
-  (mapvalf #'val*
-           (params->plist (filter-keys obj) (params obj))))
+  (plist-map-vals #'val*
+                  (params->plist (filter-keys obj) (params obj))))
 
 
 
@@ -209,7 +207,8 @@
 (defclass table-crud (table page-interface)
   ((operation    :accessor operation    :initarg :operation)
    (main-page    :accessor main-page    :initarg :main-page) 
-   (submit-pages :accessor submit-pages :initarg :submit-pages)))
+   (submit-pages :accessor submit-pages :initarg :submit-pages)
+   (cells        :accessor cells        :initarg :cells)))
 
 
 (defun make-table-crud (&key
@@ -242,46 +241,44 @@
       (:table :id (name table)
               :class (getf (styles table) :table)
               (:thead
-               (:tr (dof (lambda (key label)
-                           (declare (ignore key))
-                           (htm (:th (str label))))
-                         (header table))))
+               (:tr (plist-do (lambda (key label)
+                                (declare (ignore key))
+                                (htm (:th (str label))))
+                              (header table))))
               (:tbody 
                (case (operation table)
                  (:view 
                   (iter (for db-row in db-table) 
-                        (render (make-instance 'row-crud
-                                               :table table 
+                        (render (make-row-crud :table table 
                                                :data db-row))))
                  (:create
                   (render (make-form :submit-page (submit-page table) 
-                                     :body (make-instance 'row-crud
-                                                          :table table 
+                                     :body (make-row-crud :table table 
                                                           :data (append (id table) (data table))
                                                           :active-style "active"))) 
                   (iter (for db-row in db-table)
                         (render (make-instance 'row-crud
                                                :table table 
                                                :data db-row))))
-                 ((:update :delete)
-                  (iter (for db-row in db-table)
-                        (for activep = (set-equal (collectf (id-keys table) db-row)
-                                                  (id table)
-                                                  :test #'equal))
-                        (for row = (make-instance 'row-crud
-                                                  :table table 
-                                                  :active-style (if (eql (operation table)
-                                                                         :delete)
-                                                                    "attention"
-                                                                    "active") 
-                                                  :data (if activep
-                                                            (unionf (append (id table) (data table))
-                                                                    db-row)
-                                                            db-row)))
-                        (render
-                         (make-form :submit-page (submit-page table)
-                                    :hidden (id table)
-                                    :body row))))))))))
+                 ((:update :delete) 
+                  (let ((rows
+                         (iter (for db-row in db-table)
+                               (let* ((activep (set-equal (plist-collect (id-keys table) db-row)
+                                                          (id table)
+                                                          :test #'equal))
+                                      (active-style (if (eql (operation table) :delete)
+                                                        "attention"
+                                                        "active"))
+                                      (data (if activep
+                                                (plist-union (append (id table) (data table))
+                                                             db-row)
+                                                db-row)))
+                                 (collect (make-row-crud :table table 
+                                                         :active-style active-style
+                                                         :data data)))))) 
+                    (render (make-form :submit-page (submit-page table)
+                                       :hidden (id table)
+                                       :body rows))))))))))
 
 
 
@@ -304,7 +301,7 @@
 (defgeneric id (table-or-row))
 
 (defmethod id ((row row-crud))
-  (collectf (id-keys (table row)) (data row)))
+  (plist-collect (id-keys (table row)) (data row)))
 
 
 (defgeneric active-row-p (row-crud))
@@ -316,14 +313,12 @@
 
 
 (defmethod render ((row row-crud) &key)
-  (let ((cells (apply (cells-constructor (table row))
-                      row
-                      (data row)))) 
+  (let ((cells-list (funcall (cells (table row)) row)))
     (with-html
       (:tr :class (if (active-row-p row)
                       (conc (style row) " " (active-style row))
                       (style row)) 
-           (render cells)))))
+           (render cells-list)))))
 
 
 

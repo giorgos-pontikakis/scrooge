@@ -29,7 +29,55 @@
    (submit-pages :initform '(:create actions/stran/create
                              :update actions/stran/update
                              :delete actions/stran/delete))
-   (filter-keys :initform '())))
+   (filter-keys :initform '())
+   (cells :initform
+          (lambda (row) 
+            (destructuring-bind (&key stran-id tbl description
+                                      old-status new-status debit-acc credit-acc) (data row)
+              (declare (ignore stran-id))
+              (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
+                (list (make-cell-selector :row row
+                                          :name :selector
+                                          :style "select")
+                      (make-cell-dropdown :row row
+                                          :name :tbl 
+                                          :pairs pairs
+                                          :value tbl
+                                          :style "data"
+                                          :operations '(:create))
+                      (make-cell-textbox :row row
+                                         :name :description
+                                         :value description
+                                         :style "data"
+                                         :operations '(:create :update))
+                      (make-cell-textbox :row row
+                                         :name :old-status
+                                         :value old-status
+                                         :style "data"
+                                         :operations '(:create :update))
+                      (make-cell-textbox :row row
+                                         :name :new-status
+                                         :value new-status
+                                         :style "data"
+                                         :operations '(:create :update))
+                      (make-cell-textbox :row row
+                                         :name :debit-acc
+                                         :value debit-acc
+                                         :style "data"
+                                         :operations '(:create :update))
+                      (make-cell-textbox :row row
+                                         :name :credit-acc
+                                         :value credit-acc
+                                         :style "data"
+                                         :operations '(:create :update))
+                      (make-cell-submit :row row
+                                        :name :submit
+                                        :style "button"
+                                        :operations '(:create :update :delete))
+                      (make-cell-cancel :row row
+                                        :name :cancel
+                                        :style "button"
+                                        :operations '(:create :update :delete)))))))))
 
 (defun make-stran-table-crud (&key operation params)
   (make-instance 'stran-table-crud 
@@ -63,53 +111,6 @@
       (query (sql-compile `(:union ,(select "project")
                                    ,(select "cheque")))
              :plists))))
-
-(defmethod cells-constructor ((table stran-table-crud))
-  (lambda (row &key stran-id tbl description old-status new-status debit-acc credit-acc)
-    (declare (ignore stran-id))
-    (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
-      (list (make-cell-selector :row row
-                                :name :selector
-                                :style "select")
-            (make-cell-dropdown :row row
-                                :name :tbl 
-                                :pairs pairs
-                                :value tbl
-                                :style "data"
-                                :operations '(:create))
-            (make-cell-textbox :row row
-                               :name :description
-                               :value description
-                               :style "data"
-                               :operations '(:create :update))
-            (make-cell-textbox :row row
-                               :name :old-status
-                               :value old-status
-                               :style "data"
-                               :operations '(:create :update))
-            (make-cell-textbox :row row
-                               :name :new-status
-                               :value new-status
-                               :style "data"
-                               :operations '(:create :update))
-            (make-cell-textbox :row row
-                               :name :debit-acc
-                               :value debit-acc
-                               :style "data"
-                               :operations '(:create :update))
-            (make-cell-textbox :row row
-                               :name :credit-acc
-                               :value credit-acc
-                               :style "data"
-                               :operations '(:create :update))
-            (make-cell-submit :row row
-                              :name :submit
-                              :style "button"
-                              :operations '(:create :update :delete))
-            (make-cell-cancel :row row
-                              :name :cancel
-                              :style "button"
-                              :operations '(:create :update :delete))))))
 
 
 
