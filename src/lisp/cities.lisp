@@ -6,34 +6,33 @@
 ;;; Banks - Definitions
 ;;; ------------------------------------------------------------
 
-(defclass city-table-crud (table-crud)
+(defclass city-table (table-normal-crud)
   ;; table
   ((name :initform "cities-table")
    (header :initform '(:selector "" 
                        :title "Πόλη" 
                        :submit ""
                        :cancel ""))
-   (styles :initform '(:row "" :table "forms-in-row table-half")) 
+   (styles :initform '(:active-row "active"
+                       :inactive-row ""
+                       :attention-row "attention"
+                       :table "forms-in-row table-half")) 
    ;; page interface
    (id-keys :initform '(:id))
-   (data-keys :initform '(:title))
+   (payload-keys :initform '(:title))
+   (filter-keys :initform '())
+   ;; crud mixin
    (main-page :initform 'city)
    (submit-pages :initform '(:create actions/city/create
                              :update actions/city/update
                              :delete actions/city/delete))
-   (filter-keys :initform '())
-   (cells :initform (simple-table-cells))))
+   (cells-fn :initform (config-cells-fn))
+   (data-fn :initform (config-data-fn 'city))))
 
-(defun make-city-table-crud (&key operation params)
-  (make-instance 'city-table-crud 
+(defun make-city-table (&key operation params)
+  (make-instance 'city-table 
                  :operation operation
                  :params params))
-
-(defmethod read-db ((obj city-table-crud) &key filters)
-  (declare (ignore filters))
-  (with-db
-    (query (make-sql-config 'city) ;; rows keys are :id :title
-           :plists)))
 
 
 
@@ -116,13 +115,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'city
-                           :title "Πόλεις"
-                           :message "Κατάλογος πόλεων"
-                           :body (html ()
-                                   (city-menu (val id) :create :edit :delete) 
-                                   (render (make-city-table-crud :operation :view
-                                                                 :params params))))))
+         (config-page :name 'city
+                      :title "Πόλεις"
+                      :message "Κατάλογος πόλεων"
+                      :body (html ()
+                              (city-menu (val id) :create :edit :delete) 
+                              (render (make-city-table :operation :view
+                                                            :params params))))))
       (see-other (notfound))))
 
 (define-dynamic-page city/create ((title string (complement #'city-exists-p)))
@@ -130,13 +129,13 @@
   (no-cache)
   (with-parameter-list params
     (render
-     (make-config-page :name 'city
-                       :title "Εισαγωγή πόλης"
-                       :message "Εισαγωγή πόλης"
-                       :body (html ()
-                               (city-menu nil :view) 
-                               (render (make-city-table-crud :operation :create
-                                                             :params params)))))))
+     (config-page :name 'city
+                  :title "Εισαγωγή πόλης"
+                  :message "Εισαγωγή πόλης"
+                  :body (html ()
+                          (city-menu nil :view) 
+                          (render (make-city-table :operation :create
+                                                        :params params)))))))
 
 (define-dynamic-page city/update ((id    integer #'city-id-exists-p) 
                                   (title string  (complement #'city-exists-p)))
@@ -145,13 +144,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'city
-                           :title "Επεξεργασία πόλης"
-                           :message "Επεξεργασία πόλης"
-                           :body (html ()
-                                   (city-menu (val id) :view :delete) 
-                                   (render (make-city-table-crud :operation :update
-                                                                 :params params))))))
+         (config-page :name 'city
+                      :title "Επεξεργασία πόλης"
+                      :message "Επεξεργασία πόλης"
+                      :body (html ()
+                              (city-menu (val id) :view :delete) 
+                              (render (make-city-table :operation :update
+                                                            :params params))))))
       (see-other (notfound))))
 
 (define-dynamic-page city/delete ((id integer #'city-id-exists-p))
@@ -160,13 +159,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'city
-                           :title "Διαγραφή πόλης"
-                           :message "Διαγραφή πόλης" 
-                           :body (html ()
-                                   (city-menu (val id) :view :edit) 
-                                   (render (make-city-table-crud :operation :delete
-                                                                 :params params))))))
+         (config-page :name 'city
+                      :title "Διαγραφή πόλης"
+                      :message "Διαγραφή πόλης" 
+                      :body (html ()
+                              (city-menu (val id) :view :edit) 
+                              (render (make-city-table :operation :delete
+                                                            :params params))))))
       (see-other (notfound))))
 
 

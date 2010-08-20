@@ -33,34 +33,22 @@
 
 ;;; Configuration pages Widget
 
-(defclass config-page (widget)
-  ((title   :accessor title   :initarg :title)
-   (message :accessor message :initarg :message) 
-   (body    :accessor body    :initarg :body)))
-
-(defun make-config-page (&key name title message body)
-  (make-instance 'config-page
-                 :name name
-                 :title title
-                 :message message 
-                 :body body))
-
-(defmethod render ((obj config-page) &key)
+(defun config-page (&key name title message body)
   (with-page ()
     (:head
-     (:title (title obj))
+     (:title title)
      (config-headers))
     (:body
      (:div :id "header"
            (logo)
            (primary-navbar 'config)
-           (config-navbar (name obj)))
+           (config-navbar name))
      (:div :id "body"
            (:div :class "message"
-                 (:h2 :class "info" (message obj)))
-           (:div :id (string-downcase (name obj))
+                 (:h2 :class "info" message))
+           (:div :id (string-downcase name)
                  :class "window"
-                 (render (body obj)))) 
+                 (render body))) 
      (footer))))
 
 (defun config-cells-fn ()

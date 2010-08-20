@@ -118,13 +118,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'bank
-                           :title "Τράπεζες"
-                           :message "Κατάλογος τραπεζών"
-                           :body (html ()
-                                   (bank-menu (val id) :create :edit :delete) 
-                                   (render (make-bank-table :operation :view
-                                                            :params params))))))
+         (config-page :name 'bank
+                      :title "Τράπεζες"
+                      :message "Κατάλογος τραπεζών"
+                      :body (html ()
+                              (bank-menu (val id) :create :edit :delete) 
+                              (render (make-bank-table :operation :view
+                                                       :params params))))))
       (see-other (notfound))))
 
 (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
@@ -132,13 +132,13 @@
   (no-cache)
   (with-parameter-list params
     (render
-     (make-config-page :name 'bank
-                       :title "Εισαγωγή τράπεζας"
-                       :message "Εισαγωγή τράπεζας"
-                       :body (html ()
-                               (bank-menu nil :view) 
-                               (render (make-bank-table :operation :create
-                                                        :params params)))))))
+     (config-page :name 'bank
+                  :title "Εισαγωγή τράπεζας"
+                  :message "Εισαγωγή τράπεζας"
+                  :body (html ()
+                          (bank-menu nil :view) 
+                          (render (make-bank-table :operation :create
+                                                   :params params)))))))
 
 (define-dynamic-page bank/update ((id    integer #'bank-id-exists-p) 
                                   (title string  (complement #'bank-exists-p)))
@@ -147,13 +147,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'bank
-                           :title "Επεξεργασία τράπεζας"
-                           :message "Επεξεργασία τράπεζας"
-                           :body (html ()
-                                   (bank-menu (val id) :view :delete) 
-                                   (render (make-bank-table :operation :update
-                                                            :params params))))))
+         (config-page :name 'bank
+                      :title "Επεξεργασία τράπεζας"
+                      :message "Επεξεργασία τράπεζας"
+                      :body (html ()
+                              (bank-menu (val id) :view :delete) 
+                              (render (make-bank-table :operation :update
+                                                       :params params))))))
       (see-other (notfound))))
 
 (define-dynamic-page bank/delete ((id integer #'bank-id-exists-p))
@@ -162,13 +162,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'bank
-                           :title "Διαγραφή τράπεζας"
-                           :message "Διαγραφή τράπεζας" 
-                           :body (html ()
-                                   (bank-menu (val id) :view :edit) 
-                                   (render (make-bank-table :operation :delete
-                                                            :params params))))))
+         (config-page :name 'bank
+                      :title "Διαγραφή τράπεζας"
+                      :message "Διαγραφή τράπεζας" 
+                      :body (html ()
+                              (bank-menu (val id) :view :edit) 
+                              (render (make-bank-table :operation :delete
+                                                       :params params))))))
       (see-other (notfound))))
 
 

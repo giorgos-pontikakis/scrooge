@@ -117,13 +117,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'tof
-                           :title "Δ.Ο.Υ."
-                           :message "Κατάλογος Δ.Ο.Υ."
-                           :body (html ()
-                                   (tof-menu (val id) :create :edit :delete) 
-                                   (render (make-tof-table :operation :view
-                                                           :params params))))))
+         (config-page :name 'tof
+                      :title "Δ.Ο.Υ."
+                      :message "Κατάλογος Δ.Ο.Υ."
+                      :body (html ()
+                              (tof-menu (val id) :create :edit :delete) 
+                              (render (make-tof-table :operation :view
+                                                      :params params))))))
       (see-other (notfound))))
 
 (define-dynamic-page tof/create ((title string (complement #'tof-exists-p)))
@@ -131,13 +131,13 @@
   (no-cache)
   (with-parameter-list params
     (render
-     (make-config-page :name 'tof
-                       :title "Εισαγωγή Δ.Ο.Υ."
-                       :message "Εισαγωγή Δ.Ο.Υ."
-                       :body (html ()
-                               (tof-menu nil :view) 
-                               (render (make-tof-table :operation :create
-                                                       :params params)))))))
+     (config-page :name 'tof
+                  :title "Εισαγωγή Δ.Ο.Υ."
+                  :message "Εισαγωγή Δ.Ο.Υ."
+                  :body (html ()
+                          (tof-menu nil :view) 
+                          (render (make-tof-table :operation :create
+                                                  :params params)))))))
 
 (define-dynamic-page tof/update ((id integer #'tof-id-exists-p)
                                  (title string (complement #'tof-exists-p)))
@@ -146,13 +146,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'tof
-                           :title "Επεξεργασία Δ.Ο.Υ."
-                           :message "Επεξεργασία Δ.Ο.Υ."
-                           :body (html ()
-                                   (tof-menu (val id) :view :delete) 
-                                   (render (make-tof-table :operation :update
-                                                           :params params))))))
+         (config-page :name 'tof
+                      :title "Επεξεργασία Δ.Ο.Υ."
+                      :message "Επεξεργασία Δ.Ο.Υ."
+                      :body (html ()
+                              (tof-menu (val id) :view :delete) 
+                              (render (make-tof-table :operation :update
+                                                      :params params))))))
       (see-other (notfound))))
 
 (define-dynamic-page tof/delete ((id integer #'tof-id-exists-p))
@@ -161,13 +161,13 @@
   (if (validp id)
       (with-parameter-list params
         (render
-         (make-config-page :name 'tof
-                           :title "Διαγραφή Δ.Ο.Υ."
-                           :message "Διαγραφή Δ.Ο.Υ."
-                           :body (html ()
-                                   (tof-menu (val id) :view :edit) 
-                                   (render (make-tof-table :operation :delete
-                                                           :params params))))))
+         (config-page :name 'tof
+                      :title "Διαγραφή Δ.Ο.Υ."
+                      :message "Διαγραφή Δ.Ο.Υ."
+                      :body (html ()
+                              (tof-menu (val id) :view :edit) 
+                              (render (make-tof-table :operation :delete
+                                                      :params params))))))
       (see-other (notfound))))
 
 

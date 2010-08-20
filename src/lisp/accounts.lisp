@@ -28,29 +28,17 @@
    
    (cells-fn :initform (config-cells-fn))
    (data-fn :initform (account-data-fn))
+   ;; override defaults provided by table-ul-crud class
    (tbody-class :initform 'tbody-ul-crud)
    (row-class :initform 'account-row)))
 
 (defclass account-row (row-ul-crud)
   ())
 
-(defun make-account-table (&key
-                           header styles                        ;; table
-                           params id-keys data-keys filter-keys ;; page-interface
-                           operation get-pages submit-pages)    ;; crud
+(defun make-account-table (&key operation params)
   (make-instance 'account-table
-                 ;; table
-                 :header header
-                 :styles styles  
-                 ;; page-interface
-                 :params params
-                 :id-keys id-keys
-                 :data-keys data-keys
-                 :filter-keys filter-keys
-                 ;; crud
                  :operation operation
-                 :get-pages get-pages
-                 :submit-pages submit-pages))
+                 :params params))
 
 (defmethod render ((row account-row) &key)
   (let* ((table (table row))
