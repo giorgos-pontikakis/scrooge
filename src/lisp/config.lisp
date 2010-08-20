@@ -3,8 +3,8 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 (define-navbar config-navbar () (:id "subnavbar" :ul-style "hmenu")
-  (banks    (banks)    "Τράπεζες")
-  (tofs     (tofs)     "Δ.Ο.Υ.")
+  (bank     (bank)     "Τράπεζες")
+  (tof      (tof)      "Δ.Ο.Υ.")
   (city     (city)     "Πόλεις")
   (accounts (accounts) "Λογαριασμοί")
   (temtx    (temtx)    "Πρότυπες Συναλλαγές")
@@ -30,11 +30,6 @@
 		 "Don't touch")
 	   (footer)))))
 
-(defun make-sql-config (table-name)
-  (sql-compile
-   `(:select 'id 'title :from ,table-name)))
-
-
 
 ;;; Configuration pages Widget
 
@@ -42,6 +37,13 @@
   ((title   :accessor title   :initarg :title)
    (message :accessor message :initarg :message) 
    (body    :accessor body    :initarg :body)))
+
+(defun make-config-page (&key name title message body)
+  (make-instance 'config-page
+                 :name name
+                 :title title
+                 :message message 
+                 :body body))
 
 (defmethod render ((obj config-page) &key)
   (with-page ()
@@ -61,14 +63,7 @@
                  (render (body obj)))) 
      (footer))))
 
-(defun make-config-page (&key name title message body)
-  (make-instance 'config-page
-                 :name name
-                 :title title
-                 :message message 
-                 :body body))
-
-(defun simple-table-cells ()
+(defun config-cells-fn ()
   (lambda (row) 
     (list (make-cell-selector :row row
                               :name :selector
@@ -86,3 +81,11 @@
                             :name :cancel
                             :style "button"
                             :operations '(:create :update :delete)))))
+
+(defun config-data-fn (table-name)
+  (lambda (filters)
+    (declare (ignore filters))
+    (with-db
+      (query (sql-compile
+              `(:select 'id 'title :from ,table-name))
+             :plists))))

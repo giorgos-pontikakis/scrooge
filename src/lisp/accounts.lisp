@@ -3,10 +3,151 @@
 (declaim (optimize (speed 0) (safety 3) (debug 3)))
 
 ;;; ------------------------------------------------------------
+;;; Accounts - tree widget
+;;; ------------------------------------------------------------
+
+(defclass account-table (table-ul-crud) 
+  ((name :initform "banks-table")
+   (header :initform '(:selector "" 
+                       :title "Τράπεζα" 
+                       :submit ""
+                       :cancel ""))
+   (styles :initform '(:active-row "active"
+                       :inactive-row ""
+                       :attention-row "attention"
+                       :table "forms-in-row table-half")) 
+   ;; page interface
+   (id-keys :initform '(:id))
+   (payload-keys :initform '(:title))
+   (filter-keys :initform '())
+   ;; crud mixin
+   (main-page :initform 'banks)
+   (submit-pages :initform '(:create actions/bank/create
+                             :update actions/bank/update
+                             :delete actions/bank/delete))
+   
+   (cells-fn :initform (config-cells-fn))
+   (data-fn :initform (account-data-fn))
+   (tbody-class :initform 'tbody-ul-crud)
+   (row-class :initform 'account-row)))
+
+(defclass account-row (row-ul-crud)
+  ())
+
+(defun make-account-table (&key
+                           header styles                        ;; table
+                           params id-keys data-keys filter-keys ;; page-interface
+                           operation get-pages submit-pages)    ;; crud
+  (make-instance 'account-table
+                 ;; table
+                 :header header
+                 :styles styles  
+                 ;; page-interface
+                 :params params
+                 :id-keys id-keys
+                 :data-keys data-keys
+                 :filter-keys filter-keys
+                 ;; crud
+                 :operation operation
+                 :get-pages get-pages
+                 :submit-pages submit-pages))
+
+(defmethod render ((row account-row) &key)
+  (let* ((table (table row))
+         (cells-list (funcall (cells-fn table) row))
+         (child-data (funcall (data-fn table)
+                              :filters (plist-collect (id-keys table)
+                                                      (data row)))))
+    (with-html
+      (:li :class (style row)
+           (render cells-list)
+           (render (make-instance 'tbody-ul-crud
+                                  :table table
+                                  :data child-data
+                                  :style "indent"))))))
+
+
+
+(defun account-data-fn ()
+  (lambda (filters)
+    (let ((parent-id (getf filters :parent-id)))
+      (with-db
+        (if (null parent-id)
+            (query (:select 'id 'title 'parent-id :from 'account
+                            :where (:and (:= 'debit-p debit-p)
+                                         (:is-null 'parent-id)))
+                   :plists)
+            (query (:select 'id 'title 'parent-id :from 'account
+                            :where (:and (:= 'debit-p debit-p)
+                                         (:= 'parent-id parent-id)))))))))
+
+
+
+(defun display-accounts (debit-p parent-id active-id intent)
+  (with-db
+    (let ((accounts (if (null parent-id)
+			(query (:select 'id 'title 'parent-id :from 'account
+					:where (:and (:= 'debit-p debit-p)
+						     (:is-null 'parent-id))))
+			(query (:select 'id 'title 'parent-id :from 'account
+					:where (:and (:= 'debit-p debit-p)
+						     (:= 'parent-id parent-id)))))))
+      (flet ((normal-row (acc-id title activep)
+	       (with-html
+		 (:li :class (if activep "active" nil)
+		      (if activep
+			  (htm (:a :href (accounts)
+				   (:img :src (url "img/bullet_red.png"))))
+			  (htm (:a :href (accounts :acc-id acc-id)
+				   (:img :src (url "img/bullet_blue.png"))))) 
+		      (str (lisp-to-html title)))))
+	     (form-row-create (debit-acc-p parent-id)
+	       (with-form (actions/account/create :parent-id (or parent-id :null)
+						  :debit-acc-p debit-acc-p)
+		 (:li :class "active"
+		      (htm (:a :href (accounts)
+			       (:img :src (url "img/bullet_red.png")))) 
+		      (textbox 'title) 
+		      (ok-button)
+		      (cancel-button (accounts)))))
+	     (form-row-update (acc-id title parent-id) 
+	       (with-form (actions/account/update :acc-id acc-id
+						  :parent-id (or parent-id :null))
+		 (:li :class "active"
+		      (:a :href (accounts)
+			  (:img :src (url "img/bullet_red.png"))) 
+		      (textbox 'title :value title) 
+		      (ok-button)
+		      (cancel-button (accounts :acc-id acc-id)))))
+	     (form-row-delete (acc-id title)
+	       (with-form (actions/account/delete :acc-id acc-id)
+		 (:li :class "attention"
+		      (:a :href (accounts)
+			  (:img :src (url "img/bullet_red.png"))) 
+		      (str (lisp-to-html title))
+		      (ok-button)
+		      (cancel-button (accounts :acc-id acc-id))))))
+	(with-html
+	  (:ul :class "indent forms-in-row"
+	       (when (and (eql intent :create) (eql active-id parent-id))
+		 (form-row-create debit-p parent-id))
+	       (iter (for (acc-id title parent-id) in accounts)
+		     (for activep = (and active-id (= active-id acc-id)))
+		     (if activep
+			 (case intent
+			   ((:create :view) (normal-row acc-id title activep))
+			   (:edit (form-row-update acc-id title parent-id))
+			   (:delete (form-row-delete acc-id title)))
+			 (normal-row acc-id title activep)) 
+		     (display-accounts debit-p acc-id active-id intent))))))))
+
+
+
+;;; ------------------------------------------------------------
 ;;; Accounts - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/account/create ((title       string)
+(define-dynamic-page actions/account/create ((title       string  (complement #'account-exists-p))
 					     (parent-id   integer #'valid-parent-acc-id-p)
 					     (debit-acc-p boolean))
     ("actions/account/create" :request-type :post)
@@ -20,20 +161,11 @@
 				       :parent-id parent-id
 				       :debit-p debit-acc-p))
 	    (redirect (accounts) :code +http-see-other+)))
-	(redirect (notfound)
-		  :code +http-see-other+))))
-
-(define-dynamic-page actions/account/delete ((acc-id integer #'valid-acc-id-no-subaccounts-p t))
-    ("actions/account/delete" :request-type :post)
-  (no-cache)
-  (if (validp acc-id)
-      (with-db
-	(delete-dao (get-dao 'account (val acc-id))) 
-	(redirect (accounts) :code +http-see-other+))
-      (redirect (notfound) :code +http-see-other+)))
+	(with-parameter-rebinding #'raw
+          (redirect (account/create :title title) :code +http-see-other+)))))
 
 (define-dynamic-page actions/account/update ((acc-id    integer #'valid-account-id-p t) 
-					     (title     string)
+					     (title     string  (complement #'account-exists-p))
 					     (parent-id integer #'valid-parent-acc-id-p))
     ("actions/account/update" :request-type :post)
   (no-cache) 
@@ -45,7 +177,24 @@
 			      :title title
 			      :where (:= 'id acc-id)))
 	    (redirect (accounts :acc-id acc-id) :code +http-see-other+)))
-	(redirect (notfound) :code +http-see-other+))))
+	(if (and (validp acc-id)
+                 (validp parent-id))
+            ;; user error, return back to update page
+            (redirect (account/update :acc-id acc-id
+                                      :title title
+                                      :parent-id parent-id)
+                      :code +http-see-other+)
+            ;; URL fiddling - abort
+            (redirect (notfound) :code +http-see-other+)))))
+
+(define-dynamic-page actions/account/delete ((acc-id integer #'valid-acc-id-no-subaccounts-p t))
+    ("actions/account/delete" :request-type :post)
+  (no-cache)
+  (if (validp acc-id)
+      (with-db
+	(delete-dao (get-dao 'account (val acc-id))) 
+	(redirect (accounts) :code +http-see-other+))
+      (redirect (notfound) :code +http-see-other+)))
 
 ;;; ------------------------------------------------------------
 ;;; Banks - Snippets
@@ -197,61 +346,5 @@
 	       (footer))))
       (redirect (notfound) :code +http-see-other+)))
 
-(defun display-accounts (debit-p parent-id active-id intent)
-  (with-db
-    (let ((accounts (if (null parent-id)
-			(query (:select 'id 'title 'parent-id :from 'account
-					:where (:and (:= 'debit-p debit-p)
-						     (:is-null 'parent-id))))
-			(query (:select 'id 'title 'parent-id :from 'account
-					:where (:and (:= 'debit-p debit-p)
-						     (:= 'parent-id parent-id)))))))
-      (flet ((normal-row (acc-id title activep)
-	       (with-html
-		 (:li :class (if activep "active" nil)
-		      (if activep
-			  (htm (:a :href (accounts)
-				   (:img :src (url "img/bullet_red.png"))))
-			  (htm (:a :href (accounts :acc-id acc-id)
-				   (:img :src (url "img/bullet_blue.png"))))) 
-		      (str (lisp-to-html title)))))
-	     (form-row-create (debit-acc-p parent-id)
-	       (with-form (actions/account/create :parent-id (or parent-id :null)
-						  :debit-acc-p debit-acc-p)
-		 (:li :class "active"
-		      (htm (:a :href (accounts)
-			       (:img :src (url "img/bullet_red.png")))) 
-		      (textbox 'title) 
-		      (ok-button)
-		      (cancel-button (accounts)))))
-	     (form-row-update (acc-id title parent-id) 
-	       (with-form (actions/account/update :acc-id acc-id
-						  :parent-id (or parent-id :null))
-		 (:li :class "active"
-		      (:a :href (accounts)
-			  (:img :src (url "img/bullet_red.png"))) 
-		      (textbox 'title :value title) 
-		      (ok-button)
-		      (cancel-button (accounts :acc-id acc-id)))))
-	     (form-row-delete (acc-id title)
-	       (with-form (actions/account/delete :acc-id acc-id)
-		 (:li :class "attention"
-		      (:a :href (accounts)
-			  (:img :src (url "img/bullet_red.png"))) 
-		      (str (lisp-to-html title))
-		      (ok-button)
-		      (cancel-button (accounts :acc-id acc-id))))))
-	(with-html
-	  (:ul :class "indent forms-in-row"
-	       (when (and (eql intent :create) (eql active-id parent-id))
-		 (form-row-create debit-p parent-id))
-	       (iter (for (acc-id title parent-id) in accounts)
-		     (for activep = (and active-id (= active-id acc-id)))
-		     (if activep
-			 (case intent
-			   ((:create :view) (normal-row acc-id title activep))
-			   (:edit (form-row-update acc-id title parent-id))
-			   (:delete (form-row-delete acc-id title)))
-			 (normal-row acc-id title activep)) 
-		     (display-accounts debit-p acc-id active-id intent))))))))
+
 

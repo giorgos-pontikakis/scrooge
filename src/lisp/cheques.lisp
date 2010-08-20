@@ -5,8 +5,8 @@
 ;;; ------------------------------------------------------------
 ;;; Definition
 ;;; ------------------------------------------------------------
-(defclass cheques-table-crud (table-crud)
-  ;; table
+
+(defclass cheques-table (table-normal-crud)
   ((name :initform "cheques-table")
    (header :initform '(:id       ""
                        :bank     "Τράπεζα"
@@ -16,7 +16,10 @@
                        :status   "Κατάσταση"
                        :submit   ""
                        :cancel   ""))
-   (styles :initform '(:row "" :table "forms-in-row")) 
+   (styles :initform '(:active-row "active"
+                       :inactive-row ""
+                       :attention-row "attention"
+                       :table "forms-in-row table-half")) 
    ;; page interface
    (id-keys :initform '(:cheque-id))
    (data-keys :initform '(:bank
@@ -24,74 +27,79 @@
                           :company
                           :amount
                           :status))
+   (filter-keys :initform '(:payable-p))
+   ;; crud mixin
    (main-page :initform 'cheques)
    (submit-pages :initform '(:create actions/cheque/create
                              :update actions/cheque/update
                              :delete actions/cheque/delete
-                             :chstat actions/cheque/chstat))
-   (filter-keys :initform '(:payable-p))
-   (cells :initform
-          (lambda (row)
-            (destructuring-bind (&key cheque-id bank due-date company amount status) row
-              (declare (ignore cheque-id))
-              (with-db
-                (let ((pairs (query (:select 'description 'status :from 'cheque-status))))
-                  (list (make-cell-selector :row row
-                                            :name :id
-                                            :style "select")
-                        (make-cell-textbox :row row
-                                           :name :bank
-                                           :value bank
-                                           :style "data"
-                                           :operations '(:create :update))
-                        (make-cell-textbox :row row
-                                           :name :due-date
-                                           :value due-date
-                                           :style "data"
-                                           :operations '(:create :update))
-                        (make-cell-textbox :row row
-                                           :name :company
-                                           :value company
-                                           :style "data"
-                                           :operations '(:create :update))
-                        (make-cell-textbox :row row
-                                           :name :amount 
-                                           :value amount
-                                           :style "data"
-                                           :operations '(:create :update))
-                        (make-cell-dropdown :row row
-                                            :name :status
-                                            :value status
-                                            :style "data"
-                                            :operations '(:create :update)
-                                            :pairs pairs)
-                        (make-cell-submit :row row
-                                          :name :submit
-                                          :style "button"
-                                          :operations '(:create :update :delete))
-                        (make-cell-cancel :row row
-                                          :name :cancel
-                                          :style "button"
-                                          :operations '(:create :update :delete))))))))))
+                             :chstat actions/cheque/chstat)) 
+   (cells-fn :initform (cheque-cells-fn))
+   (data-fn :initform (cheque-data-fn))))
 
-(defun make-cheques-table-crud (&key operation params)
-  (make-instance 'cheques-table-crud
+(defun make-cheques-table (&key operation params)
+  (make-instance 'cheques-table
                  :operation operation
                  :params params))
 
-(defmethod read-db ((obj cheques-table-crud) &key filters)
-  (with-db
-    (query (:select 'cheque.id 'bank.title 'company.title
-                    'cheque.amount 'cheque.due-date
-                    'company-id 'cheque.status
-                    :from 'cheque
-                    :left-join 'company
-                    :on (:= 'company.id 'cheque.company-id)
-                    :left-join 'bank
-                    :on (:= 'bank.id 'cheque.bank-id)
-                    :where (:= 'cheque.payable-p
-                               (getf filters :payable-p)))
-           :plists)))
+(defun cheque-cells-fn ()
+  (lambda (row)
+    (destructuring-bind (&key cheque-id bank due-date company amount status) row
+      (declare (ignore cheque-id))
+      (with-db
+        (let ((pairs (query (:select 'description 'status :from 'cheque-status))))
+          (list (make-cell-selector :row row
+                                    :name :id
+                                    :style "select")
+                (make-cell-textbox :row row
+                                   :name :bank
+                                   :value bank
+                                   :style "data"
+                                   :operations '(:create :update))
+                (make-cell-textbox :row row
+                                   :name :due-date
+                                   :value due-date
+                                   :style "data"
+                                   :operations '(:create :update))
+                (make-cell-textbox :row row
+                                   :name :company
+                                   :value company
+                                   :style "data"
+                                   :operations '(:create :update))
+                (make-cell-textbox :row row
+                                   :name :amount 
+                                   :value amount
+                                   :style "data"
+                                   :operations '(:create :update))
+                (make-cell-dropdown :row row
+                                    :name :status
+                                    :value status
+                                    :style "data"
+                                    :operations '(:create :update)
+                                    :pairs pairs)
+                (make-cell-submit :row row
+                                  :name :submit
+                                  :style "button"
+                                  :operations '(:create :update :delete))
+                (make-cell-cancel :row row
+                                  :name :cancel
+                                  :style "button"
+                                  :operations '(:create :update :delete))))))))
+
+(defun cheque-data-fn ()
+  (lambda (filters)
+    (with-db
+      (query (:select 'cheque.id 'bank.title 'company.title
+                      'cheque.amount 'cheque.due-date
+                      'company-id 'cheque.status
+                      :from 'cheque
+                      :left-join 'company
+                      :on (:= 'company.id 'cheque.company-id)
+                      :left-join 'bank
+                      :on (:= 'bank.id 'cheque.bank-id)
+                      :where (:= 'cheque.payable-p
+                                 (getf filters :payable-p)))
+             :plists))))
 
 
 
@@ -342,8 +350,8 @@
                    (:div :id "cheques" :class "window"
                          (apply #'cheque-menu (val cheque-id) (val payable-p)
                                 :create :update :delete next-statuses) 
-                         (render (make-cheques-table-crud :operation :view
-                                                          :params params))))
+                         (render (make-cheques-table :operation :view
+                                                     :params params))))
              (footer))))
         (redirect (cheque/notfound) :code +http-see-other+))))
 
@@ -370,8 +378,8 @@
                    (cheque-errorbar bank company amount due-date))
 	     (:div :id "cheques" :class "window"
 		   (cheque-menu nil (val payable-p)) 
-                   (render (make-cheques-table-crud :operation :create
-                                                    :params params)))
+                   (render (make-cheques-table :operation :create
+                                               :params params)))
 	     (footer))))))
 
 (define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p t) 
@@ -401,8 +409,8 @@
 				      payable-p
 				      :view :delete)
 			 (:h2 "Επεξεργασία επιταγής")
-			 (render (make-cheques-table-crud :operation :update
-                                                          :params params)))
+			 (render (make-cheques-table :operation :update
+                                                     :params params)))
 		   (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -425,8 +433,8 @@
                    (:div :id "cheques" :class "window"
                          (cheque-menu (val cheque-id) payable-p :view :update)
                          (:h2 "Διαγραφή επιταγής")
-                         (render (make-cheques-table-crud :operation :delete
-                                                          :params params)))
+                         (render (make-cheques-table :operation :delete
+                                                     :params params)))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 
@@ -453,8 +461,8 @@
                                      (paid "Πληρωμή επιταγής")
                                      (bounced "Σφράγισμα επιταγής")
                                      (returned "Επιστροφή επιταγής"))))
-                         (render (make-cheques-table-crud :operation :chstat
-                                                          :params params)))
+                         (render (make-cheques-table :operation :chstat
+                                                     :params params)))
                    (footer))))))
       (redirect (cheque/notfound) :code +http-see-other+)))
 

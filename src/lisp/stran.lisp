@@ -6,8 +6,7 @@
 ;;; Definition
 ;;; ------------------------------------------------------------
 
-(defclass stran-table-crud (table-crud)
-  ;; table
+(defclass stran-table (table-normal-crud)
   ((name :initform "stran-table")
    (header :initform '(:selector    ""
                        :tbl         "Πίνακας"
@@ -18,100 +17,110 @@
                        :credit-acc  "Λογ. Πίστωσης"     
                        :submit      ""
                        :cancel      ""))
-   (styles :initform '(:row "" :table "forms-in-row")) 
+   (styles :initform '(:active-row "active"
+                       :inactive-row ""
+                       :attention-row "attention"
+                       :table "forms-in-row table-half")) 
    ;; page interface
    (id-keys :initform '(:stran-id :tbl))
-   (data-keys :initform '(:description
-                          :old-status
-                          :new-status
-                          :debit-acc
-                          :credit-acc))
+   (payload-keys :initform '(:description
+                             :old-status
+                             :new-status
+                             :debit-acc
+                             :credit-acc))
+   (filter-keys :initform '())
+   ;; crud mixin
    (main-page :initform 'stran)
    (submit-pages :initform '(:create actions/stran/create
                              :update actions/stran/update
-                             :delete actions/stran/delete))
-   (filter-keys :initform '())
-   (cells :initform
-          (lambda (row) 
-            (destructuring-bind (&key stran-id tbl description
-                                      old-status new-status debit-acc credit-acc) (data row)
-              (declare (ignore stran-id))
-              (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
-                (list (make-cell-selector :row row
-                                          :name :selector
-                                          :style "select")
-                      (make-cell-dropdown :row row
-                                          :name :tbl 
-                                          :pairs pairs
-                                          :value tbl
-                                          :style "data"
-                                          :operations '(:create))
-                      (make-cell-textbox :row row
-                                         :name :description
-                                         :value description
-                                         :style "data"
-                                         :operations '(:create :update))
-                      (make-cell-textbox :row row
-                                         :name :old-status
-                                         :value old-status
-                                         :style "data"
-                                         :operations '(:create :update))
-                      (make-cell-textbox :row row
-                                         :name :new-status
-                                         :value new-status
-                                         :style "data"
-                                         :operations '(:create :update))
-                      (make-cell-textbox :row row
-                                         :name :debit-acc
-                                         :value debit-acc
-                                         :style "data"
-                                         :operations '(:create :update))
-                      (make-cell-textbox :row row
-                                         :name :credit-acc
-                                         :value credit-acc
-                                         :style "data"
-                                         :operations '(:create :update))
-                      (make-cell-submit :row row
-                                        :name :submit
-                                        :style "button"
-                                        :operations '(:create :update :delete))
-                      (make-cell-cancel :row row
-                                        :name :cancel
-                                        :style "button"
-                                        :operations '(:create :update :delete)))))))))
+                             :delete actions/stran/delete)) 
+   (cells-fn :initform (stran-cells-fn))
+   (data-fn :initform (stran-data-fn))))
 
-(defun make-stran-table-crud (&key operation params)
-  (make-instance 'stran-table-crud 
+
+
+(defun make-stran-table (&key operation params)
+  (make-instance 'stran-table 
                  :operation operation
                  :params params))
 
-(defmethod read-db ((obj stran-table-crud) &key filters)
-  (declare (ignore filters))
-  (flet ((select (table)
-           `(:select (:as ,(symbolicate table '-stran.id) 'stran-id) ;; :stran-id
-                     (:as 'stran.id 'tbl)                            ;; :tbl
-                     ,(symbolicate table '-stran.description)        ;; :description
-                     'old-status                                     ;; :old-status
-                     'new-status                                     ;; :new-status 
-                     (:as 'debit-account.title 'debit-acc)           ;; :debit-acc
-                     (:as 'credit-account.title 'credit-acc)         ;; :credit-acc
+(defun stran-cells-fn ()
+  (lambda (row) 
+    (destructuring-bind (&key stran-id tbl description
+                              old-status new-status debit-acc credit-acc) (data row)
+      (declare (ignore stran-id))
+      (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
+        (list (make-cell-selector :row row
+                                  :name :selector
+                                  :style "select")
+              (make-cell-dropdown :row row
+                                  :name :tbl 
+                                  :pairs pairs
+                                  :value tbl
+                                  :style "data"
+                                  :operations '(:create))
+              (make-cell-textbox :row row
+                                 :name :description
+                                 :value description
+                                 :style "data"
+                                 :operations '(:create :update))
+              (make-cell-textbox :row row
+                                 :name :old-status
+                                 :value old-status
+                                 :style "data"
+                                 :operations '(:create :update))
+              (make-cell-textbox :row row
+                                 :name :new-status
+                                 :value new-status
+                                 :style "data"
+                                 :operations '(:create :update))
+              (make-cell-textbox :row row
+                                 :name :debit-acc
+                                 :value debit-acc
+                                 :style "data"
+                                 :operations '(:create :update))
+              (make-cell-textbox :row row
+                                 :name :credit-acc
+                                 :value credit-acc
+                                 :style "data"
+                                 :operations '(:create :update))
+              (make-cell-submit :row row
+                                :name :submit
+                                :style "button"
+                                :operations '(:create :update :delete))
+              (make-cell-cancel :row row
+                                :name :cancel
+                                :style "button"
+                                :operations '(:create :update :delete)))))))
 
-                     :from ,(symbolicate table '-stran)
+(defun stran-data-fn ()
+  (lambda (filters)
+    (declare (ignore filters))
+    (flet ((select (table)
+             `(:select (:as ,(symbolicate table '-stran.id) 'stran-id) ;; :stran-id
+                       (:as 'stran.id 'tbl)                    ;; :tbl
+                       ,(symbolicate table '-stran.description) ;; :description
+                       'old-status ;; :old-status
+                       'new-status ;; :new-status 
+                       (:as 'debit-account.title 'debit-acc) ;; :debit-acc
+                       (:as 'credit-account.title 'credit-acc) ;; :credit-acc
+
+                       :from ,(symbolicate table '-stran)
                      
-                     :left-join 'stran
-                     :on (:= 'stran.id ,table)
+                       :left-join 'stran
+                       :on (:= 'stran.id ,table)
 
-                     :left-join (:as 'account 'debit-account)
-                     :on (:= 'debit-account.id
-                             ,(symbolicate table '-stran.debit-acc-id))
+                       :left-join (:as 'account 'debit-account)
+                       :on (:= 'debit-account.id
+                               ,(symbolicate table '-stran.debit-acc-id))
 
-                     :left-join (:as 'account 'credit-account)
-                     :on (:= 'credit-account.id
-                             ,(symbolicate table '-stran.credit-acc-id)))))
-    (with-db
-      (query (sql-compile `(:union ,(select "project")
-                                   ,(select "cheque")))
-             :plists))))
+                       :left-join (:as 'account 'credit-account)
+                       :on (:= 'credit-account.id
+                               ,(symbolicate table '-stran.credit-acc-id)))))
+      (with-db
+        (query (sql-compile `(:union ,(select "project")
+                                     ,(select "cheque")))
+               :plists)))))
 
 
 
@@ -256,8 +265,8 @@
                        (:h2 :class "info" "Κατάλογος Καταστατικών Μεταβολών"))
                  (:div :id "stran" :class "window"
                        (stran-menu (val stran-id) (val tbl) :create :update :delete) 
-                       (render (make-stran-table-crud :operation :view
-                                                      :params params))))
+                       (render (make-stran-table :operation :view
+                                                 :params params))))
            (footer)))
 	(redirect (notfound) :code +http-see-other+))))
 
@@ -287,8 +296,8 @@
                        (stran-errorbar description debit-acc credit-acc old-status new-status)) 
                  (:div :id "stran" :class "window"
                        (stran-menu nil (val tbl) :view)
-                       (render (make-stran-table-crud :operation :create
-                                                      :params params)))))))
+                       (render (make-stran-table :operation :create
+                                                 :params params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page stran/update ((stran-id      integer)
@@ -319,8 +328,8 @@
                        (stran-errorbar description debit-acc credit-acc old-status new-status))
                  (:div :id "stran" :class "window" 
                        (stran-menu (val stran-id) (val tbl) :view :delete)
-                       (render (make-stran-table-crud :operation :update
-                                                      :params params)))))))
+                       (render (make-stran-table :operation :update
+                                                 :params params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
 (define-dynamic-page stran/delete ((stran-id integer)
@@ -343,8 +352,8 @@
 		       (:h2 :class "info" "Διαγραφή μετάβασης")) 
 		 (:div :id "stran" :class "window"
 		       (stran-menu (val stran-id) (val tbl) :view :update)
-		       (render (make-stran-table-crud :operation :delete
-                                                      :params params)))))))
+		       (render (make-stran-table :operation :delete
+                                                 :params params)))))))
       (redirect (notfound) :code +http-see-other+)))
 
 
