@@ -27,17 +27,16 @@
 			      :end-date end-date 
 			      :status status
 			      :vat vat))
-	      (redirect (projects) :code +http-see-other+))))
+	      (see-other (projects)))))
 	(with-parameter-rebinding #'raw
-	  (redirect (project/create :company company 
+	  (see-other (project/create :company company 
 				    :description description 
 				    :location location  
 				    :price price 
 				    :start-date start-date 
 				    :end-date end-date 
 				    :status status
-				    :vat vat)
-		    :code +http-see-other+)))))
+				    :vat vat))))))
 
 (define-dynamic-page actions/project/delete ((id integer #'valid-project-id-p))
     ("actions/project/delete" :request-type :post)
@@ -45,8 +44,8 @@
   (if (validp id)
       (with-db
 	(delete-dao (get-dao 'project (val id)))
-	(redirect (projects) :code +http-see-other+))
-      (redirect (project/notfound) :code +http-see-other+)))
+	(see-other (projects)))
+      (see-other (project/notfound))))
 
 (define-dynamic-page actions/project/update ((id          integer #'valid-project-id-p)
 					     (company     string  #'valid-company-p)
@@ -74,17 +73,16 @@
 				'status status
 				'vat vat
 				:where (:= 'id id)))
-	      (redirect (projects :id id) :code +http-see-other+))))
+	      (see-other (projects :id id)))))
 	(with-parameter-rebinding #'raw
-	  (redirect (project/update :company company 
+	  (see-other (project/update :company company 
 				    :description description 
 				    :location location  
 				    :price price 
 				    :start-date start-date 
 				    :end-date end-date 
 				    :status status
-				    :vat vat)
-		    :code +http-see-other+)))))
+				    :vat vat))))))
 
 
 ;;; Snippets
@@ -263,7 +261,7 @@
 		       (project-menu id :create :view :edit :delete) 
 		       (projects-table id))
 		 (footer)))))
-      (redirect (project/notfound) :code +http-see-other+)))
+      (see-other (project/notfound))))
 
 (define-dynamic-page project/create ((company     string  #'valid-company-p)
 				     (description string)
@@ -314,7 +312,7 @@
 	   (:div :id "body" 
 		 (project-data-view (val id) defaults) 
 		 (footer)))))
-      (redirect (project/notfound) :code +http-see-other+)))
+      (see-other (project/notfound))))
 
 (define-dynamic-page project/update ((id          integer #'valid-project-id-p)
 				     (company     string  #'valid-company-p)
@@ -344,7 +342,7 @@
 		   (project-errorbar company price start-date end-date vat)
 		   (project-data-update id (rest params) defaults) 
 		   (footer))))))
-      (redirect (project/notfound) :code +http-see-other+)))
+      (see-other (project/notfound))))
 
 (define-dynamic-page project/delete ((id integer #'valid-project-id-p))
     ("project/delete")
@@ -365,7 +363,7 @@
 		   (project-data-delete id defaults)
 		   (contact-data-form id :view)
 		   (footer))))))
-      (redirect (project/notfound) :code +http-see-other+)))
+      (see-other (project/notfound))))
 
 (define-dynamic-page project/notfound () ("project/notfound")
   (no-cache)

@@ -209,15 +209,14 @@
                                                  :debit-acc-id (getf stran-data :debit-acc-id)
                                                  :src-tbl "cheque"
                                                  :src-id (id cheque-dao)))
-                      (redirect (cheques) :code +http-see-other+))) 
-		  (redirect (cheque/stran-notfound) :code +http-see-other+)))))
+                      (see-other (cheques)))) 
+		  (see-other (cheque/stran-notfound))))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (cheque/create :bank bank
+	  (see-other (cheque/create :bank bank
 				   :company company
 				   :due-date due-date
 				   :amount amount 
-				   :payable-p payable-p)
-		    :code +http-see-other+)))))
+				   :payable-p payable-p))))))
 
 (define-dynamic-page actions/cheque/delete ((cheque-id integer #'valid-cheque-id-p t))
     ("actions/cheque/delete" :request-type :post)
@@ -232,9 +231,8 @@
 						    (:= 'src-id cheque-id))))
 	    ;; Then delete the cheque itself 
 	    (execute (:delete-from 'cheque :where (:= 'id cheque-id)))) 
-	  (redirect (cheques :payable-p (cheque-payable-p cheque-id))
-		    :code +http-see-other+)))
-      (redirect (cheque/notfound) :code +http-see-other+)))
+	  (see-other (cheques :payable-p (cheque-payable-p cheque-id)))))
+      (see-other (cheque/notfound))))
 
 (define-dynamic-page actions/cheque/update ((cheque-id integer #'valid-cheque-id-p t)
 					    (bank string #'valid-bank-p t)
@@ -264,15 +262,13 @@
 				  'due-date due-date
 				  'amount amount 
 				  :where (:= 'id cheque-id))))
-	      (redirect (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))
-			:code +http-see-other+))))
+	      (see-other (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))))))
 	(with-parameter-rebinding #'raw
-	  (redirect (cheque/update :cheque-id cheque-id
+	  (see-other (cheque/update :cheque-id cheque-id
 				   :bank bank
 				   :company company
 				   :due-date due-date
-				   :amount amount)
-		    :code +http-see-other+)))))
+				   :amount amount))))))
 
 (define-dynamic-page actions/cheque/chstat ((cheque-id integer #'valid-cheque-id-p)
 					    (new-status string))
@@ -308,13 +304,12 @@
 		      (execute (:update 'cheque :set 
 					'status new-status
 					:where (:= 'id cheque-id))))
-		    (redirect (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))
-			      :code +http-see-other+))
-		  (redirect (notfound) :code +http-see-other+)))))
+		    (see-other (cheques :cheque-id cheque-id
+                                        :payable-p (cheque-payable-p cheque-id))))
+		  (see-other (notfound))))))
 	(with-parameter-rebinding #'raw
-	  (redirect (cheque/chstat :cheque-id cheque-id
-				   :new-status new-status)
-		    :code +http-see-other+)))))
+	  (see-other (cheque/chstat :cheque-id cheque-id
+				   :new-status new-status))))))
 
 
 
@@ -353,7 +348,7 @@
                          (render (make-cheques-table :operation :view
                                                      :params params))))
              (footer))))
-        (redirect (cheque/notfound) :code +http-see-other+))))
+        (see-other (cheque/notfound)))))
 
 (define-dynamic-page cheque/create ((payable-p boolean)
 				    (bank      string  #'valid-bank-p)
@@ -412,7 +407,7 @@
 			 (render (make-cheques-table :operation :update
                                                      :params params)))
 		   (footer))))))
-      (redirect (cheque/notfound) :code +http-see-other+)))
+      (see-other (cheque/notfound))))
 
 (define-dynamic-page cheque/delete ((cheque-id integer #'valid-cheque-id-p t))
     ("cheque/delete")
@@ -436,7 +431,7 @@
                          (render (make-cheques-table :operation :delete
                                                      :params params)))
                    (footer))))))
-      (redirect (cheque/notfound) :code +http-see-other+)))
+      (see-other (cheque/notfound))))
 
 (define-dynamic-page cheque/chstat ((cheque-id integer #'valid-cheque-id-p t)
 				    (new-status symbol #'valid-cheque-status-p t))
@@ -464,7 +459,7 @@
                          (render (make-cheques-table :operation :chstat
                                                      :params params)))
                    (footer))))))
-      (redirect (cheque/notfound) :code +http-see-other+)))
+      (see-other (cheque/notfound))))
 
 (define-dynamic-page cheque/notfound () ("cheque/notfound")
   (no-cache)

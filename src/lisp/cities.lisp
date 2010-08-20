@@ -49,9 +49,9 @@
 	(with-parameter-rebinding #'val
 	  (with-db
 	    (insert-dao (make-instance 'city :title title))
-	    (redirect (city :id (city-id title)) :code +http-see-other+)))
+	    (see-other (city :id (city-id title)))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (city/create :title title) :code +http-see-other+)))))
+	  (see-other (city/create :title title))))))
 
 (define-dynamic-page actions/city/update ((id    integer #'city-id-exists-p)
                                           (title string  (complement #'city-exists-p)))
@@ -64,17 +64,17 @@
 	    (execute (:update 'city :set 
 			      'title title
 			      :where (:= 'id id)))
-	    (redirect (city :id id) :code +http-see-other+)))
+	    (see-other (city :id id))))
 	(with-parameter-rebinding #'raw
-	  (redirect (city/update :id id :title title) :code +http-see-other+)))))
+	  (see-other (city/update :id id :title title))))))
 
 (define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p))
     ("actions/city/delete" :request-type :post)
   (if (validp id)
       (with-db
 	(delete-dao (get-dao 'city (val id)))
-	(redirect (city) :code +http-see-other+))
-      (redirect (notfound) :code +http-see-other+)))
+	(see-other (city)))
+      (see-other (notfound))))
 
 
 
@@ -123,7 +123,7 @@
                                    (city-menu (val id) :create :edit :delete) 
                                    (render (make-city-table-crud :operation :view
                                                                  :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page city/create ((title string (complement #'city-exists-p)))
     ("config/city/create") 
@@ -140,7 +140,7 @@
 
 (define-dynamic-page city/update ((id    integer #'city-id-exists-p) 
                                   (title string  (complement #'city-exists-p)))
-    ("config/city/update" )
+    ("config/city/update")
   (no-cache)
   (if (validp id)
       (with-parameter-list params
@@ -152,7 +152,7 @@
                                    (city-menu (val id) :view :delete) 
                                    (render (make-city-table-crud :operation :update
                                                                  :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page city/delete ((id integer #'city-id-exists-p))
     ("config/city/delete")
@@ -167,7 +167,7 @@
                                    (city-menu (val id) :view :edit) 
                                    (render (make-city-table-crud :operation :delete
                                                                  :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 
 

@@ -3,7 +3,7 @@
 (declaim (optimize (speed 0) (safety 3) (debug 3)))
 
 ;;; ------------------------------------------------------------
-;;; Accounts - tree widget
+;;; Accounts table widget for recursive subtables
 ;;; ------------------------------------------------------------
 
 (defclass account-table (table-ul-crud) 
@@ -65,8 +65,6 @@
                                   :table table
                                   :data child-data
                                   :style "indent"))))))
-
-
 
 (defun account-data-fn ()
   (lambda (filters)
@@ -150,19 +148,23 @@
 (define-dynamic-page actions/account/create ((title       string  (complement #'account-exists-p))
 					     (parent-id   integer #'valid-parent-acc-id-p)
 					     (debit-acc-p boolean))
-    ("actions/account/create" :request-type :post)
+  ("actions/account/create" :request-type :post)
   (no-cache) 
   (with-parameter-list params 
     (if (every #'validp params)
 	(with-parameter-rebinding #'val 
 	  (with-db
-	    (insert-dao (make-instance 'account
-				       :title title
-				       :parent-id parent-id
-				       :debit-p debit-acc-p))
-	    (redirect (accounts) :code +http-see-other+)))
+              (insert-dao (make-instance 'account
+                                         :title title
+                                         :parent-id parent-id
+                                         :debit-p debit-acc-p))
+	    (see-other (accounts))))
 	(with-parameter-rebinding #'raw
-          (redirect (account/create :title title) :code +http-see-other+)))))
+          (if (validp parent-id)
+              ;; input error - go back to create page
+              (see-other (account/create :title title))
+              ;; URL fiddling - abory
+              (see-other (notfound)))))))
 
 (define-dynamic-page actions/account/update ((acc-id    integer #'valid-account-id-p t) 
 					     (title     string  (complement #'account-exists-p))
@@ -176,16 +178,15 @@
 	    (execute (:update 'account :set
 			      :title title
 			      :where (:= 'id acc-id)))
-	    (redirect (accounts :acc-id acc-id) :code +http-see-other+)))
+	    (see-other (accounts :acc-id acc-id))))
 	(if (and (validp acc-id)
                  (validp parent-id))
-            ;; user error, return back to update page
-            (redirect (account/update :acc-id acc-id
+            ;; user error -  go back to update page
+            (see-other (account/update :acc-id acc-id
                                       :title title
-                                      :parent-id parent-id)
-                      :code +http-see-other+)
+                                      :parent-id parent-id))
             ;; URL fiddling - abort
-            (redirect (notfound) :code +http-see-other+)))))
+            (see-other (notfound))))))
 
 (define-dynamic-page actions/account/delete ((acc-id integer #'valid-acc-id-no-subaccounts-p t))
     ("actions/account/delete" :request-type :post)
@@ -193,11 +194,11 @@
   (if (validp acc-id)
       (with-db
 	(delete-dao (get-dao 'account (val acc-id))) 
-	(redirect (accounts) :code +http-see-other+))
-      (redirect (notfound) :code +http-see-other+)))
+	(see-other (accounts)))
+      (see-other (notfound))))
 
 ;;; ------------------------------------------------------------
-;;; Banks - Snippets
+;;; Snippets
 ;;; ------------------------------------------------------------
 
 (define-menu account-menu (acc-id debit-p) (:div-style "actions" :ul-style "hmenu")
@@ -236,7 +237,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Banks - Pages
+;;; Pages
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page accounts ((acc-id integer #'valid-account-id-p))
@@ -266,7 +267,7 @@
 			 (:h2 "Πιστωτικοί Λογαριασμοί") 
 			 (display-accounts nil nil acc-id :view))
 		   (footer))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page account/create ((acc-id  integer #'valid-account-id-p)
 				     (debit-p boolean))
@@ -292,7 +293,7 @@
 		     (:h2 "Πιστωτικοί Λογαριασμοί") 
 		     (display-accounts nil nil (val acc-id) (if (val debit-p) :view :create)))
 	       (footer))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page account/update ((acc-id integer #'valid-account-id-p t)
 				     (debit-p boolean))
@@ -318,7 +319,7 @@
 		     (:h2 "Πιστωτικοί Λογαριασμοί") 
 		     (display-accounts nil nil (val acc-id) (if (val debit-p) :view :edit)))
 	       (footer))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page account/delete ((acc-id  integer #'valid-acc-id-no-subaccounts-p t)
 				     (debit-p boolean))
@@ -344,7 +345,7 @@
 		     (:h2 "Χρεωστικοί λογαριασμοί")
 		     (display-accounts nil nil (val acc-id) (if (val debit-p) :view :delete)))
 	       (footer))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 
 

@@ -150,15 +150,14 @@
 					 :credit-acc-id credit-acc-id
 					 :old-status old-status
 					 :new-status new-status))
-	      (redirect (stran) :code +http-see-other+))))
+	      (see-other (stran)))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (stran/create :tbl tbl
+	  (see-other (stran/create :tbl tbl
                                   :description description
                                   :debit-acc debit-acc
                                   :credit-acc credit-acc
                                   :old-status old-status
-                                  :new-status new-status)
-		    :code +http-see-other+)))))
+                                  :new-status new-status))))))
 
 (define-dynamic-page actions/stran/delete ((stran-id integer)
                                            (tbl string))
@@ -170,8 +169,8 @@
 	(with-parameter-rebinding #'val
 	  (with-db 
 	    (delete-dao (get-dao (symbolicate (string-upcase tbl) "-STRAN") stran-id))
-	    (redirect (stran) :code +http-see-other+)))
-	(redirect (notfound) :code +http-see-other+))))
+	    (see-other (stran))))
+	(see-other (notfound)))))
 
 (define-dynamic-page actions/stran/update ((stran-id integer)
                                            (tbl string)
@@ -199,16 +198,15 @@
 				'old-status old-status
 				'new-status new-status
 				:where (:= 'id stran-id)))
-	      (redirect (stran) :code +http-see-other+))))
+	      (see-other (stran)))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (stran/update :stran-id stran-id
+	  (see-other (stran/update :stran-id stran-id
                                   :description description
                                   :debit-acc debit-acc
                                   :credit-acc credit-acc
                                   :tbl tbl
                                   :old-status old-status
-                                  :new-status new-status)
-		    :code +http-see-other+)))))
+                                  :new-status new-status))))))
 
 
 ;;; ------------------------------------------------------------
@@ -268,7 +266,7 @@
                        (render (make-stran-table :operation :view
                                                  :params params))))
            (footer)))
-	(redirect (notfound) :code +http-see-other+))))
+	(see-other (notfound)))))
 
 (define-dynamic-page stran/create ((tbl         string #'valid-tbl-p)
                                    (description string #'not-db-null-p) 
@@ -298,7 +296,7 @@
                        (stran-menu nil (val tbl) :view)
                        (render (make-stran-table :operation :create
                                                  :params params)))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page stran/update ((stran-id      integer)
                                    (tbl         string #'valid-tbl-p)
@@ -330,7 +328,7 @@
                        (stran-menu (val stran-id) (val tbl) :view :delete)
                        (render (make-stran-table :operation :update
                                                  :params params)))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page stran/delete ((stran-id integer)
                                    (tbl string #'valid-tbl-p))
@@ -354,7 +352,7 @@
 		       (stran-menu (val stran-id) (val tbl) :view :update)
 		       (render (make-stran-table :operation :delete
                                                  :params params)))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 
 

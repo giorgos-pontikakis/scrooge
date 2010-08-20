@@ -61,17 +61,16 @@
 			      :city city
 			      :zipcode zipcode
 			      :pobox pobox))
-	      (redirect (companies) :code +http-see-other+))))
+	      (see-other (companies)))))
 	(with-parameter-rebinding #'raw
-	  (redirect (company/create :title title
+	  (see-other (company/create :title title
 				    :occupation occupation
 				    :tof tof
 				    :tin tin
 				    :address address
 				    :city city
 				    :zipcode zipcode
-				    :pobox pobox)
-		    :code +http-see-other+)))))
+				    :pobox pobox))))))
 
 (define-dynamic-page actions/company/delete ((id integer #'valid-company-id-p))
     ("actions/company/delete" :request-type :post)
@@ -79,8 +78,8 @@
   (if (validp id)
       (with-db
 	(delete-dao (get-dao 'company (val id)))
-	(redirect (companies) :code +http-see-other+))
-      (redirect (company/notfound) :code +http-see-other+)))
+	(see-other (companies)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page actions/company/update ((id         integer #'valid-company-id-p)
 					     (title      string)
@@ -108,9 +107,9 @@
 				'pobox pobox
 				'zipcode zipcode
 				:where (:= 'id id)))
-	      (redirect (companies :id id) :code +http-see-other+))))
+	      (see-other (companies :id id)))))
 	(with-parameter-rebinding #'raw
-	  (redirect (company/update :id id
+	  (see-other (company/update :id id
 				    :title title
 				    :occupation occupation
 				    :tof tof
@@ -118,8 +117,7 @@
 				    :address address
 				    :city city
 				    :zipcode zipcode
-				    :pobox pobox)
-		    :code +http-see-other+)))))
+				    :pobox pobox))))))
 
 
 ;;; Snippets
@@ -298,7 +296,7 @@
 		       (company-menu id :create :view :edit :delete) 
 		       (companies-table id))
 		 (footer)))))
-      (redirect (company/notfound) :code +http-see-other+)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page company/create ((title      string  #'not-db-null-p)
 				     (occupation string)
@@ -351,7 +349,7 @@
 		 (company-data-view (val id) defaults)
 		 (contact-data-form (val id) :view (val contact-id)) 
 		 (footer)))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page company/update ((id         integer #'valid-company-id-p)
 				     (title      string  #'not-db-null-p)
@@ -384,7 +382,7 @@
 		   (company-data-update id (rest params) defaults)
 		   (contact-data-form (val id) :view)
 		   (footer))))))
-      (redirect (company/notfound) :code +http-see-other+)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page company/delete ((id integer #'valid-company-id-p))
     ("company/delete")
@@ -405,7 +403,7 @@
 		   (company-data-delete id defaults)
 		   (contact-data-form id :view)
 		   (footer))))))
-      (redirect (company/notfound) :code +http-see-other+)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page company/cheques ((company-id integer #'valid-company-id-p))
     ("company/cheques")
@@ -426,7 +424,7 @@
 			 (company-menu company-id :create :view :edit :delete)
 			 (:h2 "Πίνακας Επιταγών"))
 		   (footer))))))
-      (redirect (company/notfound) :code +http-see-other+)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page company/transactions ((company-id integer #'valid-company-id-p))
     ("company/transactions")
@@ -448,7 +446,7 @@
 			   (company-menu company-id :create :view :edit :delete)
 			   (:h2 "Πίνακας Συναλλαγών"))
 		     (footer)))))))
-      (redirect (company/notfound) :code +http-see-other+)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page company/notfound () ("company/notfound")
   (no-cache)
@@ -486,7 +484,7 @@
 				       :phone phone))
 	    (redirect (company/view :id company-id))))
 	(with-parameter-rebinding #'raw
-	 (redirect (company/create-contact :company-id company-id) :code +http-see-other+)))))
+	 (see-other (company/create-contact :company-id company-id))))))
 
 (define-dynamic-page actions/contact/delete ((contact-id integer #'valid-contact-id-p))
     ("actions/contact/delete" :request-type :post)
@@ -496,7 +494,7 @@
 	  (let ((dao (get-dao 'contact contact-id)))
 	    (delete-dao dao)
 	    (redirect (company/view :id (company-id dao))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page actions/contact/update ((contact-id integer #'valid-contact-id-p)
 					     (tag string)
@@ -511,7 +509,7 @@
 	      (setf (phone dao) phone)
 	      (update-dao dao)
 	      (redirect (company/view :id (company-id dao) :contact-id contact-id)))))
-	(redirect (notfound) :code +http-see-other+))))
+	(see-other (notfound)))))
 
 ;;; Snippets
 
@@ -654,7 +652,7 @@
 	     (:div :id "body" 
 		   (company-data-view company-id defaults)
 		   (contact-data-form company-id :create))))))
-      (redirect (company/notfound) :code +http-see-other+)))
+      (see-other (company/notfound))))
 
 (define-dynamic-page company/update-contact ((contact-id integer #'valid-contact-id-p))
     ("company/update-contact")
@@ -679,7 +677,7 @@
 	       (:div :id "body" 
 		     (company-data-view company-id defaults)
 		     (contact-data-form company-id :update contact-id)))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page company/delete-contact ((contact-id integer #'valid-contact-id-p))
     ("company/delete-contact")
@@ -704,4 +702,4 @@
 	      (:div :id "body" 
 		    (company-data-view company-id defaults)
 		    (contact-data-form company-id :delete contact-id)))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))

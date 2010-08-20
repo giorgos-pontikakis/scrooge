@@ -47,9 +47,9 @@
 	(with-parameter-rebinding #'val
 	  (with-db
 	    (insert-dao (make-instance 'bank :title title))
-	    (redirect (bank :id (bank-id title)) :code +http-see-other+)))
+	    (see-other (bank :id (bank-id title)))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (bank/create :title title) :code +http-see-other+)))))
+	  (see-other (bank/create :title title))))))
 
 (define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
                                           (title string  (complement #'bank-exists-p)))
@@ -62,17 +62,17 @@
 	    (execute (:update 'bank :set 
 			      'title title
 			      :where (:= 'id id)))
-	    (redirect (bank :id id) :code +http-see-other+)))
+	    (see-other (bank :id id))))
 	(with-parameter-rebinding #'raw
-	  (redirect (bank/update :id id :title title) :code +http-see-other+)))))
+	  (see-other (bank/update :id id :title title))))))
 
 (define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p))
     ("actions/bank/delete" :request-type :post)
   (if (validp id)
       (with-db
 	(delete-dao (get-dao 'bank (val id)))
-	(redirect (bank) :code +http-see-other+))
-      (redirect (notfound) :code +http-see-other+)))
+	(see-other (bank)))
+      (see-other (notfound))))
 
 
 
@@ -125,7 +125,7 @@
                                    (bank-menu (val id) :create :edit :delete) 
                                    (render (make-bank-table :operation :view
                                                             :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
     ("config/bank/create") 
@@ -142,7 +142,7 @@
 
 (define-dynamic-page bank/update ((id    integer #'bank-id-exists-p) 
                                   (title string  (complement #'bank-exists-p)))
-    ("config/bank/update" )
+    ("config/bank/update")
   (no-cache)
   (if (validp id)
       (with-parameter-list params
@@ -154,7 +154,7 @@
                                    (bank-menu (val id) :view :delete) 
                                    (render (make-bank-table :operation :update
                                                             :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page bank/delete ((id integer #'bank-id-exists-p))
     ("config/bank/delete")
@@ -169,7 +169,7 @@
                                    (bank-menu (val id) :view :edit) 
                                    (render (make-bank-table :operation :delete
                                                             :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 
 

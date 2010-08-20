@@ -47,9 +47,9 @@
 	(with-parameter-rebinding #'val
 	  (with-db
 	    (insert-dao (make-instance 'tof :title title))
-	    (redirect (tof :id (tof-id title)) :code +http-see-other+)))
+	    (see-other (tof :id (tof-id title)))))
 	(with-parameter-rebinding #'raw
-	  (redirect (tof/create :title title) :code +http-see-other+)))))
+	  (see-other (tof/create :title title))))))
 
 (define-dynamic-page actions/tof/update ((id    integer #'tof-id-exists-p) 
                                          (title string  (complement #'tof-exists-p)))
@@ -62,17 +62,17 @@
 	    (execute (:update 'tof :set 
 			      'title title
 			      :where (:= 'id id)))
-	    (redirect (tof :id id) :code +http-see-other+)))
+	    (see-other (tof :id id))))
 	(with-parameter-rebinding #'raw
-	  (redirect (tof/update :id id :title title) :code +http-see-other+)))))
+	  (see-other (tof/update :id id :title title))))))
 
 (define-dynamic-page actions/tof/delete ((id integer #'tof-id-exists-p))
     ("actions/tof/delete" :request-type :post)
   (if (validp id)
       (with-db
 	(delete-dao (get-dao 'tof (val id)))
-	(redirect (tof) :code +http-see-other+))
-      (redirect (notfound) :code +http-see-other+)))
+	(see-other (tof)))
+      (see-other (notfound))))
 
 
 ;;; ------------------------------------------------------------
@@ -124,7 +124,7 @@
                                    (tof-menu (val id) :create :edit :delete) 
                                    (render (make-tof-table :operation :view
                                                            :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page tof/create ((title string (complement #'tof-exists-p)))
     ("config/tof/create")
@@ -153,7 +153,7 @@
                                    (tof-menu (val id) :view :delete) 
                                    (render (make-tof-table :operation :update
                                                            :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page tof/delete ((id integer #'tof-id-exists-p))
     ("config/tof/delete")
@@ -168,7 +168,7 @@
                                    (tof-menu (val id) :view :edit) 
                                    (render (make-tof-table :operation :delete
                                                            :params params))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 
 

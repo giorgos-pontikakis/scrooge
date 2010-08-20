@@ -23,12 +23,11 @@
 					 :description description
 					 :debit-acc-id debit-acc-id
 					 :credit-acc-id credit-acc-id))
-	      (redirect (temtx) :code +http-see-other+))))
+	      (see-other (temtx)))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (temtx/create :description description
-				  :debit-acc debit-acc
-				  :credit-acc credit-acc)
-		    :code +http-see-other+)))))
+	  (see-other (temtx/create :description description
+                                   :debit-acc debit-acc
+                                   :credit-acc credit-acc))))))
 
 (define-dynamic-page actions/temtx/delete ((temtx-id integer #'valid-temtx-id-p))
     ("actions/temtx/delete" :request-type :post)
@@ -36,8 +35,8 @@
   (if (validp temtx-id)
       (with-db
 	(delete-dao (get-dao 'temtx (val temtx-id)))
-	(redirect (temtx) :code +http-see-other+))
-      (redirect (notfound) :code +http-see-other+)))
+	(see-other (temtx)))
+      (see-other (notfound))))
 
 (define-dynamic-page actions/temtx/update ((temtx-id integer #'valid-temtx-id-p)
 					   (description string #'not-db-null-p)
@@ -56,13 +55,12 @@
 				'debit-acc-id debit-acc-id
 				'credit-acc-id credit-acc-id
 				:where (:= 'id temtx-id)))
-	      (redirect (temtx) :code +http-see-other+))))
+	      (see-other (temtx)))))
 	(with-parameter-rebinding #'raw 
-	  (redirect (temtx/update :temtx-id temtx-id
-				  :description description
-				  :debit-acc debit-acc
-				  :credit-acc credit-acc)
-		    :code +http-see-other+)))))
+	  (see-other (temtx/update :temtx-id temtx-id
+                                   :description description
+                                   :debit-acc debit-acc
+                                   :credit-acc credit-acc))))))
 
 
 
@@ -119,7 +117,7 @@
 		 (:div :id "temtx" :class "window"
 		       (temtx-menu temtx-id :create :update :delete)
 		       (display-temtx temtx-id :view))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page temtx/create ((description string #'not-db-null-p)
 				   (debit-acc string #'account-exists-p)
@@ -170,7 +168,7 @@
 		 (:div :id "temtx" :class "window"
 		       (temtx-menu (val temtx-id) :view :delete)
 		       (display-temtx (val temtx-id) :update (rest params)))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 (define-dynamic-page temtx/delete ((temtx-id integer #'valid-temtx-id-p t))
     ("config/temtx/delete")
@@ -192,7 +190,7 @@
 		 (:div :id "temtx" :class "window"
 		       (temtx-menu temtx-id :view :update)
 		       (display-temtx temtx-id :delete))))))
-      (redirect (notfound) :code +http-see-other+)))
+      (see-other (notfound))))
 
 
 (defun display-temtx (active-id intent &optional params)
