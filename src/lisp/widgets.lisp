@@ -32,8 +32,7 @@
 (defvar *widgets* (make-hash-table))
 
 (defclass widget ()
-  ((name :accessor name :initarg :name)
-   (body :accessor body :initarg :body)))
+  ((name :accessor name :initarg :name)))
 
 ;; (defun find-widget (widget-name)
 ;;   (gethash widget-name *widgets*)) 
@@ -48,7 +47,7 @@
 (defgeneric render (thing &key)
   (:documentation "A function that produces html from the widget object"))
 
-(defmethod render ((fn function) &key)
+(defmethod render ((fn function) &key) 
   (funcall fn))
 
 (defmethod render ((value t) &key) 
@@ -56,8 +55,7 @@
     (str (lisp-to-html value))))
 
 (defmethod render ((list list) &key) 
-  (with-html
-    (mapc #'render list)))
+  (mapc #'render list))
 
 
 
@@ -100,7 +98,8 @@
   ((params       :accessor params       :initarg :params)
    (id-keys      :accessor id-keys      :initarg :id-keys)
    (payload-keys :accessor payload-keys :initarg :payload-keys) 
-   (filter-keys  :accessor filter-keys  :initarg :filter-keys)))
+   (filter-keys  :accessor filter-keys  :initarg :filter-keys)
+   (aux-keys     :accessor aux-keys     :initarg :aux-keys)))
 
 (defun params->plist (bag params) 
   (mapcan (lambda (key)
@@ -128,6 +127,12 @@
   (plist-map-vals #'val*
                   (params->plist (filter-keys obj) (params obj))))
 
+(defgeneric aux-params (obj))
+
+(defmethod aux-params ((obj page-interface-mixin))
+  (plist-map-vals #'val*
+                  (params->plist (aux-keys obj) (params obj))))
+
 
 ;;; ------------------------------------------------------------
 ;;; CRUD mixin  
@@ -152,10 +157,10 @@
 ;;; Non-CRUD
 
 (defclass table (widget)
-  ((header    :accessor header    :initarg :header)
-   (styles    :accessor styles    :initarg :styles) 
-   (data-fn   :accessor data-fn   :initarg :data-fn)
-   (cells-fn  :accessor cells-fn  :initarg :cells-fn)))
+  ((header      :accessor header      :initarg :header)
+   (styles      :accessor styles      :initarg :styles) 
+   (data-fn     :accessor data-fn     :initarg :data-fn) 
+   (cells-fn    :accessor cells-fn    :initarg :cells-fn)))
 
 (defclass table-normal (table)
   ((tbody-class :reader tbody-class :initform 'tbody-normal)
@@ -166,34 +171,37 @@
     (:table :id (name table)
             :class (getf (styles table) :table)
             ;; header
-            (:thead (plist-do (lambda (key label)
-                                (declare (ignore key))
-                                (htm (:th (str label))))
-                              (header table)))
+            (:thead 
+             (:tr (plist-do (lambda (key label) 
+                              (htm (:th :class (getf (getf (styles table) :header) key)
+                                        (str label))))
+                            (header table))))
             ;; body
             (render (make-instance (tbody-class table)
                                    :table table
                                    :style (getf (styles table) :tbody)
-                                   :data (funcall (data-fn table) (filter-params table)))))))
+                                   :data (apply (data-fn table)
+                                                (filter-params table)))))))
 
 (defclass table-ul (table)
   ((tbody-class :reader tbody-class :initform 'tbody-ul)
    (row-class   :reader row-class   :initform 'row-ul)))
 
-(defmethod render ((table table-ul) &key)
+(defmethod render ((table table-ul) &key) 
   (with-html
     (:div :id (name table)
           :class (getf (styles table) :table)
           ;; header
-          (:ul (:li (plist-do (lambda (key label)
-                                (declare (ignore key))
-                                (htm (:th (str label))))
+          (:ul (:li (plist-do (lambda (key label) 
+                                (htm (:span :class (getf (getf (styles table) :header) key)
+                                            (str label))))
                               (header table))))
           ;; body
           (render (make-instance (tbody-class table)
                                  :table table
                                  :style (getf (styles table) :tbody)
-                                 :data (funcall (data-fn table) (filter-params table)))))))
+                                 :data (apply (data-fn table)
+                                              (filter-params table)))))))
 
 
 ;;; CRUD
@@ -227,7 +235,7 @@
 
 (defmethod render ((tbody tbody-normal) &key)
   (with-html
-    (:tbody :style (style tbody)
+    (:tbody :class (style tbody)
             (render-tbody tbody (row-class (table tbody))))))
 
 
@@ -236,15 +244,15 @@
 
 (defmethod render ((tbody tbody-ul) &key)
   (with-html
-    (:ul :style (style tbody)
+    (:ul :class (style tbody)
          (render-tbody tbody (row-class (table tbody))))))
 
 
 (defun render-tbody (tbody row-class)
-  (let ((row-style (getf (styles (table tbody)) :row)))
+  (let ((row-style (getf (styles (table tbody)) :inactive-row)))
     (iter (for data-row in (data tbody))
           (render (make-instance row-class
-                                 :tbody tbody
+                                 :table (table tbody)
                                  :data data-row
                                  :style row-style)))))
 
@@ -282,17 +290,21 @@
                                                inactive-row-style)
                                     :data data-row))))
       (:create
-       (render (make-form :submit-page (submit-page table) 
-                          :body (make-instance row-class
-                                               :table table
-                                               :style active-row-style
-                                               :data (append (id-params table)
-                                                             (payload-params table))))) 
-       (iter (for data-row in (data tbody))
-             (render (make-instance row-class
-                                    :table table
-                                    :style inactive-row-style
-                                    :data data-row))))
+       (let ((rows (cons (make-instance row-class
+                                        :table table
+                                        :style active-row-style
+                                        :data (append (id-params table)
+                                                      (payload-params table)))
+                         (iter (for data-row in (data tbody))
+                               (collect (make-instance row-class
+                                                       :table table
+                                                       :style inactive-row-style
+                                                       :data data-row))))))
+         (render (make-form :submit-page (submit-page table)
+                            :hidden (append (id-params table)
+                                            (filter-params table)
+                                            (aux-params table))
+                            :body rows))))
       ((:update :delete) 
        (let ((rows
               (iter (for data-row in (data tbody))
@@ -311,8 +323,10 @@
                                               :table table 
                                               :style row-style
                                               :data data)))))) 
-         (render (make-form :submit-page (submit-page table)
-                            :hidden (id-params table)
+         (render (make-form :submit-page (submit-page table) 
+                            :hidden (append (id-params table)
+                                            (filter-params table)
+                                            (aux-params table))
                             :body rows)))))))
 
 
@@ -425,8 +439,7 @@
              (apply (main-page table)
                     (if barep
                         (filter-params table)
-                        (append (id-data row) 
-                                (filter-params table))))))
+                        (append (id-data row) (filter-params table))))))
       (with-html 
         (:td :class (style cell)
              (if (active-row-p (table row) (data row))

@@ -45,10 +45,11 @@
            (config-navbar name))
      (:div :id "body"
            (:div :class "message"
-                 (:h2 :class "info" message))
+                 (:h2 :class "info" (str message)))
            (:div :id (string-downcase name)
                  :class "window"
                  (render body))) 
+
      (footer))))
 
 (defun config-cells-fn ()
@@ -71,9 +72,33 @@
                             :operations '(:create :update :delete)))))
 
 (defun config-data-fn (table-name)
-  (lambda (filters)
-    (declare (ignore filters))
+  (lambda () 
     (with-db
       (query (sql-compile
               `(:select 'id 'title :from ,table-name))
              :plists))))
+
+
+(defun standard-page (&key name title message body)
+  (with-page ()
+    (:head
+     (:title title)
+     (config-headers))
+    (:body
+     (:div :id "header"
+           (logo)
+           (primary-navbar 'config)
+           (config-navbar name))
+     (:div :id "body"
+           (:div :class "message"
+                 (:h2 :class "info" (str message)))
+           (render body)) 
+     (footer))))
+
+(defun window (&key name body)
+  (html ()
+    (:div :id (string-downcase name)
+          :class "window"
+          (render body))))
+
+

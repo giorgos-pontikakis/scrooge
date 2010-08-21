@@ -81,16 +81,25 @@
 
 ;;; --- Accounts --------------------
 
-(define-existence-validator account-id-exists-p account id)
-(define-existence-validator account-exists-p    account title)
+(define-existence-validator acc-id-exists-p account id)
+(define-existence-validator acc-exists-p    account title)
 
-(defun valid-account-id-p (val)
+(defun valid-acc-id-p (val)
   (and (positive-nonnull-p val)
-       (account-id-exists-p val)))
+       (acc-id-exists-p val)))
+
+(defun valid-parent-acc-id-p (val)
+  (or (null val)
+      (acc-id-exists-p val)))
 
 (defun valid-acc-id-no-subaccounts-p (acc-id)
   (and (acc-id-exists-p acc-id)
        (null (get-subaccounts acc-id))))
+
+(defun valid-debp-id-combo (id debp)
+  (with-db
+    (or (null id)
+        (eql debp (debit-p (get-dao 'account id))))))
 
 
 ;;; --- Transactions --------------------
@@ -101,6 +110,7 @@
   (and (positive-nonnull-p val)
        (tx-id-exists-p val)))
 
+
 ;;; --- Transaction Templates --------------------
 
 (define-existence-validator temtx-id-exists-p temtx id)
@@ -109,6 +119,7 @@
 (defun valid-temtx-id-p (val)
   (and (positive-p val)
        (temtx-id-exists-p val)))
+
 
 ;;; --- Cheques --------------------
 
@@ -126,14 +137,6 @@
     (query (:select 1 :from 'cheque-status :where (:= 'status (if (symbolp val)
 								  (string-downcase val)
 								  val))))))
-;;; --- Accounts --------------------
-
-(define-existence-validator acc-id-exists-p account id)
-
-
-(defun valid-parent-acc-id-p (val)
-  (or (eql val :null)
-      (acc-id-exists-p val)))
 
 
 ;;; --- Projects --------------------

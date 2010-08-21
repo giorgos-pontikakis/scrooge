@@ -9,8 +9,8 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 (define-dynamic-page actions/temtx/create ((description string #'not-db-null-p)
-					   (debit-acc string #'account-exists-p)
-					   (credit-acc string #'account-exists-p))
+					   (debit-acc string #'acc-exists-p)
+					   (credit-acc string #'acc-exists-p))
     ("actions/temtx/create" :request-type :post)
   (no-cache)
   (with-parameter-list params
@@ -40,8 +40,8 @@
 
 (define-dynamic-page actions/temtx/update ((temtx-id integer #'valid-temtx-id-p)
 					   (description string #'not-db-null-p)
-					   (debit-acc string #'account-exists-p)
-					   (credit-acc string #'account-exists-p))
+					   (debit-acc string #'acc-exists-p)
+					   (credit-acc string #'acc-exists-p))
     ("actions/temtx/update" :request-type :post)
   (no-cache)
   (with-parameter-list params
@@ -120,8 +120,8 @@
       (see-other (notfound))))
 
 (define-dynamic-page temtx/create ((description string #'not-db-null-p)
-				   (debit-acc string #'account-exists-p)
-				   (credit-acc string #'account-exists-p))
+				   (debit-acc string #'acc-exists-p)
+				   (credit-acc string #'acc-exists-p))
     ("config/temtx/create")
   (no-cache)
   (with-parameter-list params
@@ -145,8 +145,8 @@
 
 (define-dynamic-page temtx/update ((temtx-id integer #'valid-temtx-id-p t)
 				   (description string #'not-db-null-p) 
-				   (debit-acc string #'account-exists-p) 
-				   (credit-acc string #'account-exists-p))
+				   (debit-acc string #'acc-exists-p) 
+				   (credit-acc string #'acc-exists-p))
     ("config/temtx/update")
   (no-cache)
   (if (validp temtx-id)

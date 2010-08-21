@@ -47,10 +47,6 @@ input {
     margin: 1px 0px 0px 0px;
 }
 
-ul.indent li {
-    line-height: 20px;
-}
-
 .attention {
     background-color: #fdd;
 }
@@ -268,7 +264,6 @@ ul.hmenu {
 
 .prompt a {
     height: 26px;
-    padding: 
 }
 
 /* ------------------------------------------------------------ */

@@ -130,8 +130,8 @@
 
 (define-dynamic-page actions/stran/create ((tbl string)
                                            (description string #'not-db-null-p)
-                                           (debit-acc string #'account-exists-p)
-                                           (credit-acc string #'account-exists-p) 
+                                           (debit-acc string #'acc-exists-p)
+                                           (credit-acc string #'acc-exists-p) 
                                            (old-status string)
                                            (new-status string))
     ("actions/stran/create" :request-type :post
@@ -175,8 +175,8 @@
 (define-dynamic-page actions/stran/update ((stran-id integer)
                                            (tbl string)
                                            (description string #'not-db-null-p)
-                                           (debit-acc string #'account-exists-p)
-                                           (credit-acc string #'account-exists-p) 
+                                           (debit-acc string #'acc-exists-p)
+                                           (credit-acc string #'acc-exists-p) 
                                            (old-status string)
                                            (new-status string))
     ("actions/stran/update"
@@ -270,8 +270,8 @@
 
 (define-dynamic-page stran/create ((tbl         string #'valid-tbl-p)
                                    (description string #'not-db-null-p) 
-                                   (debit-acc   string #'account-exists-p)
-                                   (credit-acc  string #'account-exists-p)
+                                   (debit-acc   string #'acc-exists-p)
+                                   (credit-acc  string #'acc-exists-p)
                                    (old-status  string)
                                    (new-status  string))
     ("config/stran/create" :validators ((old-status (valid-combo tbl old-status))
@@ -301,8 +301,8 @@
 (define-dynamic-page stran/update ((stran-id      integer)
                                    (tbl         string #'valid-tbl-p)
                                    (description string #'not-db-null-p)
-                                   (debit-acc   string #'account-exists-p) 
-                                   (credit-acc  string #'account-exists-p) 
+                                   (debit-acc   string #'acc-exists-p) 
+                                   (credit-acc  string #'acc-exists-p) 
                                    (old-status  string)
                                    (new-status  string))
     ("config/stran/update" :validators ((old-status (valid-combo tbl old-status))

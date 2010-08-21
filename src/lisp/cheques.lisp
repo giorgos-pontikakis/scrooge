@@ -87,7 +87,7 @@
                                   :operations '(:create :update :delete))))))))
 
 (defun cheque-data-fn ()
-  (lambda (filters)
+  (lambda (&key payable-p)
     (with-db
       (query (:select 'cheque.id 'bank.title 'company.title
                       'cheque.amount 'cheque.due-date
@@ -97,8 +97,7 @@
                       :on (:= 'company.id 'cheque.company-id)
                       :left-join 'bank
                       :on (:= 'bank.id 'cheque.bank-id)
-                      :where (:= 'cheque.payable-p
-                                 (getf filters :payable-p)))
+                      :where (:= 'cheque.payable-p payable-p))
              :plists))))
 
 

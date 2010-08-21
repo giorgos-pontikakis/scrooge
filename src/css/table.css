@@ -22,19 +22,34 @@
     background-color: #eee;
 }
 
-.forms-in-row tr {
+.forms-in-row tr  {
     border: solid 1px #bbb;
-    height: 32px;
+    line-height: 32px;
 }
 
-.forms-in-row tr.active {
+.forms-in-row tr.active, .forms-in-row ul.active {
     background-color: #fcfcfc;
 }
 
-.forms-in-row td, .forms-in-row th {
+.forms-in-row td, .forms-in-row th  {
     /* line-height = 32 (tr.height) -1 (tr.border) */
     line-height: 31px; 		
     text-align: left;
+}
+
+.forms-in-row ul {
+    line-height: 32px;
+}
+
+.forms-in-row li {
+    line-height: 31px;
+    /* border-width: 1px 1px 0px 1px; */
+    /* border-style: solid; */
+    /* border-color: #bbb; */
+}
+
+.forms-in-row ui li span {
+    display: block;
 }
 
 .forms-in-row input {

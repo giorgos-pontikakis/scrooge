@@ -15,11 +15,16 @@
    (styles :initform '(:active-row "active"
                        :inactive-row ""
                        :attention-row "attention"
-                       :table "forms-in-row table-half")) 
+                       :table "forms-in-row table-half"
+                       :header (:selector "select"
+                                :title "data"
+                                :submit  "button"
+                                :cancel "button"))) 
    ;; page interface
    (id-keys :initform '(:id))
    (payload-keys :initform '(:title))
    (filter-keys :initform '())
+   (aux-keys :initform '())
    ;; crud mixin
    (main-page :initform 'bank) 
    (submit-pages :initform '(:create actions/bank/create
@@ -117,28 +122,26 @@
   (no-cache)
   (if (validp id)
       (with-parameter-list params
-        (render
-         (config-page :name 'bank
-                      :title "Τράπεζες"
-                      :message "Κατάλογος τραπεζών"
-                      :body (html ()
-                              (bank-menu (val id) :create :edit :delete) 
-                              (render (make-bank-table :operation :view
-                                                       :params params))))))
+        (config-page :name 'bank
+                     :title "Τράπεζες"
+                     :message "Κατάλογος τραπεζών"
+                     :body (html ()
+                             (bank-menu (val id) :create :edit :delete) 
+                             (render (make-bank-table :operation :view
+                                                      :params params)))))
       (see-other (notfound))))
 
 (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
     ("config/bank/create") 
   (no-cache)
   (with-parameter-list params
-    (render
-     (config-page :name 'bank
-                  :title "Εισαγωγή τράπεζας"
-                  :message "Εισαγωγή τράπεζας"
-                  :body (html ()
-                          (bank-menu nil :view) 
-                          (render (make-bank-table :operation :create
-                                                   :params params)))))))
+    (config-page :name 'bank
+                 :title "Εισαγωγή τράπεζας"
+                 :message "Εισαγωγή τράπεζας"
+                 :body (html ()
+                         (bank-menu nil :view) 
+                         (render (make-bank-table :operation :create
+                                                  :params params))))))
 
 (define-dynamic-page bank/update ((id    integer #'bank-id-exists-p) 
                                   (title string  (complement #'bank-exists-p)))
@@ -146,14 +149,13 @@
   (no-cache)
   (if (validp id)
       (with-parameter-list params
-        (render
-         (config-page :name 'bank
-                      :title "Επεξεργασία τράπεζας"
-                      :message "Επεξεργασία τράπεζας"
-                      :body (html ()
-                              (bank-menu (val id) :view :delete) 
-                              (render (make-bank-table :operation :update
-                                                       :params params))))))
+        (config-page :name 'bank
+                     :title "Επεξεργασία τράπεζας"
+                     :message "Επεξεργασία τράπεζας"
+                     :body (html ()
+                             (bank-menu (val id) :view :delete) 
+                             (render (make-bank-table :operation :update
+                                                      :params params)))))
       (see-other (notfound))))
 
 (define-dynamic-page bank/delete ((id integer #'bank-id-exists-p))
@@ -161,14 +163,13 @@
   (no-cache)
   (if (validp id)
       (with-parameter-list params
-        (render
-         (config-page :name 'bank
-                      :title "Διαγραφή τράπεζας"
-                      :message "Διαγραφή τράπεζας" 
-                      :body (html ()
-                              (bank-menu (val id) :view :edit) 
-                              (render (make-bank-table :operation :delete
-                                                       :params params))))))
+        (config-page :name 'bank
+                     :title "Διαγραφή τράπεζας"
+                     :message "Διαγραφή τράπεζας" 
+                     :body (html ()
+                             (bank-menu (val id) :view :edit) 
+                             (render (make-bank-table :operation :delete
+                                                      :params params)))))
       (see-other (notfound))))
 
 
