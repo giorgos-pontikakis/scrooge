@@ -92,7 +92,9 @@
               (see-other (accounts)))))
 	(if (and (validp parent-id) (validp debp))
             ;; input error - go back to create page
-            (see-other (account/create :parent-id (val parent-id) :title (val title) :debp (val debp)))
+            (see-other (account/create :parent-id (val parent-id)
+                                       :title (val title)
+                                       :debp (val debp)))
             ;; tampered URL - abory
             (see-other (notfound))))))
 
@@ -131,7 +133,7 @@
 
 (define-menu account-menu (id debp) (:div-style "actions" :ul-style "hmenu")
   (:create (with-html 
-	     (:li (:a :href (account/create :parent-id id :debp debp)
+	     (:li (:a :href (account/create :id id :parent-id id :debp debp)
 		      (:img :src (url "img/add.png")) "Δημιουργία"))))
   (:view (if id
 	     (with-html
@@ -210,7 +212,8 @@
 
 
 
-(define-dynamic-page account/create ((parent-id integer #'valid-parent-acc-id-p) 
+(define-dynamic-page account/create ((id integer #'valid-acc-id-p)
+                                     (parent-id integer #'valid-parent-acc-id-p) 
                                      (title     string  (complement #'acc-exists-p))
 				     (debp      boolean))
     ("account/create" :validators (((parent-id debp) (valid-debp-id-combo parent-id debp))))

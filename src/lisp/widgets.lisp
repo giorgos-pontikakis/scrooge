@@ -295,7 +295,7 @@
                                         :style active-row-style
                                         :data (append (id-params table)
                                                       (payload-params table)))
-                         (iter (for data-row in (data tbody))
+                         (iter (for data-row in (data tbody)) 
                                (collect (make-instance row-class
                                                        :table table
                                                        :style inactive-row-style
