@@ -154,19 +154,17 @@
 ;;; Tables 
 ;;; ------------------------------------------------------------
 
-;;; Non-CRUD
-
 (defclass table (widget)
   ((header      :accessor header      :initarg :header)
    (styles      :accessor styles      :initarg :styles) 
    (data-fn     :accessor data-fn     :initarg :data-fn) 
-   (cells-fn    :accessor cells-fn    :initarg :cells-fn)))
+   (cells-fn    :accessor cells-fn    :initarg :cells-fn)
+   (tbody-class :accessor tbody-class :initform 'tbody)))
 
-(defclass table-normal (table)
-  ((tbody-class :reader tbody-class :initform 'tbody-normal)
-   (row-class   :reader row-class   :initform 'row-normal)))
+(defclass table-crud (table page-interface-mixin crud-mixin)
+  (tbody-class :accessor tbody-class :initform 'tbody-crud))
 
-(defmethod render ((table table-normal) &key)
+(defmethod render ((table table) &key)
   (with-html
     (:table :id (name table)
             :class (getf (styles table) :table)
@@ -176,79 +174,21 @@
                               (htm (:th :class (getf (getf (styles table) :header) key)
                                         (str label))))
                             (header table))))
-            ;; body
+            ;; body 
             (render (make-instance (tbody-class table)
                                    :table table
                                    :style (getf (styles table) :tbody)
                                    :data (apply (data-fn table)
                                                 (filter-params table)))))))
 
-(defclass table-ul (table)
-  ((tbody-class :reader tbody-class :initform 'tbody-ul)
-   (row-class   :reader row-class   :initform 'row-ul)))
-
-(defmethod render ((table table-ul) &key) 
-  (with-html
-    (:div :id (name table)
-          :class (getf (styles table) :table)
-          ;; header
-          (:ul (:li (plist-do (lambda (key label) 
-                                (htm (:span :class (getf (getf (styles table) :header) key)
-                                            (str label))))
-                              (header table))))
-          ;; body
-          (render (make-instance (tbody-class table)
-                                 :table table
-                                 :style (getf (styles table) :tbody)
-                                 :data (apply (data-fn table)
-                                              (filter-params table)))))))
-
-
-;;; CRUD
-
-(defclass table-crud (table page-interface-mixin crud-mixin)
-  ())
-
-(defclass table-normal-crud (table-normal table-crud)
-  ((tbody-class :reader tbody-class :initform 'tbody-normal-crud)
-   (row-class   :reader row-class   :initform 'row-normal-crud)))
-
-(defclass table-ul-crud (table-ul table-crud)
-  ((tbody-class :reader tbody-class :initform 'tbody-ul-crud)
-   (row-class   :reader row-class   :initform 'row-ul-crud)))
-
-
-
-;;; ------------------------------------------------------------
 ;;; Table body
-;;; ------------------------------------------------------------
-
-;;; Non-CRUD
 
 (defclass tbody ()
   ((table :accessor table :initarg :table)
    (data  :accessor data  :initarg :data) 
    (style :accessor style :initarg :style)))
 
-(defclass tbody-normal (tbody)
-  ())
-
-(defmethod render ((tbody tbody-normal) &key)
-  (with-html
-    (:tbody :class (style tbody)
-            (render-tbody tbody (row-class (table tbody))))))
-
-
-(defclass tbody-ul (tbody)
-  ())
-
-(defmethod render ((tbody tbody-ul) &key)
-  (with-html
-    (:ul :class (style tbody)
-         (render-tbody tbody (row-class (table tbody))))))
-
-
-(defun render-tbody (tbody row-class)
+(defmethod render ((tbody tbody) &key)
   (let ((row-style (getf (styles (table tbody)) :inactive-row)))
     (iter (for data-row in (data tbody))
           (render (make-instance row-class
@@ -256,26 +196,10 @@
                                  :data data-row
                                  :style row-style)))))
 
-;;; CRUD
-
-(defclass tbody-normal-crud (tbody-normal)
+(defclass tbody-crud ()
   ())
 
-
-(defmethod render ((tbody tbody-normal-crud) &key)
-  (with-html
-    (:tbody :style (style tbody)
-            (render-tbody-crud tbody (row-class (table tbody))))))
-
-(defclass tbody-ul-crud (tbody-ul)
-  ())
-
-(defmethod render ((tbody tbody-ul-crud) &key)
-  (with-html
-    (:ul :style (style tbody)
-         (render-tbody-crud tbody (row-class (table tbody))))))
-
-(defun render-tbody-crud (tbody row-class) 
+(defmethod render ((tbody tbody-crud) &key)
   (let ((active-row-style (getf (styles (table tbody)) :active-row))
         (inactive-row-style (getf (styles (table tbody)) :inactive-row))
         (attention-row-style (getf (styles (table tbody)) :attention-row))
@@ -283,20 +207,20 @@
     (case (operation table)
       (:view 
        (iter (for data-row in (data tbody)) 
-             (render (make-instance row-class
+             (render (make-instance 'row-crud
                                     :table table
                                     :style (if (active-row-p table data-row)
                                                active-row-style
                                                inactive-row-style)
                                     :data data-row))))
       (:create
-       (let ((rows (cons (make-instance row-class
+       (let ((rows (cons (make-instance 'row-crud
                                         :table table
                                         :style active-row-style
                                         :data (append (id-params table)
                                                       (payload-params table)))
                          (iter (for data-row in (data tbody)) 
-                               (collect (make-instance row-class
+                               (collect (make-instance 'row-crud
                                                        :table table
                                                        :style inactive-row-style
                                                        :data data-row))))))
@@ -319,7 +243,7 @@
                                                           (payload-params table))
                                                   data-row)
                                      data-row)))
-                      (collect (make-instance row-class
+                      (collect (make-instance 'row-crud
                                               :table table 
                                               :style row-style
                                               :data data)))))) 
@@ -328,6 +252,113 @@
                                             (filter-params table)
                                             (aux-params table))
                             :body rows)))))))
+
+;;; Rows
+
+(defclass row (widget)
+  ((table :accessor table :initarg :table)
+   (data  :accessor data  :initarg :data) 
+   (style :accessor style :initarg :style)))
+
+(defmethod render ((row row) &key)
+  (let ((cells-list (funcall (cells-fn (table row)) row)))
+    (with-html
+      (:tr :class (style row)
+           (dolist (c cells-list)
+             (htm (:td (render c))))))))
+
+(defclass row-crud (row)
+  ())
+
+(defgeneric id-data (row-crud))
+
+(defmethod id-data ((row row-crud))
+  (plist-collect (id-keys (table row)) (data row)))
+
+(defgeneric payload-data (row-crud))
+
+(defmethod payload-data ((row row-crud))
+  (plist-collect (payload-keys (table row)) (data row)))
+
+
+
+
+;;; ------------------------------------------------------------
+;;; Trees
+;;; ------------------------------------------------------------
+
+(defclass tree (table)
+  ((styles      :accessor styles      :initarg :styles) 
+   (data-fn     :accessor data-fn     :initarg :data-fn) 
+   (cells-fn    :accessor cells-fn    :initarg :cells-fn)))
+
+(defclass tree-crud (tree page-interface-mixin crud-mixin)
+  ())
+
+(defmethod render ((tree tree) &key) 
+  (with-html
+    (:div :id (name tree)
+          :class (getf (styles tree) :tree) 
+          ;; body
+          (render (make-instance (tbody-class table)
+                                 :table table
+                                 :style (getf (styles table) :tbody)
+                                 :data (apply (data-fn table)
+                                              (filter-params table)))))))
+
+
+
+
+;;; ------------------------------------------------------------
+;;; Table body
+;;; ------------------------------------------------------------
+
+;;; Non-CRUD
+
+(defclass tbody ()
+  ((table :accessor table :initarg :table)
+   (data  :accessor data  :initarg :data) 
+   (style :accessor style :initarg :style)))
+
+(defclass tbody-normal (tbody)
+  ())
+
+(defmethod render ((tbody tbody-normal) &key)
+  (with-html
+    ))
+
+
+(defclass tbody-ul (tbody)
+  ())
+
+(defmethod render ((tbody tbody-ul) &key)
+  (with-html
+    (:ul :class (style tbody)
+         (render-tbody tbody (row-class (table tbody))))))
+
+
+
+
+;;; CRUD
+
+(defclass tbody-normal-crud (tbody-normal)
+  ())
+
+
+(defmethod render ((tbody tbody-normal-crud) &key)
+  (with-html
+    (:tbody :style (style tbody)
+            (render-tbody-crud tbody (row-class (table tbody))))))
+
+(defclass tbody-ul-crud (tbody-ul)
+  ())
+
+(defmethod render ((tbody tbody-ul-crud) &key)
+  (with-html
+    (:ul :style (style tbody)
+         (render-tbody-crud tbody (row-class (table tbody))))))
+
+
 
 
 
@@ -394,20 +425,12 @@
 ;;; ------------------------------------------------------------
 
 (defclass cell (widget)
-  ((row   :accessor row   :initarg :row)
-   (style :accessor style :initarg :style)
+  ((style :accessor style :initarg :style)
    (value :accessor value :initarg :value)))
-
-(defun make-cell (&key row value style)
-  (make-instance 'cell
-                 :row row
-                 :value value
-                 :style style))
 
 (defmethod render ((cell cell) &key)
   (with-html
-    (:td :class (style cell)
-         (str (lisp-to-html (value cell))))))
+    (str (lisp-to-html (value cell)))))
 
 
 
@@ -415,73 +438,55 @@
 ;;; Cells -- CRUD
 ;;; ------------------------------------------------------------
 
-(defclass cell-crud (cell)
-  ((operations :accessor operations :initarg :operations)))
-
-(defgeneric enabledp (cell-crud))
-
-(defmethod enabledp ((cell cell-crud))
-  (let* ((row (row cell))
-         (table (table row))) 
-    (and (member (operation table) (operations cell))
-         (active-row-p (table row) (data row)))))
+(defclass cell-crud (cell) 
+  ((enabledp :accessor enabledp :initarg :enabledp)))
 
 
 ;;; Selector
 
 (defclass cell-selector (cell-crud)
-  ())
+  ((href-enabled  :accessor href-enabled  :initarg :href-enabled)
+   (href-disabled :accessor href-disabled :initarg :href-disabled)))
 
 (defmethod render ((cell cell-selector) &key)
-  (let* ((row (row cell))
-         (table (table row)))
-    (flet ((selector-href (&key barep)
-             (apply (main-page table)
-                    (if barep
-                        (filter-params table)
-                        (append (id-data row) (filter-params table))))))
-      (with-html 
-        (:td :class (style cell)
-             (if (active-row-p (table row) (data row))
-                 (htm (:a :href (selector-href :barep t)
-                          (htm (:img :src (url "img/bullet_red.png")))))
-                 (htm (:a :href (selector-href)
-                          (htm (:img :src (url "img/bullet_blue.png")))))))))))
+  (with-html 
+    (if (enabledp cell)
+        (htm (:a :href href-enabled
+                 (htm (:img :src (url "img/bullet_red.png")))))
+        (htm (:a :href href-disabled
+                 (htm (:img :src (url "img/bullet_blue.png"))))))))
 
-(defun make-cell-selector (&key row name style operations)
-  (make-instance 'cell-selector
-                 :name name 
-                 :row row
-                 :style style
-                 :operations operations))
+(defmethod selector-href ((row row-crud))
+  (let ((table (table row)))
+    (apply (main-page table)
+           (if barep
+               (filter-params table)
+               (append (id-data row) (filter-params table))))))
+
+(defmethod input-box-style ((row row-crud))
+  (let ((p (find (name cell) (params (table (row cell))) :key #'name)))
+    (if (or (null p) (validp p)) "" "attention")))
+
 
 
 ;;; Textbox
 
+(labels ((param (cell)
+           )
+         (box-style ()
+           )))
+
 (defclass cell-textbox (cell-crud)
   ())
 
-(defmethod render ((cell cell-textbox) &key)
-  (labels ((param (cell)
-             (find (name cell) (params (table (row cell))) :key #'name))
-           (box-style ()
-             (let ((p (param cell)))
-               (if (or (null p) (validp p)) "" "attention"))))
-    (if (enabledp cell) 
-        (with-html
-          (:td :class (style cell) 
-               (textbox (name cell)
-                        :value (value cell)
-                        :style (box-style))))
-        (call-next-method))))
+(defmethod render ((cell cell-textbox) &key) 
+  (if (enabledp cell) 
+      (with-html
+        (textbox (name cell) 
+                 :value (value cell)
+                 :style (style cell)))
+      (call-next-method)))
 
-(defun make-cell-textbox (&key row name value style operations)
-  (make-instance 'cell-textbox
-                 :name name 
-                 :row row
-                 :value value
-                 :style style
-                 :operations operations))
 
 
 ;;; Dropdown
@@ -492,20 +497,11 @@
 (defmethod render ((cell cell-dropdown) &key)
   (if (enabledp cell)
       (with-html
-        (:td :class (style cell)
-             (dropdown (name cell)
-                       (pairs cell)
-                       :selected (value cell))))
+        (dropdown (name cell)
+                  (pairs cell)
+                  :style style
+                  :selected (value cell)))
       (call-next-method)))
-
-(defun make-cell-dropdown (&key row name pairs value style operations)
-  (make-instance 'cell-dropdown
-                 :row row
-                 :name name
-                 :style style
-                 :value value
-                 :pairs pairs
-                 :operations operations))
 
 
 ;; Submit
@@ -516,45 +512,25 @@
 (defmethod render ((cell cell-submit) &key)
   (if (enabledp cell)
       (with-html
-        (:td :class (style cell)
-             (:button :type "submit"
-                      (:img :src (url "img/tick.png")))))
+        (:button :type "submit"
+                 (:img :src (url "img/tick.png"))))
       (with-html
-        (:td :class (style cell)
-             ""))))
-
-(defun make-cell-submit (&key row name style operations)
-  (make-instance 'cell-submit
-                 :row row
-                 :name name
-                 :style style
-                 :operations operations))
+        "")))
 
 
 ;; Cancel
 
 (defclass cell-cancel (cell-crud)
-  ())
+  ((href :accessor href :initarg :href)))
 
-(defmethod render ((cell cell-cancel) &key)
-  (flet ((cancel-href (row)
-           (apply (main-page (table row))
-                  (filter-params (table row)))))
-    (if (enabledp cell)
-        (with-html
-          (:td :class (style cell)
-               (:a :href (cancel-href (row cell))
-                   (:img :src (url "img/cancel.png")))))
-        (with-html
-          (:td :class (style cell)
-               "")))))
+(defmethod render ((cell cell-cancel) &key) 
+  (if (enabledp cell)
+      (with-html
+        (:a :href (href cell)
+            (:img :src (url "img/cancel.png"))))
+      (with-html
+        "")))
 
-(defun make-cell-cancel (&key row name style operations)
-  (make-instance 'cell-cancel
-                 :row row
-                 :name name
-                 :style style
-                 :operations operations))
 
 
 ;;; ------------------------------------------------------------

@@ -52,24 +52,32 @@
 
      (footer))))
 
-(defun config-cells-fn ()
-  (lambda (row) 
-    (list (make-cell-selector :row row
-                              :name :selector
-                              :style "select") 
-          (make-cell-textbox :row row
-                             :name :title
-                             :value (getf (data row) :title)
-                             :style "data"
-                             :operations '(:create :update)) 
-          (make-cell-submit :row row
-                            :name :submit
-                            :style "button"
-                            :operations '(:create :update :delete))
-          (make-cell-cancel :row row
-                            :name :cancel
-                            :style "button"
-                            :operations '(:create :update :delete)))))
+(defun config-row-fn ()
+  (lambda (row)
+    (let ((data (data row))
+          (operation (operation row))) 
+      (list (make-instance 'cell-selector
+                           :name :selector
+                           :style "select"
+                           :href (selector-href row)) 
+            (make-instance 'cell-textbox :name :title
+                           :value (getf data :title)
+                           :style "data"
+                           :enabledp (member operation '(:create :update))) 
+            (make-instance 'cell-submit
+                           :name :submit 
+                           :style "button"
+                           :operations (member operation '(:create :update :delete)))
+            (make-instance 'cell-cancel
+                           :row row
+                           :name :cancel
+                           :href 
+                           :style "button"
+                           :enabled (member operation '(:create :update :delete)))))))
+
+(defun config-row-fn ()
+  )
+
 
 (defun config-data-fn (table-name)
   (lambda () 
