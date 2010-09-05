@@ -16,6 +16,6 @@
 ;;; Miscellaneous 
 ;;;----------------------------------------------------------------------
 (defun see-other (url)
-  (redirect url :code +http-see-other+))
+  (hunchentoot:redirect url :code hunchentoot:+http-see-other+))
 
 

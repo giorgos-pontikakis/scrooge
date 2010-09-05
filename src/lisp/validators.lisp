@@ -4,7 +4,7 @@
   (defmacro define-existence-validator (name table field)
     (with-gensyms (value)
       `(defun ,name (,value)
-	 (with-db 
+	 (with-db () 
 	   (query (:select 1 :from ',table :where (:= ',field ,value))))))))
 
 
@@ -97,7 +97,7 @@
        (null (get-subaccounts acc-id))))
 
 (defun valid-debp-id-combo (id debp)
-  (with-db
+  (with-db ()
     (or (null id)
         (eql debp (debit-p (get-dao 'account id))))))
 
@@ -133,7 +133,7 @@
   (not (eq :null val)))
 
 (defun valid-cheque-status-p (val)
-  (with-db
+  (with-db ()
     (query (:select 1 :from 'cheque-status :where (:= 'status (if (symbolp val)
 								  (string-downcase val)
 								  val))))))
@@ -147,19 +147,19 @@
 ;;; --- State transitions --------------------
 
 (defun valid-stran-id-p (stran-id tbl)
-  (with-db
+  (with-db ()
     (query (:select 1
 		    :from (symbolicate (string-upcase tbl) "-STRAN")
 		    :where (:= 'id stran-id)))))
 
 (defun valid-tbl-p (tbl)
-  (with-db
+  (with-db ()
     (query (:select 1
                     :from 'stran
                     :where (:= tbl 'id)))))
 
 (defun valid-combo (table status)
-  (with-db
+  (with-db ()
     (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
 	   (sql (sql-compile `(:select 1
 				       :from ,status-table

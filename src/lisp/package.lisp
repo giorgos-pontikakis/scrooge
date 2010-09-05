@@ -2,15 +2,14 @@
 
 (defpackage :scrooge
   (:use :common-lisp
-        :lisputils
-	:hunchentoot
+        :lisputils 
 	:cl-who
 	:cl-ppcre
 	:iterate
 	:alexandria
+	:veil
 	:simple-date
 	:postmodern
-	:www-toolkit
 	:metabang-bind
 	:json))
 

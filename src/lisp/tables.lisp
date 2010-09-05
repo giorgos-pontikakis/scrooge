@@ -1,23 +1,24 @@
 (in-package :scrooge)
 
 
+
 ;;; Interface to table rows
 
 (defun create-row (table &rest fields)
-  (with-db
+  (with-db ()
     (insert-dao (apply #'make-instance table fields))))
 
 
 (defun update-row (table primary-key &rest fields)
   ;; TODO: this does not work with composite primary keys
-  (with-db
+  (with-db ()
     (let ((pk (first (dao-keys table)))) 
       (execute
        (sql-compile
 	`(:update ,table :set ,@fields :where (:= ,pk ,primary-key)))))))
 
 (defun delete-row (table primary-key)
-  (with-db
+  (with-db ()
     (delete-dao (get-dao table primary-key))))
 
 
@@ -31,7 +32,7 @@
   (:keys id))
 
 (defmethod bank-id ((title string))
-  (with-db
+  (with-db ()
     (query (:select 'id :from 'bank :where (:= 'title title))
 	   :single)))
 
@@ -42,7 +43,7 @@
   (:keys id))
 
 (defmethod tof-id ((tof-title string))
-  (with-db
+  (with-db ()
     (or (query (:select 'id :from 'tof :where (:= 'title tof-title))
 	       :single)
 	:null)))
@@ -54,7 +55,7 @@
   (:keys id))
 
 (defmethod city-id ((title string))
-  (with-db
+  (with-db ()
     (query (:select 'id :from 'city :where (:= 'title title))
 	   :single)))
 
@@ -75,7 +76,7 @@
   (:keys id))
 
 (defmethod company-id ((title string))
-  (with-db
+  (with-db ()
     (query (:select 'id :from 'company
 		    :where (:= 'title title))
 	   :single)))
@@ -116,12 +117,12 @@
   (:keys id))
 
 (defmethod account-id ((title string))
-  (with-db
+  (with-db ()
     (query (:select 'id :from 'account :where (:= 'title title))
 	   :single)))
 
 (defmethod debit-p ((acc-id integer))
-  (with-db
+  (with-db ()
     (query (:select 'debit-p :from 'account :where (:= 'id acc-id))
 	   :single)))
 
