@@ -58,7 +58,7 @@
     (:div :id "footer" "Powered by lisp")))
 
 (define-navbar primary-navbar () (:id "navbar" :ul-style "hmenu")
-  (home         (full-url (find-page 'home))         "Αρχική")
+  (home         (full-url 'home)         "Αρχική")
   ;; (config       (config)       "Ρυθμίσεις")
   ;; (companies    (companies)    "Εταιρίες")
   ;; (cheques      (cheques)      "Επιταγές")

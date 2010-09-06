@@ -2,15 +2,14 @@
 
 (declaim (optimize (safety 3) (debug 3) (compilation-speed 0) (speed 0) (space 0)))
 
-(define-webapp (scrooge)
-    :name 'scrooge 
-    :port 3001
-    :webroot "/scrooge/"
-    :debug-p nil)
+(setf *webapp*
+  (make-instance 'webapp
+                 :name 'scrooge 
+                 :port 3001
+                 :webroot "/scrooge/"
+                 :debug-p nil))
 
-(defparameter *webapp* (find-webapp 'scrooge))
-
-(defvar *db*
+(setf *db*
   (make-instance 'db
                  :dbname "scrooge"
                  :dbhost "localhost"

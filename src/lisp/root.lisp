@@ -5,7 +5,7 @@
 
 ;;; --- Home --------------------
 
-(define-dynamic-page home () ("")
+(define-dynamic-page home () ("foo") 
   (with-document ()
     (:head
      (:title "Αρχική")
@@ -15,7 +15,7 @@
 	   (logo)
 	   (primary-navbar 'home))
      (:div :id "body"
-	   ((:p "Home content not yet available"))))))
+	   (:p "Home content not yet available")))))
 
 
 ;;; --- Autocomplete --------------------
