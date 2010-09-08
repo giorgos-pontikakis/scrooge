@@ -5,7 +5,7 @@
 
 ;;; --- Home --------------------
 
-(define-dynamic-page home () ("foo") 
+(define-dynamic-page home () ("") 
   (with-document ()
     (:head
      (:title "Αρχική")
@@ -41,34 +41,34 @@
 
 ;;; :TODO: This should be a static page
 
-;; (define-dynamic-page notfound () ("notfound")
-;;   (no-cache)
-;;   (with-page ()
-;;     (:head
-;;      (:title "Άγνωστη σελίδα")
-;;      (css-standard-headers))
-;;     (:body
-;;      (:div :id "header"
-;; 	   (logo)
-;; 	   (primary-navbar 'companies))
-;;      (:div :id "body"
-;; 	   (:div :id "content" :class "summary"
-;; 		 (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
-;; 		 (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
+(define-dynamic-page notfound () ("notfound")
+  (no-cache)
+  (with-document ()
+    (:head
+     (:title "Άγνωστη σελίδα")
+     (css-standard-headers))
+    (:body
+     (:div :id "header"
+	   (logo)
+	   (primary-navbar 'companies))
+     (:div :id "body"
+	   (:div :id "content" :class "summary"
+		 (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
+		 (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
 
-;; (define-dynamic-page error-page () ("error-page")
-;;   (no-cache)
-;;   (with-page ()
-;;     (:head
-;;      (:title "Generic error page")
-;;      (css-standard-headers))
-;;     (:body
-;;      (:div :id "header"
-;; 	   (logo))
-;;      (:div :id "body"
-;; 	   (:div :id "content" :class "summary"
-;; 		 (:p "An error has occured.")
-;; 		 (:p "You are supposed to see this page because of illegal URL manipulation"))))))
+(define-dynamic-page error-page () ("error-page")
+  (no-cache)
+  (with-document ()
+    (:head
+     (:title "Generic error page")
+     (css-standard-headers))
+    (:body
+     (:div :id "header"
+	   (logo))
+     (:div :id "body"
+	   (:div :id "content" :class "summary"
+		 (:p "An error has occured.")
+		 (:p "You are supposed to see this page because of illegal URL manipulation"))))))
 
 
 ;; (define-dynamic-page no-fsm-data () ("no-fsm-data")

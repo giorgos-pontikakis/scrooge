@@ -2,7 +2,8 @@
 
 (defpackage :scrooge
   (:use :common-lisp
-        :lisputils 
+        :lisputils
+        :hunchentoot
 	:cl-who
 	:cl-ppcre
 	:iterate

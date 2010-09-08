@@ -13,7 +13,7 @@
 	       (:file "widgets")
 	       (:file "snippets")
 	       (:file "root")
-	       ;; (:file "config")
+	       (:file "config")
                ;; (:file "banks")
                ;; (:file "tofs")
                ;; (:file "cities")

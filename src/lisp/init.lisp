@@ -2,21 +2,49 @@
 
 (declaim (optimize (safety 3) (debug 3) (compilation-speed 0) (speed 0) (space 0)))
 
-(setf *webapp*
-  (make-instance 'webapp
-                 :name 'scrooge 
-                 :port 3001
-                 :webroot "/scrooge/"
-                 :debug-p nil))
 
-(setf *db*
-  (make-instance 'db
-                 :dbname "scrooge"
-                 :dbhost "localhost"
-                 :dbuser "gnp"
-                 :dbpass ""
-                 :adapter "postgres"))
+;;; ----------------------------------------------------------------------
+;;; Default Hunchentoot configuration
+;;; ----------------------------------------------------------------------
+(setf *hunchentoot-default-external-format* (flexi-streams:make-external-format :utf-8))
+(setf *default-content-type* "text/html; charset=UTF-8") 
+(setf *use-user-agent-for-sessions* t)
+(setf *use-remote-addr-for-sessions* t)
+(setf *show-lisp-errors-p* t)
+(setf *log-lisp-errors-p* t)
+(setf *log-lisp-warnings-p* t)
 
+;;; ----------------------------------------------------------------------
+;;; Default CL-WHO configuration
+;;; ----------------------------------------------------------------------
+(setf *escape-char-p*
+      #'(lambda (char)
+	  (find char "<>&'\"")))
+(setf (html-mode) :xml)
+
+
+
+;;; ----------------------------------------------------------------------
+;;; Application configuration
+;;; ----------------------------------------------------------------------
+(define-webapp *scrooge*
+  :name 'scrooge
+  :port 3001
+  :webroot "/scrooge/"
+  :debug-p t)
+
+(define-db *scrooge-db*
+  :dbname "scrooge"
+  :dbhost "localhost"
+  :dbuser "gnp"
+  :dbpass ""
+  :adapter "postgres")
+
+
+
+;;; ----------------------------------------------------------------------
+;;; Default table values (only for development)
+;;; ----------------------------------------------------------------------
 (defun init-banks ()
   (mapc (lambda (arg)
 	  (ignore-errors

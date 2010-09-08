@@ -5,25 +5,42 @@
 ;;; ------------------------------------------------------------
 ;;; Navigation bars
 ;;; ------------------------------------------------------------
+(defhtml generic-navbar (id page-specs active-page-name ul-style
+                            active-page-style inactive-page-style)
+  (:div :id id
+        (:ul :class ul-style
+             (let ((fn (html (class href label)
+                     (:li (:a :class class :href href (str label))))))
+               (iter (for (page-name label) in page-specs)
+                     (funcall fn
+                              :class (if (eql page-name active-page-name)
+                                         active-page-style
+                                         inactive-page-style)
+                              :href (full-url page-name)
+                              :label label))))))
 
-(defmacro define-navbar (name (&rest arglist) (&key id div-style ul-style)
-                         &body body) 
-  (multiple-value-bind (items fns) (iter (for sexp in body)
-                                         (destructuring-bind (sym href &rest forms) sexp
-                                           (collect sym into items)
-                                           (collect `(lambda (class)
-                                                       (with-html
-                                                         (:li (:a :class class
-                                                                  :href ,href
-                                                                  ,@forms)))) into fns)
-                                           (finally (return (values items fns)))))
-    `(defun ,name (active-item ,@arglist) 
-       (with-html
-         (:div :id ,id :class ,div-style
-               (:ul :class ,ul-style 
-                    (iter (for item in ',items)
-                          (for fn in (list ,@fns))
-                          (funcall fn (if (eql item active-item) "active" nil)))))))))
+(defun hnavbar ()
+  (generic-navbar :active-page-style "active"
+                  :inactive-page-style nil
+                  :ul-style "hmenu"))
+
+(defun primary-navbar (active)
+  (render (hnavbar)
+          :id "navbar"
+          :page-specs '((home "Αρχική")
+                        (config "Ρυθμίσεις"))
+          :active-page-name active))
+
+(defun config-navbar (active)
+  (render (hnavbar)
+          :id "subnavbar"
+          :page-specs '((bank     "Τράπεζες")
+                        (tof	   "Δ.Ο.Υ.")
+                        (city	   "Πόλεις")
+                        (accounts "Λογαριασμοί")
+                        (temtx	   "Πρότυπες Συναλλαγές")
+                        (stran	   "Καταστατικές Μεταβολές"))
+          :active-page-name active))
 
 (defmacro define-menu (name (&rest args) (&key id div-style ul-style)
 		       &body body)

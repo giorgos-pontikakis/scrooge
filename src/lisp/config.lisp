@@ -2,21 +2,12 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-(define-navbar config-navbar () (:id "subnavbar" :ul-style "hmenu")
-  (bank     (bank)     "Τράπεζες")
-  (tof      (tof)      "Δ.Ο.Υ.")
-  (city     (city)     "Πόλεις")
-  (accounts (accounts) "Λογαριασμοί")
-  (temtx    (temtx)    "Πρότυπες Συναλλαγές")
-  (stran    (stran)    "Καταστατικές Μεταβολές"))
-
-
 
 ;;; Config main page
 
 (define-dynamic-page config () ("config/")
   (no-cache)
-  (with-page ()
+  (with-document ()
     (:head
      (:title "Ρυθμίσεις")
      (css-standard-headers))
@@ -33,80 +24,77 @@
 
 ;;; Configuration pages Widget
 
-(defun config-page (&key name title message body)
-  (with-page ()
-    (:head
-     (:title title)
-     (config-headers))
-    (:body
-     (:div :id "header"
-           (logo)
-           (primary-navbar 'config)
-           (config-navbar name))
-     (:div :id "body"
-           (:div :class "message"
-                 (:h2 :class "info" (str message)))
-           (:div :id (string-downcase name)
-                 :class "window"
-                 (render body))) 
+;; (defun config-page (&key name title message body)
+;;   (with-page ()
+;;     (:head
+;;      (:title title)
+;;      (config-headers))
+;;     (:body
+;;      (:div :id "header"
+;;            (logo)
+;;            (primary-navbar 'config)
+;;            (config-navbar name))
+;;      (:div :id "body"
+;;            (:div :class "message"
+;;                  (:h2 :class "info" (str message)))
+;;            (:div :id (string-downcase name)
+;;                  :class "window"
+;;                  (render body))) 
 
-     (footer))))
+;;      (footer))))
 
-(defun config-row-fn ()
-  (lambda (row)
-    (let ((data (data row))
-          (operation (operation row))) 
-      (list (make-instance 'cell-selector
-                           :name :selector
-                           :style "select"
-                           :href (selector-href row)) 
-            (make-instance 'cell-textbox :name :title
-                           :value (getf data :title)
-                           :style "data"
-                           :enabledp (member operation '(:create :update))) 
-            (make-instance 'cell-submit
-                           :name :submit 
-                           :style "button"
-                           :operations (member operation '(:create :update :delete)))
-            (make-instance 'cell-cancel
-                           :row row
-                           :name :cancel
-                           :href 
-                           :style "button"
-                           :enabled (member operation '(:create :update :delete)))))))
-
-(defun config-row-fn ()
-  )
+;; (defun config-row-fn ()
+;;   (lambda (row)
+;;     (let ((data (data row))
+;;           (operation (operation row))) 
+;;       (list (make-instance 'cell-selector
+;;                            :name :selector
+;;                            :style "select"
+;;                            :href (selector-href row)) 
+;;             (make-instance 'cell-textbox :name :title
+;;                            :value (getf data :title)
+;;                            :style "data"
+;;                            :enabledp (member operation '(:create :update))) 
+;;             (make-instance 'cell-submit
+;;                            :name :submit 
+;;                            :style "button"
+;;                            :operations (member operation '(:create :update :delete)))
+;;             (make-instance 'cell-cancel
+;;                            :row row
+;;                            :name :cancel
+;;                            :href 
+;;                            :style "button"
+;;                            :enabled (member operation '(:create :update :delete)))))))
 
 
-(defun config-data-fn (table-name)
-  (lambda () 
-    (with-db
-      (query (sql-compile
-              `(:select 'id 'title :from ,table-name))
-             :plists))))
+;; (defun config-data-fn (table-name)
+;;   (lambda () 
+;;     (with-db
+;;       (query (sql-compile
+;;               `(:select 'id 'title :from ,table-name))
+;;              :plists))))
 
 
-(defun standard-page (&key name title message body)
-  (with-page ()
-    (:head
-     (:title title)
-     (config-headers))
-    (:body
-     (:div :id "header"
-           (logo)
-           (primary-navbar 'config)
-           (config-navbar name))
-     (:div :id "body"
-           (:div :class "message"
-                 (:h2 :class "info" (str message)))
-           (render body)) 
-     (footer))))
+;; (defun standard-page (&key name title message body)
+;;   (with-page ()
+;;     (:head
+;;      (:title title)
+;;      (config-headers))
+;;     (:body
+;;      (:div :id "header"
+;;            (logo)
+;;            (primary-navbar 'config)
+;;            (config-navbar name))
+;;      (:div :id "body"
+;;            (:div :class "message"
+;;                  (:h2 :class "info" (str message)))
+;;            (render body)) 
+;;      (footer))))
 
-(defun window (&key name body)
-  (html ()
-    (:div :id (string-downcase name)
-          :class "window"
-          (render body))))
+;; (defun window (&key name body)
+;;   (html ()
+;;     (:div :id (string-downcase name)
+;;           :class "window"
+;;           (render body))))
 
 
