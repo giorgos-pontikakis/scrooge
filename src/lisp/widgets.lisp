@@ -5,12 +5,13 @@
 ;;; ------------------------------------------------------------
 ;;; Navigation bars
 ;;; ------------------------------------------------------------
-(defhtml generic-navbar (id page-specs active-page-name ul-style
+(defhtml generic-navbar (id ul-style
+                            page-specs active-page-name 
                             active-page-style inactive-page-style)
-  (:div :id id
+  (:div :id id 
         (:ul :class ul-style
              (let ((fn (html (class href label)
-                     (:li (:a :class class :href href (str label))))))
+                         (:li (:a :class class :href href (str label))))))
                (iter (for (page-name label) in page-specs)
                      (funcall fn
                               :class (if (eql page-name active-page-name)
@@ -29,17 +30,6 @@
           :id "navbar"
           :page-specs '((home "Αρχική")
                         (config "Ρυθμίσεις"))
-          :active-page-name active))
-
-(defun config-navbar (active)
-  (render (hnavbar)
-          :id "subnavbar"
-          :page-specs '((bank     "Τράπεζες")
-                        (tof	   "Δ.Ο.Υ.")
-                        (city	   "Πόλεις")
-                        (accounts "Λογαριασμοί")
-                        (temtx	   "Πρότυπες Συναλλαγές")
-                        (stran	   "Καταστατικές Μεταβολές"))
           :active-page-name active))
 
 (defmacro define-menu (name (&rest args) (&key id div-style ul-style)

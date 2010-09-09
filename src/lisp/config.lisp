@@ -3,6 +3,22 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 
+;;; Widgets
+
+(defun config-navbar (active)
+  (render (hnavbar)
+          :id "subnavbar"
+          :page-specs '((bank     "Τράπεζες")
+                        ;; (tof	   "Δ.Ο.Υ.")
+                        ;; (city	   "Πόλεις")
+                        ;; (accounts "Λογαριασμοί")
+                        ;; (temtx	   "Πρότυπες Συναλλαγές")
+                        ;; (stran	   "Καταστατικές Μεταβολές")
+                        )
+          :active-page-name active))
+
+
+
 ;;; Config main page
 
 (define-dynamic-page config () ("config/")

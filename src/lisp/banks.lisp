@@ -81,32 +81,50 @@
 
 
 
-;; ;;; ------------------------------------------------------------
-;; ;;; Bank - Snippets
-;; ;;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
+;;; Bank - Snippets
+;;; ------------------------------------------------------------
 
-;; (define-menu bank-menu (id) (:div-style "actions" :ul-style "hmenu")
-;;   (:view (with-html
-;; 	   (:li (:a :href (bank :id id)
-;; 		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
-;;   (:create (with-html
-;; 	     (:li (:a :href (bank/create)
-;; 		      (:img :src (url "img/add.png")) "Δημιουργία"))))
-;;   (:edit (if id
-;; 	     (with-html
-;; 	       (:li (:a :href (bank/update :id id)
-;; 			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-;; 	     nil))
-;;   (:delete (with-db
-;; 	     (let ((cheques-exist-p (and id
-;; 					 (query (:select 'id
-;; 							 :from 'cheque
-;; 							 :where (:= 'bank-id id))))))
-;; 	       (if (or (null id) cheques-exist-p)
-;; 		   nil
-;; 		   (with-html
-;; 		     (:li (:a :href (bank/delete :id id)
-;; 			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
+(defhtml generic-menu (id div-style ul-style item-specs enabled-items)
+  (:div :id id
+        :class div-style
+        (:ul :class ul-style
+             (iter (for (action-name href label &optional img-url) in item-specs)
+                   (when (and (member action-name enabled-items)
+                              (not (null href)))
+                     (htm (:li (:a :href href
+                                   (when img-url
+                                     (htm (:img :src img-url)))
+                                   (str label)))))))))
+
+(defun table-actions-menu ()
+  (generic-menu :div-style "actions"
+                :ul-style "hmenu"))
+
+(defun standard-actions-spec (view create update delete)
+  `((:view   ,view   "Προβολή"     "img/magnifier.png")
+    (:create ,create "Δημιουργία"  "img/add.png")
+    (:update ,update "Επεξεργασία" "img/pencil.png")
+    (:delete ,delete "Διαγραφή"    "img/delete.png")))
+
+(defun cheques-exist-p (id)
+  (with-db ()
+    (and id
+         (query (:select 'id
+                         :from 'cheque
+                         :where (:= 'bank-id id))))))
+
+(defun bank-menu (id enabled-items)
+  (funcall (table-actions-menu)
+           :item-specs (standard-actions-spec "foo" ; (bank :id id)
+                                              "bar" ; (bank/create)
+                                              "baz" ; (bank/update :id id)
+                                              (if (or (null id)
+                                                      (cheques-exist-p id))
+                                                  nil
+                                                  "quux"
+                                                  #|(bank/delete :id id)|#))
+           :enabled-items enabled-items))
 
 ;; (define-errorbar bank-errorbar (:ul-style "error") 
 ;;   (title "Αυτό το όνομα τράπεζας υπάρχει ήδη.")) 
@@ -117,11 +135,27 @@
 ;;; Bank - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank ((id integer (lambda (id)
-                                         (> id 0))))
+(define-dynamic-page bank ((id integer #'bank-id-exists-p))
     ("config/bank")
-  (no-cache)
-  (let ((id (id *page*)))))
+  (no-cache) 
+  (if (validp id)
+      (with-document ()
+        (:head
+         (:title "Τράπεζες")
+         (config-headers))
+        (:body
+         (:div :id "header"
+               (logo)
+               (primary-navbar 'config)
+               (config-navbar 'banks))
+         (:div :id "body"
+               (:div :class "message"
+                     (:h2 :class "info" "Κατάλογος τραπεζών"))
+               (:div :id "banks" :class "window" 
+                     (bank-menu (val id) '(:create)) 
+                     #|(banks-table :view (val filter) (val id) nil)|#)
+               (footer))))
+      (see-other (full-url 'notfound))))
 
 ;; (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
 ;;     ("config/bank/create") 

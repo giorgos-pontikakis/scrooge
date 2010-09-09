@@ -14,7 +14,7 @@
 	       (:file "snippets")
 	       (:file "root")
 	       (:file "config")
-               ;; (:file "banks")
+               (:file "banks")
                ;; (:file "tofs")
                ;; (:file "cities")
 	       ;; (:file "companies")
