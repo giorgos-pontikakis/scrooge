@@ -40,66 +40,46 @@
 
 
 
-;; ;;; ------------------------------------------------------------
-;; ;;; Bank - Actions
-;; ;;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
+;;; Bank - Actions
+;;; ------------------------------------------------------------
 
-;; (define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p)))
-;;     ("actions/bank/create" :request-type :post) 
-;;   (no-cache)
-;;   (with-parameter-list params 
-;;     (if (every #'validp params)
-;; 	(with-parameter-rebinding #'val
-;; 	  (with-db
-;; 	    (insert-dao (make-instance 'bank :title title))
-;; 	    (see-other (bank :id (bank-id title)))))
-;; 	(with-parameter-rebinding #'raw 
-;; 	  (see-other (bank/create :title title))))))
+(define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p)))
+    ("actions/bank/create" :request-type :post) 
+  (no-cache)
+  (let ((params (parameters *page*))) 
+    (if (every #'validp params)
+	(with-db ()
+          (insert-dao (make-instance 'bank :title (val title)))
+          (see-other (bank :id (bank-id (val title)))))
+	(see-other (bank/create :title (raw title))))))
 
-;; (define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
-;;                                           (title string  (complement #'bank-exists-p)))
-;;     ("actions/bank/update" :request-type :post)
-;;   (no-cache) 
-;;   (with-parameter-list params
-;;     (if (every #'validp params)
-;; 	(with-parameter-rebinding #'val
-;; 	  (with-db
-;; 	    (execute (:update 'bank :set 
-;; 			      'title title
-;; 			      :where (:= 'id id)))
-;; 	    (see-other (bank :id id))))
-;; 	(with-parameter-rebinding #'raw
-;; 	  (see-other (bank/update :id id :title title))))))
+(define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
+                                          (title string  (complement #'bank-exists-p)))
+    ("actions/bank/update" :request-type :post)
+  (no-cache) 
+  (let ((params (parameters *page*)))
+    (if (every #'validp params)
+	(with-db ()
+          (execute (:update 'bank :set 
+                            'title (val title)
+                            :where (:= 'id (val id))))
+          (see-other (bank :id (val id))))
+	(see-other (bank/update :id (raw id) :title (raw title))))))
 
-;; (define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p))
-;;     ("actions/bank/delete" :request-type :post)
-;;   (if (validp id)
-;;       (with-db
-;; 	(delete-dao (get-dao 'bank (val id)))
-;; 	(see-other (bank)))
-;;       (see-other (notfound))))
+(define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p))
+    ("actions/bank/delete" :request-type :post)
+  (if (validp id)
+      (with-db ()
+	(delete-dao (get-dao 'bank (val id)))
+	(see-other (bank)))
+      (see-other (notfound))))
 
 
 
 ;;; ------------------------------------------------------------
-;;; Bank - Snippets
+;;; Bank menus
 ;;; ------------------------------------------------------------
-
-(defhtml generic-menu (id div-style ul-style item-specs enabled-items)
-  (:div :id id
-        :class div-style
-        (:ul :class ul-style
-             (iter (for (action-name href label &optional img-url) in item-specs)
-                   (when (and (member action-name enabled-items)
-                              (not (null href)))
-                     (htm (:li (:a :href href
-                                   (when img-url
-                                     (htm (:img :src img-url)))
-                                   (str label)))))))))
-
-(defun table-actions-menu ()
-  (generic-menu :div-style "actions"
-                :ul-style "hmenu"))
 
 (defun standard-actions-spec (view create update delete)
   `((:view   ,view   "Προβολή"     "img/magnifier.png")
@@ -114,6 +94,10 @@
                          :from 'cheque
                          :where (:= 'bank-id id))))))
 
+(defun table-actions-menu ()
+  (generic-menu :div-style "actions"
+                :ul-style "hmenu"))
+
 (defun bank-menu (id enabled-items)
   (funcall (table-actions-menu)
            :item-specs (standard-actions-spec "foo" ; (bank :id id)
@@ -126,8 +110,93 @@
                                                   #|(bank/delete :id id)|#))
            :enabled-items enabled-items))
 
-;; (define-errorbar bank-errorbar (:ul-style "error") 
-;;   (title "Αυτό το όνομα τράπεζας υπάρχει ήδη.")) 
+(defun bank-errorbar (params)
+  (render (errorbar)
+          :params params
+          :messages '((title "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Bank table
+;;; ------------------------------------------------------------
+
+(defun mkfn-row-id (id-keys)
+  (lambda (row-data)
+    (plist-collect id-keys row-data)))
+
+(defun mkfn-row-payload (data-keys operation)
+  (lambda (row-data)
+    (ecase operation
+      ((:view :delete) (plist-collect data-keys row-data))
+      ((:create :update) (plist-union (params->plist (parameters *page*))
+                                      (plist-collect data-keys row-data))))))
+
+
+
+(defun mkfn-bank-row-controls-p (operation)
+  (mkfn-row-controls-p operation '(:create :update :delete)))
+
+(defun mkfn-bank-row-selected-p (operation id-keys) 
+  (mkfn-row-selected-p operation id-keys))
+
+(defun bank-selector-cell (id)
+  (selector-cell `((t   ,(bank))
+                   (nil ,(apply #'bank id)))))
+
+
+
+(defun bank-row (row-selected-p-fn row-controls-p-fn
+                 row-id-fn row-payload-fn
+                 cancel-url)
+  (html (row-data)
+    (let* ((id (funcall row-id-fn row-data))
+           (payload (funcall row-payload-fn row-data))
+           (row-selected-p (funcall row-selected-p-fn id))
+           (row-controls-p (funcall row-controls-p-fn id)))
+      (htm (:tr (funcall (bank-selector-cell id) row-selected-p)
+                
+                (plist-map (lambda (key value)
+                             (textbox-cell (symbolicate key)
+                                           value
+                                           nil)) ;; todo -- style missing
+                           payload)
+                (ok-cell row-controls-p)
+                (cancel-cell cancel-url row-controls-p))))))
+
+
+(defun bank-table (operation)
+  (let* ((id-keys '(:id))
+         (payload-keys '(:title))
+         (db-table (config-data 'bank)) 
+         (cancel-url (url "bank"))
+         (row-selected-p-fn (mkfn-bank-row-selected-p operation id-keys))
+         (row-controls-p-fn (mkfn-bank-row-controls-p operation))
+         (row-id-fn (mkfn-row-id id-keys))
+         (row-payload-fn (mkfn-row-payload payload-keys operation))
+         (row (bank-row row-selected-p-fn
+                        row-controls-p-fn
+                        row-id-fn
+                        row-payload-fn
+                        cancel-url)))
+    (html ()
+      (:table :class "forms-in-row table-half"
+              (when (eql operation :create)
+                (funcall row nil))
+              (iter (for db-row in db-table)
+                    (funcall row db-row))))))
+
+
+    
+;; (render (form (url (getf operation submit-urls))
+;;               (list :id (val id))
+;;               (body (html ()
+;;                       (:table :id 'banks
+;;                               :class "forms-in-row table-half"
+;;                               (when (eql operation :create)
+;;                                 (bank-row ni))
+;;                               (iter (for db-row in db-table)
+;;                                     (bank-row db-row cancel-url)))))))
 
 
 
@@ -151,11 +220,13 @@
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Κατάλογος τραπεζών"))
-               (:div :id "banks" :class "window" 
+               (:div :id "bank" :class "window" 
                      (bank-menu (val id) '(:create)) 
-                     #|(banks-table :view (val filter) (val id) nil)|#)
+                     (funcall (bank-table :view)))
                (footer))))
       (see-other (full-url 'notfound))))
+
+
 
 ;; (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
 ;;     ("config/bank/create") 

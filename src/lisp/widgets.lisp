@@ -5,20 +5,16 @@
 ;;; ------------------------------------------------------------
 ;;; Navigation bars
 ;;; ------------------------------------------------------------
-(defhtml generic-navbar (id ul-style
-                            page-specs active-page-name 
-                            active-page-style inactive-page-style)
-  (:div :id id 
-        (:ul :class ul-style
-             (let ((fn (html (class href label)
-                         (:li (:a :class class :href href (str label))))))
+(defun generic-navbar (&key ul-style active-page-style inactive-page-style)
+  (html (&key id page-specs active-page-name)
+    (:div :id id 
+          (:ul :class ul-style
                (iter (for (page-name label) in page-specs)
-                     (funcall fn
-                              :class (if (eql page-name active-page-name)
-                                         active-page-style
-                                         inactive-page-style)
-                              :href (full-url page-name)
-                              :label label))))))
+                     (htm (:li (:a :class  (if (eql page-name active-page-name)
+                                               active-page-style
+                                               inactive-page-style)
+                                   :href (full-url page-name)
+                                   (render label)))) )))))
 
 (defun hnavbar ()
   (generic-navbar :active-page-style "active"
@@ -32,34 +28,265 @@
                         (config "Ρυθμίσεις"))
           :active-page-name active))
 
-(defmacro define-menu (name (&rest args) (&key id div-style ul-style)
-		       &body body)
-  (with-gensyms (opt-list)
-    (let ((options (iter (for (key fn-body) in body)
-			 (collect key)
-			 (collect `(lambda ,args
-				     (declare (ignorable ,@args))
-				     ,fn-body)))))
-      `(defun ,name ,(append args `(&rest ,opt-list))
-	 (let ((fns (list ,@options)))
-	   (with-html
-	     (:div :id ,id :class ,div-style
-		   (:ul :class ,ul-style
-			(iter (for key in ,opt-list)
-			      (funcall (getf fns key) ,@args))))))))))
+
+(defun generic-menu (&key id div-style ul-style)
+  (html (&key item-specs enabled-items)
+    (:div :id id
+          :class div-style
+          (:ul :class ul-style 
+               (iter (for (action-name href label img-url) in item-specs) 
+                     (when (and (member action-name enabled-items)
+                                (not (null href)))
+                       (htm (:li (:a :href href
+                                     (when img-url
+                                       (htm (:img :src (url img-url))))
+                                     (str label))))))))))
+
+(defun generic-errorbar (&key id div-style ul-style)
+  (html (params messages)
+    (:div :id id :class div-style
+          (:ul :class ul-style
+               (iter (for par in params) 
+                     (unless (validp par)
+                       (htm (:li (or (second (find (name par) messages :key #'first))
+                                     (error "Parameter name ~A not found." (name par)))))))))))
+
+(defun errorbar ()
+  (generic-errorbar :div-style "message"))
 
 
-(defmacro define-errorbar (name (&key id div-style ul-style)
-			   &body body)
-  (let ((arglist (mapcar #'first body)))
-    `(defun ,name ,arglist
-       (unless (every #'validp (list ,@arglist))
-	 (with-html
-	   (:div :id ,id :class ,div-style
-		 (:ul :class ,ul-style 
-		      ,@(iter (for (arg msg) in body)
-                              (collect `(unless (validp ,arg)
-                                          (htm (:li ,msg))))))))))))
+
+;;; ------------------------------------------------------------
+;;; Forms
+;;; ------------------------------------------------------------
+
+(defun form (submit-page hidden body)
+  (let ((page (find-page submit-page)))
+    (with-html 
+      (:form :method (request-type page)
+             :action (full-url page)
+             (iter (for key in hidden by #'cddr)
+                   (for val in (rest hidden) by #'cddr)
+                   (htm
+                     (:input :type "hidden"
+                             :id (string-downcase key)
+                             :style "display: none;"
+                             :name (string-downcase key)
+                             :value (lisp->html val))))
+             (render body)))))
+
+(defun textbox (name &key id style readonlyp disabledp passwordp value)
+  (with-html 
+    (:input :id id
+            :class style
+            :type (if passwordp "password" "text")
+            :name (string-downcase name)
+            :value (lisp->html (or value :null))
+            :readonly readonlyp
+            :disabled disabledp)))
+
+(defun radio (name label-value-alist &key id style readonlyp disabledp checked)
+  (with-html 
+    (:ul :id (or id (string-downcase name))
+         :class style
+         (iter (for (label value) in label-value-alist) 
+               (htm (:li (:input :type "radio"
+                                 :name (string-downcase name)
+                                 :value (lisp->html value)
+                                 :checked (equal value checked)
+                                 :readonly readonlyp
+                                 :disabled disabledp)
+                         (render label)))))))
+
+(defun dropdown (name label-value-alist &key style readonlyp disabledp selected)
+  (with-html 
+    (:select :id (string-downcase name)
+             :class style
+             :name (string-downcase name)
+             :disabled disabledp
+             (iter (for (label value) in label-value-alist) 
+                   (htm (:option :value (lisp->html value)
+                                 :selected (equal value selected) 
+                                 :readonly readonlyp 
+                                 (render label)))))))
+
+(defun label (name text &key style)
+  (with-html
+    (:label :class style
+            :for (string-downcase name)
+            (render text))))
+
+(defun submit (label &key name value style disabledp)
+  (with-html
+    (:button :class style
+             :type "submit"
+             :name (if name (string-downcase name) nil)
+             :value (if value (lisp->html value) nil)
+             :disabled disabledp
+             (render label))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Table cells
+;;; ------------------------------------------------------------
+
+(defun textbox-cell (name value style)
+  (with-html
+    (:td (textbox name :style style :value value))))
+
+(defun selector-cell (states)
+  (html (state)
+    (:td (:a :href (second (assoc state states))
+             (:img :src (url (if (true state)
+                                 "img/bullet_red.png"
+                                 "img/bullet_blue.png")))))))
+
+(defun ok-cell (visiblep)
+  (if visiblep
+      (with-html
+        (:td (submit (html ()
+                       (:img :src "img/tick.png")))))
+      (with-html
+        (:td ""))))
+
+(defun cancel-cell (href visiblep)
+  (if visiblep
+      (with-html
+        (:td (:a :href href
+                 (:img :src (url "img/cancel.png")))))
+      (with-html
+        (:td ""))))
+
+
+;;; ------------------------------------------------------------
+;;; Table rows
+;;; ------------------------------------------------------------
+
+(defun mkfn-row-selected-p (operation id-keys)
+  (lambda (id)
+    (if (eql operation :create)
+        t
+        (every #'true
+               (mapcar #'(lambda (key) 
+                           (eql (find-parameter key)
+                                (find-datum id key)))
+                       id-keys)))))
+
+(defun mkfn-row-controls-p (operation operations)
+  (lambda (row-selected-p)
+    (and row-selected-p
+         (member operation operations))))
+
+;; (defun mkfn-row-id (id-names)
+;;   (lambda (row-data)
+;;     (mapcar #'(lambda (name)
+;;                 (find-datum row-data))
+;;             id-names)))
+
+(defun displayed-value (parameter datum)
+  (if (and (not (null parameter))
+           (suppliedp parameter)
+           (validp parameter))
+      (val parameter)
+      datum))
+
+;; (defun submit (&key label name value style disabledp)
+;;   (lambda ()
+;;     (with-html
+;;       (:button :class style
+;;                :type "submit"
+;;                :name (if name (string-downcase name) nil)
+;;                :value (if value (lisp->html value) nil)
+;;                :disabled disabledp
+;;                (render label)))))
+
+;; (defun cancel (&key href)
+;;   (lambda ()
+;;     (when href
+;;       (with-html
+;;         (:a :href href
+;;             (:img :src (url "img/cancel.png" )))))))
+
+
+;; (defmacro deffn (name args &body body)
+;;   `(defun ,name (&key ,@args)
+;;      (lambda (&key ,@(mapcar #'list args args))
+;;        ,@body)))
+
+
+;; (defmethod render ((cell cell-selector) &key)
+;;   (with-html 
+;;     (if (enabledp cell)
+;;         (htm (:a :href href-enabled
+;;                  (htm (:img :src (url "img/bullet_red.png")))))
+;;         (htm (:a :href href-disabled
+;;                  (htm (:img :src (url "img/bullet_blue.png"))))))))
+
+;; (defmethod selector-href ((row row-crud))
+;;   (let ((table (table row)))
+;;     (apply (main-page table)
+;;            (if barep
+;;                (filter-params table)
+;;                (append (id-data row) (filter-params table))))))
+
+;; (defmethod input-box-style ((row row-crud))
+;;   (let ((p (find (name cell) (params (table (row cell))) :key #'name)))
+;;     (if (or (null p) (validp p)) "" "attention")))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; (defmacro define-errorbar (name (&key id div-style ul-style)
+;; 			   &body body)
+;;   (let ((arglist (mapcar #'first body)))
+;;     `(defun ,name ,arglist
+;;        (unless (every #'validp (list ,@arglist))
+;; 	 (with-html
+;; 	   (:div :id ,id :class ,div-style
+;; 		 (:ul :class ,ul-style 
+;; 		      ,@(iter (for (arg msg) in body)
+;;                               (collect `(unless (validp ,arg)
+;;                                           (htm (:li ,msg))))))))))))
 
 
 ;;; Tables
@@ -67,10 +294,10 @@
 ;;   `(with-html
 ;;      (:table :id ,id :class ,style
 ;; 	     ,(when caption
-;; 		    `(:caption (str (lisp-to-html ,caption)))) 
+;; 		    `(:caption (str (lisp->html ,caption)))) 
 ;; 	     ,(when header
 ;; 		    `(:thead (:tr (iter (for label in ,header)
-;; 					(htm (:td (str (lisp-to-html label))))))))
+;; 					(htm (:td (str (lisp->html label))))))))
 ;; 	     ,(if body
 ;; 		  `(:tbody 
 ;; 		    ,@(iter (for row in body) 
@@ -80,7 +307,7 @@
 ;; 					       (if (and (listp datum) (keywordp (first datum)))
 ;; 						   (collect `(:td ,datum))
 ;; 						   (collect `(:td :class ,col
-;; 								  (str (lisp-to-html ,datum))))))))))
+;; 								  (str (lisp->html ,datum))))))))))
 ;; 		  `(:tbody (:tr (:td "No available data")))))))
 
 
@@ -112,31 +339,11 @@
 
 ;; (defmethod render ((value t) &key) 
 ;;   (with-html
-;;     (str (lisp-to-html value))))
+;;     (str (lisp->html value))))
 
 ;; (defmethod render ((list list) &key) 
 ;;   (mapc #'render list))
 
-
-
-;;; ------------------------------------------------------------
-;;; Forms
-;;; ------------------------------------------------------------
-
-(defhtml form (submit-page hidden body)
-  (let ((page (find-page submit-page)))
-    (with-html
-      (:form :method (request-type page)
-             :action (base-url page)
-             (iter (for key in hidden by #'cddr)
-                   (for val in (rest hidden) by #'cddr)
-                   (with-html
-                     (:input :type "hidden"
-                             :id (string-downcase key)
-                             :class "display-none"
-                             :name (string-downcase key)
-                             :value (lisp->html val))))
-             (funcall body)))))
 
 
 
@@ -480,7 +687,7 @@
 
 ;; (defmethod render ((cell cell) &key)
 ;;   (with-html
-;;     (str (lisp-to-html (value cell)))))
+;;     (str (lisp->html (value cell)))))
 
 
 
