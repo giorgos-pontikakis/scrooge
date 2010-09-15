@@ -26,9 +26,9 @@
 
 
 (defun true (x)
-  (eql x t))
+  (eq x t))
 
 (defun params->plist (parameters)
   (iter (for p in parameters)
-        (collect (make-keyword (name p)))
+        (collect (key p))
         (collect (val* p))))
