@@ -45,12 +45,13 @@
 (defun generic-errorbar (&key id div-style ul-style)
   (html (params messages)
     (unless (every #'validp params)
-      (:div :id id :class div-style
-            (:ul :class ul-style
-                 (iter (for par in params)
-                       (unless (validp par)
-                         (htm (:li (or (second (find (name par) messages :key #'first))
-                                       (error "Parameter name ~A not found." (name par))))))))))))
+      (htm
+       (:div :id id :class div-style
+             (:ul :class ul-style
+                  (iter (for par in params)
+                        (unless (validp par)
+                          (htm (:li (or (second (find (name par) messages :key #'first))
+                                        (error "Parameter name ~A not found." (name par)))))))))))))
 
 
 
@@ -62,7 +63,7 @@
   (let ((page (find-page submit-page)))
     (with-html
       (:form :method (request-type page)
-             :action (full-url page)
+             :action (concatenate 'string (webroot (webapp page)) (base-url page))
              (iter (for key in hidden by #'cddr)
                    (for val in (rest hidden) by #'cddr)
                    (htm
@@ -72,6 +73,13 @@
                              :name (string-downcase key)
                              :value (lisp->html val))))
              (render body)))))
+
+(defmacro with-form (url &body body)
+  (let ((page-name (first url))
+        (hidden (rest url))) 
+    `(form ',page-name (list ,@hidden)
+           ,@body)))
+
 
 (defun textbox (name &key id style readonlyp disabledp passwordp value)
   (with-html
@@ -126,8 +134,15 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Table cells
+;;; Table rows and cells
 ;;; ------------------------------------------------------------
+
+(defun thead (&rest args)
+  (with-html
+    (:thead
+     (:tr (mapc (lambda (item)
+                  (htm (:th (str item))))
+                args)))))
 
 (defun textbox-cell (name value style)
   (with-html
@@ -155,6 +170,7 @@
                  (:img :src (url "img/cancel.png")))))
       (with-html
         (:td ""))))
+
 
 
 ;;; ------------------------------------------------------------

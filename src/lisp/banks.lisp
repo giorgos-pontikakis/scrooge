@@ -2,9 +2,9 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-;; ;;; ------------------------------------------------------------
-;; ;;; Bank - Definitions
-;; ;;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
+;;; Bank - Definitions
+;;; ------------------------------------------------------------
 
 ;; (defclass bank-table (table-normal-crud)
 ;;   ((name :initform "bank-table")
@@ -110,7 +110,7 @@
            :enabled-items enabled-items))
 
 (defun bank-errorbar (params)
-  (render (generic-errorbar)
+  (funcall (generic-errorbar)
            params
            '((title "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))
 
@@ -173,22 +173,12 @@
                         cancel-url)))
     (html ()
       (:table :class "forms-in-row table-half"
-              (when (eql op :create)
-                (funcall row nil))
-              (iter (for db-row in db-table)
-                    (funcall row db-row))))))
-
-
-
-;; (render (form (url (getf op submit-urls))
-;;               (list :id (val id))
-;;               (body (html ()
-;;                       (:table :id 'banks
-;;                               :class "forms-in-row table-half"
-;;                               (when (eql op :create)
-;;                                 (bank-row ni))
-;;                               (iter (for db-row in db-table)
-;;                                     (bank-row db-row cancel-url)))))))
+              (thead "" "Ονομασία Τράπεζας" "" "")
+              (:tbody
+               (when (eql op :create)
+                 (funcall row nil))
+               (iter (for db-row in db-table)
+                     (funcall row db-row)))))))
 
 
 
@@ -196,27 +186,33 @@
 ;;; Bank - Pages
 ;;; ------------------------------------------------------------
 
+(defun config-header (config-choice)
+  (with-html
+    (:div :id "header"
+          (logo)
+          (primary-navbar 'config)
+          (config-navbar config-choice))))
+
 (define-dynamic-page bank ((id integer #'bank-id-exists-p))
     ("config/bank")
   (no-cache)
-  (if (validp id)
+  (if (validp id) 
       (with-document ()
         (:head
          (:title "Τράπεζες")
          (config-headers))
         (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'banks))
+         (config-header 'banks)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Κατάλογος τραπεζών"))
                (:div :id "bank" :class "window"
-                     (bank-menu (val id) (if (val id) '(:create :update :delete) '(:create)))
-                     (funcall (bank-table :view id)))
+                     (bank-menu (val id) (if (val id)
+                                             '(:create :update :delete)
+                                             '(:create)))
+                     (render (bank-table :view id)))
                (footer))))
-      (see-other (full-url 'notfound))))
+      (see-other (notfound))))
 
 (define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
     ("config/bank/create")
@@ -226,40 +222,36 @@
      (:title "Δημιουργία τράπεζας")
      (config-headers))
     (:body
-     (:div :id "header"
-           (logo)
-           (primary-navbar 'config)
-           (config-navbar 'banks))
+     (config-header 'banks)
      (:div :id "body"
            (:div :class "message"
                  (:h2 :class "info" "Δημιουργία τράπεζας")
                  (bank-errorbar (list title)))
            (:div :id "bank" :class "window"
                  (bank-menu nil '(:view))
-                 (funcall (bank-table :create nil)))
+                 (with-form (actions/bank/create :title title)
+                   (bank-table :create nil)))
            (footer)))))
 
 (define-dynamic-page bank/update ((id    integer #'bank-id-exists-p)
                                   (title string  (complement #'bank-exists-p)))
     ("config/bank/update")
-  (no-cache)
+  (no-cache) 
   (if (validp id)
       (with-document ()
         (:head
          (:title "Επεξεργασία τράπεζας")
          (config-headers))
         (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'banks))
+         (config-header 'banks)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Επεξεργασία τράπεζας")
                      (bank-errorbar (list title)))
                (:div :id "bank" :class "window"
                      (bank-menu (val id) '(:view :delete))
-                     (funcall (bank-table :update id)))
+                     (with-form (actions/bank/update :id (val id))
+                       (bank-table :update id)))
                (footer))))
       (see-other (notfound))))
 
@@ -272,15 +264,13 @@
          (:title "Διαγραφή τράπεζας")
          (config-headers))
         (:body
-         (:div :id "header"
-               (logo)
-               (primary-navbar 'config)
-               (config-navbar 'banks))
+         (config-header 'banks)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Διαγραφή τράπεζας"))
                (:div :id "bank" :class "window"
                      (bank-menu (val id) '(:view :update))
-                     (funcall (bank-table :delete id)))
+                     (with-form (actions/bank/delete :id (val id))
+                       (bank-table :delete id)))
                (footer))))
       (see-other (notfound))))
