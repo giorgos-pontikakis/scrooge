@@ -4,7 +4,7 @@
 ;;; --- Actions --------------------
 
 (define-dynamic-page verify-login (username scrooge-password) ("verify-login" :request-type :post) 
-  (with-db
+  (with-db ()
     (let ((user (select-dao-unique 'webuser (:= 'username username))))
       (if (or (null user)
 	      (string/= scrooge-password (password user)))

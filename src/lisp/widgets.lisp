@@ -39,7 +39,7 @@
                                 (not (null href)))
                        (htm (:li (:a :href href
                                      (when img-url
-                                       (htm (:img :src (url img-url))))
+                                       (img img-url))
                                      (str label))))))))))
 
 (defun generic-errorbar (&key id div-style ul-style)
@@ -151,15 +151,15 @@
 (defun selector-cell (states)
   (html (state)
     (:td (:a :href (second (assoc state states))
-             (:img :src (url (if (true state)
-                                 "img/bullet_red.png"
-                                 "img/bullet_blue.png")))))))
+             (img (if (true state)
+                      "bullet_red.png"
+                      "bullet_blue.png"))))))
 
 (defun ok-cell (visiblep)
   (if visiblep
       (with-html
         (:td (submit (html ()
-                       (:img :src (url "img/tick.png"))))))
+                       (img "tick.png")))))
       (with-html
         (:td ""))))
 
@@ -167,7 +167,7 @@
   (if visiblep
       (with-html
         (:td (:a :href href
-                 (:img :src (url "img/cancel.png")))))
+                 (img "cancel.png"))))
       (with-html
         (:td ""))))
 

@@ -54,7 +54,7 @@
 
 (defun account-data-fn (debit-p)
   (lambda ()
-    (with-db
+    (with-db ()
       (query (:select 'id 'title 'parent-id :from 'account
                       :where (:and (:= 'debit-p debit-p)
                                    (:is-null 'parent-id)))
@@ -63,7 +63,7 @@
 
 (defun account-children-data (&key id)
   (when id ;; the row for 'create' may have id = NIL, thus this check
-    (with-db
+    (with-db ()
       (query (:select 'id 'title 'parent-id :from 'account
                       :where (:= 'parent-id id))
              :plists))))
@@ -84,7 +84,7 @@
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
           (let ((debit-p (if parent-id (debit-p parent-id) debp)))
-            (with-db 
+            (with-db ()
               (insert-dao (make-instance 'account
                                          :title title
                                          :parent-id (or parent-id :null)
@@ -105,7 +105,7 @@
   (with-parameter-list params 
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (execute (:update 'account :set
 			      :title title
 			      :where (:= 'id id)))
@@ -120,7 +120,7 @@
     ("actions/account/delete" :request-type :post)
   (no-cache)
   (if (validp id)
-      (with-db
+      (with-db ()
 	(delete-dao (get-dao 'account (val id))) 
 	(see-other (accounts)))
       (see-other (notfound))))
@@ -154,12 +154,12 @@
 	       nil)))
 
 (defun get-subaccounts (acc-id)
-  (with-db
+  (with-db ()
     (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
 	   :single)))
 
 (defun get-transactions (acc-id)
-  (with-db
+  (with-db ()
     (query (:select 'id
                     :from 'tx
                     :where (:or (:= 'debit-acc-id acc-id)

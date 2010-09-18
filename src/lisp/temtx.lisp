@@ -18,7 +18,7 @@
 	(with-parameter-rebinding #'val
 	  (let ((debit-acc-id (account-id debit-acc))
 		(credit-acc-id (account-id credit-acc)))
-	    (with-db
+	    (with-db ()
 	      (insert-dao (make-instance 'temtx
 					 :description description
 					 :debit-acc-id debit-acc-id
@@ -33,7 +33,7 @@
     ("actions/temtx/delete" :request-type :post)
   (no-cache)
   (if (validp temtx-id)
-      (with-db
+      (with-db ()
 	(delete-dao (get-dao 'temtx (val temtx-id)))
 	(see-other (temtx)))
       (see-other (notfound))))
@@ -49,7 +49,7 @@
 	(with-parameter-rebinding #'val
 	  (let ((debit-acc-id (account-id debit-acc))
 		(credit-acc-id (account-id credit-acc)))
-	    (with-db
+	    (with-db ()
 	      (execute (:update 'temtx :set
 				'description description
 				'debit-acc-id debit-acc-id
@@ -105,7 +105,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Πρότυπες συναλλαγές")
-	   (css-standard-headers))
+	   (head-css-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -128,8 +128,8 @@
     (with-page ()
       (:head
        (:title "Πρότυπες συναλλαγές: Δημιουργία")
-       (css-standard-headers)
-       (js-standard-headers))
+       (head-css-std)
+       (head-js-std))
       (:body
        (:div :id "header"
 	     (logo)
@@ -154,8 +154,8 @@
 	(with-page ()
 	  (:head
 	   (:title "Πρότυπες συναλλαγές: Επεξεργασία")
-	   (css-standard-headers)
-	   (js-standard-headers))
+	   (head-css-std)
+	   (head-js-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -178,7 +178,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Πρότυπες συναλλαγές: Διαγραφή")
-	   (css-standard-headers))
+	   (head-css-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -247,7 +247,7 @@
 		    (:td :class "data" (str (lisp-to-html credit-acc))) 
 		    (:td :class "button" (ok-button))
 		    (:td :class "button" (cancel-button (temtx :temtx-id id))))))))
-    (with-db
+    (with-db ()
       (let ((auto-txs (query (:select 'temtx.id 'description
 				      'debit-account.title 'credit-account.title 
 				      :from 'temtx

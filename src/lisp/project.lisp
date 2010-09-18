@@ -15,7 +15,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (let ((company-id (company-id company)))
 	      (insert-dao
 	       (make-instance 'project
@@ -42,7 +42,7 @@
     ("actions/project/delete" :request-type :post)
   (no-cache)
   (if (validp id)
-      (with-db
+      (with-db ()
 	(delete-dao (get-dao 'project (val id)))
 	(see-other (projects)))
       (see-other (project/notfound))))
@@ -61,7 +61,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (let ((company-id (company-id company)))
 	      (execute (:update 'project :set
 				'company-id company-id 
@@ -94,7 +94,7 @@
   (finished (projects) "Ολοκληρώθηκε"))
 
 (defun project-defaults (id)
-  (with-db 
+  (with-db ()
     (query (:select 'description 'location 'price 'start-date 'end-date 'status 'vat 
 		    :from 'project
 		    :left-join 'company
@@ -110,7 +110,7 @@
   (vat        "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν"))
 
 (defun projects-table (active-id)
-  (with-db
+  (with-db ()
     (let ((projects (query (:select 'id 'title 'location 'price 'status
 				    :from 'project)))
 	  (header '("" "Περιγραφή" "Τοποθεσία" "Τιμή" "Κατάσταση")))
@@ -248,7 +248,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Έργα")
-	   (css-standard-headers))
+	   (head-css-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -277,8 +277,8 @@
     (with-page ()
       (:head
        (:title "Εισαγωγή έργου")
-       (css-standard-headers)
-       (js-standard-headers))
+       (head-css-std)
+       (head-js-std))
       (:body
        (:div :id "header"
 	     (logo)
@@ -303,7 +303,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Έργο: " (str (getf defaults 'title)))
-	   (css-standard-headers))
+	   (head-css-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -331,8 +331,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Επεξεργασία έργρου: " (str (getf defaults 'project)))
-	     (css-standard-headers)
-	     (js-standard-headers))
+	     (head-css-std)
+	     (head-js-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -353,7 +353,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Διαγραφή έργου:" (str (getf defaults 'title)))
-	     (css-standard-headers))
+	     (head-css-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -370,7 +370,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστο έργο")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)

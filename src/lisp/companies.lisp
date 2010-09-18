@@ -7,7 +7,7 @@
 ;;; Database utilities
 
 (defun company-defaults (id)
-  (with-db 
+  (with-db ()
     (query (:select 'company.title 'occupation 'tof.title 'tin
 		    'address 'city 'zipcode 'pobox
 		    :from 'company
@@ -49,7 +49,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (let ((tof-id (tof-id tof)))
 	      (insert-dao
 	       (make-instance 'company
@@ -76,7 +76,7 @@
     ("actions/company/delete" :request-type :post)
   (no-cache)
   (if (validp id)
-      (with-db
+      (with-db ()
 	(delete-dao (get-dao 'company (val id)))
 	(see-other (companies)))
       (see-other (company/notfound))))
@@ -95,7 +95,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (let ((tof-id (tof-id tof)))
 	      (execute (:update 'company :set
 				'title title
@@ -123,7 +123,7 @@
 ;;; Snippets
 
 (defun companies-table (active-id)
-  (with-db
+  (with-db ()
     (let ((companies (query (:select 'company.id 'company.title 'company.tin 'tof.title
 				     :from 'company
 				     :left-join 'tof
@@ -163,7 +163,7 @@
 	       (:li (:a :href (company/update :id id)
 			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
 	     nil))
-  (:delete (with-db
+  (:delete (with-db ()
 	     (let ((tx-exist-p (and id
 				    (query (:select 'id
 						    :from 'tx
@@ -283,7 +283,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Εταιρίες")
-	   (css-standard-headers))
+	   (head-css-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -312,8 +312,8 @@
     (with-page ()
       (:head
        (:title "Εισαγωγή εταιρίας")
-       (css-standard-headers)
-       (js-standard-headers))
+       (head-css-std)
+       (head-js-std))
       (:body
        (:div :id "header"
 	     (logo)
@@ -339,7 +339,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Εταιρία: " (str (getf defaults 'title)))
-	   (css-standard-headers))
+	   (head-css-std))
 	  (:body
 	   (:div :id "header"
 		 (logo)
@@ -368,8 +368,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Επεξεργασία εταιρίας: " (str (getf defaults 'title)))
-	     (css-standard-headers)
-	     (js-standard-headers))
+	     (head-css-std)
+	     (head-js-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -393,7 +393,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Διαγραφή εταιρίας:" (str (getf defaults 'title)))
-	     (css-standard-headers))
+	     (head-css-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -413,7 +413,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Εταιρία: " (str (getf defaults 'title)))
-	     (css-standard-headers))
+	     (head-css-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -435,7 +435,7 @@
 	    (with-page ()
 	      (:head
 	       (:title "Εταιρία: " (str (getf defaults 'title)))
-	       (css-standard-headers))
+	       (head-css-std))
 	      (:body
 	       (:div :id "header"
 		     (logo)
@@ -453,7 +453,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη εταιρία")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)
@@ -477,7 +477,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (insert-dao (make-instance 'contact
 				       :company-id company-id
 				       :tag tag
@@ -490,7 +490,7 @@
     ("actions/contact/delete" :request-type :post)
   (if (validp contact-id)
       (with-parameter-rebinding #'val
-	(with-db
+	(with-db ()
 	  (let ((dao (get-dao 'contact contact-id)))
 	    (delete-dao dao)
 	    (redirect (company/view :id (company-id dao))))))
@@ -503,7 +503,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db 
+	  (with-db ()
 	    (let ((dao (get-dao 'contact contact-id)))
 	      (setf (tag dao) tag)
 	      (setf (phone dao) phone)
@@ -603,7 +603,7 @@
 		       (cancel-button (company/view :id company-id
 						    :contact-id contact-id)))))))
     (let ((header '("" "Περιγραφή" "Αριθμός" "" ""))
-	  (contacts (with-db
+	  (contacts (with-db ()
 		      (query (:select 'id 'tag 'phone
 				      :from 'contact
 				      :where (:= 'company-id company-id))))))
@@ -643,7 +643,7 @@
 	  (with-page ()
 	    (:head
 	     (:title "Εταιρία: Δημιουργία επαφής")
-	     (css-standard-headers))
+	     (head-css-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -659,7 +659,7 @@
   (no-cache)
   (if (validp contact-id)
       (with-parameter-rebinding #'val
-	(with-db
+	(with-db ()
 	  (let* ((company-id (query (:select 'company-id
 					     :from 'contact
 					     :where (:= 'id contact-id))
@@ -668,7 +668,7 @@
 	    (with-page ()
 	      (:head
 	       (:title "Εταιρία: Επεξεργασία επαφής")
-	       (css-standard-headers))
+	       (head-css-std))
 	      (:body
 	       (:div :id "header"
 		     (logo)
@@ -684,7 +684,7 @@
   (no-cache)
   (if (validp contact-id)
       (with-parameter-rebinding #'val
-	(with-db 
+	(with-db ()
 	 (let* ((company-id (query (:select 'company-id
 					    :from 'contact
 					    :where (:= 'id contact-id))
@@ -693,7 +693,7 @@
 	   (with-page ()
 	     (:head
 	      (:title "Εταιρία: Διαγραφή επαφής")
-	      (css-standard-headers))
+	      (head-css-std))
 	     (:body
 	      (:div :id "header"
 		    (logo)

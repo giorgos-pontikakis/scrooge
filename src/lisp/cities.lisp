@@ -46,7 +46,7 @@
   (with-parameter-list params 
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (insert-dao (make-instance 'city :title title))
 	    (see-other (city :id (city-id title)))))
 	(with-parameter-rebinding #'raw 
@@ -59,7 +59,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (execute (:update 'city :set 
 			      'title title
 			      :where (:= 'id id)))
@@ -70,7 +70,7 @@
 (define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p))
     ("actions/city/delete" :request-type :post)
   (if (validp id)
-      (with-db
+      (with-db ()
 	(delete-dao (get-dao 'city (val id)))
 	(see-other (city)))
       (see-other (notfound))))
@@ -93,7 +93,7 @@
 	       (:li (:a :href (city/update :id id)
 			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
 	     nil))
-  (:delete (with-db
+  (:delete (with-db ()
 	     (if id
                  (with-html
                    (:li (:a :href (city/delete :id id)

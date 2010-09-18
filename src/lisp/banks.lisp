@@ -82,10 +82,10 @@
 ;;; ------------------------------------------------------------
 
 (defun standard-actions-spec (view create update delete)
-  `((:view   ,view   "Προβολή"     "img/magnifier.png")
-    (:create ,create "Δημιουργία"  "img/add.png")
-    (:update ,update "Επεξεργασία" "img/pencil.png")
-    (:delete ,delete "Διαγραφή"    "img/delete.png")))
+  `((:view   ,view   "Προβολή"     "magnifier.png")
+    (:create ,create "Δημιουργία"  "add.png")
+    (:update ,update "Επεξεργασία" "pencil.png")
+    (:delete ,delete "Διαγραφή"    "delete.png")))
 
 (defun cheques-exist-p (id)
   (with-db ()
@@ -141,8 +141,8 @@
            (row-selected-p (funcall row-selected-p-fn id))
            (row-controls-p (funcall row-controls-p-fn row-selected-p))
            (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
-      (htm (:tr (funcall (bank-selector-cell id) row-selected-p)
-
+      (htm (:tr :class (if row-selected-p "active" nil)
+                (funcall (bank-selector-cell id) row-selected-p) 
                 (plist-map (lambda (key value)
                              (if row-readonly-p
                                  (htm (:td (str value)))
@@ -172,7 +172,7 @@
                         row-readonly-p-fn
                         cancel-url)))
     (html ()
-      (:table :class "forms-in-row table-half"
+      (:table :class "table-half forms-in-row"
               (thead "" "Ονομασία Τράπεζας" "" "")
               (:tbody
                (when (eql op :create)
@@ -200,7 +200,7 @@
       (with-document ()
         (:head
          (:title "Τράπεζες")
-         (config-headers))
+         (head-config))
         (:body
          (config-header 'banks)
          (:div :id "body"
@@ -220,7 +220,7 @@
   (with-document ()
     (:head
      (:title "Δημιουργία τράπεζας")
-     (config-headers))
+     (head-config))
     (:body
      (config-header 'banks)
      (:div :id "body"
@@ -241,7 +241,7 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία τράπεζας")
-         (config-headers))
+         (head-config))
         (:body
          (config-header 'banks)
          (:div :id "body"
@@ -262,7 +262,7 @@
       (with-document ()
         (:head
          (:title "Διαγραφή τράπεζας")
-         (config-headers))
+         (head-config))
         (:body
          (config-header 'banks)
          (:div :id "body"

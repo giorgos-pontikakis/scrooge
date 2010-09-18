@@ -45,7 +45,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (insert-dao (make-instance 'tof :title title))
 	    (see-other (tof :id (tof-id title)))))
 	(with-parameter-rebinding #'raw
@@ -58,7 +58,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db
+	  (with-db ()
 	    (execute (:update 'tof :set 
 			      'title title
 			      :where (:= 'id id)))
@@ -69,7 +69,7 @@
 (define-dynamic-page actions/tof/delete ((id integer #'tof-id-exists-p))
     ("actions/tof/delete" :request-type :post)
   (if (validp id)
-      (with-db
+      (with-db ()
 	(delete-dao (get-dao 'tof (val id)))
 	(see-other (tof)))
       (see-other (notfound))))
@@ -91,7 +91,7 @@
 	       (:li (:a :href (tof/update :id id)
 			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
 	     nil))
-  (:delete (with-db
+  (:delete (with-db ()
 	     (let ((cheques-exist-p (and id
 					 (query (:select 'id
 							 :from 'company

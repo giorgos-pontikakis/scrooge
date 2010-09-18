@@ -26,7 +26,7 @@
   (with-document ()
     (:head
      (:title "Ρυθμίσεις")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)
@@ -44,7 +44,7 @@
 ;;   (with-page ()
 ;;     (:head
 ;;      (:title title)
-;;      (config-headers))
+;;      (head-config))
 ;;     (:body
 ;;      (:div :id "header"
 ;;            (logo)
@@ -102,7 +102,7 @@
 ;;   (with-page ()
 ;;     (:head
 ;;      (:title title)
-;;      (config-headers))
+;;      (head-config))
 ;;     (:body
 ;;      (:div :id "header"
 ;;            (logo)

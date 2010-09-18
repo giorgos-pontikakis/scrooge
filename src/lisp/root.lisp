@@ -9,7 +9,7 @@
   (with-document ()
     (:head
      (:title "Αρχική")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)
@@ -24,7 +24,7 @@
 ;; 				   (column symbol)
 ;; 				   (term string))
 ;;     ("autocomplete" :content-type "text/plain")
-;;   (with-db
+;;   (with-db ()
 ;;     (with-parameter-rebinding #'val
 ;;       (let ((results (query (:select column :from table
 ;; 				     :where (:like column (concatenate 'string
@@ -46,7 +46,7 @@
   (with-document ()
     (:head
      (:title "Άγνωστη σελίδα")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)
@@ -61,7 +61,7 @@
   (with-document ()
     (:head
      (:title "Generic error page")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo))
@@ -76,7 +76,7 @@
 ;;   (with-page ()
 ;;     (:head
 ;;      (:title "No fsm data")
-;;      (css-standard-headers))
+;;      (head-css-std))
 ;;     (:body
 ;;      (:div :id "header"
 ;; 	   (logo)
@@ -98,7 +98,7 @@
 ;;   (no-cache)
 ;;   (with-parameter-rebinding #'val
 ;;     (with-html-output (*standard-output* nil :indent nil :prologue nil) 
-;;       (with-db
+;;       (with-db ()
 ;;         (let* ((pattern (concatenate 'string
 ;;                                      "%"
 ;;                                      (if (or (null sSearch) (eq :null sSearch))
@@ -129,7 +129,7 @@
 ;;                    search
 ;;                    escape-regex
 ;;                    echo) 
-;;   (with-db
+;;   (with-db ()
 ;;     (let* ((pattern (concatenate 'string "%" search "%"))
 ;;            (table-len (query (:select (:count 'id) :from 'bank) :single))
 ;;            (results (query (:select 'id 'title

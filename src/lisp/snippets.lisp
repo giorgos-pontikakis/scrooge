@@ -2,6 +2,8 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
+
+
 ;;; Static References
 
 (defun css (path)
@@ -12,42 +14,43 @@
 
 (defun img (path)
   (with-html
-    (:img :src (url "img" path))))
+    (:img :src (url "img/" path))))
 
 (defun lib (path)
   (with-html (:script :type "application/javascript"
                       :src (url "lib" path))))
 
-;;; HTML Headers
-(defun js-standard-headers ()
+
+
+;;; HTML Head
+
+(defun head-js-std ()
   (mapc #'js '("lib/jquery/jquery-1.4.2.min.js"
                "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js" 
                "js/main.js")))
 
 
-(defun css-standard-headers ()
+(defun head-css-std ()
   (mapc #'css '("css/reset.css"
                 "css/main.css"
                 "lib/jquery-ui/css/smoothness/jquery-ui-1.8.2.custom.css")))
 
-(defun data-tables-headers ()
-  (js "lib/dataTables-1.6/media/js/jquery.dataTables.min.js")
-  (css "css/table.css"))
+(defun head-config () 
+  (head-css-std)
+  (css '"css/table.css")
+  (head-js-std))
 
-(defun config-headers ()
-  (css-standard-headers)
-  (js-standard-headers)
-  (data-tables-headers))
+
 
 ;;; User interface elements
 
 (defun ok-button ()
   (with-html
-    (:button :type "submit" (:img :src (url "img/tick.png")))))
+    (:button :type "submit" (img "tick.png"))))
 
 (defun cancel-button (href)
   (with-html
-    (:a :href href (:img :src (url "img/cancel.png")))))
+    (:a :href href (img "cancel.png"))))
 
 (defun logo ()
   (with-html

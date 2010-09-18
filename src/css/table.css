@@ -7,12 +7,25 @@
     clear: both;
 }
 
-.table-half .data {
+/* Selector and buttons*/
+.table-half td:nth-child(1), 
+.table-half td:nth-child(3) button, 
+.table-half td:nth-child(4) {
+    width: 30px;
+    padding: 0px;
+}
+.table-half td:nth-child(1) a , .table-half td:nth-child(4) {
+    margin: 0px 7px;
+}
+
+/* Data column */
+.table-half td:nth-child(2) {
     width: 340px;
 }
-.table-half .data input {
+.table-half td:nth-child(2) input {
     width: 330px;
 }
+
 
 
 /* ------------------------------------------------------------ */
@@ -86,11 +99,3 @@
     padding: 0px;
 }
 
-.forms-in-row .select {
-    width: 30px;
-    padding: 0px;
-}
-
-.forms-in-row .select a {
-    margin: 0px 7px;
-}

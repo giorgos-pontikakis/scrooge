@@ -46,7 +46,7 @@
   (lambda (row)
     (destructuring-bind (&key cheque-id bank due-date company amount status) row
       (declare (ignore cheque-id))
-      (with-db
+      (with-db ()
         (let ((pairs (query (:select 'description 'status :from 'cheque-status))))
           (list (make-cell-selector :row row
                                     :name :id
@@ -88,7 +88,7 @@
 
 (defun cheque-data-fn ()
   (lambda (&key payable-p)
-    (with-db
+    (with-db ()
       (query (:select 'cheque.id 'bank.title 'company.title
                       'cheque.amount 'cheque.due-date
                       'company-id 'cheque.status
@@ -113,25 +113,25 @@
 (define-menu cheque-menu (cheque-id payable-p) ()
   (:create (with-html
 	     (:li (:a :href (cheque/create :payable-p payable-p)
-		      (:img :src (url "img/add.png")) "Δημιουργία")))) 
+		      (img "img/add.png") "Δημιουργία")))) 
   (:paid (with-html
 	   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
-		    (:img :src (url "img/magnifier.png")) "Πληρωμή"))))
+		    (img "img/magnifier.png") "Πληρωμή"))))
   (:bounced (with-html
 	      (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
-		       (:img :src (url "img/magnifier.png")) "Σφράγισμα"))))
+		       (img "img/magnifier.png") "Σφράγισμα"))))
   (:returned (with-html
 	       (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
-			(:img :src (url "img/magnifier.png")) "Επιστροφή"))))
+			(img "img/magnifier.png") "Επιστροφή"))))
   (:view (with-html
 	   (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
+		    (img "img/magnifier.png") "Προβολή"))))
   (:update (with-html
 	     (:li (:a :href (cheque/update :cheque-id cheque-id)
-		      (:img :src (url "img/pencil.png")) "Επεξεργασία")))) 
+		      (img "img/pencil.png") "Επεξεργασία")))) 
   (:delete (with-html
 	     (:li (:a :href (cheque/delete :cheque-id cheque-id)
-		      (:img :src (url "img/delete.png")) "Διαγραφή")))))
+		      (img "img/delete.png") "Διαγραφή")))))
 
 (define-errorbar cheque-errorbar (:ul-style "error")
   (bank "Άκυρο όνομα τράπεζας")
@@ -140,16 +140,16 @@
   (due-date "Άκυρη ημερομηνία"))
 
 (defun cheque-statuses ()
-  (with-db
+  (with-db ()
     (query (:select 'description 'status :from 'cheque-status))))
 
 (defun cheque-payable-p (cheque-id)
-  (with-db
+  (with-db ()
     (query (:select 'payable-p :from 'cheque :where (:= 'id cheque-id)) :single)))
 
 (defun next-statuses (cheque-id)
   (if cheque-id
-      (with-db
+      (with-db ()
 	(mapcar (compose #'make-keyword #'string-upcase)
 		(query (:select 'new-status
 				:from 'cheque-stran
@@ -178,7 +178,7 @@
   (with-parameter-list params
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val 
-	  (with-db 
+	  (with-db ()
 	    (let* ((status "pending") ;; default status for new cheques
 		   (bank-id (bank-id bank))
 		   (company-id (company-id company))
@@ -222,7 +222,7 @@
   (no-cache)
   (if (validp cheque-id)
       (with-parameter-rebinding #'val
-	(with-db
+	(with-db ()
 	  (with-transaction ()
 	    ;; First update /all/ transactions that have originated
 	    ;; from the cheque with this particular cheque-id
@@ -243,7 +243,7 @@
   (with-parameter-list params 
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val
-	  (with-db 
+	  (with-db ()
 	    (let* ((bank-id (bank-id bank))
 		   (company-id (company-id company)))
 	      (with-transaction ()
@@ -276,7 +276,7 @@
   (with-parameter-list params 
     (if (every #'validp params) 
 	(with-parameter-rebinding #'val
-	  (with-db 
+	  (with-db ()
 	    (bind (((old-status company-id amount) (query (:select 'status 'company-id 'amount
 								   :from 'cheque
 								   :where (:= 'id cheque-id))
@@ -319,7 +319,7 @@
 (define-dynamic-page cheques ((cheque-id integer #'valid-cheque-id-p)
 			      (payable-p boolean))
     ("cheques" :validators (((cheque-id payable-p) ((lambda (cheque-id payable-p)
-                                                      (with-db
+                                                      (with-db ()
                                                         (eql (payable-p
                                                               (get-dao 'cheque cheque-id))
                                                              payable-p)))
@@ -332,7 +332,7 @@
           (with-page () 
             (:head
              (:title "Επιταγές")
-             (config-headers))
+             (head-config))
             (:body
              (:div :id "header"
                    (logo)
@@ -360,7 +360,7 @@
     (with-page ()
       (:head
        (:title "Επιταγές")
-       (config-headers))
+       (head-config))
       (:body
        (:div :id "header"
 	     (logo)
@@ -389,8 +389,8 @@
 	  (with-page ()
 	    (:head
 	     (:title "Επιταγές")
-	     (css-standard-headers)
-	     (js-standard-headers))
+	     (head-css-std)
+	     (head-js-std))
 	    (:body
 	     (:div :id "header"
 		   (logo)
@@ -417,7 +417,7 @@
           (with-page ()
             (:head
              (:title "Επιταγές")
-             (css-standard-headers))
+             (head-css-std))
             (:body
              (:div :id "header"
                    (logo)
@@ -442,7 +442,7 @@
           (with-page ()
             (:head
              (:title "Επιταγές")
-             (css-standard-headers))
+             (head-css-std))
             (:body
              (:div :id "header"
                    (logo)
@@ -465,7 +465,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη εταιρία")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)
@@ -481,7 +481,7 @@
   (with-page ()
     (:head
      (:title "Άγνωστη σελίδα")
-     (css-standard-headers))
+     (head-css-std))
     (:body
      (:div :id "header"
 	   (logo)

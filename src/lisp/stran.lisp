@@ -117,7 +117,7 @@
                        :left-join (:as 'account 'credit-account)
                        :on (:= 'credit-account.id
                                ,(symbolicate table '-stran.credit-acc-id)))))
-      (with-db
+      (with-db ()
         (query (sql-compile `(:union ,(select "project")
                                      ,(select "cheque")))
                :plists)))))
@@ -143,7 +143,7 @@
 	(with-parameter-rebinding #'val
 	  (let ((debit-acc-id (account-id debit-acc))
 		(credit-acc-id (account-id credit-acc))) 
-	    (with-db
+	    (with-db ()
 	      (insert-dao (make-instance (symbolicate (string-upcase tbl) "-STRAN")
 					 :description description
 					 :debit-acc-id debit-acc-id
@@ -167,7 +167,7 @@
   (with-parameter-list params
     (if (every #'validp params)
 	(with-parameter-rebinding #'val
-	  (with-db 
+	  (with-db ()
 	    (delete-dao (get-dao (symbolicate (string-upcase tbl) "-STRAN") stran-id))
 	    (see-other (stran))))
 	(see-other (notfound)))))
@@ -190,7 +190,7 @@
 	(with-parameter-rebinding #'val
 	  (let ((debit-acc-id (account-id debit-acc))
 		(credit-acc-id (account-id credit-acc)))
-	    (with-db
+	    (with-db ()
 	      (execute (:update (symbolicate tbl "-STRAN") :set
 				'description description
 				'debit-acc-id debit-acc-id
@@ -252,7 +252,7 @@
         (with-page ()
           (:head
            (:title "Καταστατικές Μεταβολές")
-           (config-headers))
+           (head-config))
           (:body
            (:div :id "header"
                  (logo)
@@ -282,7 +282,7 @@
         (with-page ()
           (:head
            (:title "Καταστατικές Μεταβολές: Δημιουργία")
-           (config-headers))
+           (head-config))
           (:body
            (:div :id "header"
                  (logo)
@@ -314,7 +314,7 @@
         (with-page ()
           (:head
            (:title "Καταστατικές Μεταβολές: Επεξεργασία")
-           (config-headers))
+           (head-config))
           (:body
            (:div :id "header"
                  (logo)
@@ -339,7 +339,7 @@
 	(with-page ()
 	  (:head
 	   (:title "Καταστατικές Μεταβολές: Διαγραφή")
-	   (config-headers))
+	   (head-config))
 	  (:body
 	   (:div :id "header"
 		 (logo)
