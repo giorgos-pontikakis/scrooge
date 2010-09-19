@@ -2,38 +2,6 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-;;; ------------------------------------------------------------
-;;; Banks - Definitions
-;;; ------------------------------------------------------------
-
-(defclass city-table (table-normal-crud)
-  ;; table
-  ((name :initform "cities-table")
-   (header :initform '(:selector "" 
-                       :title "Πόλη" 
-                       :submit ""
-                       :cancel ""))
-   (styles :initform '(:active-row "active"
-                       :inactive-row ""
-                       :attention-row "attention"
-                       :table "forms-in-row table-half")) 
-   ;; page interface
-   (id-keys :initform '(:id))
-   (payload-keys :initform '(:title))
-   (filter-keys :initform '())
-   ;; crud mixin
-   (main-page :initform 'city)
-   (submit-pages :initform '(:create actions/city/create
-                             :update actions/city/update
-                             :delete actions/city/delete))
-   (cells-fn :initform (config-cells-fn))
-   (data-fn :initform (config-data-fn 'city))))
-
-(defun make-city-table (&key operation params)
-  (make-instance 'city-table 
-                 :operation operation
-                 :params params))
-
 
 
 ;;; ------------------------------------------------------------
@@ -43,29 +11,23 @@
 (define-dynamic-page actions/city/create ((title string (complement #'city-exists-p)))
     ("actions/city/create" :request-type :post) 
   (no-cache)
-  (with-parameter-list params 
-    (if (every #'validp params)
-	(with-parameter-rebinding #'val
-	  (with-db ()
-	    (insert-dao (make-instance 'city :title title))
-	    (see-other (city :id (city-id title)))))
-	(with-parameter-rebinding #'raw 
-	  (see-other (city/create :title title))))))
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (insert-dao (make-instance 'city :title (val title)))
+        (see-other (city :id (city-id (val title)))))
+      (see-other (city/create :title (val title)))))
 
 (define-dynamic-page actions/city/update ((id    integer #'city-id-exists-p)
                                           (title string  (complement #'city-exists-p)))
     ("actions/city/update" :request-type :post)
   (no-cache) 
-  (with-parameter-list params
-    (if (every #'validp params)
-	(with-parameter-rebinding #'val
-	  (with-db ()
-	    (execute (:update 'city :set 
-			      'title title
-			      :where (:= 'id id)))
-	    (see-other (city :id id))))
-	(with-parameter-rebinding #'raw
-	  (see-other (city/update :id id :title title))))))
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (execute (:update 'city :set 
+                          'title (val title)
+                          :where (:= 'id (val id))))
+        (see-other (city :id id)))
+      (see-other (city/update :id (val id) :title (val title)))))
 
 (define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p))
     ("actions/city/delete" :request-type :post)
@@ -81,27 +43,38 @@
 ;;; City - Snippets
 ;;; ------------------------------------------------------------
 
-(define-menu city-menu (id) (:div-style "actions" :ul-style "hmenu")
-  (:view (with-html
-	   (:li (:a :href (city :id id)
-		    (:img :src (url "img/magnifier.png")) "Προβολή"))))
-  (:create (with-html
-	     (:li (:a :href (city/create)
-		      (:img :src (url "img/add.png")) "Δημιουργία"))))
-  (:edit (if id
-	     (with-html
-	       (:li (:a :href (city/update :id id)
-			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-	     nil))
-  (:delete (with-db ()
-	     (if id
-                 (with-html
-                   (:li (:a :href (city/delete :id id)
-                            (:img :src (url "img/delete.png")) "Διαγραφή")))
-                 nil))))
+(defun city-menu (id enabled-items)
+  (funcall (actions-menu)
+           :item-specs (standard-actions-spec (city :id id)
+                                              (city/create)
+                                              (city/update :id id)
+                                              (if (or (null id)
+                                                      (city-referenced-p id))
+                                                  nil
+                                                  (city/delete :id id)))
+           :enabled-items enabled-items))
 
-(define-errorbar city-errorbar (:ul-style "error") 
-  (title "Αυτό το όνομα πόλης υπάρχει ήδη.")) 
+(defun city-referenced-p (id)
+  (with-db ()
+    (and id
+         (query (:select 'id
+                         :from 'company
+                         :where (:= 'city-id id))))))
+
+(defun city-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '((title "Αυτό το όνομα πόλης υπάρχει ήδη."))))
+
+
+
+;;; ------------------------------------------------------------
+;;; City table
+;;; ------------------------------------------------------------
+
+(defun city-selector-cell (id)
+  (selector-cell `((t   ,(city))
+                   (nil ,(apply #'city id)))))
 
 
 

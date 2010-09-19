@@ -2,42 +2,6 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-;;; ------------------------------------------------------------
-;;; Bank - Definitions
-;;; ------------------------------------------------------------
-
-;; (defclass bank-table (table-normal-crud)
-;;   ((name :initform "bank-table")
-;;    (header :initform '(:selector ""
-;;                        :title "Τράπεζα"
-;;                        :submit ""
-;;                        :cancel ""))
-;;    (styles :initform '(:active-row "active"
-;;                        :inactive-row ""
-;;                        :attention-row "attention"
-;;                        :table "forms-in-row table-half"
-;;                        :header (:selector "select"
-;;                                 :title "data"
-;;                                 :submit  "button"
-;;                                 :cancel "button")))
-;;    ;; page interface
-;;    (id-keys :initform '(:id))
-;;    (payload-keys :initform '(:title))
-;;    (filter-keys :initform '())
-;;    (aux-keys :initform '())
-;;    ;; crud mixin
-;;    (main-page :initform 'bank)
-;;    (submit-pages :initform '(:create actions/bank/create
-;;                              :update actions/bank/update
-;;                              :delete actions/bank/delete))
-;;    (cells-fn :initform (config-cells-fn))
-;;    (data-fn :initform (config-data-fn 'bank))))
-
-;; (defun make-bank-table (&key operation params)
-;;   (make-instance 'bank-table
-;;                  :operation operation
-;;                  :params params))
-
 
 
 ;;; ------------------------------------------------------------
@@ -47,25 +11,23 @@
 (define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p)))
     ("actions/bank/create" :request-type :post)
   (no-cache)
-  (let ((params (parameters *page*)))
-    (if (every #'validp params)
-        (with-db ()
-          (insert-dao (make-instance 'bank :title (val title)))
-          (see-other (bank :id (bank-id (val title)))))
-        (see-other (bank/create :title (raw title))))))
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (insert-dao (make-instance 'bank :title (val title)))
+        (see-other (bank :id (bank-id (val title)))))
+      (see-other (bank/create :title (raw title)))))
 
 (define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
                                           (title string  (complement #'bank-exists-p)))
     ("actions/bank/update" :request-type :post)
   (no-cache)
-  (let ((params (parameters *page*)))
-    (if (every #'validp params)
-        (with-db ()
-          (execute (:update 'bank :set
-                            'title (val title)
-                            :where (:= 'id (val id))))
-          (see-other (bank :id (val id))))
-        (see-other (bank/update :id (raw id) :title (raw title))))))
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (execute (:update 'bank :set
+                          'title (val title)
+                          :where (:= 'id (val id))))
+        (see-other (bank :id (val id))))
+      (see-other (bank/update :id (raw id) :title (raw title)))))
 
 (define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p))
     ("actions/bank/delete" :request-type :post)
@@ -81,33 +43,23 @@
 ;;; Bank menus
 ;;; ------------------------------------------------------------
 
-(defun standard-actions-spec (view create update delete)
-  `((:view   ,view   "Προβολή"     "magnifier.png")
-    (:create ,create "Δημιουργία"  "add.png")
-    (:update ,update "Επεξεργασία" "pencil.png")
-    (:delete ,delete "Διαγραφή"    "delete.png")))
+(defun bank-menu (id enabled-items)
+  (funcall (actions-menu)
+           :item-specs (standard-actions-spec (bank :id id)
+                                              (bank/create)
+                                              (bank/update :id id)
+                                              (if (or (null id)
+                                                      (bank-referenced-p id))
+                                                  nil
+                                                  (bank/delete :id id)))
+           :enabled-items enabled-items))
 
-(defun cheques-exist-p (id)
+(defun bank-referenced-p (id)
   (with-db ()
     (and id
          (query (:select 'id
                          :from 'cheque
                          :where (:= 'bank-id id))))))
-
-(defun table-actions-menu ()
-  (generic-menu :div-style "actions"
-                :ul-style "hmenu"))
-
-(defun bank-menu (id enabled-items)
-  (funcall (table-actions-menu)
-           :item-specs (standard-actions-spec (bank :id id)
-                                              (bank/create)
-                                              (bank/update :id id)
-                                              (if (or (null id)
-                                                      (cheques-exist-p id))
-                                                  nil
-                                                  (bank/delete :id id)))
-           :enabled-items enabled-items))
 
 (defun bank-errorbar (params)
   (funcall (generic-errorbar)
@@ -120,17 +72,9 @@
 ;;; Bank table
 ;;; ------------------------------------------------------------
 
-(defun mkfn-bank-row-controls-p (op)
-  (mkfn-row-controls-p op '(:create :update :delete)))
-
-(defun mkfn-bank-row-readonly-p (op)
-  (mkfn-row-readonly-p op
-                       '(:view :delete)
-                       '(:create :update)))
-
-(defun bank-selector-cell (id)
-  (selector-cell `((t   ,(bank))
-                   (nil ,(apply #'bank id)))))
+(defun bank-selector-states (id)
+  `((t   ,(bank))
+    (nil ,(apply #'bank id))))
 
 (defun bank-row (row-id-fn row-payload-fn
                  row-selected-p-fn row-controls-p-fn row-readonly-p-fn
@@ -159,14 +103,16 @@
          (db-table (config-data 'bank))
          (cancel-url (bank :id (val* id)))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
+         (selector-cell-fn (bank-selector-cell (val* id)))
          ;; op-specific
-         (row-controls-p-fn (mkfn-bank-row-controls-p op))
-         (row-readonly-p-fn (mkfn-bank-row-readonly-p op))
+         (row-controls-p-fn (mkfn-crud-row-controls-p op))
+         (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload op payload-keys))
-         (row (bank-row row-id-fn
+         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row (mkfn-row row-id-fn
                         row-payload-fn
+                        selector-cell-fn
                         row-selected-p-fn
                         row-controls-p-fn
                         row-readonly-p-fn

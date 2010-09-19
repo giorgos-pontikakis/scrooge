@@ -61,5 +61,43 @@
     (:div :id "footer" "Powered by lisp")))
 
 
+;;; CRUD Menus and Tables
 
+(defun standard-actions-spec (view create update delete)
+  `((:view   ,view   "Προβολή"     "magnifier.png")
+    (:create ,create "Δημιουργία"  "add.png")
+    (:update ,update "Επεξεργασία" "pencil.png")
+    (:delete ,delete "Διαγραφή"    "delete.png")))
 
+(defun actions-menu ()
+  (generic-menu :div-style "actions"
+                :ul-style "hmenu"))
+
+(defun mkfn-crud-row-controls-p (op)
+  (mkfn-row-controls-p op '(:create :update :delete)))
+
+(defun mkfn-crud-row-readonly-p (op)
+  (mkfn-row-readonly-p op
+                       '(:view :delete)
+                       '(:create :update)))
+
+(defun mkfn-crud-row (row-id-fn row-payload-fn selector-cell-fn
+                 row-selected-p-fn row-controls-p-fn row-readonly-p-fn
+                 cancel-url)
+  (html (row-data)
+    (let* ((id (funcall row-id-fn row-data))
+           (payload (funcall row-payload-fn row-data))
+           (row-selected-p (funcall row-selected-p-fn id))
+           (row-controls-p (funcall row-controls-p-fn row-selected-p))
+           (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
+      (htm (:tr :class (if row-selected-p "active" nil)
+                (funcall (selector-cell-fn id) row-selected-p) 
+                (plist-map (lambda (key value)
+                             (if row-readonly-p
+                                 (htm (:td (str value)))
+                                 (textbox-cell (symbolicate key)
+                                               value
+                                               nil))) ;; todo -- style missing
+                           payload)
+                (ok-cell row-controls-p)
+                (cancel-cell cancel-url row-controls-p))))))

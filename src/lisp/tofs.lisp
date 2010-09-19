@@ -2,37 +2,6 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-;;; ------------------------------------------------------------
-;;; Tof - Definitions
-;;; ------------------------------------------------------------
-
-(defclass tof-table (table-normal-crud)
-  ((name :initform "tof-table")
-   (header :initform '(:selector "" 
-                       :title "Τράπεζα" 
-                       :submit ""
-                       :cancel ""))
-   (styles :initform '(:active-row "active"
-                       :inactive-row ""
-                       :attention-row "attention"
-                       :table "forms-in-row table-half")) 
-   ;; page interface
-   (id-keys :initform '(:id))
-   (payload-keys :initform '(:title))
-   (filter-keys :initform '())
-   ;; crud mixin
-   (main-page :initform 'tof)
-   (submit-pages :initform '(:create actions/tof/create
-                             :update actions/tof/update
-                             :delete actions/tof/delete)) 
-   (cells-fn :initform (config-cells-fn))
-   (data-fn :initform (config-data-fn 'tof))))
-
-(defun make-tof-table (&key operation params)
-  (make-instance 'tof-table 
-                 :operation operation
-                 :params params))
-
 
 
 ;;; ------------------------------------------------------------
@@ -42,29 +11,23 @@
 (define-dynamic-page actions/tof/create ((title string (complement #'tof-exists-p)))
     ("actions/tof/create" :request-type :post)
   (no-cache)
-  (with-parameter-list params
-    (if (every #'validp params)
-	(with-parameter-rebinding #'val
-	  (with-db ()
-	    (insert-dao (make-instance 'tof :title title))
-	    (see-other (tof :id (tof-id title)))))
-	(with-parameter-rebinding #'raw
-	  (see-other (tof/create :title title))))))
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (insert-dao (make-instance 'tof :title (val title)))
+        (see-other (tof :id (tof-id (val title)))))
+      (see-other (tof/create :title (raw title)))))
 
 (define-dynamic-page actions/tof/update ((id    integer #'tof-id-exists-p) 
                                          (title string  (complement #'tof-exists-p)))
     ("actions/tof/update" :request-type :post)
   (no-cache)
-  (with-parameter-list params
-    (if (every #'validp params)
-	(with-parameter-rebinding #'val
-	  (with-db ()
-	    (execute (:update 'tof :set 
-			      'title title
-			      :where (:= 'id id)))
-	    (see-other (tof :id id))))
-	(with-parameter-rebinding #'raw
-	  (see-other (tof/update :id id :title title))))))
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (execute (:update 'tof :set 
+                          'title (val title)
+                          :where (:= 'id (val id))))
+        (see-other (tof :id id)))
+      (see-other (tof/update :id (raw id) :title (raw title)))))
 
 (define-dynamic-page actions/tof/delete ((id integer #'tof-id-exists-p))
     ("actions/tof/delete" :request-type :post)
@@ -75,35 +38,33 @@
       (see-other (notfound))))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; Tof - Snippets
 ;;; ------------------------------------------------------------
 
-(define-menu tof-menu (id) (:div-style "actions" :ul-style "hmenu")
-  (:view (with-html
-	   (:li (:a :href (tof :id id)
-		    (:img :src (url "img/table.png")) "Προβολή"))))
-  (:create (with-html
-	     (:li (:a :href (tof/create)
-		      (:img :src (url "img/add.png")) "Δημιουργία")))) 
-  (:edit (if id
-	     (with-html
-	       (:li (:a :href (tof/update :id id)
-			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-	     nil))
-  (:delete (with-db ()
-	     (let ((cheques-exist-p (and id
-					 (query (:select 'id
-							 :from 'company
-							 :where (:= 'tof-id id))))))
-	       (if (or (null id) cheques-exist-p)
-		   nil
-		   (with-html
-		     (:li (:a :href (tof/delete :id id)
-			      (:img :src (url "img/delete.png")) "Διαγραφή"))))))))
+(defun tof-menu (id enabled-items)
+  (funcall (actions-menu)
+           :item-specs (standard-actions-spec (tof :id id)
+                                              (tof/create)
+                                              (tof/update :id id)
+                                              (if (or (null id)
+                                                      (tof-referenced-p id))
+                                                  nil
+                                                  (tof/delete :id id)))
+           :enabled-items enabled-items))
 
-(define-errorbar tof-errorbar (:ul-style "error") 
-  (title "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη"))
+(defun tof-referenced-p (id)
+  (with-db ()
+    (and id
+         (query (:select 'id
+                         :from 'company
+                         :where (:= 'tof-id id))))))
+
+(defun tof-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '((title "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη"))))
 
 
 
