@@ -81,9 +81,9 @@
                        '(:view :delete)
                        '(:create :update)))
 
-(defun mkfn-crud-row (row-id-fn row-payload-fn selector-cell-fn
-                 row-selected-p-fn row-controls-p-fn row-readonly-p-fn
-                 cancel-url)
+(defun mkfn-crud-row (row-id-fn row-payload-fn
+                      row-selected-p-fn row-controls-p-fn row-readonly-p-fn
+                      selector-states-fn cancel-url)
   (html (row-data)
     (let* ((id (funcall row-id-fn row-data))
            (payload (funcall row-payload-fn row-data))
@@ -91,7 +91,8 @@
            (row-controls-p (funcall row-controls-p-fn row-selected-p))
            (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
       (htm (:tr :class (if row-selected-p "active" nil)
-                (funcall (selector-cell-fn id) row-selected-p) 
+                (funcall (selector-cell (funcall selector-states-fn id))
+                         row-selected-p) 
                 (plist-map (lambda (key value)
                              (if row-readonly-p
                                  (htm (:td (str value)))

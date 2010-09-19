@@ -26,7 +26,7 @@
         (execute (:update 'city :set 
                           'title (val title)
                           :where (:= 'id (val id))))
-        (see-other (city :id id)))
+        (see-other (city :id (val id))))
       (see-other (city/update :id (val id) :title (val title)))))
 
 (define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p))
@@ -40,7 +40,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; City - Snippets
+;;; City menus
 ;;; ------------------------------------------------------------
 
 (defun city-menu (id enabled-items)
@@ -57,9 +57,9 @@
 (defun city-referenced-p (id)
   (with-db ()
     (and id
-         (query (:select 'id
+         nil #|(query (:select 'id
                          :from 'company
-                         :where (:= 'city-id id))))))
+                         :where (:= 'city-id id)))|#)))
 
 (defun city-errorbar (params)
   (funcall (generic-errorbar)
@@ -72,9 +72,39 @@
 ;;; City table
 ;;; ------------------------------------------------------------
 
-(defun city-selector-cell (id)
-  (selector-cell `((t   ,(city))
-                   (nil ,(apply #'city id)))))
+(defun mkfn-city-selector-states ()
+  (lambda (id)
+    `((t   ,(city))
+      (nil ,(apply #'city id)))))
+
+(defun city-table (op id)
+  (let* ((id-keys '(:id))
+         (payload-keys '(:title))
+         (db-table (config-data 'city))
+         (cancel-url (city :id (val* id)))
+         (row-selected-p-fn (mkfn-row-selected-p id-keys))
+         (selector-states-fn (mkfn-city-selector-states))
+         ;; op-specific
+         (row-controls-p-fn (mkfn-crud-row-controls-p op))
+         (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
+         ;; id, payload and the row itself
+         (row-id-fn (mkfn-row-id id-keys))
+         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row (mkfn-crud-row row-id-fn
+                             row-payload-fn 
+                             row-selected-p-fn
+                             row-controls-p-fn
+                             row-readonly-p-fn
+                             selector-states-fn
+                             cancel-url)))
+    (html ()
+      (:table :class "table-half forms-in-row"
+              (thead "" "Ονομασία πόλης" "" "")
+              (:tbody
+               (when (eql op :create)
+                 (funcall row nil))
+               (iter (for db-row in db-table)
+                     (funcall row db-row)))))))
 
 
 
@@ -85,60 +115,83 @@
 (define-dynamic-page city ((id integer #'city-id-exists-p))
     ("config/city")
   (no-cache)
-  (if (validp id)
-      (with-parameter-list params
-        (render
-         (config-page :name 'city
-                      :title "Πόλεις"
-                      :message "Κατάλογος πόλεων"
-                      :body (html ()
-                              (city-menu (val id) :create :edit :delete) 
-                              (render (make-city-table :operation :view
-                                                            :params params))))))
+  (if (validp id) 
+      (with-document ()
+        (:head
+         (:title "Πόλεις")
+         (head-config))
+        (:body
+         (config-header 'city)
+         (:div :id "body"
+               (:div :class "message"
+                     (:h2 :class "info" "Κατάλογος πόλεων"))
+               (:div :id "city" :class "window"
+                     (city-menu (val id) (if (val id)
+                                             '(:create :update :delete)
+                                             '(:create)))
+                     (render (city-table :view id)))
+               (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page city/create ((title string (complement #'city-exists-p)))
     ("config/city/create") 
   (no-cache)
-  (with-parameter-list params
-    (render
-     (config-page :name 'city
-                  :title "Εισαγωγή πόλης"
-                  :message "Εισαγωγή πόλης"
-                  :body (html ()
-                          (city-menu nil :view) 
-                          (render (make-city-table :operation :create
-                                                        :params params)))))))
+  (with-document ()
+    (:head
+     (:title "Δημιουργία πόλης")
+     (head-config))
+    (:body
+     (config-header 'city)
+     (:div :id "body"
+           (:div :class "message"
+                 (:h2 :class "info" "Δημιουργία πόλης")
+                 (city-errorbar (list title)))
+           (:div :id "city" :class "window"
+                 (city-menu nil '(:view))
+                 (with-form (actions/city/create :title title)
+                   (city-table :create nil)))
+           (footer)))))
 
 (define-dynamic-page city/update ((id    integer #'city-id-exists-p) 
                                   (title string  (complement #'city-exists-p)))
     ("config/city/update")
   (no-cache)
   (if (validp id)
-      (with-parameter-list params
-        (render
-         (config-page :name 'city
-                      :title "Επεξεργασία πόλης"
-                      :message "Επεξεργασία πόλης"
-                      :body (html ()
-                              (city-menu (val id) :view :delete) 
-                              (render (make-city-table :operation :update
-                                                            :params params))))))
+      (with-document ()
+        (:head
+         (:title "Επεξεργασία πόλης")
+         (head-config))
+        (:body
+         (config-header 'city)
+         (:div :id "body"
+               (:div :class "message"
+                     (:h2 :class "info" "Επεξεργασία πόλης")
+                     (city-errorbar (list title)))
+               (:div :id "city" :class "window"
+                     (city-menu (val id) '(:view :delete))
+                     (with-form (actions/city/update :id (val id))
+                       (city-table :update id)))
+               (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page city/delete ((id integer #'city-id-exists-p))
     ("config/city/delete")
   (no-cache)
   (if (validp id)
-      (with-parameter-list params
-        (render
-         (config-page :name 'city
-                      :title "Διαγραφή πόλης"
-                      :message "Διαγραφή πόλης" 
-                      :body (html ()
-                              (city-menu (val id) :view :edit) 
-                              (render (make-city-table :operation :delete
-                                                            :params params))))))
+      (with-document ()
+        (:head
+         (:title "Διαγραφή πόλης")
+         (head-config))
+        (:body
+         (config-header 'city)
+         (:div :id "body"
+               (:div :class "message"
+                     (:h2 :class "info" "Διαγραφή πόλης"))
+               (:div :id "city" :class "window"
+                     (city-menu (val id) '(:view :update))
+                     (with-form (actions/city/delete :id (val id))
+                       (city-table :delete id)))
+               (footer))))
       (see-other (notfound))))
 
 

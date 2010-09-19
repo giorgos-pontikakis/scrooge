@@ -72,30 +72,10 @@
 ;;; Bank table
 ;;; ------------------------------------------------------------
 
-(defun bank-selector-states (id)
-  `((t   ,(bank))
-    (nil ,(apply #'bank id))))
-
-(defun bank-row (row-id-fn row-payload-fn
-                 row-selected-p-fn row-controls-p-fn row-readonly-p-fn
-                 cancel-url)
-  (html (row-data)
-    (let* ((id (funcall row-id-fn row-data))
-           (payload (funcall row-payload-fn row-data))
-           (row-selected-p (funcall row-selected-p-fn id))
-           (row-controls-p (funcall row-controls-p-fn row-selected-p))
-           (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
-      (htm (:tr :class (if row-selected-p "active" nil)
-                (funcall (bank-selector-cell id) row-selected-p) 
-                (plist-map (lambda (key value)
-                             (if row-readonly-p
-                                 (htm (:td (str value)))
-                                 (textbox-cell (symbolicate key)
-                                               value
-                                               nil))) ;; todo -- style missing
-                           payload)
-                (ok-cell row-controls-p)
-                (cancel-cell cancel-url row-controls-p))))))
+(defun mkfn-bank-selector-states ()
+  (lambda (id)
+    `((t   ,(bank))
+      (nil ,(apply #'bank id)))))
 
 (defun bank-table (op id)
   (let* ((id-keys '(:id))
@@ -103,23 +83,23 @@
          (db-table (config-data 'bank))
          (cancel-url (bank :id (val* id)))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
-         (selector-cell-fn (bank-selector-cell (val* id)))
+         (selector-states-fn (mkfn-bank-selector-states))
          ;; op-specific
          (row-controls-p-fn (mkfn-crud-row-controls-p op))
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
          (row-payload-fn (mkfn-row-payload op payload-keys)) 
-         (row (mkfn-row row-id-fn
-                        row-payload-fn
-                        selector-cell-fn
-                        row-selected-p-fn
-                        row-controls-p-fn
-                        row-readonly-p-fn
-                        cancel-url)))
+         (row (mkfn-crud-row row-id-fn
+                             row-payload-fn 
+                             row-selected-p-fn
+                             row-controls-p-fn
+                             row-readonly-p-fn
+                             selector-states-fn
+                             cancel-url)))
     (html ()
       (:table :class "table-half forms-in-row"
-              (thead "" "Ονομασία Τράπεζας" "" "")
+              (thead "" "Ονομασία τράπεζας" "" "")
               (:tbody
                (when (eql op :create)
                  (funcall row nil))
@@ -132,13 +112,6 @@
 ;;; Bank - Pages
 ;;; ------------------------------------------------------------
 
-(defun config-header (config-choice)
-  (with-html
-    (:div :id "header"
-          (logo)
-          (primary-navbar 'config)
-          (config-navbar config-choice))))
-
 (define-dynamic-page bank ((id integer #'bank-id-exists-p))
     ("config/bank")
   (no-cache)
@@ -148,7 +121,7 @@
          (:title "Τράπεζες")
          (head-config))
         (:body
-         (config-header 'banks)
+         (config-header 'bank)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Κατάλογος τραπεζών"))
@@ -168,7 +141,7 @@
      (:title "Δημιουργία τράπεζας")
      (head-config))
     (:body
-     (config-header 'banks)
+     (config-header 'bank)
      (:div :id "body"
            (:div :class "message"
                  (:h2 :class "info" "Δημιουργία τράπεζας")
@@ -189,7 +162,7 @@
          (:title "Επεξεργασία τράπεζας")
          (head-config))
         (:body
-         (config-header 'banks)
+         (config-header 'bank)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Επεξεργασία τράπεζας")
@@ -210,7 +183,7 @@
          (:title "Διαγραφή τράπεζας")
          (head-config))
         (:body
-         (config-header 'banks)
+         (config-header 'bank)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Διαγραφή τράπεζας"))
