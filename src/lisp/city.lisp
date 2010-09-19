@@ -8,7 +8,7 @@
 ;;; City - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/city/create ((title string (complement #'city-exists-p)))
+(define-dynamic-page actions/city/create ((title string (complement #'city-exists-p) t))
     ("actions/city/create" :request-type :post) 
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -18,7 +18,7 @@
       (see-other (city/create :title (val title)))))
 
 (define-dynamic-page actions/city/update ((id    integer #'city-id-exists-p)
-                                          (title string  (complement #'city-exists-p)))
+                                          (title string (complement #'city-exists-p) t))
     ("actions/city/update" :request-type :post)
   (no-cache) 
   (if (every #'validp (parameters *page*))
@@ -29,7 +29,7 @@
         (see-other (city :id (val id))))
       (see-other (city/update :id (val id) :title (val title)))))
 
-(define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p))
+(define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p t))
     ("actions/city/delete" :request-type :post)
   (if (validp id)
       (with-db ()
@@ -64,7 +64,7 @@
 (defun city-errorbar (params)
   (funcall (generic-errorbar)
            params
-           '((title "Αυτό το όνομα πόλης υπάρχει ήδη."))))
+           '((title "Αυτό το όνομα πόλης είναι κενό ή υπάρχει ήδη."))))
 
 
 
@@ -112,7 +112,7 @@
 ;;; City - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page city ((id integer #'city-id-exists-p))
+(define-dynamic-page city ((id integer #'city-id-exists-p) t)
     ("config/city")
   (no-cache)
   (if (validp id) 
@@ -133,7 +133,7 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page city/create ((title string (complement #'city-exists-p)))
+(define-dynamic-page city/create ((title string (complement #'city-exists-p) t))
     ("config/city/create") 
   (no-cache)
   (with-document ()
@@ -152,8 +152,8 @@
                    (city-table 'create nil)))
            (footer)))))
 
-(define-dynamic-page city/update ((id    integer #'city-id-exists-p) 
-                                  (title string  (complement #'city-exists-p)))
+(define-dynamic-page city/update ((id    integer #'city-id-exists-p t) 
+                                  (title string  (complement #'city-exists-p) t))
     ("config/city/update")
   (no-cache)
   (if (validp id)
@@ -174,7 +174,7 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page city/delete ((id integer #'city-id-exists-p))
+(define-dynamic-page city/delete ((id integer #'city-id-exists-p t))
     ("config/city/delete")
   (no-cache)
   (if (validp id)

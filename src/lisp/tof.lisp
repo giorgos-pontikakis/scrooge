@@ -8,7 +8,7 @@
 ;;; TOF - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/tof/create ((title string (complement #'tof-exists-p)))
+(define-dynamic-page actions/tof/create ((title string (complement #'tof-exists-p) t))
     ("actions/tof/create" :request-type :post)
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -18,7 +18,7 @@
       (see-other (tof/create :title (raw title)))))
 
 (define-dynamic-page actions/tof/update ((id    integer #'tof-id-exists-p) 
-                                         (title string  (complement #'tof-exists-p)))
+                                         (title string (complement #'tof-exists-p) t))
     ("actions/tof/update" :request-type :post)
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -29,7 +29,7 @@
         (see-other (tof :id (val id))))
       (see-other (tof/update :id (raw id) :title (raw title)))))
 
-(define-dynamic-page actions/tof/delete ((id integer #'tof-id-exists-p))
+(define-dynamic-page actions/tof/delete ((id integer #'tof-id-exists-p t))
     ("actions/tof/delete" :request-type :post)
   (if (validp id)
       (with-db ()
@@ -64,7 +64,7 @@
 (defun tof-errorbar (params)
   (funcall (generic-errorbar)
            params
-           '((title "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη"))))
+           '((title "Αυτό το όνομα Δ.Ο.Υ. είναι κενό ή υπάρχει ήδη"))))
 
 
 
@@ -112,7 +112,7 @@
 ;;; TOF - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page tof ((id integer #'tof-id-exists-p))
+(define-dynamic-page tof ((id integer #'tof-id-exists-p t))
     ("config/tof")
   (no-cache)
   (if (validp id) 
@@ -133,7 +133,7 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page tof/create ((title string (complement #'tof-exists-p)))
+(define-dynamic-page tof/create ((title string (complement #'tof-exists-p) t))
     ("config/tof/create")
   (no-cache)
   (with-document ()
@@ -152,8 +152,8 @@
                    (tof-table 'create nil)))
            (footer)))))
 
-(define-dynamic-page tof/update ((id integer #'tof-id-exists-p)
-                                 (title string (complement #'tof-exists-p)))
+(define-dynamic-page tof/update ((id    integer #'tof-id-exists-p t)
+                                 (title string  (complement #'tof-exists-p) t))
     ("config/tof/update")
   (no-cache)
   (if (validp id)
@@ -174,7 +174,7 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page tof/delete ((id integer #'tof-id-exists-p))
+(define-dynamic-page tof/delete ((id integer #'tof-id-exists-p t))
     ("config/tof/delete")
   (no-cache)
   (if (validp id)

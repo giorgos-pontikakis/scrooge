@@ -44,16 +44,15 @@
                                        (img img-url))
                                      (str label))))))))))
 
-(defun generic-errorbar (&key id div-style ul-style)
-  (html (params messages)
+(defun generic-errorbar ()
+  (html (params messages) 
     (unless (every #'validp params)
       (htm
-       (:div :id id :class div-style
-             (:ul :class ul-style
+       (:div (:ul :class "error"
                   (iter (for par in params)
                         (unless (validp par)
-                          (htm (:li (or (second (find (name par) messages :key #'first))
-                                        (error "Parameter name ~A not found." (name par)))))))))))))
+                          (htm (:li (str (or (second (find (name par) messages :key #'first))
+                                             (error "Parameter name ~A not found." (name par))))))))))))))
 
 
 

@@ -8,7 +8,7 @@
 ;;; Bank - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p)))
+(define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p) t))
     ("actions/bank/create" :request-type :post)
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -18,7 +18,7 @@
       (see-other (bank/create :title (raw title)))))
 
 (define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
-                                          (title string  (complement #'bank-exists-p)))
+                                          (title string (complement #'bank-exists-p) t))
     ("actions/bank/update" :request-type :post)
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -29,7 +29,7 @@
         (see-other (bank :id (val id))))
       (see-other (bank/update :id (raw id) :title (raw title)))))
 
-(define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p))
+(define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p) t)
     ("actions/bank/delete" :request-type :post)
   (if (validp id)
       (with-db ()
@@ -61,10 +61,10 @@
                          :from 'cheque
                          :where (:= 'bank-id id))))))
 
-(defun bank-errorbar (params)
+(defun bank-errorbar (params) 
   (funcall (generic-errorbar)
            params
-           '((title "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))
+           '((title "Αυτό το όνομα τράπεζας είναι κενό ή υπάρχει ήδη."))))
 
 
 
@@ -112,7 +112,7 @@
 ;;; Bank - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank ((id integer #'bank-id-exists-p))
+(define-dynamic-page bank ((id integer #'bank-id-exists-p t))
     ("config/bank")
   (no-cache)
   (if (validp id) 
@@ -133,9 +133,9 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page bank/create ((title string (complement #'bank-exists-p)))
+(define-dynamic-page bank/create ((title string (complement #'bank-exists-p) t))
     ("config/bank/create")
-  (no-cache)
+  (no-cache) 
   (with-document ()
     (:head
      (:title "Δημιουργία τράπεζας")
@@ -152,8 +152,8 @@
                    (bank-table 'create nil)))
            (footer)))))
 
-(define-dynamic-page bank/update ((id    integer #'bank-id-exists-p)
-                                  (title string  (complement #'bank-exists-p)))
+(define-dynamic-page bank/update ((id    integer #'bank-id-exists-p t)
+                                  (title string (complement #'bank-exists-p) t))
     ("config/bank/update")
   (no-cache) 
   (if (validp id)
@@ -174,7 +174,7 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page bank/delete ((id integer #'bank-id-exists-p))
+(define-dynamic-page bank/delete ((id integer #'bank-id-exists-p t))
     ("config/bank/delete")
   (no-cache)
   (if (validp id)
