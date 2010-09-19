@@ -29,7 +29,7 @@
         (see-other (bank :id (val id))))
       (see-other (bank/update :id (raw id) :title (raw title)))))
 
-(define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p) t)
+(define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p t))
     ("actions/bank/delete" :request-type :post)
   (if (validp id)
       (with-db ()

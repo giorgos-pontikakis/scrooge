@@ -112,7 +112,7 @@
 ;;; City - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page city ((id integer #'city-id-exists-p) t)
+(define-dynamic-page city ((id integer #'city-id-exists-p t))
     ("config/city")
   (no-cache)
   (if (validp id) 

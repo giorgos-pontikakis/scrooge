@@ -42,14 +42,6 @@
 
 ;;; Configuration pages 
 
-(defun config-data-fn (table-name)
-  (lambda () 
-    (with-db ()
-      (query (sql-compile
-              `(:select 'id 'title :from ,table-name))
-             :plists))))
-
-
 (defun config-data (table-name)
   (with-db ()
     (query (sql-compile
