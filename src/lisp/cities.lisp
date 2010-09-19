@@ -101,7 +101,7 @@
       (:table :class "table-half forms-in-row"
               (thead "" "Ονομασία πόλης" "" "")
               (:tbody
-               (when (eql op :create)
+               (when (eql op 'create)
                  (funcall row nil))
                (iter (for db-row in db-table)
                      (funcall row db-row)))))))
@@ -127,9 +127,9 @@
                      (:h2 :class "info" "Κατάλογος πόλεων"))
                (:div :id "city" :class "window"
                      (city-menu (val id) (if (val id)
-                                             '(:create :update :delete)
-                                             '(:create)))
-                     (render (city-table :view id)))
+                                             '(create update delete)
+                                             '(create)))
+                     (render (city-table 'view id)))
                (footer))))
       (see-other (notfound))))
 
@@ -147,9 +147,9 @@
                  (:h2 :class "info" "Δημιουργία πόλης")
                  (city-errorbar (list title)))
            (:div :id "city" :class "window"
-                 (city-menu nil '(:view))
+                 (city-menu nil '(view))
                  (with-form (actions/city/create :title title)
-                   (city-table :create nil)))
+                   (city-table 'create nil)))
            (footer)))))
 
 (define-dynamic-page city/update ((id    integer #'city-id-exists-p) 
@@ -168,9 +168,9 @@
                      (:h2 :class "info" "Επεξεργασία πόλης")
                      (city-errorbar (list title)))
                (:div :id "city" :class "window"
-                     (city-menu (val id) '(:view :delete))
+                     (city-menu (val id) '(view delete))
                      (with-form (actions/city/update :id (val id))
-                       (city-table :update id)))
+                       (city-table 'update id)))
                (footer))))
       (see-other (notfound))))
 
@@ -188,9 +188,9 @@
                (:div :class "message"
                      (:h2 :class "info" "Διαγραφή πόλης"))
                (:div :id "city" :class "window"
-                     (city-menu (val id) '(:view :update))
+                     (city-menu (val id) '(view update))
                      (with-form (actions/city/delete :id (val id))
-                       (city-table :delete id)))
+                       (city-table 'delete id)))
                (footer))))
       (see-other (notfound))))
 

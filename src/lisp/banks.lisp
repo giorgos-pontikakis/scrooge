@@ -101,7 +101,7 @@
       (:table :class "table-half forms-in-row"
               (thead "" "Ονομασία τράπεζας" "" "")
               (:tbody
-               (when (eql op :create)
+               (when (eql op 'create)
                  (funcall row nil))
                (iter (for db-row in db-table)
                      (funcall row db-row)))))))
@@ -127,9 +127,9 @@
                      (:h2 :class "info" "Κατάλογος τραπεζών"))
                (:div :id "bank" :class "window"
                      (bank-menu (val id) (if (val id)
-                                             '(:create :update :delete)
-                                             '(:create)))
-                     (render (bank-table :view id)))
+                                             '(create update delete)
+                                             '(create)))
+                     (render (bank-table 'view id)))
                (footer))))
       (see-other (notfound))))
 
@@ -147,9 +147,9 @@
                  (:h2 :class "info" "Δημιουργία τράπεζας")
                  (bank-errorbar (list title)))
            (:div :id "bank" :class "window"
-                 (bank-menu nil '(:view))
+                 (bank-menu nil '(view))
                  (with-form (actions/bank/create :title title)
-                   (bank-table :create nil)))
+                   (bank-table 'create nil)))
            (footer)))))
 
 (define-dynamic-page bank/update ((id    integer #'bank-id-exists-p)
@@ -168,9 +168,9 @@
                      (:h2 :class "info" "Επεξεργασία τράπεζας")
                      (bank-errorbar (list title)))
                (:div :id "bank" :class "window"
-                     (bank-menu (val id) '(:view :delete))
+                     (bank-menu (val id) '(view delete))
                      (with-form (actions/bank/update :id (val id))
-                       (bank-table :update id)))
+                       (bank-table 'update id)))
                (footer))))
       (see-other (notfound))))
 
@@ -188,8 +188,8 @@
                (:div :class "message"
                      (:h2 :class "info" "Διαγραφή τράπεζας"))
                (:div :id "bank" :class "window"
-                     (bank-menu (val id) '(:view :update))
+                     (bank-menu (val id) '(view update))
                      (with-form (actions/bank/delete :id (val id))
-                       (bank-table :delete id)))
+                       (bank-table 'delete id)))
                (footer))))
       (see-other (notfound))))

@@ -101,7 +101,7 @@
       (:table :class "table-half forms-in-row"
               (thead "" "Ονομασία Δ.Ο.Υ." "" "")
               (:tbody
-               (when (eql op :create)
+               (when (eql op 'create)
                  (funcall row nil))
                (iter (for db-row in db-table)
                      (funcall row db-row)))))))
@@ -127,9 +127,9 @@
                      (:h2 :class "info" "Κατάλογος Δ.Ο.Υ."))
                (:div :id "tof" :class "window"
                      (tof-menu (val id) (if (val id)
-                                             '(:create :update :delete)
-                                             '(:create)))
-                     (render (tof-table :view id)))
+                                             '(create update delete)
+                                             '(create)))
+                     (render (tof-table 'view id)))
                (footer))))
       (see-other (notfound))))
 
@@ -147,9 +147,9 @@
                  (:h2 :class "info" "Δημιουργία τράπεζας")
                  (tof-errorbar (list title)))
            (:div :id "tof" :class "window"
-                 (tof-menu nil '(:view))
+                 (tof-menu nil '(view))
                  (with-form (actions/tof/create :title title)
-                   (tof-table :create nil)))
+                   (tof-table 'create nil)))
            (footer)))))
 
 (define-dynamic-page tof/update ((id integer #'tof-id-exists-p)
@@ -168,9 +168,9 @@
                      (:h2 :class "info" "Επεξεργασία Δ.Ο.Υ.")
                      (tof-errorbar (list title)))
                (:div :id "tof" :class "window"
-                     (tof-menu (val id) '(:view :delete))
+                     (tof-menu (val id) '(view delete))
                      (with-form (actions/tof/update :id (val id))
-                       (tof-table :update id)))
+                       (tof-table 'update id)))
                (footer))))
       (see-other (notfound))))
 
@@ -188,9 +188,9 @@
                (:div :class "message"
                      (:h2 :class "info" "Διαγραφή Δ.Ο.Υ."))
                (:div :id "tof" :class "window"
-                     (tof-menu (val id) '(:view :update))
+                     (tof-menu (val id) '(view update))
                      (with-form (actions/tof/delete :id (val id))
-                       (tof-table :delete id)))
+                       (tof-table 'delete id)))
                (footer))))
       (see-other (notfound))))
 

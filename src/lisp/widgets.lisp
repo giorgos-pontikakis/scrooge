@@ -206,10 +206,10 @@
 
 (defun mkfn-row-payload (op payload-keys)
   (ecase op
-    ((:view :delete)
+    ((view delete)
      (lambda (row-data)
        (plist-collect payload-keys row-data)))
-    ((:create :update)
+    ((create update)
      (lambda (row-data)
        (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
                     (plist-collect payload-keys row-data))))))
