@@ -22,6 +22,6 @@
 	       ;; (:file "account")
 	       ;; (:file "tx")
 	       ;; (:file "temtx")
-	       ;; (:file "stran")
+	       (:file "stran")
 	       ;; (:file "project") 
                ))
