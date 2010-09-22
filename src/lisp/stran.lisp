@@ -127,7 +127,7 @@
                                :old-status (raw old-status)
                                :new-status (raw new-status)))))
 
-(define-dynamic-page actions/stran/update ((stran-id integer)
+(define-dynamic-page actions/stran/update ((id integer)
                                            (tbl string)
                                            (description string #'not-db-null-p)
                                            (debit-acc string #'acc-exists-p)
@@ -138,7 +138,7 @@
      :request-type :post
      :validators ((old-status (valid-combo tbl old-status))
 		  (new-status (valid-combo tbl new-status))
-		  ((stran-id tbl) (valid-stran-id-p stran-id tbl))))
+		  ((id tbl) (valid-stran-id-p id tbl))))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (let ((debit-acc-id (account-id (val debit-acc)))
@@ -150,9 +150,9 @@
                             'credit-acc-id credit-acc-id 
                             'old-status (val old-status)
                             'new-status (val new-status)
-                            :where (:= 'id (val stran-id))))
+                            :where (:= 'id (val id))))
           (see-other (stran))))
-      (see-other (stran/update :stran-id stran-id
+      (see-other (stran/update :id id
                                :description description
                                :debit-acc debit-acc
                                :credit-acc credit-acc
@@ -160,14 +160,14 @@
                                :old-status old-status
                                :new-status new-status))))
 
-(define-dynamic-page actions/stran/delete ((stran-id integer)
+(define-dynamic-page actions/stran/delete ((id integer)
                                            (tbl string))
     ("actions/stran/delete" :request-type :post
-                            :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
+                            :validators (((id tbl) (valid-stran-id-p id tbl))))
   (no-cache) 
   (if (every #'validp (parameters *page*))
       (with-db ()
-        (delete-dao (get-dao (symbolicate (string-upcase tbl) "-STRAN") stran-id))
+        (delete-dao (get-dao (symbolicate (string-upcase tbl) "-STRAN") id))
         (see-other (stran)))
       (see-other (notfound))))
 
@@ -179,10 +179,11 @@
 
 (defun stran-menu (id tbl enabled-items)
   (funcall (actions-menu)
-           :item-specs (standard-actions-spec (stran :stran-id id :tbl tbl)
+           :item-specs (standard-actions-spec (stran :id id :tbl tbl)
                                               (stran/create)
-                                              (stran/update :stran-id id :tbl tbl)
-                                              (stran/delete :stran-id id :tbl tbl))))
+                                              (stran/update :id id :tbl tbl)
+                                              (stran/delete :id id :tbl tbl))
+           :enabled-items enabled-items))
 
 (defun stran-errorbar (params)
   (funcall (generic-errorbar)
@@ -240,7 +241,7 @@
                          :debit-acc
                          :credit-acc))
          (db-table (stran-data))
-         (cancel-url (stran :stran-id (val* id) :tbl (val* tbl)))
+         (cancel-url (stran :id (val* id) :tbl (val* tbl)))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
          (selector-states-fn (mkfn-bank-selector-states))
          ;; op-specific
@@ -275,9 +276,9 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page stran ((stran-id integer)
+(define-dynamic-page stran ((id integer)
                             (tbl string))
-    ("config/stran/" :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
+    ("config/stran/" :validators (((id tbl) (valid-stran-id-p id tbl))))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-document ()
@@ -290,11 +291,10 @@
                (:div :class "message"
                      (:h2 :class "info" "Κατάλογος Καταστατικών Μεταβολών"))
                (:div :id "stran" :class "window"
-                     (stran-menu (val stran-id) (val tbl) (if (val id)
-                                                              '(create update delete)
-                                                              '(create))) 
-                     (render (stran-table 'view
-                                          id)))
+                     (stran-menu (val id) (val tbl) (if (val id)
+                                                        '(create update delete)
+                                                        '(create))) 
+                     (render (stran-table 'view id tbl)))
                (footer))))
       (see-other (notfound))))
 
@@ -319,13 +319,13 @@
                      (:h2 :class "info" "Δημιουργία μετάβασης")
                      (stran-errorbar (list description debit-acc credit-acc old-status new-status))) 
                (:div :id "stran" :class "window"
-                     (stran-menu nil '(view))
+                     (stran-menu nil tbl '(view))
                      (with-form (actions/stran/create :tbl tbl)
                        (stran-table 'create nil tbl)))
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page stran/update ((stran-id      integer)
+(define-dynamic-page stran/update ((id          integer)
                                    (tbl         string #'valid-tbl-p)
                                    (description string #'not-db-null-p)
                                    (debit-acc   string #'acc-exists-p) 
@@ -334,45 +334,45 @@
                                    (new-status  string))
     ("config/stran/update" :validators ((old-status (valid-combo tbl old-status))
                                         (new-status (valid-combo tbl new-status))
-                                        ((stran-id tbl) (valid-stran-id-p stran-id tbl))))
+                                        ((id tbl) (valid-stran-id-p id tbl))))
   (no-cache)
-  (if (validp stran-id)
+  (if (validp id)
       (with-document ()
         (:head
          (:title "Καταστατικές Μεταβολές: Επεξεργασία")
          (head-config))
         (:body
-         (config-head 'stran)
+         (config-header 'stran)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Επεξεργασία μετάβασης")
                      (stran-errorbar (list description debit-acc credit-acc old-status new-status)))
                (:div :id "stran" :class "window" 
-                     (stran-menu (val stran-id) (val tbl) :view :delete)
+                     (stran-menu (val id) (val tbl) '(view delete))
                      (with-form (actions/stran/update :id id :tbl tbl)
                        (stran-table 'update id tbl)))
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page stran/delete ((stran-id integer)
+(define-dynamic-page stran/delete ((id integer)
                                    (tbl string #'valid-tbl-p))
-    ("config/stran/delete" :validators (((stran-id tbl) (valid-stran-id-p stran-id tbl))))
+    ("config/stran/delete" :validators (((id tbl) (valid-stran-id-p id tbl))))
   (no-cache) 
-  (if (validp stran-id)
+  (if (validp id)
       (with-document ()
         (:head
          (:title "Καταστατικές Μεταβολές: Διαγραφή")
          (head-config))
         (:body
-         (config-head 'stran)
+         (config-header 'stran)
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Διαγραφή μετάβασης")) 
                (:div :id "stran" :class "window"
-                     (stran-menu (val stran-id) (val tbl) '(view update))
+                     (stran-menu (val id) (val tbl) '(view update))
                      (with-form (actions/stran/delete :id id)
                        (stran-table 'delete id tbl)))
-               (footer make))))
+               (footer))))
       (see-other (notfound))))
 
 
