@@ -2,35 +2,97 @@
 
 (declaim (optimize (speed 0) (safety 3) (debug 3)))
 
+
+
+;;; ------------------------------------------------------------
+;;; Accounts - Validation
+;;; ------------------------------------------------------------
+
+(defun ref-subaccounts (acc-id)
+  (with-db ()
+    (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
+	   :single)))
+
+(defun ref-transactions (acc-id)
+  (with-db ()
+    (query (:select 'id
+                    :from 'tx
+                    :where (:or (:= 'debit-acc-id acc-id)
+                                (:= 'credit-acc-id acc-id)))
+           :single)))
+
+(defun acc-referenced-p (id)
+  (or (ref-subaccounts id)
+      (ref-transactions id)))
+
+
+(define-existence-predicate acc-id-exists-p account id)
+(define-uniqueness-predicate acc-title-unique-p account title id)
+
+(defun chk-parent-acc-id-p (val)
+  (if (or (null val) (acc-id-exists-p val))
+      nil
+      'parent-acc-id-unknown))
+
+(defun chk-acc-id (id)
+  (if (acc-id-exists-p id)
+      nil
+      'acc-id-unknown))
+
+(defun chk-acc-id/ref (id)
+  (if (and (null (chk-acc-id id))
+           (null (acc-referenced-p id)))
+      nil
+      'acc-referenced))
+
+(defun chk-acc-title (title &optional id)
+  (cond ((eql :null title) 'acc-title-null)
+        ((not (acc-title-unique-p title id)) 'acc-title-exists)
+        (t nil)))
+
+(defun chk-debitp (debitp id)
+  (with-db ()
+    (if (or (null id)
+            (eql debitp (debit-p (get-dao 'account id))))
+        nil
+        'invalid-debitp-acc-id-combo)))
+
+(defun acc-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '(title ((acc-title-null "Το όνομα του λογαριασμού είναι κενό.")
+                    (acc-title-exists "Αυτό το όνομα λογαριασμού υπάρχει ήδη.")))))
+
+
+
 ;;; ------------------------------------------------------------
 ;;; Accounts - Actions
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
-    ((parent-id integer #'valid-parent-acc-id-p)
-     (title     string  (complement #'acc-exists-p))
-     (debp      boolean))
-  :validators (((parent-id debp) (valid-debp-id-combo parent-id debp)))
+    ((parent-id integer chk-parent-acc-id)
+     (title     string  chk-acc-title t)
+     (debitp    boolean (chk-debitp debitp parent-id))) 
   (no-cache) 
   (if (every #'validp (parameters *page*))
-      (let ((debit-p (if parent-id (debit-p (val parent-id)) (val debp))))
+      (let ((debit-p (if parent-id (debit-p (val parent-id)) (val debitp))))
         (with-db ()
           (insert-dao (make-instance 'account
                                      :title (val title)
                                      :parent-id (or (val parent-id) :null)
                                      :debit-p debit-p))
           (see-other (accounts))))
-      (if (and (validp parent-id) (validp debp))
+      (if (and (validp parent-id) (validp debitp))
           ;; input error - go back to create page
           (see-other (account/create :parent-id (val parent-id)
                                      :title (val title)
-                                     :debp (val debp)))
+                                     :debitp (val debitp)))
           ;; tampered URL - abort
           (see-other (notfound)))))
 
 (define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
-    ((id    integer #'valid-acc-id-p t) 
-     (title string  (complement #'acc-exists-p)))
+    ((id    integer chk-acc-id t) 
+     (title string  (chk-acc-title title id) t))
   (no-cache) 
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -45,7 +107,7 @@
           (see-other (notfound)))))
 
 (define-dynamic-page actions/account/delete ("actions/account/delete" :request-type :post)
-    ((id integer #'valid-acc-id-no-subaccounts-p t))
+    ((id integer chk-acc-id/ref t))
   (no-cache)
   (if (validp id)
       (with-db ()
@@ -127,42 +189,20 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Snippets
+;;; Account menus
 ;;; ------------------------------------------------------------
 
-(define-menu account-menu (id debp) (:div-style "actions" :ul-style "hmenu")
-  (:create (with-html 
-	     (:li (:a :href (account/create :id id :parent-id id :debp debp)
-		      (:img :src (url "img/add.png")) "Δημιουργία"))))
-  (:view (if id
-	     (with-html
-	       (:li (:a :href (accounts :id id)
-			(:img :src (url "img/magnifier.png")) "Προβολή")))
-	     nil))
-  (:edit (if id
-	     (with-html
-	       (:li (:a :href (account/update :id id)
-			(:img :src (url "img/pencil.png")) "Επεξεργασία")))
-	     nil))
-  (:delete (if (and id
-		    (not (get-subaccounts id))
-		    (not (get-transactions id)))
-	       (with-html
-		 (:li (:a :href (account/delete :id id)
-			  (:img :src (url "img/delete.png")) "Διαγραφή")))
-	       nil)))
+(defun bank-menu (id enabled-items)
+  (funcall (actions-menu)
+           :item-specs (standard-actions-spec (account :id id)
+                                              (account/create)
+                                              (account/update :id id)
+                                              (if (or (null id)
+                                                      (acc-referenced-p id))
+                                                  nil
+                                                  (bank/delete :id id)))
+           :enabled-items enabled-items))
 
-(defun get-subaccounts (acc-id)
-  (with-db ()
-    (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
-	   :single)))
-
-(defun get-transactions (acc-id)
-  (with-db ()
-    (query (:select 'id
-                    :from 'tx
-                    :where (:or (:= 'debit-acc-id acc-id)
-                                (:= 'credit-acc-id acc-id))))))
 
 
 ;;; ------------------------------------------------------------
@@ -186,7 +226,7 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row-payload-fn (mkfn-row-payload payload-keys)) 
          (row (mkfn-crud-row row-id-fn
                              row-payload-fn 
                              row-selected-p-fn
@@ -208,7 +248,7 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page account ("account/")
-    ((id integer #'valid-acc-id-p))
+    ((id integer chk-acc-id))
   (no-cache) 
   (if (validp id)
       (with-document ()
@@ -261,19 +301,17 @@
                                                             :data-fn (account-data-fn nil))))))))
       (see-other (notfound))))
 
-
-
 (define-dynamic-page account/create ("account/create")
-    ((id integer #'valid-acc-id-p)
-     (parent-id integer #'valid-parent-acc-id-p) 
-     (title     string  (complement #'acc-exists-p))
-     (debp      boolean))
-  :validators (((parent-id debp) (valid-debp-id-combo parent-id debp)))
+    ((id        integer chk-acc-id)
+     (parent-id integer chk-parent-acc-id) 
+     (title     string  chk-acc-title)
+     (debitp    boolean (chk-debitp debitp id)))
+  :validators (((parent-id debitp) (valid-debitp-id-combo parent-id debitp)))
   (no-cache) 
   (with-parameter-list params
     (if (every #'validp params)
         (with-parameter-rebinding #'val
-          (let ((debit-p (if parent-id (debit-p parent-id) debp)))
+          (let ((debit-p (if parent-id (debit-p parent-id) debitp)))
             (standard-page
              :name 'accounts
              :title "Δημιουργία λογαριασμού"
@@ -288,7 +326,7 @@
                                                            :operation (if debit-p
                                                                           :create
                                                                           :view)
-                                                           :aux-keys '(:debp :parent-id)
+                                                           :aux-keys '(:debitp :parent-id)
                                                            :params params
                                                            :data-fn (account-data-fn t)))))
                     (window :name "credit-accounts"
@@ -300,14 +338,14 @@
                                                            :operation (if debit-p
                                                                           :view
                                                                           :create)
-                                                           :aux-keys '(:debp :parent-id)
+                                                           :aux-keys '(:debitp :parent-id)
                                                            :params params
                                                            :data-fn (account-data-fn nil))))))))) 
         (see-other (notfound)))))
 
 (define-dynamic-page account/update ("account/update")
-    ((id    integer #'valid-acc-id-p            t)
-     (title string  (complement #'acc-exists-p)))
+    ((id    integer chk-acc-id/ref t)
+     (title string  chk-acc-title))
   (no-cache)
   (with-parameter-list params
     (if (validp id)
@@ -336,7 +374,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page account/delete ("account/delete")
-    ((id integer #'valid-acc-id-no-subaccounts-p t))
+    ((id integer chk-acc-id/ref t))
   (no-cache)
   (if (validp id)
       (with-parameter-list params

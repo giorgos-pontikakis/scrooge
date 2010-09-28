@@ -8,6 +8,13 @@
 ;;; TOF - Validation
 ;;; ------------------------------------------------------------
 
+(defun tof-referenced-p (id)
+  (with-db ()
+    (and id
+         (query (:select 'id
+                         :from 'company
+                         :where (:= 'tof-id id))))))
+
 (define-existence-predicate tof-id-exists-p tof id)
 (define-uniqueness-predicate tof-title-unique-p tof title id)
 
@@ -20,6 +27,18 @@
   (cond ((eql :null title) 'tof-title-null)
         ((not (tof-title-unique-p title id)) 'tof-title-exists)
         (t nil)))
+
+(defun tof-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
+                    (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη")))))
+
+(defun chk-tof-id/ref (id)
+  (if (and (null (chk-tof-id id))
+           (null (tof-referenced-p id)))
+      nil
+      'tof-referenced))
 
 
 
@@ -49,7 +68,7 @@
       (see-other (tof/update :id (raw id) :title (raw title)))))
 
 (define-dynamic-page actions/tof/delete ("actions/tof/delete" :request-type :post)
-    ((id integer chk-tof-id t))
+    ((id integer chk-tof-id/ref t))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'tof (val id)))
@@ -59,7 +78,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; TOF menus
+;;; TOF menu
 ;;; ------------------------------------------------------------
 
 (defun tof-menu (id enabled-items)
@@ -72,18 +91,6 @@
                                                   nil
                                                   (tof/delete :id id)))
            :enabled-items enabled-items))
-
-(defun tof-referenced-p (id)
-  (with-db ()
-    (and id
-         (query (:select 'id
-                         :from 'company
-                         :where (:= 'tof-id id))))))
-
-(defun tof-errorbar (params)
-  (funcall (generic-errorbar)
-           params
-           '((title "Αυτό το όνομα Δ.Ο.Υ. είναι κενό ή υπάρχει ήδη"))))
 
 
 

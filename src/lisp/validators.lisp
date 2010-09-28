@@ -83,10 +83,6 @@
   (and (positive-nonnull-p val)
        (acc-id-exists-p val)))
 
-(defun valid-parent-acc-id-p (val)
-  (or (null val)
-      (acc-id-exists-p val)))
-
 (defun valid-acc-id-no-subaccounts-p (acc-id)
   (and (acc-id-exists-p acc-id)
        (null (get-subaccounts acc-id))))

@@ -8,6 +8,13 @@
 ;;; Bank - Validation
 ;;; ------------------------------------------------------------
 
+(defun bank-referenced-p (id)
+  (with-db ()
+    (and id
+         (query (:select 'id
+                         :from 'cheque
+                         :where (:= 'bank-id id))))))
+
 (define-existence-predicate bank-id-exists-p bank id)
 (define-uniqueness-predicate bank-title-unique-p bank title id)
 
@@ -16,10 +23,22 @@
       nil
       'bank-id-unknown))
 
+(defun chk-bank-id/ref (id)
+  (if (and (null (chk-bank-id id))
+           (null (bank-referenced-p id)))
+      nil
+      'bank-referenced))
+
 (defun chk-bank-title (title &optional id)
   (cond ((eql :null title) 'bank-title-null)
         ((not (bank-title-unique-p title id)) 'bank-title-exists)
         (t nil)))
+
+(defun bank-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
+                    (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
 
 
 
@@ -49,7 +68,7 @@
       (see-other (bank/update :id (raw id) :title (raw title)))))
 
 (define-dynamic-page actions/bank/delete ("actions/bank/delete" :request-type :post)
-    ((id integer chk-bank-id t))
+    ((id integer chk-bank-id/ref t))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'bank (val id)))
@@ -59,7 +78,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Bank menus
+;;; Bank menu
 ;;; ------------------------------------------------------------
 
 (defun bank-menu (id enabled-items)
@@ -73,18 +92,6 @@
                                                   (bank/delete :id id)))
            :enabled-items enabled-items))
 
-(defun bank-referenced-p (id)
-  (with-db ()
-    (and id
-         (query (:select 'id
-                         :from 'cheque
-                         :where (:= 'bank-id id))))))
-
-(defun bank-errorbar (params)
-  (funcall (generic-errorbar)
-           params
-           '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
-                    (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
 
 
 ;;; ------------------------------------------------------------

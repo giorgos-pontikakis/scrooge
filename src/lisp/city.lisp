@@ -8,6 +8,13 @@
 ;;; City - Validation
 ;;; ------------------------------------------------------------
 
+(defun city-referenced-p (id)
+  (with-db ()
+    (and id
+         nil #|(query (:select 'id
+                         :from 'company
+                         :where (:= 'city-id id)))|#)))
+
 (define-existence-predicate city-id-exists-p city id)
 (define-uniqueness-predicate city-title-unique-p city title id)
 
@@ -16,10 +23,22 @@
       nil
       'city-id-unknown))
 
+(defun chk-city-id/ref (id)
+  (if (and (null (chk-city-id id))
+           (null (city-referenced-p id)))
+      nil
+      'city-referenced))
+
 (defun chk-city-title (title &optional id)
   (cond ((eql :null title) 'city-title-null)
         ((not (city-title-unique-p title id)) 'city-title-exists)
         (t nil)))
+
+(defun city-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '(title ((city-title-null "Το όνομα της πόλης είναι κενό.")
+                    (city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))))
 
 
 
@@ -59,7 +78,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; City menus
+;;; City menu
 ;;; ------------------------------------------------------------
 
 (defun city-menu (id enabled-items)
@@ -72,18 +91,6 @@
                                                   nil
                                                   (city/delete :id id)))
            :enabled-items enabled-items))
-
-(defun city-referenced-p (id)
-  (with-db ()
-    (and id
-         nil #|(query (:select 'id
-                         :from 'company
-                         :where (:= 'city-id id)))|#)))
-
-(defun city-errorbar (params)
-  (funcall (generic-errorbar)
-           params
-           '((title "Αυτό το όνομα πόλης είναι κενό ή υπάρχει ήδη."))))
 
 
 
