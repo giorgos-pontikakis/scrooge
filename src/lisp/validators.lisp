@@ -1,11 +1,6 @@
 (in-package :scrooge)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro define-existence-validator (name table field)
-    (with-gensyms (value)
-      `(defun ,name (,value)
-	 (with-db () 
-	   (query (:select 1 :from ',table :where (:= ',field ,value))))))))
+
 
 
 ;;; --- Helpers --------------------
@@ -144,25 +139,3 @@
 (define-existence-validator valid-project-id-p project id)
 
 
-;;; --- State transitions --------------------
-
-(defun valid-stran-id-p (stran-id tbl)
-  (with-db ()
-    (query (:select 1
-		    :from (symbolicate (string-upcase tbl) "-STRAN")
-		    :where (:= 'id stran-id)))))
-
-(defun valid-tbl-p (tbl)
-  (with-db ()
-    (query (:select 1
-                    :from 'stran
-                    :where (:= tbl 'id)))))
-
-(defun valid-combo (table status)
-  (with-db ()
-    (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
-	   (sql (sql-compile `(:select 1
-				       :from ,status-table
-				       :where (:= status ,status)))))
-      (and (valid-tbl-p table)
-	   (query sql :single)))))

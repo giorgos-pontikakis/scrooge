@@ -6,11 +6,11 @@
 ;;; Accounts - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/account/create ((parent-id    integer #'valid-parent-acc-id-p)
-					     (title string  (complement #'acc-exists-p))
-                                             (debp  boolean))
-    ("actions/account/create" :request-type :post
-                              :validators (((parent-id debp) (valid-debp-id-combo parent-id debp))))
+(define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
+    ((parent-id integer #'valid-parent-acc-id-p)
+     (title     string  (complement #'acc-exists-p))
+     (debp      boolean))
+  :validators (((parent-id debp) (valid-debp-id-combo parent-id debp)))
   (no-cache) 
   (if (every #'validp (parameters *page*))
       (let ((debit-p (if parent-id (debit-p (val parent-id)) (val debp))))
@@ -28,9 +28,9 @@
           ;; tampered URL - abort
           (see-other (notfound)))))
 
-(define-dynamic-page actions/account/update ((id    integer #'valid-acc-id-p t) 
-					     (title string  (complement #'acc-exists-p)))
-    ("actions/account/update" :request-type :post)
+(define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
+    ((id    integer #'valid-acc-id-p t) 
+     (title string  (complement #'acc-exists-p)))
   (no-cache) 
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -44,8 +44,8 @@
           ;; tampered URL - abort
           (see-other (notfound)))))
 
-(define-dynamic-page actions/account/delete ((id integer #'valid-acc-id-no-subaccounts-p t))
-    ("actions/account/delete" :request-type :post)
+(define-dynamic-page actions/account/delete ("actions/account/delete" :request-type :post)
+    ((id integer #'valid-acc-id-no-subaccounts-p t))
   (no-cache)
   (if (validp id)
       (with-db ()
@@ -207,8 +207,8 @@
 ;;; Account pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page account ((id integer #'valid-acc-id-p))
-    ("account/")
+(define-dynamic-page account ("account/")
+    ((id integer #'valid-acc-id-p))
   (no-cache) 
   (if (validp id)
       (with-document ()
@@ -263,104 +263,105 @@
 
 
 
-;; (define-dynamic-page account/create ((id integer #'valid-acc-id-p)
-;;                                      (parent-id integer #'valid-parent-acc-id-p) 
-;;                                      (title     string  (complement #'acc-exists-p))
-;; 				     (debp      boolean))
-;;     ("account/create" :validators (((parent-id debp) (valid-debp-id-combo parent-id debp))))
-;;   (no-cache) 
-;;   (with-parameter-list params
-;;     (if (every #'validp params)
-;;         (with-parameter-rebinding #'val
-;;           (let ((debit-p (if parent-id (debit-p parent-id) debp)))
-;;             (standard-page
-;;              :name 'accounts
-;;              :title "Δημιουργία λογαριασμού"
-;;              :message "Δημιουργία λογαριασμού"
-;;              :body (list
-;;                     (window :name "debit-accounts"
-;;                             :body (html ()
-;;                                     (account-menu nil nil)
-;;                                     (:h2 "Χρεωστικοί Λογαριασμοί")
-;;                                     (render (make-instance 'account-table
-;;                                                            :name "debit-acc-table" 
-;;                                                            :operation (if debit-p
-;;                                                                           :create
-;;                                                                           :view)
-;;                                                            :aux-keys '(:debp :parent-id)
-;;                                                            :params params
-;;                                                            :data-fn (account-data-fn t)))))
-;;                     (window :name "credit-accounts"
-;;                             :body (html ()
-;;                                     (account-menu nil nil)
-;;                                     (:h2 "Πιστωτικοί Λογαριασμοί")
-;;                                     (render (make-instance 'account-table
-;;                                                            :name "credit-acc-table" 
-;;                                                            :operation (if debit-p
-;;                                                                           :view
-;;                                                                           :create)
-;;                                                            :aux-keys '(:debp :parent-id)
-;;                                                            :params params
-;;                                                            :data-fn (account-data-fn nil))))))))) 
-;;         (see-other (notfound)))))
+(define-dynamic-page account/create ("account/create")
+    ((id integer #'valid-acc-id-p)
+     (parent-id integer #'valid-parent-acc-id-p) 
+     (title     string  (complement #'acc-exists-p))
+     (debp      boolean))
+  :validators (((parent-id debp) (valid-debp-id-combo parent-id debp)))
+  (no-cache) 
+  (with-parameter-list params
+    (if (every #'validp params)
+        (with-parameter-rebinding #'val
+          (let ((debit-p (if parent-id (debit-p parent-id) debp)))
+            (standard-page
+             :name 'accounts
+             :title "Δημιουργία λογαριασμού"
+             :message "Δημιουργία λογαριασμού"
+             :body (list
+                    (window :name "debit-accounts"
+                            :body (html ()
+                                    (account-menu nil nil)
+                                    (:h2 "Χρεωστικοί Λογαριασμοί")
+                                    (render (make-instance 'account-table
+                                                           :name "debit-acc-table" 
+                                                           :operation (if debit-p
+                                                                          :create
+                                                                          :view)
+                                                           :aux-keys '(:debp :parent-id)
+                                                           :params params
+                                                           :data-fn (account-data-fn t)))))
+                    (window :name "credit-accounts"
+                            :body (html ()
+                                    (account-menu nil nil)
+                                    (:h2 "Πιστωτικοί Λογαριασμοί")
+                                    (render (make-instance 'account-table
+                                                           :name "credit-acc-table" 
+                                                           :operation (if debit-p
+                                                                          :view
+                                                                          :create)
+                                                           :aux-keys '(:debp :parent-id)
+                                                           :params params
+                                                           :data-fn (account-data-fn nil))))))))) 
+        (see-other (notfound)))))
 
-;; (define-dynamic-page account/update ((id    integer #'valid-acc-id-p            t)
-;; 				     (title string  (complement #'acc-exists-p)))
-;;     ("account/update")
-;;   (no-cache)
-;;   (with-parameter-list params
-;;     (if (validp id)
-;;         (standard-page
-;;          :name 'accounts
-;;          :title "Επεξεργασία λογαριασμού"
-;;          :message "Επεξεργασία λογαριασμού"
-;;          :body (list (window :name "debit-accounts"
-;;                              :body (html ()
-;;                                      (account-menu (val id) nil :view :delete)
-;;                                      (:h2 "Χρεωστικοί Λογαριασμοί")
-;;                                      (render (make-instance 'account-table
-;;                                                             :name "debit-acc-table" 
-;;                                                             :operation :update
-;;                                                             :params params
-;;                                                             :data-fn (account-data-fn t)))))
-;;                      (window :name "credit-accounts"
-;;                              :body (html ()
-;;                                      (account-menu (val id) nil :view :delete)
-;;                                      (:h2 "Πιστωτικοί Λογαριασμοί")
-;;                                      (render (make-instance 'account-table
-;;                                                             :name "credit-acc-table"
-;;                                                             :operation :update
-;;                                                             :params params
-;;                                                             :data-fn (account-data-fn nil))))))) 
-;;         (see-other (notfound)))))
+(define-dynamic-page account/update ("account/update")
+    ((id    integer #'valid-acc-id-p            t)
+     (title string  (complement #'acc-exists-p)))
+  (no-cache)
+  (with-parameter-list params
+    (if (validp id)
+        (standard-page
+         :name 'accounts
+         :title "Επεξεργασία λογαριασμού"
+         :message "Επεξεργασία λογαριασμού"
+         :body (list (window :name "debit-accounts"
+                             :body (html ()
+                                     (account-menu (val id) nil :view :delete)
+                                     (:h2 "Χρεωστικοί Λογαριασμοί")
+                                     (render (make-instance 'account-table
+                                                            :name "debit-acc-table" 
+                                                            :operation :update
+                                                            :params params
+                                                            :data-fn (account-data-fn t)))))
+                     (window :name "credit-accounts"
+                             :body (html ()
+                                     (account-menu (val id) nil :view :delete)
+                                     (:h2 "Πιστωτικοί Λογαριασμοί")
+                                     (render (make-instance 'account-table
+                                                            :name "credit-acc-table"
+                                                            :operation :update
+                                                            :params params
+                                                            :data-fn (account-data-fn nil))))))) 
+        (see-other (notfound)))))
 
-;; (define-dynamic-page account/delete ((id integer #'valid-acc-id-no-subaccounts-p t))
-;;     ("account/delete")
-;;   (no-cache)
-;;   (if (validp id)
-;;       (with-parameter-list params
-;;         (standard-page
-;;          :name 'accounts
-;;          :title "Διαγραφή λογαριασμού"
-;;          :message "Διαγραφή λογαριασμού"
-;;          :body (list (window :name "debit-accounts"
-;;                              :body (html ()
-;;                                      (account-menu (val id) nil :view :edit)
-;;                                      (:h2 "Χρεωστικοί λογαριασμοί")
-;;                                      (render (make-instance 'account-table
-;;                                                             :name "debit-acc-table" 
-;;                                                             :operation :delete
-;;                                                             :params params
-;;                                                             :data-fn (account-data-fn t)))))
-;;                      (window :name "credit-accounts"
-;;                              :body (html ()
-;;                                      (account-menu (val id) nil :view :edit)
-;;                                      (:h2 "Χρεωστικοί λογαριασμοί")
-;;                                      (render (make-instance 'account-table
-;;                                                             :name "credit-acc-table" 
-;;                                                             :operation :delete
-;;                                                             :params params
-;;                                                             :data-fn (account-data-fn nil))))))))
-;;       (see-other (notfound))))
+(define-dynamic-page account/delete ("account/delete")
+    ((id integer #'valid-acc-id-no-subaccounts-p t))
+  (no-cache)
+  (if (validp id)
+      (with-parameter-list params
+        (standard-page
+         :name 'accounts
+         :title "Διαγραφή λογαριασμού"
+         :message "Διαγραφή λογαριασμού"
+         :body (list (window :name "debit-accounts"
+                             :body (html ()
+                                     (account-menu (val id) nil :view :edit)
+                                     (:h2 "Χρεωστικοί λογαριασμοί")
+                                     (render (make-instance 'account-table
+                                                            :name "debit-acc-table" 
+                                                            :operation :delete
+                                                            :params params
+                                                            :data-fn (account-data-fn t)))))
+                     (window :name "credit-accounts"
+                             :body (html ()
+                                     (account-menu (val id) nil :view :edit)
+                                     (:h2 "Χρεωστικοί λογαριασμοί")
+                                     (render (make-instance 'account-table
+                                                            :name "credit-acc-table" 
+                                                            :operation :delete
+                                                            :params params
+                                                            :data-fn (account-data-fn nil))))))))
+      (see-other (notfound))))
 
 

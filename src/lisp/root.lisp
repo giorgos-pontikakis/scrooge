@@ -5,7 +5,7 @@
 
 ;;; --- Home --------------------
 
-(define-dynamic-page home () ("") 
+(define-dynamic-page home ("") () 
   (with-document ()
     (:head
      (:title "Αρχική")
@@ -41,7 +41,7 @@
 
 ;;; :TODO: This should be a static page
 
-(define-dynamic-page notfound () ("notfound")
+(define-dynamic-page notfound ("notfound") ()
   (no-cache)
   (with-document ()
     (:head
@@ -56,7 +56,7 @@
 		 (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
 		 (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
 
-(define-dynamic-page error-page () ("error-page")
+(define-dynamic-page error-page ("error-page") ()
   (no-cache)
   (with-document ()
     (:head

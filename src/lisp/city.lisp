@@ -5,11 +5,30 @@
 
 
 ;;; ------------------------------------------------------------
+;;; City - Validation
+;;; ------------------------------------------------------------
+
+(define-existence-predicate city-id-exists-p city id)
+(define-uniqueness-predicate city-title-unique-p city title id)
+
+(defun chk-city-id (id)
+  (if (city-id-exists-p id)
+      nil
+      'city-id-unknown))
+
+(defun chk-city-title (title &optional id)
+  (cond ((eql :null title) 'city-title-null)
+        ((not (city-title-unique-p title id)) 'city-title-exists)
+        (t nil)))
+
+
+
+;;; ------------------------------------------------------------
 ;;; City - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/city/create ((title string (complement #'city-exists-p) t))
-    ("actions/city/create" :request-type :post) 
+(define-dynamic-page actions/city/create ("actions/city/create" :request-type :post)
+    ((title string chk-city-title t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -17,24 +36,24 @@
         (see-other (city :id (city-id (val title)))))
       (see-other (city/create :title (val title)))))
 
-(define-dynamic-page actions/city/update ((id    integer #'city-id-exists-p)
-                                          (title string (complement #'city-exists-p) t))
-    ("actions/city/update" :request-type :post)
-  (no-cache) 
+(define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
+    ((id    integer chk-city-id t)
+     (title string (chk-city-title title id) t))
+  (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
-        (execute (:update 'city :set 
+        (execute (:update 'city :set
                           'title (val title)
                           :where (:= 'id (val id))))
         (see-other (city :id (val id))))
       (see-other (city/update :id (val id) :title (val title)))))
 
-(define-dynamic-page actions/city/delete ((id integer #'city-id-exists-p t))
-    ("actions/city/delete" :request-type :post)
+(define-dynamic-page actions/city/delete ("actions/city/delete" :request-type :post)
+    ((id integer chk-city-id t))
   (if (validp id)
       (with-db ()
-	(delete-dao (get-dao 'city (val id)))
-	(see-other (city)))
+        (delete-dao (get-dao 'city (val id)))
+        (see-other (city)))
       (see-other (notfound))))
 
 
@@ -89,9 +108,9 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row-payload-fn (mkfn-row-payload payload-keys))
          (row (mkfn-crud-row row-id-fn
-                             row-payload-fn 
+                             row-payload-fn
                              row-selected-p-fn
                              row-controls-p-fn
                              row-readonly-p-fn
@@ -112,10 +131,10 @@
 ;;; City - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page city ((id integer #'city-id-exists-p t))
-    ("config/city")
+(define-dynamic-page city ("config/city")
+    ((id integer chk-city-id))
   (no-cache)
-  (if (validp id) 
+  (if (validp id)
       (with-document ()
         (:head
          (:title "Πόλεις")
@@ -133,8 +152,8 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page city/create ((title string (complement #'city-exists-p) t))
-    ("config/city/create") 
+(define-dynamic-page city/create ("config/city/create")
+    ((title string chk-city-title))
   (no-cache)
   (with-document ()
     (:head
@@ -152,9 +171,9 @@
                    (city-table 'create nil)))
            (footer)))))
 
-(define-dynamic-page city/update ((id    integer #'city-id-exists-p t) 
-                                  (title string  (complement #'city-exists-p) t))
-    ("config/city/update")
+(define-dynamic-page city/update ("config/city/update")
+    ((id    integer chk-city-id t)
+     (title string  (chk-city-title title id)))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -174,8 +193,8 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page city/delete ((id integer #'city-id-exists-p t))
-    ("config/city/delete")
+(define-dynamic-page city/delete ("config/city/delete")
+    ((id integer chk-city-id t))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -193,6 +212,3 @@
                        (city-table 'delete id)))
                (footer))))
       (see-other (notfound))))
-
-
-

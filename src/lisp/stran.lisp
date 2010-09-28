@@ -2,112 +2,76 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
+
 ;;; ------------------------------------------------------------
-;;; Definition
+;;; stran - Validation
 ;;; ------------------------------------------------------------
 
-;; (defclass stran-table (table-normal-crud)
-;;   ((name :initform "stran-table")
-;;    (header :initform '(:selector    ""
-;;                        :tbl         "Πίνακας"
-;;                        :description "Περιγραφή"         
-;;                        :old-status  "Αρχική Κατάσταση"  
-;;                        :new-status  "Τελική Κατάσταση"
-;;                        :debit-acc   "Λογ. Χρέωσης"      
-;;                        :credit-acc  "Λογ. Πίστωσης"     
-;;                        :submit      ""
-;;                        :cancel      ""))
-;;    (styles :initform '(:active-row "active"
-;;                        :inactive-row ""
-;;                        :attention-row "attention"
-;;                        :table "forms-in-row table-half")) 
-;;    ;; page interface
-;;    (id-keys :initform '(:stran-id :tbl))
-;;    (payload-keys :initform '(:description
-;;                              :old-status
-;;                              :new-status
-;;                              :debit-acc
-;;                              :credit-acc))
-;;    (filter-keys :initform '())
-;;    ;; crud mixin
-;;    (main-page :initform 'stran)
-;;    (submit-pages :initform '(:create actions/stran/create
-;;                              :update actions/stran/update
-;;                              :delete actions/stran/delete)) 
-;;    (cells-fn :initform (stran-cells-fn))
-;;    (data-fn :initform (stran-data-fn))))
+(defun stran-id-exists-p (id tbl)
+  (with-db ()
+    (query (:select 1
+		    :from (symbolicate (string-upcase tbl) "-STRAN")
+		    :where (:= 'id id)))))
 
+(defun stran-tbl-exists-p (tbl)
+  (with-db ()
+    (query (:select 1
+                    :from 'stran
+                    :where (:= tbl 'id)))))
 
+(defun stran-description-exists-p (description &optional id)
+  (with-db ()
+    (if id
+        (query (:select 1
+                        :from 'stran
+                        :where (:and (:not (:= 'id id))
+                                     (:= 'description description)))
+               :single)
+        (query (:select 1
+                        :from 'stran
+                        :where (:= 'description description))
+               :single))))
 
-;; (defun make-stran-table (&key operation params)
-;;   (make-instance 'stran-table 
-;;                  :operation operation
-;;                  :params params))
+(defun valid-status-p (status table)
+  (with-db ()
+    (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
+	   (sql (sql-compile `(:select 1
+				       :from ,status-table
+				       :where (:= status ,status)))))
+      (and (stran-tbl-exists-p table)
+	   (query sql :single)))))
 
-;; (defun stran-cells-fn ()
-;;   (lambda (row) 
-;;     (destructuring-bind (&key stran-id tbl description
-;;                               old-status new-status debit-acc credit-acc) (data row)
-;;       (declare (ignore stran-id))
-;;       (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
-;;         (list (make-cell-selector :row row
-;;                                   :name :selector
-;;                                   :style "select")
-;;               (make-cell-dropdown :row row
-;;                                   :name :tbl 
-;;                                   :pairs pairs
-;;                                   :value tbl
-;;                                   :style "data"
-;;                                   :operations '(:create))
-;;               (make-cell-textbox :row row
-;;                                  :name :description
-;;                                  :value description
-;;                                  :style "data"
-;;                                  :operations '(:create :update))
-;;               (make-cell-textbox :row row
-;;                                  :name :old-status
-;;                                  :value old-status
-;;                                  :style "data"
-;;                                  :operations '(:create :update))
-;;               (make-cell-textbox :row row
-;;                                  :name :new-status
-;;                                  :value new-status
-;;                                  :style "data"
-;;                                  :operations '(:create :update))
-;;               (make-cell-textbox :row row
-;;                                  :name :debit-acc
-;;                                  :value debit-acc
-;;                                  :style "data"
-;;                                  :operations '(:create :update))
-;;               (make-cell-textbox :row row
-;;                                  :name :credit-acc
-;;                                  :value credit-acc
-;;                                  :style "data"
-;;                                  :operations '(:create :update))
-;;               (make-cell-submit :row row
-;;                                 :name :submit
-;;                                 :style "button"
-;;                                 :operations '(:create :update :delete))
-;;               (make-cell-cancel :row row
-;;                                 :name :cancel
-;;                                 :style "button"
-;;                                 :operations '(:create :update :delete)))))))
+(defun chk-stran-id (id tbl)
+  (if (stran-id-exists-p id tbl)
+      nil
+      'stran-id-unknown))
 
+(defun chk-stran-tbl (tbl)
+  (if (stran-tbl-exists-p tbl)
+      nil
+      'stran-tbl-unknown))
 
+(defun chk-stran-description (description &optional id)
+  (cond ((eql :null description) 'stran-description-null)
+        ((stran-description-exists-p description id) 'stran-description-exists)
+        (t nil)))
+
+(defun chk-status (status tbl)
+  (if (valid-status-p status tbl)
+      nil
+      'stran-status-unknown))
 
 ;;; ------------------------------------------------------------
 ;;; State transitions - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/stran/create ((tbl string)
-                                           (description string #'not-db-null-p)
-                                           (debit-acc string #'acc-exists-p)
-                                           (credit-acc string #'acc-exists-p) 
-                                           (old-status string)
-                                           (new-status string))
-    ("actions/stran/create" :request-type :post
-                            :validators ((old-status (valid-combo tbl old-status))
-                                         (new-status (valid-combo tbl new-status))))
+(define-dynamic-page actions/stran/create ("actions/stran/create" :request-type :post)
+    ((tbl         string chk-stran-tbl)
+     (description string chk-stran-description)
+     (debit-acc   string acc-exists-p)
+     (credit-acc  string acc-exists-p) 
+     (old-status  string (chk-status old-status tbl))
+     (new-status  string (chk-status new-status tbl)))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (let ((debit-acc-id (account-id (val debit-acc)))
@@ -127,18 +91,14 @@
                                :old-status (raw old-status)
                                :new-status (raw new-status)))))
 
-(define-dynamic-page actions/stran/update ((id integer)
-                                           (tbl string)
-                                           (description string #'not-db-null-p)
-                                           (debit-acc string #'acc-exists-p)
-                                           (credit-acc string #'acc-exists-p) 
-                                           (old-status string)
-                                           (new-status string))
-    ("actions/stran/update"
-     :request-type :post
-     :validators ((old-status (valid-combo tbl old-status))
-		  (new-status (valid-combo tbl new-status))
-		  ((id tbl) (valid-stran-id-p id tbl))))
+(define-dynamic-page actions/stran/update ("actions/stran/update" :request-type :post)
+    ((id          integer chk-stran-id)
+     (tbl         string  chk-stran-tbl)
+     (description string  chk-stran-description)
+     (debit-acc   string  acc-exists-p)
+     (credit-acc  string  acc-exists-p) 
+     (old-status  string  (chk-status old-status tbl))
+     (new-status  string  (chk-status new-status tbl)))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (let ((debit-acc-id (account-id (val debit-acc)))
@@ -160,10 +120,9 @@
                                :old-status old-status
                                :new-status new-status))))
 
-(define-dynamic-page actions/stran/delete ((id integer)
-                                           (tbl string))
-    ("actions/stran/delete" :request-type :post
-                            :validators (((id tbl) (valid-stran-id-p id tbl))))
+(define-dynamic-page actions/stran/delete ("actions/stran/delete" :request-type :post)
+    ((id integer chk-stran-id)
+     (tbl string (valid-stran-id-p id tbl)))
   (no-cache) 
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -194,19 +153,18 @@
              (old-status "Άκυρη αρχική κατάσταση")
              (new-status "Άκυρη τελική κατάσταση"))))
 
-
 (defun stran-data ()
   (flet ((select (table)
-           `(:select (:as ,(symbolicate table '-stran.id) 'stran-id) ;; :stran-id
-                     (:as 'stran.id 'tbl) ;; :tbl
-                     ,(symbolicate table '-stran.description) ;; :description
-                     'old-status   ;; :old-status
-                     'new-status   ;; :new-status 
-                     (:as 'debit-account.title 'debit-acc) ;; :debit-acc
-                     (:as 'credit-account.title 'credit-acc) ;; :credit-acc
+           `(:select (:as ,(symbolicate table '-stran.id) 'stran-id)
+                     (:as 'stran.id 'tbl)
+                     ,(symbolicate table '-stran.description)
+                     'old-status
+                     'new-status
+                     (:as 'debit-account.title 'debit-acc)
+                     (:as 'credit-account.title 'credit-acc)
 
                      :from ,(symbolicate table '-stran)
-                       
+                     
                      :left-join 'stran
                      :on (:= 'stran.id ,table)
 
@@ -249,7 +207,7 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row-payload-fn (mkfn-row-payload payload-keys)) 
          (row (mkfn-crud-row row-id-fn
                              row-payload-fn 
                              row-selected-p-fn
@@ -276,9 +234,9 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page stran ((id integer)
-                            (tbl string))
-    ("config/stran/" :validators (((id tbl) (valid-stran-id-p id tbl))))
+(define-dynamic-page stran ("config/stran/")
+    ((id integer)
+     (tbl string (valid-stran-id-p id tbl)))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-document ()
@@ -298,14 +256,13 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page stran/create ((tbl         string #'valid-tbl-p)
-                                   (description string #'not-db-null-p) 
-                                   (debit-acc   string #'acc-exists-p)
-                                   (credit-acc  string #'acc-exists-p)
-                                   (old-status  string)
-                                   (new-status  string))
-    ("config/stran/create" :validators ((old-status (valid-combo tbl old-status))
-                                        (new-status (valid-combo tbl new-status))))
+(define-dynamic-page stran/create ("config/stran/create" )
+    ((tbl         string #'chk-tbl-p)
+     (description string #'not-db-null-p) 
+     (debit-acc   string #'acc-exists-p)
+     (credit-acc  string #'acc-exists-p)
+     (old-status  string (chk-status old-status tbl))
+     (new-status  string (chk-status new-status tbl)))
   (no-cache)
   (if (validp tbl)
       (with-document ()
@@ -325,16 +282,14 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page stran/update ((id          integer)
-                                   (tbl         string #'valid-tbl-p)
-                                   (description string #'not-db-null-p)
-                                   (debit-acc   string #'acc-exists-p) 
-                                   (credit-acc  string #'acc-exists-p) 
-                                   (old-status  string)
-                                   (new-status  string))
-    ("config/stran/update" :validators ((old-status (valid-combo tbl old-status))
-                                        (new-status (valid-combo tbl new-status))
-                                        ((id tbl) (valid-stran-id-p id tbl))))
+(define-dynamic-page stran/update ("config/stran/update")
+    ((id          integer (valid-stran-id-p id tbl))
+     (tbl         string #'chk-tbl-p)
+     (description string #'not-db-null-p)
+     (debit-acc   string #'acc-exists-p) 
+     (credit-acc  string #'acc-exists-p) 
+     (old-status  string (chk-status old-status tbl))
+     (new-status  string (chk-status new-status tbl)))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -354,9 +309,9 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page stran/delete ((id integer)
-                                   (tbl string #'valid-tbl-p))
-    ("config/stran/delete" :validators (((id tbl) (valid-stran-id-p id tbl))))
+(define-dynamic-page stran/delete ("config/stran/delete" )
+    ((id integer)
+     (tbl string #'chk-tbl-p (valid-stran-id-p id tbl)))
   (no-cache) 
   (if (validp id)
       (with-document ()
@@ -377,3 +332,93 @@
 
 
 
+;; ;;; ------------------------------------------------------------
+;; ;;; Definition
+;; ;;; ------------------------------------------------------------
+
+;; ;; (defclass stran-table (table-normal-crud)
+;; ;;   ((name :initform "stran-table")
+;; ;;    (header :initform '(:selector    ""
+;; ;;                        :tbl         "Πίνακας"
+;; ;;                        :description "Περιγραφή"         
+;; ;;                        :old-status  "Αρχική Κατάσταση"  
+;; ;;                        :new-status  "Τελική Κατάσταση"
+;; ;;                        :debit-acc   "Λογ. Χρέωσης"      
+;; ;;                        :credit-acc  "Λογ. Πίστωσης"     
+;; ;;                        :submit      ""
+;; ;;                        :cancel      ""))
+;; ;;    (styles :initform '(:active-row "active"
+;; ;;                        :inactive-row ""
+;; ;;                        :attention-row "attention"
+;; ;;                        :table "forms-in-row table-half")) 
+;; ;;    ;; page interface
+;; ;;    (id-keys :initform '(:stran-id :tbl))
+;; ;;    (payload-keys :initform '(:description
+;; ;;                              :old-status
+;; ;;                              :new-status
+;; ;;                              :debit-acc
+;; ;;                              :credit-acc))
+;; ;;    (filter-keys :initform '())
+;; ;;    ;; crud mixin
+;; ;;    (main-page :initform 'stran)
+;; ;;    (submit-pages :initform '(:create actions/stran/create
+;; ;;                              :update actions/stran/update
+;; ;;                              :delete actions/stran/delete)) 
+;; ;;    (cells-fn :initform (stran-cells-fn))
+;; ;;    (data-fn :initform (stran-data-fn))))
+
+
+
+;; ;; (defun make-stran-table (&key operation params)
+;; ;;   (make-instance 'stran-table 
+;; ;;                  :operation operation
+;; ;;                  :params params))
+
+;; ;; (defun stran-cells-fn ()
+;; ;;   (lambda (row) 
+;; ;;     (destructuring-bind (&key stran-id tbl description
+;; ;;                               old-status new-status debit-acc credit-acc) (data row)
+;; ;;       (declare (ignore stran-id))
+;; ;;       (let ((pairs (with-db (query (:select 'description 'id :from 'stran)))))
+;; ;;         (list (make-cell-selector :row row
+;; ;;                                   :name :selector
+;; ;;                                   :style "select")
+;; ;;               (make-cell-dropdown :row row
+;; ;;                                   :name :tbl 
+;; ;;                                   :pairs pairs
+;; ;;                                   :value tbl
+;; ;;                                   :style "data"
+;; ;;                                   :operations '(:create))
+;; ;;               (make-cell-textbox :row row
+;; ;;                                  :name :description
+;; ;;                                  :value description
+;; ;;                                  :style "data"
+;; ;;                                  :operations '(:create :update))
+;; ;;               (make-cell-textbox :row row
+;; ;;                                  :name :old-status
+;; ;;                                  :value old-status
+;; ;;                                  :style "data"
+;; ;;                                  :operations '(:create :update))
+;; ;;               (make-cell-textbox :row row
+;; ;;                                  :name :new-status
+;; ;;                                  :value new-status
+;; ;;                                  :style "data"
+;; ;;                                  :operations '(:create :update))
+;; ;;               (make-cell-textbox :row row
+;; ;;                                  :name :debit-acc
+;; ;;                                  :value debit-acc
+;; ;;                                  :style "data"
+;; ;;                                  :operations '(:create :update))
+;; ;;               (make-cell-textbox :row row
+;; ;;                                  :name :credit-acc
+;; ;;                                  :value credit-acc
+;; ;;                                  :style "data"
+;; ;;                                  :operations '(:create :update))
+;; ;;               (make-cell-submit :row row
+;; ;;                                 :name :submit
+;; ;;                                 :style "button"
+;; ;;                                 :operations '(:create :update :delete))
+;; ;;               (make-cell-cancel :row row
+;; ;;                                 :name :cancel
+;; ;;                                 :style "button"
+;; ;;                                 :operations '(:create :update :delete)))))))

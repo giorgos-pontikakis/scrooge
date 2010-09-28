@@ -45,14 +45,17 @@
                                      (str label))))))))))
 
 (defun generic-errorbar ()
-  (html (params messages) 
-    (unless (every #'validp params)
-      (htm
-       (:div (:ul :class "error"
-                  (iter (for par in params)
-                        (unless (validp par)
-                          (htm (:li (str (or (second (find (name par) messages :key #'first))
-                                             (error "Parameter name ~A not found." (name par))))))))))))))
+  (flet ((get-message (param messages)
+           (or (second (assoc (error-type param)
+                              (getf messages (name param))))
+               "Unknown error in generic-errorbar.")))
+    (html (params messages) 
+      (unless (every #'validp params) 
+        (htm
+         (:div (:ul :class "error"
+                    (iter (for p in params)
+                          (unless (validp p) 
+                            (htm (:li (str (get-message p messages)))))))))))))
 
 
 
@@ -181,15 +184,14 @@
 (defun mkfn-row-selected-p (id-keys)
   (lambda (id)
     (let ((result (mapcar (lambda (key)
-                            (or (null (find-datum id key))
-                                (eql (val* (find-parameter key))
-                                     (find-datum id key))))
+                            (eql (val* (find-parameter key))
+                                 (find-datum id key)))
                           id-keys)))
       (every #'true result))))
 
 (defun mkfn-row-controls-p (op form-ops)
-  (lambda (row-selected-p)
-    (and row-selected-p
+  (lambda (selected-p)
+    (and selected-p
          (member op form-ops))))
 
 (defun mkfn-row-readonly-p (op ro-ops rw-ops)
@@ -197,18 +199,34 @@
          (constantly t))
         ((member op rw-ops)
          (lambda (selected-p)
-           (not selected-p)))))
+           (not selected-p)))
+        (t (error "Unknown operation: ~A" op))))
 
 (defun mkfn-row-id (id-keys)
   (lambda (row-data)
     (plist-collect id-keys row-data)))
 
-(defun mkfn-row-payload (op payload-keys)
-  (ecase op
-    ((view delete)
-     (lambda (row-data)
-       (plist-collect payload-keys row-data)))
-    ((create update)
-     (lambda (row-data)
-       (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
-                    (plist-collect payload-keys row-data))))))
+(defun mkfn-row-payload (payload-keys)
+  (lambda (row-data readonly-p)
+    (if readonly-p
+        (plist-collect payload-keys row-data)
+        (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
+                     (plist-collect payload-keys row-data)))))
+
+
+;; (defun mkfn-row-payload (op payload-keys ro-ops rw-ops)
+;;   (cond ((member op ro-ops)
+;;          (lambda (row-data readonly-p)
+;;            (declare)
+;;            (plist-collect payload-keys row-data)))
+;;         ((member op rw-ops)
+;;          (lambda (row-data readonly-p)
+;;            (if readonly-p
+;;                (plist-collect payload-keys row-data)
+;;                (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
+;;                             (plist-collect payload-keys row-data)))))
+;;         (t (error "Unknown operation: ~A" op))))
+
+
+
+

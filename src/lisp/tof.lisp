@@ -5,11 +5,30 @@
 
 
 ;;; ------------------------------------------------------------
+;;; TOF - Validation
+;;; ------------------------------------------------------------
+
+(define-existence-predicate tof-id-exists-p tof id)
+(define-uniqueness-predicate tof-title-unique-p tof title id)
+
+(defun chk-tof-id (id)
+  (if (tof-id-exists-p id)
+      nil
+      'tof-id-unknown))
+
+(defun chk-tof-title (title &optional id)
+  (cond ((eql :null title) 'tof-title-null)
+        ((not (tof-title-unique-p title id)) 'tof-title-exists)
+        (t nil)))
+
+
+
+;;; ------------------------------------------------------------
 ;;; TOF - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/tof/create ((title string (complement #'tof-exists-p) t))
-    ("actions/tof/create" :request-type :post)
+(define-dynamic-page actions/tof/create ("actions/tof/create" :request-type :post)
+    ((title string chk-tof-title t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -17,24 +36,24 @@
         (see-other (tof :id (tof-id (val title)))))
       (see-other (tof/create :title (raw title)))))
 
-(define-dynamic-page actions/tof/update ((id    integer #'tof-id-exists-p) 
-                                         (title string (complement #'tof-exists-p) t))
-    ("actions/tof/update" :request-type :post)
+(define-dynamic-page actions/tof/update ("actions/tof/update" :request-type :post)
+    ((id    integer chk-tof-id t)
+     (title string (chk-tof-title title id) t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
-        (execute (:update 'tof :set 
+        (execute (:update 'tof :set
                           'title (val title)
                           :where (:= 'id (val id))))
         (see-other (tof :id (val id))))
       (see-other (tof/update :id (raw id) :title (raw title)))))
 
-(define-dynamic-page actions/tof/delete ((id integer #'tof-id-exists-p t))
-    ("actions/tof/delete" :request-type :post)
+(define-dynamic-page actions/tof/delete ("actions/tof/delete" :request-type :post)
+    ((id integer chk-tof-id t))
   (if (validp id)
       (with-db ()
-	(delete-dao (get-dao 'tof (val id)))
-	(see-other (tof)))
+        (delete-dao (get-dao 'tof (val id)))
+        (see-other (tof)))
       (see-other (notfound))))
 
 
@@ -89,9 +108,9 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row-payload-fn (mkfn-row-payload payload-keys))
          (row (mkfn-crud-row row-id-fn
-                             row-payload-fn 
+                             row-payload-fn
                              row-selected-p-fn
                              row-controls-p-fn
                              row-readonly-p-fn
@@ -112,10 +131,10 @@
 ;;; TOF - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page tof ((id integer #'tof-id-exists-p t))
-    ("config/tof")
+(define-dynamic-page tof ("config/tof")
+    ((id integer chk-tof-id))
   (no-cache)
-  (if (validp id) 
+  (if (validp id)
       (with-document ()
         (:head
          (:title "Δ.Ο.Υ.")
@@ -127,14 +146,14 @@
                      (:h2 :class "info" "Κατάλογος Δ.Ο.Υ."))
                (:div :id "tof" :class "window"
                      (tof-menu (val id) (if (val id)
-                                             '(create update delete)
-                                             '(create)))
+                                            '(create update delete)
+                                            '(create)))
                      (render (tof-table 'view id)))
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page tof/create ((title string (complement #'tof-exists-p) t))
-    ("config/tof/create")
+(define-dynamic-page tof/create ("config/tof/create")
+    ((title string chk-tof-title))
   (no-cache)
   (with-document ()
     (:head
@@ -152,9 +171,9 @@
                    (tof-table 'create nil)))
            (footer)))))
 
-(define-dynamic-page tof/update ((id    integer #'tof-id-exists-p t)
-                                 (title string  (complement #'tof-exists-p) t))
-    ("config/tof/update")
+(define-dynamic-page tof/update ("config/tof/update")
+    ((id    integer chk-tof-id t)
+     (title string  (chk-tof-title title id)))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -174,8 +193,8 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page tof/delete ((id integer #'tof-id-exists-p t))
-    ("config/tof/delete")
+(define-dynamic-page tof/delete ("config/tof/delete")
+    ((id integer chk-tof-id t))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -193,10 +212,3 @@
                        (tof-table 'delete id)))
                (footer))))
       (see-other (notfound))))
-
-
-
-
-
-
-

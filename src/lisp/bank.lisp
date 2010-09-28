@@ -5,11 +5,30 @@
 
 
 ;;; ------------------------------------------------------------
+;;; Bank - Validation
+;;; ------------------------------------------------------------
+
+(define-existence-predicate bank-id-exists-p bank id)
+(define-uniqueness-predicate bank-title-unique-p bank title id)
+
+(defun chk-bank-id (id)
+  (if (bank-id-exists-p id)
+      nil
+      'bank-id-unknown))
+
+(defun chk-bank-title (title &optional id)
+  (cond ((eql :null title) 'bank-title-null)
+        ((not (bank-title-unique-p title id)) 'bank-title-exists)
+        (t nil)))
+
+
+
+;;; ------------------------------------------------------------
 ;;; Bank - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/bank/create ((title string (complement #'bank-exists-p) t))
-    ("actions/bank/create" :request-type :post)
+(define-dynamic-page actions/bank/create ("actions/bank/create" :request-type :post)
+    ((title string chk-bank-title t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -17,9 +36,9 @@
         (see-other (bank :id (bank-id (val title)))))
       (see-other (bank/create :title (raw title)))))
 
-(define-dynamic-page actions/bank/update ((id    integer #'bank-id-exists-p)
-                                          (title string (complement #'bank-exists-p) t))
-    ("actions/bank/update" :request-type :post)
+(define-dynamic-page actions/bank/update ("actions/bank/update" :request-type :post)
+    ((id    integer chk-bank-id t)
+     (title string  (chk-bank-title title id) t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -29,8 +48,8 @@
         (see-other (bank :id (val id))))
       (see-other (bank/update :id (raw id) :title (raw title)))))
 
-(define-dynamic-page actions/bank/delete ((id integer #'bank-id-exists-p t))
-    ("actions/bank/delete" :request-type :post)
+(define-dynamic-page actions/bank/delete ("actions/bank/delete" :request-type :post)
+    ((id integer chk-bank-id t))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'bank (val id)))
@@ -61,11 +80,11 @@
                          :from 'cheque
                          :where (:= 'bank-id id))))))
 
-(defun bank-errorbar (params) 
+(defun bank-errorbar (params)
   (funcall (generic-errorbar)
            params
-           '((title "Αυτό το όνομα τράπεζας είναι κενό ή υπάρχει ήδη."))))
-
+           '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
+                    (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
 
 
 ;;; ------------------------------------------------------------
@@ -89,9 +108,9 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload op payload-keys)) 
+         (row-payload-fn (mkfn-row-payload payload-keys))
          (row (mkfn-crud-row row-id-fn
-                             row-payload-fn 
+                             row-payload-fn
                              row-selected-p-fn
                              row-controls-p-fn
                              row-readonly-p-fn
@@ -112,10 +131,10 @@
 ;;; Bank - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank ((id integer #'bank-id-exists-p t))
-    ("config/bank")
+(define-dynamic-page bank ("config/bank")
+    ((id integer chk-bank-id))
   (no-cache)
-  (if (validp id) 
+  (if (validp id)
       (with-document ()
         (:head
          (:title "Τράπεζες")
@@ -133,9 +152,9 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page bank/create ((title string (complement #'bank-exists-p) t))
-    ("config/bank/create")
-  (no-cache) 
+(define-dynamic-page bank/create ("config/bank/create")
+    ((title string chk-bank-title))
+  (no-cache)
   (with-document ()
     (:head
      (:title "Δημιουργία τράπεζας")
@@ -152,10 +171,10 @@
                    (bank-table 'create nil)))
            (footer)))))
 
-(define-dynamic-page bank/update ((id    integer #'bank-id-exists-p t)
-                                  (title string (complement #'bank-exists-p) t))
-    ("config/bank/update")
-  (no-cache) 
+(define-dynamic-page bank/update ("config/bank/update")
+    ((id    integer chk-bank-id t)
+     (title string  (chk-bank-title title id)))
+  (no-cache)
   (if (validp id)
       (with-document ()
         (:head
@@ -174,8 +193,8 @@
                (footer))))
       (see-other (notfound))))
 
-(define-dynamic-page bank/delete ((id integer #'bank-id-exists-p t))
-    ("config/bank/delete")
+(define-dynamic-page bank/delete ("config/bank/delete")
+    ((id integer chk-bank-id t))
   (no-cache)
   (if (validp id)
       (with-document ()

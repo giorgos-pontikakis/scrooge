@@ -14,7 +14,7 @@
                         (city "Πόλεις")
                         ;; (accounts "Λογαριασμοί")
                         ;; (temtx	   "Πρότυπες Συναλλαγές")
-                        ;; (stran	   "Καταστατικές Μεταβολές")
+                        ;;(stran "Καταστατικές Μεταβολές")
                         )
           :active-page-name active))
 
@@ -22,7 +22,7 @@
 
 ;;; Config main page
 
-(define-dynamic-page config () ("config/")
+(define-dynamic-page config ("config/") ()
   (no-cache)
   (with-document ()
     (:head
