@@ -5,13 +5,13 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Accounts - Validation
+;;; Account - Validation
 ;;; ------------------------------------------------------------
 
 (defun ref-subaccounts (acc-id)
   (with-db ()
     (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
-	   :single)))
+           :single)))
 
 (defun ref-transactions (acc-id)
   (with-db ()
@@ -29,7 +29,7 @@
 (define-existence-predicate acc-id-exists-p account id)
 (define-uniqueness-predicate acc-title-unique-p account title id)
 
-(defun chk-parent-acc-id-p (val)
+(defun chk-parent-acc-id (val)
   (if (or (null val) (acc-id-exists-p val))
       nil
       'parent-acc-id-unknown))
@@ -72,8 +72,8 @@
 (define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
     ((parent-id integer chk-parent-acc-id)
      (title     string  chk-acc-title t)
-     (debitp    boolean (chk-debitp debitp parent-id))) 
-  (no-cache) 
+     (debitp    boolean (chk-debitp debitp parent-id)))
+  (no-cache)
   (if (every #'validp (parameters *page*))
       (let ((debit-p (if parent-id (debit-p (val parent-id)) (val debitp))))
         (with-db ()
@@ -81,7 +81,7 @@
                                      :title (val title)
                                      :parent-id (or (val parent-id) :null)
                                      :debit-p debit-p))
-          (see-other (accounts))))
+          (see-other (account))))
       (if (and (validp parent-id) (validp debitp))
           ;; input error - go back to create page
           (see-other (account/create :parent-id (val parent-id)
@@ -91,15 +91,15 @@
           (see-other (notfound)))))
 
 (define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
-    ((id    integer chk-acc-id t) 
+    ((id    integer chk-acc-id t)
      (title string  (chk-acc-title title id) t))
-  (no-cache) 
+  (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
         (execute (:update 'account :set
                           :title title
                           :where (:= 'id (val id))))
-        (see-other (accounts :id (val id))))
+        (see-other (account :id (val id))))
       (if (validp id)
           ;; user error -  go back to update page
           (see-other (account/update :id id :title title))
@@ -111,8 +111,8 @@
   (no-cache)
   (if (validp id)
       (with-db ()
-	(delete-dao (get-dao 'account (val id))) 
-	(see-other (accounts)))
+        (delete-dao (get-dao 'account (val id)))
+        (see-other (account)))
       (see-other (notfound))))
 
 
@@ -121,70 +121,68 @@
 ;;; Accounts table widget for recursive subtables
 ;;; ------------------------------------------------------------
 
-(defclass account-table (table-ul-crud) 
-  ((name :initform "account-table")
-   (header :initform nil)
-   (styles :initform '(:active-row "active"
-                       :inactive-row ""
-                       :attention-row "attention"
-                       :table "forms-in-row table-half"
-                       :header (:selector "select"
-                                :title "data"
-                                :submit  "button"
-                                :cancel "button"))) 
-   ;; page interface
-   (id-keys :initform '(:id))
-   (payload-keys :initform '(:title))
-   (filter-keys :initform '())
-   (aux-keys :initform '())
-   ;; crud mixin
-   (main-page :initform 'accounts)
-   (submit-pages :initform '(:create actions/account/create
-                             :update actions/account/update
-                             :delete actions/account/delete))
-   (data-fn :initform nil) 
-   (cells-fn :initform (config-cells-fn)) 
-   ;; override defaults provided by table-ul-crud class
-   (tbody-class :initform 'tbody-ul-crud)
-   (row-class :initform 'account-row)))
+;; (defclass account-table (table-ul-crud)
+;;   ((name :initform "account-table")
+;;    (header :initform nil)
+;;    (styles :initform '(:active-row "active"
+;;                        :inactive-row ""
+;;                        :attention-row "attention"
+;;                        :table "forms-in-row table-half"
+;;                        :header (:selector "select"
+;;                                 :title "data"
+;;                                 :submit  "button"
+;;                                 :cancel "button")))
+;;    ;; page interface
+;;    (id-keys :initform '(:id))
+;;    (payload-keys :initform '(:title))
+;;    (filter-keys :initform '())
+;;    (aux-keys :initform '())
+;;    ;; crud mixin
+;;    (main-page :initform 'accounts)
+;;    (submit-pages :initform '(:create actions/account/create
+;;                              :update actions/account/update
+;;                              :delete actions/account/delete))
+;;    (data-fn :initform nil)
+;;    (cells-fn :initform (config-cells-fn))
+;;    ;; override defaults provided by table-ul-crud class
+;;    (tbody-class :initform 'tbody-ul-crud)
+;;    (row-class :initform 'account-row)))
 
 
-;;; Special account row class, intended as a hook for the render method
+;; ;;; Special account row class, intended as a hook for the render method
 
-(defclass account-row (row-ul-crud)
-  ())
+;; (defclass account-row (row-ul-crud)
+;;   ())
 
-(defmethod render ((row account-row) &key)
-  (let* ((table (table row))
-         (cells-list (funcall (cells-fn table) row))
-         (child-data (apply #'account-children-data (id-data row))))
-    (with-html
-      (:li :class (style row)
-           (render cells-list)
-           (when child-data 
-             (render (make-instance 'tbody-ul
-                                    :table table
-                                    :data child-data
-                                    :style "indent")))))))
+;; (defmethod render ((row account-row) &key)
+;;   (let* ((table (table row))
+;;          (cells-list (funcall (cells-fn table) row))
+;;          (child-data (apply #'account-children-data (id-data row))))
+;;     (with-html
+;;       (:li :class (style row)
+;;            (render cells-list)
+;;            (when child-data
+;;              (render (make-instance 'tbody-ul
+;;                                     :table table
+;;                                     :data child-data
+;;                                     :style "indent")))))))
 
-(defun account-data-fn (debit-p)
-  (lambda ()
+(defun account-root-data (debit-p)
+  (with-db ()
+    (query (:select 'id 'title 'parent-id
+                    :from 'account
+                    :where (:and (:= 'debit-p debit-p)
+                                 (:is-null 'parent-id)))
+           :plists)))
+
+
+(defun account-children-data (id)
+  (when id
     (with-db ()
-      (query (:select 'id 'title 'parent-id :from 'account
-                      :where (:and (:= 'debit-p debit-p)
-                                   (:is-null 'parent-id)))
-             :plists))))
-
-
-(defun account-children-data (&key id)
-  (when id ;; the row for 'create' may have id = NIL, thus this check
-    (with-db ()
-      (query (:select 'id 'title 'parent-id :from 'account
+      (query (:select 'id 'title 'parent-id
+                      :from 'account
                       :where (:= 'parent-id id))
              :plists))))
-
-
-
 
 
 
@@ -192,7 +190,7 @@
 ;;; Account menus
 ;;; ------------------------------------------------------------
 
-(defun bank-menu (id enabled-items)
+(defun account-menu (id enabled-items)
   (funcall (actions-menu)
            :item-specs (standard-actions-spec (account :id id)
                                               (account/create)
@@ -200,7 +198,7 @@
                                               (if (or (null id)
                                                       (acc-referenced-p id))
                                                   nil
-                                                  (bank/delete :id id)))
+                                                  (account/delete :id id)))
            :enabled-items enabled-items))
 
 
@@ -214,11 +212,11 @@
     `((t   ,(account))
       (nil ,(apply #'account id)))))
 
-(defun account-tree (op id)
+(defun account-tree (op active-id debit-table-p)
   (let* ((id-keys '(:id))
          (payload-keys '(:title))
-         (db-table )
-         (cancel-url (account :id (val* id)))
+         (db-table (account-root-data debit-table-p))
+         (cancel-url (account :id active-id))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
          (selector-states-fn (mkfn-account-selector-states))
          ;; op-specific
@@ -226,22 +224,51 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload payload-keys)) 
-         (row (mkfn-crud-row row-id-fn
-                             row-payload-fn 
-                             row-selected-p-fn
-                             row-controls-p-fn
-                             row-readonly-p-fn
-                             selector-states-fn
-                             cancel-url)))
+         (row-payload-fn (mkfn-row-payload payload-keys))
+         (row-fn (mkfn-account-row row-id-fn
+                                   row-payload-fn
+                                   row-selected-p-fn
+                                   row-controls-p-fn
+                                   row-readonly-p-fn
+                                   selector-states-fn
+                                   cancel-url)))
     (html ()
-      (:table :class "table-half forms-in-row"
-              (thead "" "Ονομασία τράπεζας" "" "")
-              (:tbody
-               (when (eql op 'create)
-                 (funcall row nil))
-               (iter (for db-row in db-table)
-                     (funcall row db-row)))))))
+      (:div :class "table-half forms-in-row"
+            (:h2 (str (if debit-table-p "Χρεωστικοί λογαριασμοί" "Πιστωτικοί λογαριασμοί")))
+            (account-subtree row-fn db-table)))))
+
+(defun mkfn-account-row (row-id-fn row-payload-fn
+                         row-selected-p-fn row-controls-p-fn row-readonly-p-fn
+                         selector-states-fn cancel-url)
+  (html (row-data)
+    (let* ((id (funcall row-id-fn row-data))
+           (row-selected-p (funcall row-selected-p-fn id))
+           (row-controls-p (funcall row-controls-p-fn row-selected-p))
+           (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
+      (htm (:li :class (if row-selected-p "active" nil)
+                (funcall (selector-link (funcall selector-states-fn id))
+                         row-selected-p)
+                (plist-map (lambda (key value)
+                             (if row-readonly-p
+                                 (htm (str value))
+                                 (textbox (symbolicate key)
+                                          :value value
+                                          :style nil))) ;; todo -- style missing
+                           (funcall row-payload-fn row-data row-readonly-p))
+                (ok-link row-controls-p)
+                (cancel-link cancel-url row-controls-p))))))
+
+(defun account-subtree (row-fn db-table &optional style)
+  (with-html
+    (:ul :class style
+         (iter (for db-row in db-table)
+               ;; (when (and (eql row-id id)
+               ;;            (eql op 'create))
+               ;;   (funcall row-fn nil))
+               (funcall row-fn db-row)
+               (account-subtree row-fn
+                                (account-children-data (getf db-row :id))
+                                "indent")))))
 
 ;;; ------------------------------------------------------------
 ;;; Account pages
@@ -249,157 +276,120 @@
 
 (define-dynamic-page account ("account/")
     ((id integer chk-acc-id))
-  (no-cache) 
+  (no-cache)
   (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Λογαριασμοί")
-         (head-config))
-        (:body
-         (config-header 'account)
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Κατάλογος λογαριασμών"))
-               (:div :id "debit-account" :class "window"
-                     (account-menu ...)
-                     (render (account-tree 'view id)))
-               (:div :id "credit-account" :class "window"
-                     (account-menu ...)
-                     (render (account-tree 'view id))))))
       (let ((id-debit-p (if (val id) (debit-p (val id)) nil)))
-        (standard-page
-         :name 'accounts
-         :title "Λογαριασμοί"
-         :message "Λογαριασμοί"
-         :body (list (window :name "debit-accounts"
-                             :body (html ()
-                                     (apply #'account-menu
-                                            (if id-debit-p (val id) nil)
-                                            t
-                                            (if id-debit-p
-                                                '(:create :edit :delete)
-                                                '(:create)))
-                                     (:h2 "Χρεωστικοί Λογαριασμοί") 
-                                     (render (make-instance 'account-table
-                                                            :name "debit-acc-table" 
-                                                            :operation :view
-                                                            :params params
-                                                            :data-fn (account-data-fn t)))))
-                     (window :name "credit-accounts"
-                             :body (html ()
-                                     (apply #'account-menu
-                                            (if id-debit-p nil (val id))
-                                            nil
-                                            (if id-debit-p
-                                                '(:create)
-                                                '(:create :edit :delete)))
-                                     (:h2 "Πιστωτικοί Λογαριασμοί") 
-                                     (render (make-instance 'account-table
-                                                            :name "credit-acc-table" 
-                                                            :operation :view
-                                                            :params params
-                                                            :data-fn (account-data-fn nil))))))))
+        (with-document ()
+          (:head
+           (:title "Λογαριασμοί")
+           (head-config))
+          (:body
+           (config-header 'account)
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Κατάλογος λογαριασμών"))
+                 (:div :id "debit-accounts" :class "window"
+                       (account-menu (val id)
+                                     (if (and (val id) id-debit-p)
+                                         '(create update delete)
+                                         '(create)))
+                       (render (account-tree 'view (val* id) t)))
+                 (:div :id "credit-accounts" :class "window"
+                       (account-menu (val id)
+                                     (if (and (val id) (not id-debit-p))
+                                         '(create update delete)
+                                         '(create)))
+                       (render (account-tree 'view (val* id) nil)))
+                 (footer)))))
       (see-other (notfound))))
 
 (define-dynamic-page account/create ("account/create")
     ((id        integer chk-acc-id)
-     (parent-id integer chk-parent-acc-id) 
+     (parent-id integer chk-parent-acc-id)
      (title     string  chk-acc-title)
      (debitp    boolean (chk-debitp debitp id)))
-  :validators (((parent-id debitp) (valid-debitp-id-combo parent-id debitp)))
-  (no-cache) 
-  (with-parameter-list params
-    (if (every #'validp params)
-        (with-parameter-rebinding #'val
-          (let ((debit-p (if parent-id (debit-p parent-id) debitp)))
-            (standard-page
-             :name 'accounts
-             :title "Δημιουργία λογαριασμού"
-             :message "Δημιουργία λογαριασμού"
-             :body (list
-                    (window :name "debit-accounts"
-                            :body (html ()
-                                    (account-menu nil nil)
-                                    (:h2 "Χρεωστικοί Λογαριασμοί")
-                                    (render (make-instance 'account-table
-                                                           :name "debit-acc-table" 
-                                                           :operation (if debit-p
-                                                                          :create
-                                                                          :view)
-                                                           :aux-keys '(:debitp :parent-id)
-                                                           :params params
-                                                           :data-fn (account-data-fn t)))))
-                    (window :name "credit-accounts"
-                            :body (html ()
-                                    (account-menu nil nil)
-                                    (:h2 "Πιστωτικοί Λογαριασμοί")
-                                    (render (make-instance 'account-table
-                                                           :name "credit-acc-table" 
-                                                           :operation (if debit-p
-                                                                          :view
-                                                                          :create)
-                                                           :aux-keys '(:debitp :parent-id)
-                                                           :params params
-                                                           :data-fn (account-data-fn nil))))))))) 
-        (see-other (notfound)))))
+  (no-cache)
+  (if (every #'validp (parameters *page*))
+      (let ((id-debit-p (if (val id) (debit-p (val id)) nil)))
+        (with-document ()
+          (:head
+           (:title "Δημιουργία λογαριασμού")
+           (head-config))
+          (:body
+           (config-header 'account)
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Δημιουργία λογαριασμού"))
+                 (:div :id "debit-accounts" :class "window"
+                       (account-menu (val id) (if id-debit-p
+                                                  '(view)
+                                                  '()))
+                       (:h2 "Χρεωστικοί Λογαριασμοί")
+                       (account-tree 'create (val id) t))
+                 (:div :id "credit-accounts" :class "window"
+                       (account-menu (val id) (if id-debit-p
+                                                  '()
+                                                  '(view)))
+                       (:h2 "Πιστωτικοί Λογαριασμοί")
+                       (account-tree 'create (val id) nil))
+                 (footer)))))))
 
 (define-dynamic-page account/update ("account/update")
     ((id    integer chk-acc-id/ref t)
      (title string  chk-acc-title))
   (no-cache)
-  (with-parameter-list params
-    (if (validp id)
-        (standard-page
-         :name 'accounts
-         :title "Επεξεργασία λογαριασμού"
-         :message "Επεξεργασία λογαριασμού"
-         :body (list (window :name "debit-accounts"
-                             :body (html ()
-                                     (account-menu (val id) nil :view :delete)
-                                     (:h2 "Χρεωστικοί Λογαριασμοί")
-                                     (render (make-instance 'account-table
-                                                            :name "debit-acc-table" 
-                                                            :operation :update
-                                                            :params params
-                                                            :data-fn (account-data-fn t)))))
-                     (window :name "credit-accounts"
-                             :body (html ()
-                                     (account-menu (val id) nil :view :delete)
-                                     (:h2 "Πιστωτικοί Λογαριασμοί")
-                                     (render (make-instance 'account-table
-                                                            :name "credit-acc-table"
-                                                            :operation :update
-                                                            :params params
-                                                            :data-fn (account-data-fn nil))))))) 
-        (see-other (notfound)))))
+  (if (every #'validp (parameters *page*))
+      (let ((id-debit-p (if (val id) (debit-p (val id)) nil)))
+        (with-document ()
+          (:head
+           (:title "Επεξεργασία λογαριασμού")
+           (head-config))
+          (:body
+           (config-header 'account)
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Επεξεργασία λογαριασμού"))
+                 (:div :id "debit-accounts" :class "window"
+                       (account-menu (val id)
+                                     (if id-debit-p
+                                         '(create view delete)
+                                         '(create)))
+                       (account-tree 'update (val* id) t))
+                 (:div :id "credit-accounts" :class "window"
+                       (account-menu (val id)
+                                     (if id-debit-p
+                                         '(create)
+                                         '(create view delete)))
+                       (account-tree 'update (val* id) nil))
+                 (footer)))))))
 
 (define-dynamic-page account/delete ("account/delete")
     ((id integer chk-acc-id/ref t))
   (no-cache)
   (if (validp id)
-      (with-parameter-list params
-        (standard-page
-         :name 'accounts
-         :title "Διαγραφή λογαριασμού"
-         :message "Διαγραφή λογαριασμού"
-         :body (list (window :name "debit-accounts"
-                             :body (html ()
-                                     (account-menu (val id) nil :view :edit)
-                                     (:h2 "Χρεωστικοί λογαριασμοί")
-                                     (render (make-instance 'account-table
-                                                            :name "debit-acc-table" 
-                                                            :operation :delete
-                                                            :params params
-                                                            :data-fn (account-data-fn t)))))
-                     (window :name "credit-accounts"
-                             :body (html ()
-                                     (account-menu (val id) nil :view :edit)
-                                     (:h2 "Χρεωστικοί λογαριασμοί")
-                                     (render (make-instance 'account-table
-                                                            :name "credit-acc-table" 
-                                                            :operation :delete
-                                                            :params params
-                                                            :data-fn (account-data-fn nil))))))))
+      (let ((id-debit-p (if (val id) (debit-p (val id)) nil)))
+        (with-document ()
+          (:head
+           (:title "Διαγραφή λογαριασμού")
+           (head-config))
+          (:body
+           (config-header 'account)
+           (:div :id "body"
+                 (:div :class "message"
+                       (:h2 :class "info" "Διαγραφή λογαριασμού"))
+                 (:div :id "debit-accounts" :class "window"
+                       (account-menu (val id)
+                                     (if (and (val id) id-debit-p)
+                                         '(view update)
+                                         '()))
+                       (with-form (actions/account/delete :id (val id))
+                         (account-tree 'delete (val* id) t)))
+                 (:div :id "credit-accounts" :class "window"
+                       (account-menu (val id)
+                                     (if (and (val id) (not id-debit-p))
+                                         '()
+                                         '(view update)))
+                       (with-form (actions/account/delete :id (val id))
+                         (account-tree 'delete (val* id) nil)))
+                 (footer)))))
       (see-other (notfound))))
-
-

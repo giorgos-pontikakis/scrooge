@@ -19,7 +19,7 @@
    (styles :initform '(:active-row "active"
                        :inactive-row ""
                        :attention-row "attention"
-                       :table "forms-in-row table-half")) 
+                       :table "forms-in-row table-half"))
    ;; page interface
    (id-keys :initform '(:cheque-id))
    (data-keys :initform '(:bank
@@ -33,7 +33,7 @@
    (submit-pages :initform '(:create actions/cheque/create
                              :update actions/cheque/update
                              :delete actions/cheque/delete
-                             :chstat actions/cheque/chstat)) 
+                             :chstat actions/cheque/chstat))
    (cells-fn :initform (cheque-cells-fn))
    (data-fn :initform (cheque-data-fn))))
 
@@ -67,7 +67,7 @@
                                    :style "data"
                                    :operations '(:create :update))
                 (make-cell-textbox :row row
-                                   :name :amount 
+                                   :name :amount
                                    :value amount
                                    :style "data"
                                    :operations '(:create :update))
@@ -112,31 +112,31 @@
 
 (define-menu cheque-menu (cheque-id payable-p) ()
   (:create (with-html
-	     (:li (:a :href (cheque/create :payable-p payable-p)
-		      (img "img/add.png") "Δημιουργία")))) 
+             (:li (:a :href (cheque/create :payable-p payable-p)
+                      (img "img/add.png") "Δημιουργία"))))
   (:paid (with-html
-	   (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
-		    (img "img/magnifier.png") "Πληρωμή"))))
+           (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'paid)
+                    (img "img/magnifier.png") "Πληρωμή"))))
   (:bounced (with-html
-	      (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
-		       (img "img/magnifier.png") "Σφράγισμα"))))
+              (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'bounced)
+                       (img "img/magnifier.png") "Σφράγισμα"))))
   (:returned (with-html
-	       (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
-			(img "img/magnifier.png") "Επιστροφή"))))
+               (:li (:a :href (cheque/chstat :cheque-id cheque-id :new-status 'returned)
+                        (img "img/magnifier.png") "Επιστροφή"))))
   (:view (with-html
-	   (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
-		    (img "img/magnifier.png") "Προβολή"))))
+           (:li (:a :href (cheques :cheque-id cheque-id :payable-p payable-p)
+                    (img "img/magnifier.png") "Προβολή"))))
   (:update (with-html
-	     (:li (:a :href (cheque/update :cheque-id cheque-id)
-		      (img "img/pencil.png") "Επεξεργασία")))) 
+             (:li (:a :href (cheque/update :cheque-id cheque-id)
+                      (img "img/pencil.png") "Επεξεργασία"))))
   (:delete (with-html
-	     (:li (:a :href (cheque/delete :cheque-id cheque-id)
-		      (img "img/delete.png") "Διαγραφή")))))
+             (:li (:a :href (cheque/delete :cheque-id cheque-id)
+                      (img "img/delete.png") "Διαγραφή")))))
 
 (define-errorbar cheque-errorbar (:ul-style "error")
   (bank "Άκυρο όνομα τράπεζας")
   (company "Άκυρο όνομα εταιρίας")
-  (amount "Άκυρο ποσό") 
+  (amount "Άκυρο ποσό")
   (due-date "Άκυρη ημερομηνία"))
 
 (defun cheque-statuses ()
@@ -150,14 +150,14 @@
 (defun next-statuses (cheque-id)
   (if cheque-id
       (with-db ()
-	(mapcar (compose #'make-keyword #'string-upcase)
-		(query (:select 'new-status
-				:from 'cheque-stran
-				:where (:= 'old-status
-					   (:select 'status
-						    :from 'cheque
-						    :where (:= 'id cheque-id))))
-		       :column)))
+        (mapcar (compose #'make-keyword #'string-upcase)
+                (query (:select 'new-status
+                                :from 'cheque-stran
+                                :where (:= 'old-status
+                                           (:select 'status
+                                                    :from 'cheque
+                                                    :where (:= 'id cheque-id))))
+                       :column)))
       nil))
 
 (defun status-label (status)
@@ -169,27 +169,27 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/cheque/create ((payable-p boolean)
-					    (bank string #'valid-bank-p t)
-					    (due-date date #'valid-due-date-p t)
-					    (company string #'valid-company-p t) 
-					    (amount integer #'positive-p t))
+                                            (bank string #'valid-bank-p t)
+                                            (due-date date #'valid-due-date-p t)
+                                            (company string #'valid-company-p t)
+                                            (amount integer #'positive-p t))
     ("actions/cheque/create" :request-type :post)
-  (no-cache) 
+  (no-cache)
   (with-parameter-list params
-    (if (every #'validp params) 
-	(with-parameter-rebinding #'val 
-	  (with-db ()
-	    (let* ((status "pending") ;; default status for new cheques
-		   (bank-id (bank-id bank))
-		   (company-id (company-id company))
-		   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
+    (if (every #'validp params)
+        (with-parameter-rebinding #'val
+          (with-db ()
+            (let* ((status "pending") ;; default status for new cheques
+                   (bank-id (bank-id bank))
+                   (company-id (company-id company))
+                   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
                                                :from 'cheque-stran
                                                :where (:and (:is-null 'old-status)
                                                             (:= 'new-status status)))
                                       :plist)))
               (break)
-	      (if stran-data
-		  (with-transaction ()
+              (if stran-data
+                  (with-transaction ()
                     ;; Store the dao of the new cheque, we need its id
                     ;; for the auto-generated transaction below
                     (let ((cheque-dao (insert-dao (make-instance 'cheque
@@ -208,107 +208,107 @@
                                                  :debit-acc-id (getf stran-data :debit-acc-id)
                                                  :src-tbl "cheque"
                                                  :src-id (id cheque-dao)))
-                      (see-other (cheques)))) 
-		  (see-other (cheque/stran-notfound))))))
-	(with-parameter-rebinding #'raw 
-	  (see-other (cheque/create :bank bank
-				   :company company
-				   :due-date due-date
-				   :amount amount 
-				   :payable-p payable-p))))))
+                      (see-other (cheques))))
+                  (see-other (cheque/stran-notfound))))))
+        (with-parameter-rebinding #'raw
+          (see-other (cheque/create :bank bank
+                                   :company company
+                                   :due-date due-date
+                                   :amount amount
+                                   :payable-p payable-p))))))
 
 (define-dynamic-page actions/cheque/delete ((cheque-id integer #'valid-cheque-id-p t))
     ("actions/cheque/delete" :request-type :post)
   (no-cache)
   (if (validp cheque-id)
       (with-parameter-rebinding #'val
-	(with-db ()
-	  (with-transaction ()
-	    ;; First update /all/ transactions that have originated
-	    ;; from the cheque with this particular cheque-id
-	    (execute (:delete-from 'tx :where (:and (:= 'src-tbl "cheque")
-						    (:= 'src-id cheque-id))))
-	    ;; Then delete the cheque itself 
-	    (execute (:delete-from 'cheque :where (:= 'id cheque-id)))) 
-	  (see-other (cheques :payable-p (cheque-payable-p cheque-id)))))
+        (with-db ()
+          (with-transaction ()
+            ;; First update /all/ transactions that have originated
+            ;; from the cheque with this particular cheque-id
+            (execute (:delete-from 'tx :where (:and (:= 'src-tbl "cheque")
+                                                    (:= 'src-id cheque-id))))
+            ;; Then delete the cheque itself
+            (execute (:delete-from 'cheque :where (:= 'id cheque-id))))
+          (see-other (cheques :payable-p (cheque-payable-p cheque-id)))))
       (see-other (cheque/notfound))))
 
 (define-dynamic-page actions/cheque/update ((cheque-id integer #'valid-cheque-id-p t)
-					    (bank string #'valid-bank-p t)
-					    (company string #'valid-company-p t)
-					    (due-date date #'valid-due-date-p t)
-					    (amount integer #'positive-p t))
+                                            (bank string #'valid-bank-p t)
+                                            (company string #'valid-company-p t)
+                                            (due-date date #'valid-due-date-p t)
+                                            (amount integer #'positive-p t))
     ("actions/cheque/update" :request-type :post)
-  (no-cache) 
-  (with-parameter-list params 
-    (if (every #'validp params) 
-	(with-parameter-rebinding #'val
-	  (with-db ()
-	    (let* ((bank-id (bank-id bank))
-		   (company-id (company-id company)))
-	      (with-transaction ()
-		;; First update /all/ transactions that have originated
-		;; from the cheque with this particular cheque-id
-		(execute (:update 'tx :set 
-				  'company-id company-id 
-				  'amount amount
-				  :where (:and (:= 'src-tbl "cheque")
-					       (:= 'src-id cheque-id))))
-		;; Then update the cheque itself
-		(execute (:update 'cheque :set
-				  'bank-id bank-id
-				  'company-id company-id
-				  'due-date due-date
-				  'amount amount 
-				  :where (:= 'id cheque-id))))
-	      (see-other (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))))))
-	(with-parameter-rebinding #'raw
-	  (see-other (cheque/update :cheque-id cheque-id
-				   :bank bank
-				   :company company
-				   :due-date due-date
-				   :amount amount))))))
+  (no-cache)
+  (with-parameter-list params
+    (if (every #'validp params)
+        (with-parameter-rebinding #'val
+          (with-db ()
+            (let* ((bank-id (bank-id bank))
+                   (company-id (company-id company)))
+              (with-transaction ()
+                ;; First update /all/ transactions that have originated
+                ;; from the cheque with this particular cheque-id
+                (execute (:update 'tx :set
+                                  'company-id company-id
+                                  'amount amount
+                                  :where (:and (:= 'src-tbl "cheque")
+                                               (:= 'src-id cheque-id))))
+                ;; Then update the cheque itself
+                (execute (:update 'cheque :set
+                                  'bank-id bank-id
+                                  'company-id company-id
+                                  'due-date due-date
+                                  'amount amount
+                                  :where (:= 'id cheque-id))))
+              (see-other (cheques :cheque-id cheque-id :payable-p (cheque-payable-p cheque-id))))))
+        (with-parameter-rebinding #'raw
+          (see-other (cheque/update :cheque-id cheque-id
+                                   :bank bank
+                                   :company company
+                                   :due-date due-date
+                                   :amount amount))))))
 
 (define-dynamic-page actions/cheque/chstat ((cheque-id integer #'valid-cheque-id-p)
-					    (new-status string))
+                                            (new-status string))
     ("actions/cheque/chstat" :request-type :post)
   (no-cache)
-  (with-parameter-list params 
-    (if (every #'validp params) 
-	(with-parameter-rebinding #'val
-	  (with-db ()
-	    (bind (((old-status company-id amount) (query (:select 'status 'company-id 'amount
-								   :from 'cheque
-								   :where (:= 'id cheque-id))
-							  :row))
-		   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
+  (with-parameter-list params
+    (if (every #'validp params)
+        (with-parameter-rebinding #'val
+          (with-db ()
+            (bind (((old-status company-id amount) (query (:select 'status 'company-id 'amount
+                                                                   :from 'cheque
+                                                                   :where (:= 'id cheque-id))
+                                                          :row))
+                   (stran-data (query (:select 'debit-acc-id 'credit-acc-id 'description
                                                :from 'cheque-stran
                                                :where (:and (:= 'old-status old-status)
                                                             (:= 'new-status new-status)))
                                       :row)))
-	      (if stran-data 
-		  (destructuring-bind (debit-acc-id credit-acc-id description) stran-data
-		    (with-transaction ()
-		      ;; Create a new transaction which points to our cheque
-		      (execute (:insert-into 'tx :set
-					     'tx-date (current-date)
-					     'description description
-					     'company-id company-id
-					     'amount amount
-					     'credit-acc-id credit-acc-id
-					     'debit-acc-id debit-acc-id
-					     'src-tbl "cheque"
-					     'src-id cheque-id))
-		      ;; Then update the cheque itself
-		      (execute (:update 'cheque :set 
-					'status new-status
-					:where (:= 'id cheque-id))))
-		    (see-other (cheques :cheque-id cheque-id
+              (if stran-data
+                  (destructuring-bind (debit-acc-id credit-acc-id description) stran-data
+                    (with-transaction ()
+                      ;; Create a new transaction which points to our cheque
+                      (execute (:insert-into 'tx :set
+                                             'tx-date (current-date)
+                                             'description description
+                                             'company-id company-id
+                                             'amount amount
+                                             'credit-acc-id credit-acc-id
+                                             'debit-acc-id debit-acc-id
+                                             'src-tbl "cheque"
+                                             'src-id cheque-id))
+                      ;; Then update the cheque itself
+                      (execute (:update 'cheque :set
+                                        'status new-status
+                                        :where (:= 'id cheque-id))))
+                    (see-other (cheques :cheque-id cheque-id
                                         :payable-p (cheque-payable-p cheque-id))))
-		  (see-other (notfound))))))
-	(with-parameter-rebinding #'raw
-	  (see-other (cheque/chstat :cheque-id cheque-id
-				   :new-status new-status))))))
+                  (see-other (notfound))))))
+        (with-parameter-rebinding #'raw
+          (see-other (cheque/chstat :cheque-id cheque-id
+                                   :new-status new-status))))))
 
 
 
@@ -317,7 +317,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 (define-dynamic-page cheques ((cheque-id integer #'valid-cheque-id-p)
-			      (payable-p boolean))
+                              (payable-p boolean))
     ("cheques" :validators (((cheque-id payable-p) ((lambda (cheque-id payable-p)
                                                       (with-db ()
                                                         (eql (payable-p
@@ -325,11 +325,11 @@
                                                              payable-p)))
                                                     cheque-id
                                                     payable-p))))
-  (no-cache) 
+  (no-cache)
   (with-parameter-list params
     (if (every #'validp params)
-        (let ((next-statuses (next-statuses (val cheque-id)))) 
-          (with-page () 
+        (let ((next-statuses (next-statuses (val cheque-id))))
+          (with-page ()
             (:head
              (:title "Επιταγές")
              (head-config))
@@ -337,75 +337,75 @@
              (:div :id "header"
                    (logo)
                    (primary-navbar 'cheques)
-                   (cheque-navbar (if payable-p 'payable 'receivable))) 
+                   (cheque-navbar (if payable-p 'payable 'receivable)))
              (:div :id "body"
                    (:div :class "message"
                          (:h2 :class "info" "Κατάλογος επιταγών"))
                    (:div :id "cheques" :class "window"
                          (apply #'cheque-menu (val cheque-id) (val payable-p)
-                                :create :update :delete next-statuses) 
+                                :create :update :delete next-statuses)
                          (render (make-cheques-table :operation :view
                                                      :params params))))
              (footer))))
         (see-other (cheque/notfound)))))
 
 (define-dynamic-page cheque/create ((payable-p boolean)
-				    (bank      string  #'valid-bank-p)
-				    (company   string  #'valid-company-p)
-				    (amount    integer #'positive-p) 
-				    (due-date  date    #'valid-due-date-p))
+                                    (bank      string  #'valid-bank-p)
+                                    (company   string  #'valid-company-p)
+                                    (amount    integer #'positive-p)
+                                    (due-date  date    #'valid-due-date-p))
     ("cheque/create")
   (no-cache)
-  (with-parameter-list params 
+  (with-parameter-list params
     (with-page ()
       (:head
        (:title "Επιταγές")
        (head-config))
       (:body
        (:div :id "header"
-	     (logo)
-	     (primary-navbar 'cheques)
-	     (cheque-navbar (if (val payable-p) 'payable 'receivable)))
+             (logo)
+             (primary-navbar 'cheques)
+             (cheque-navbar (if (val payable-p) 'payable 'receivable)))
        (:div :id "body"
-	     (:div :id "message"
+             (:div :id "message"
                    (:h2 :class "info" "Δημιουργία επιταγής")
                    (cheque-errorbar bank company amount due-date))
-	     (:div :id "cheques" :class "window"
-		   (cheque-menu nil (val payable-p)) 
+             (:div :id "cheques" :class "window"
+                   (cheque-menu nil (val payable-p))
                    (render (make-cheques-table :operation :create
                                                :params params)))
-	     (footer))))))
+             (footer))))))
 
-(define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p t) 
-				    (bank string #'valid-bank-p)
-				    (company string #'valid-company-p)
-				    (amount integer #'positive-p) 
-				    (due-date date #'valid-due-date-p))
+(define-dynamic-page cheque/update ((cheque-id integer #'valid-cheque-id-p t)
+                                    (bank string #'valid-bank-p)
+                                    (company string #'valid-company-p)
+                                    (amount integer #'positive-p)
+                                    (due-date date #'valid-due-date-p))
     ("cheque/update")
   (no-cache)
   (if (validp cheque-id)
       (let ((payable-p (cheque-payable-p (val cheque-id))))
-	(with-parameter-list params
-	  (with-page ()
-	    (:head
-	     (:title "Επιταγές")
-	     (head-css-std)
-	     (head-js-std))
-	    (:body
-	     (:div :id "header"
-		   (logo)
-		   (primary-navbar 'cheques)
-		   (cheque-navbar (if payable-p 'payable 'receivable))) 
-	     (:div :id "body"
-		   (cheque-errorbar bank company amount due-date)
-		   (:div :id "cheques" :class "window"
-			 (cheque-menu (val cheque-id)
-				      payable-p
-				      :view :delete)
-			 (:h2 "Επεξεργασία επιταγής")
-			 (render (make-cheques-table :operation :update
+        (with-parameter-list params
+          (with-page ()
+            (:head
+             (:title "Επιταγές")
+             (head-css-std)
+             (head-js-std))
+            (:body
+             (:div :id "header"
+                   (logo)
+                   (primary-navbar 'cheques)
+                   (cheque-navbar (if payable-p 'payable 'receivable)))
+             (:div :id "body"
+                   (cheque-errorbar bank company amount due-date)
+                   (:div :id "cheques" :class "window"
+                         (cheque-menu (val cheque-id)
+                                      payable-p
+                                      :view :delete)
+                         (:h2 "Επεξεργασία επιταγής")
+                         (render (make-cheques-table :operation :update
                                                      :params params)))
-		   (footer))))))
+                   (footer))))))
       (see-other (cheque/notfound))))
 
 (define-dynamic-page cheque/delete ((cheque-id integer #'valid-cheque-id-p t))
@@ -422,8 +422,8 @@
              (:div :id "header"
                    (logo)
                    (primary-navbar 'cheques)
-                   (cheque-navbar (if payable-p 'payable 'receivable))) 
-             (:div :id "body" 
+                   (cheque-navbar (if payable-p 'payable 'receivable)))
+             (:div :id "body"
                    (:div :id "cheques" :class "window"
                          (cheque-menu (val cheque-id) payable-p :view :update)
                          (:h2 "Διαγραφή επιταγής")
@@ -433,7 +433,7 @@
       (see-other (cheque/notfound))))
 
 (define-dynamic-page cheque/chstat ((cheque-id integer #'valid-cheque-id-p t)
-				    (new-status symbol #'valid-cheque-status-p t))
+                                    (new-status symbol #'valid-cheque-status-p t))
     ("cheque/chstat")
   (no-cache)
   (if (and (validp cheque-id) (validp new-status))
@@ -447,8 +447,8 @@
              (:div :id "header"
                    (logo)
                    (primary-navbar 'cheques)
-                   (cheque-navbar (if payable-p 'payable 'receivable))) 
-             (:div :id "body" 
+                   (cheque-navbar (if payable-p 'payable 'receivable)))
+             (:div :id "body"
                    (:div :id "cheques" :class "window"
                          (cheque-menu (val cheque-id) (val payable-p) :view)
                          (:h2 (str (case new-status
@@ -468,12 +468,12 @@
      (head-css-std))
     (:body
      (:div :id "header"
-	   (logo)
-	   (primary-navbar 'companies))
+           (logo)
+           (primary-navbar 'companies))
      (:div :id "body"
-	   (:div :id "content" :class "window"
-		 (:p "Η επιταγή που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
-		 (:p "Επιστρέψτε στο μενού των επιταγών και προσπαθήστε ξανά."))))))
+           (:div :id "content" :class "window"
+                 (:p "Η επιταγή που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
+                 (:p "Επιστρέψτε στο μενού των επιταγών και προσπαθήστε ξανά."))))))
 
 
 (define-dynamic-page cheque/stran-notfound () ("cheque/stran-not-found")
@@ -484,15 +484,9 @@
      (head-css-std))
     (:body
      (:div :id "header"
-	   (logo)
-	   (primary-navbar 'cheques))
+           (logo)
+           (primary-navbar 'cheques))
      (:div :id "body"
-	   (:div :id "content" :class "summary"
-		 (:p "Δεν έχουν δημιουργηθεί οι κατάλληλες καταστατικές μεταβολές.")
-		 (:p "Επιστρέψτε στο μενού των καταστατικών μεταβολών και ορίστε τις."))))))
-
-
-
-
-
-
+           (:div :id "content" :class "summary"
+                 (:p "Δεν έχουν δημιουργηθεί οι κατάλληλες καταστατικές μεταβολές.")
+                 (:p "Επιστρέψτε στο μενού των καταστατικών μεταβολών και ορίστε τις."))))))

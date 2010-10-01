@@ -3,16 +3,16 @@
 
 ;;; --- Actions --------------------
 
-(define-dynamic-page verify-login (username scrooge-password) ("verify-login" :request-type :post) 
+(define-dynamic-page verify-login (username scrooge-password) ("verify-login" :request-type :post)
   (with-db ()
     (let ((user (select-dao-unique 'webuser (:= 'username username))))
       (if (or (null user)
-	      (string/= scrooge-password (password user)))
-	  (redirect (login))
-	  (progn
-	    (start-session)
-	    (setf (session-value 'user) user)
-	    (redirect (home)))))))
+              (string/= scrooge-password (password user)))
+          (redirect (login))
+          (progn
+            (start-session)
+            (setf (session-value 'user) user)
+            (redirect (home)))))))
 
 
 ;;; --- Pages --------------------
@@ -35,4 +35,3 @@
      :title "Σκρουτζ: Πρόβλημα εξουσιοδότησης")
     (:body
      (:p "Δεν έχετε εξουσιοδότηση για να δείτε αυτή τη σελίδα"))))
-

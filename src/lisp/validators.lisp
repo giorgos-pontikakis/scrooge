@@ -11,13 +11,13 @@
 (defun positive-p (val)
   (or (eq :null val)
       (and (integerp val)
-	   (or (zerop val)
-	       (plusp val)))))
+           (or (zerop val)
+               (plusp val)))))
 
 (defun positive-nonnull-p (val)
   (and (not (eq :null val))
        (or (zerop val)
-	   (plusp val))))
+           (plusp val))))
 
 
 ;;; --- Banks --------------------
@@ -45,11 +45,11 @@
 (defun valid-tin-p (val)
   (or (eq :null val)
       (and (= (length val) 9)
-	   (= (mod (iter (for m in '(256 128 64 32 16 8 4 2)) 
-			 (for i in-string val) 
-			 (sum (* m (parse-integer (string i)))))
-		   11)
-	      (parse-integer (subseq val 8))))))
+           (= (mod (iter (for m in '(256 128 64 32 16 8 4 2))
+                         (for i in-string val)
+                         (sum (* m (parse-integer (string i)))))
+                   11)
+              (parse-integer (subseq val 8))))))
 
 
 ;;; --- Companies --------------------
@@ -60,7 +60,7 @@
 (defun valid-company-p (val)
   (company-exists-p val))
 
-(defun valid-company-id-p (val) 
+(defun valid-company-id-p (val)
   (and (positive-nonnull-p val)
        (company-id-exists-p val)))
 
@@ -126,12 +126,10 @@
 (defun valid-cheque-status-p (val)
   (with-db ()
     (query (:select 1 :from 'cheque-status :where (:= 'status (if (symbolp val)
-								  (string-downcase val)
-								  val))))))
+                                                                  (string-downcase val)
+                                                                  val))))))
 
 
 ;;; --- Projects --------------------
 
 (define-existence-validator valid-project-id-p project id)
-
-

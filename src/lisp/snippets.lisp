@@ -26,7 +26,7 @@
 
 (defun head-js-std ()
   (mapc #'js '("lib/jquery/jquery-1.4.2.min.js"
-               "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js" 
+               "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js"
                "js/main.js")))
 
 
@@ -35,7 +35,7 @@
                 "css/main.css"
                 "lib/jquery-ui/css/smoothness/jquery-ui-1.8.2.custom.css")))
 
-(defun head-config () 
+(defun head-config ()
   (head-css-std)
   (css '"css/table.css")
   (head-js-std))
@@ -90,21 +90,19 @@
                       row-selected-p-fn row-controls-p-fn row-readonly-p-fn
                       selector-states-fn cancel-url)
   (html (row-data)
-    (let* ((id (funcall row-id-fn row-data)) 
+    (let* ((id (funcall row-id-fn row-data))
            (row-selected-p (funcall row-selected-p-fn id))
            (row-controls-p (funcall row-controls-p-fn row-selected-p))
            (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
       (htm (:tr :class (if row-selected-p "active" nil)
-                (funcall (selector-cell (funcall selector-states-fn id))
-                         row-selected-p) 
+                (:td (funcall (selector-link (funcall selector-states-fn id))
+                              row-selected-p))
                 (plist-map (lambda (key value)
                              (if row-readonly-p
                                  (htm (:td (str value)))
-                                 (textbox-cell (symbolicate key)
-                                               value
-                                               nil))) ;; todo -- style missing
+                                 (htm (:td (textbox (symbolicate key)
+                                                    :value value
+                                                    :style nil))))) ;; todo -- style missing
                            (funcall row-payload-fn row-data row-readonly-p))
-                (ok-cell row-controls-p)
-                (cancel-cell cancel-url row-controls-p))))))
-
-
+                (:td (ok-link row-controls-p))
+                (:td (cancel-link cancel-url row-controls-p)))))))

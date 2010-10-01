@@ -10,8 +10,8 @@
 (defun stran-id-exists-p (id tbl)
   (with-db ()
     (query (:select 1
-		    :from (symbolicate (string-upcase tbl) "-STRAN")
-		    :where (:= 'id id)))))
+                    :from (symbolicate (string-upcase tbl) "-STRAN")
+                    :where (:= 'id id)))))
 
 (defun stran-tbl-exists-p (tbl)
   (with-db ()
@@ -35,11 +35,11 @@
 (defun valid-status-p (status table)
   (with-db ()
     (let* ((status-table (symbolicate (string-upcase table) "-STATUS"))
-	   (sql (sql-compile `(:select 1
-				       :from ,status-table
-				       :where (:= status ,status)))))
+           (sql (sql-compile `(:select 1
+                                       :from ,status-table
+                                       :where (:= status ,status)))))
       (and (stran-tbl-exists-p table)
-	   (query sql :single)))))
+           (query sql :single)))))
 
 (defun chk-stran-id (id tbl)
   (if (stran-id-exists-p id tbl)
@@ -69,13 +69,13 @@
     ((tbl         string chk-stran-tbl)
      (description string chk-stran-description)
      (debit-acc   string acc-exists-p)
-     (credit-acc  string acc-exists-p) 
+     (credit-acc  string acc-exists-p)
      (old-status  string (chk-status old-status tbl))
      (new-status  string (chk-status new-status tbl)))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (let ((debit-acc-id (account-id (val debit-acc)))
-            (credit-acc-id (account-id (val credit-acc)))) 
+            (credit-acc-id (account-id (val credit-acc))))
         (with-db ()
           (insert-dao (make-instance (symbolicate (string-upcase tbl) "-STRAN")
                                      :description (val description)
@@ -96,7 +96,7 @@
      (tbl         string  chk-stran-tbl)
      (description string  chk-stran-description)
      (debit-acc   string  acc-exists-p)
-     (credit-acc  string  acc-exists-p) 
+     (credit-acc  string  acc-exists-p)
      (old-status  string  (chk-status old-status tbl))
      (new-status  string  (chk-status new-status tbl)))
   (no-cache)
@@ -107,7 +107,7 @@
           (execute (:update (symbolicate (val tbl) "-STRAN") :set
                             'description (val description)
                             'debit-acc-id debit-acc-id
-                            'credit-acc-id credit-acc-id 
+                            'credit-acc-id credit-acc-id
                             'old-status (val old-status)
                             'new-status (val new-status)
                             :where (:= 'id (val id))))
@@ -123,7 +123,7 @@
 (define-dynamic-page actions/stran/delete ("actions/stran/delete" :request-type :post)
     ((id integer chk-stran-id)
      (tbl string (valid-stran-id-p id tbl)))
-  (no-cache) 
+  (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
         (delete-dao (get-dao (symbolicate (string-upcase tbl) "-STRAN") id))
@@ -164,7 +164,7 @@
                      (:as 'credit-account.title 'credit-acc)
 
                      :from ,(symbolicate table '-stran)
-                     
+
                      :left-join 'stran
                      :on (:= 'stran.id ,table)
 
@@ -207,9 +207,9 @@
          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload payload-keys)) 
+         (row-payload-fn (mkfn-row-payload payload-keys))
          (row (mkfn-crud-row row-id-fn
-                             row-payload-fn 
+                             row-payload-fn
                              row-selected-p-fn
                              row-controls-p-fn
                              row-readonly-p-fn
@@ -251,14 +251,14 @@
                (:div :id "stran" :class "window"
                      (stran-menu (val id) (val tbl) (if (val id)
                                                         '(create update delete)
-                                                        '(create))) 
+                                                        '(create)))
                      (render (stran-table 'view id tbl)))
                (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page stran/create ("config/stran/create" )
     ((tbl         string #'chk-tbl-p)
-     (description string #'not-db-null-p) 
+     (description string #'not-db-null-p)
      (debit-acc   string #'acc-exists-p)
      (credit-acc  string #'acc-exists-p)
      (old-status  string (chk-status old-status tbl))
@@ -274,7 +274,7 @@
          (:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Δημιουργία μετάβασης")
-                     (stran-errorbar (list description debit-acc credit-acc old-status new-status))) 
+                     (stran-errorbar (list description debit-acc credit-acc old-status new-status)))
                (:div :id "stran" :class "window"
                      (stran-menu nil tbl '(view))
                      (with-form (actions/stran/create :tbl tbl)
@@ -286,8 +286,8 @@
     ((id          integer (valid-stran-id-p id tbl))
      (tbl         string #'chk-tbl-p)
      (description string #'not-db-null-p)
-     (debit-acc   string #'acc-exists-p) 
-     (credit-acc  string #'acc-exists-p) 
+     (debit-acc   string #'acc-exists-p)
+     (credit-acc  string #'acc-exists-p)
      (old-status  string (chk-status old-status tbl))
      (new-status  string (chk-status new-status tbl)))
   (no-cache)
@@ -302,7 +302,7 @@
                (:div :class "message"
                      (:h2 :class "info" "Επεξεργασία μετάβασης")
                      (stran-errorbar (list description debit-acc credit-acc old-status new-status)))
-               (:div :id "stran" :class "window" 
+               (:div :id "stran" :class "window"
                      (stran-menu (val id) (val tbl) '(view delete))
                      (with-form (actions/stran/update :id id :tbl tbl)
                        (stran-table 'update id tbl)))
@@ -312,7 +312,7 @@
 (define-dynamic-page stran/delete ("config/stran/delete" )
     ((id integer)
      (tbl string #'chk-tbl-p (valid-stran-id-p id tbl)))
-  (no-cache) 
+  (no-cache)
   (if (validp id)
       (with-document ()
         (:head
@@ -322,7 +322,7 @@
          (config-header 'stran)
          (:div :id "body"
                (:div :class "message"
-                     (:h2 :class "info" "Διαγραφή μετάβασης")) 
+                     (:h2 :class "info" "Διαγραφή μετάβασης"))
                (:div :id "stran" :class "window"
                      (stran-menu (val id) (val tbl) '(view update))
                      (with-form (actions/stran/delete :id id)
@@ -340,17 +340,17 @@
 ;; ;;   ((name :initform "stran-table")
 ;; ;;    (header :initform '(:selector    ""
 ;; ;;                        :tbl         "Πίνακας"
-;; ;;                        :description "Περιγραφή"         
-;; ;;                        :old-status  "Αρχική Κατάσταση"  
+;; ;;                        :description "Περιγραφή"
+;; ;;                        :old-status  "Αρχική Κατάσταση"
 ;; ;;                        :new-status  "Τελική Κατάσταση"
-;; ;;                        :debit-acc   "Λογ. Χρέωσης"      
-;; ;;                        :credit-acc  "Λογ. Πίστωσης"     
+;; ;;                        :debit-acc   "Λογ. Χρέωσης"
+;; ;;                        :credit-acc  "Λογ. Πίστωσης"
 ;; ;;                        :submit      ""
 ;; ;;                        :cancel      ""))
 ;; ;;    (styles :initform '(:active-row "active"
 ;; ;;                        :inactive-row ""
 ;; ;;                        :attention-row "attention"
-;; ;;                        :table "forms-in-row table-half")) 
+;; ;;                        :table "forms-in-row table-half"))
 ;; ;;    ;; page interface
 ;; ;;    (id-keys :initform '(:stran-id :tbl))
 ;; ;;    (payload-keys :initform '(:description
@@ -363,19 +363,19 @@
 ;; ;;    (main-page :initform 'stran)
 ;; ;;    (submit-pages :initform '(:create actions/stran/create
 ;; ;;                              :update actions/stran/update
-;; ;;                              :delete actions/stran/delete)) 
+;; ;;                              :delete actions/stran/delete))
 ;; ;;    (cells-fn :initform (stran-cells-fn))
 ;; ;;    (data-fn :initform (stran-data-fn))))
 
 
 
 ;; ;; (defun make-stran-table (&key operation params)
-;; ;;   (make-instance 'stran-table 
+;; ;;   (make-instance 'stran-table
 ;; ;;                  :operation operation
 ;; ;;                  :params params))
 
 ;; ;; (defun stran-cells-fn ()
-;; ;;   (lambda (row) 
+;; ;;   (lambda (row)
 ;; ;;     (destructuring-bind (&key stran-id tbl description
 ;; ;;                               old-status new-status debit-acc credit-acc) (data row)
 ;; ;;       (declare (ignore stran-id))
@@ -384,7 +384,7 @@
 ;; ;;                                   :name :selector
 ;; ;;                                   :style "select")
 ;; ;;               (make-cell-dropdown :row row
-;; ;;                                   :name :tbl 
+;; ;;                                   :name :tbl
 ;; ;;                                   :pairs pairs
 ;; ;;                                   :value tbl
 ;; ;;                                   :style "data"

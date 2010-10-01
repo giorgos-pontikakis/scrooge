@@ -7,7 +7,7 @@
 ;;; Default Hunchentoot configuration
 ;;; ----------------------------------------------------------------------
 (setf *hunchentoot-default-external-format* (flexi-streams:make-external-format :utf-8))
-(setf *default-content-type* "text/html; charset=UTF-8") 
+(setf *default-content-type* "text/html; charset=UTF-8")
 (setf *use-user-agent-for-sessions* t)
 (setf *use-remote-addr-for-sessions* t)
 (setf *show-lisp-errors-p* t)
@@ -19,7 +19,7 @@
 ;;; ----------------------------------------------------------------------
 (setf *escape-char-p*
       #'(lambda (char)
-	  (find char "<>&'\"")))
+          (find char "<>&'\"")))
 (setf (html-mode) :xml)
 
 
@@ -47,9 +47,9 @@
 ;;; ----------------------------------------------------------------------
 (defun init-banks ()
   (mapc (lambda (arg)
-	  (ignore-errors
-	    (create-row 'bank :title arg)))
-	'("Alpha Bank"
+          (ignore-errors
+            (create-row 'bank :title arg)))
+        '("Alpha Bank"
           "Αγροτική Τράπεζα της Ελλάδος"
           "Aspis Bank"
           "Εθνική Τράπεζα της Ελλάδος"
@@ -69,61 +69,60 @@
 
 (defun init-tofs ()
   (mapc (lambda (arg)
-	  (ignore-errors
-	    (create-row 'tof :title arg)))
-	'("Α' Θεσσαλονίκης"
-	  "Β' Θεσσαλονίκης"
-	  "Γ' Θεσσαλονίκης"
-	  "Δ' Θεσσαλονίκης"
-	  "Ε' Θεσσαλονίκης"
-	  "ΣΤ' Θεσσαλονίκης"
-	  "Ζ' Θεσσαλονίκης"
-	  "Η' Θεσσαλονίκης"
-	  "Θ' Θεσσαλονίκης"
-	  "Ι' Θεσσαλονίκης"
-	  "Αμπελοκήπων Θεσσαλονίκης"
-	  "Τούμπας Θεσσαλονίκης"
-	  "Ιωνίας Θεσσαqλονίκης"
-	  "Καλαμαριάς"
-	  "Νεάπολης" 
-	  "Πολυγύρου"
-	  "Α' Ξάνθης"
-	  "Φ.Α.Ε. Θεσσαλονίκης")))
+          (ignore-errors
+            (create-row 'tof :title arg)))
+        '("Α' Θεσσαλονίκης"
+          "Β' Θεσσαλονίκης"
+          "Γ' Θεσσαλονίκης"
+          "Δ' Θεσσαλονίκης"
+          "Ε' Θεσσαλονίκης"
+          "ΣΤ' Θεσσαλονίκης"
+          "Ζ' Θεσσαλονίκης"
+          "Η' Θεσσαλονίκης"
+          "Θ' Θεσσαλονίκης"
+          "Ι' Θεσσαλονίκης"
+          "Αμπελοκήπων Θεσσαλονίκης"
+          "Τούμπας Θεσσαλονίκης"
+          "Ιωνίας Θεσσαqλονίκης"
+          "Καλαμαριάς"
+          "Νεάπολης"
+          "Πολυγύρου"
+          "Α' Ξάνθης"
+          "Φ.Α.Ε. Θεσσαλονίκης")))
 
 (defun init-companies ()
   (mapc (lambda (rec)
-	  (let ((list (iter (for field-name in '(:title :occupation :tof-id :tin :address :city :pobox :zipcode))
-			    (for field-value in rec)
-			    (collect field-name)
-			    (collect field-value))))
-	    (apply #'create-row 'company list)))
-	'(("Ε. Καφφές Α.Ε."
-	   "Εμπορία"
-	   1
-	   "094307730"
-	   "Προέκταση Σμύρνης"
-	   "Θεσσαλονίκη"
-	   :null
-	   :null)
-	  ("Κωνσταντίνα Γαβριήλ"
-	   "Εμπορία"
-	   2
-	   "063565898"
-	   "Λευκίππου 1Α"
-	   "Ξάνθη"
-	   :null
-	   :null)
-	  ("Κλιμαμηχανική Α.Ε."
-	   "Κλιματισμός"
-	   1
-	   "123456789"
-	   "Βενιζέλου 5, Καλαμαριά"
-	   "Θεσσαλονίκη"
-	   :null
-	   :null))))
+          (let ((list (iter (for field-name in '(:title :occupation :tof-id :tin :address :city :pobox :zipcode))
+                            (for field-value in rec)
+                            (collect field-name)
+                            (collect field-value))))
+            (apply #'create-row 'company list)))
+        '(("Ε. Καφφές Α.Ε."
+           "Εμπορία"
+           1
+           "094307730"
+           "Προέκταση Σμύρνης"
+           "Θεσσαλονίκη"
+           :null
+           :null)
+          ("Κωνσταντίνα Γαβριήλ"
+           "Εμπορία"
+           2
+           "063565898"
+           "Λευκίππου 1Α"
+           "Ξάνθη"
+           :null
+           :null)
+          ("Κλιμαμηχανική Α.Ε."
+           "Κλιματισμός"
+           1
+           "123456789"
+           "Βενιζέλου 5, Καλαμαριά"
+           "Θεσσαλονίκη"
+           :null
+           :null))))
 
 (defun init-all ()
   (init-banks)
   (init-tofs)
   (init-companies))
-

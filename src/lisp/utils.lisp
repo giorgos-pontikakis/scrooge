@@ -13,7 +13,7 @@
 
 (defmacro define-existence-predicate (name table field)
   `(defun ,name (,field)
-     (with-db () 
+     (with-db ()
        (query (:select 1 :from ',table :where (:= ',field ,field)) :single))))
 
 (defmacro define-uniqueness-predicate (name table unique-field id-field)
@@ -33,7 +33,7 @@
 
 
 ;;;----------------------------------------------------------------------
-;;; Miscellaneous 
+;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
 (defun see-other (url)
@@ -43,7 +43,6 @@
   (if plist
       (getf plist key)
       nil))
-
 
 (defun true (x)
   (eq x t))

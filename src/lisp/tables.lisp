@@ -12,10 +12,10 @@
 (defun update-row (table primary-key &rest fields)
   ;; TODO: this does not work with composite primary keys
   (with-db ()
-    (let ((pk (first (dao-keys table)))) 
+    (let ((pk (first (dao-keys table))))
       (execute
        (sql-compile
-	`(:update ,table :set ,@fields :where (:= ,pk ,primary-key)))))))
+        `(:update ,table :set ,@fields :where (:= ,pk ,primary-key)))))))
 
 (defun delete-row (table primary-key)
   (with-db ()
@@ -25,7 +25,7 @@
 
 ;;; Class definitions
 
-(defclass bank () 
+(defclass bank ()
   ((id    :col-type integer :reader   id)
    (title :col-type string  :accessor title :initarg :title))
   (:metaclass dao-class)
@@ -34,9 +34,9 @@
 (defmethod bank-id ((title string))
   (with-db ()
     (query (:select 'id :from 'bank :where (:= 'title title))
-	   :single)))
+           :single)))
 
-(defclass tof () 
+(defclass tof ()
   ((id    :col-type integer :reader id)
    (title :col-type string :accessor title :initarg :title))
   (:metaclass dao-class)
@@ -45,10 +45,10 @@
 (defmethod tof-id ((tof-title string))
   (with-db ()
     (or (query (:select 'id :from 'tof :where (:= 'title tof-title))
-	       :single)
-	:null)))
+               :single)
+        :null)))
 
-(defclass city () 
+(defclass city ()
   ((id    :col-type integer :reader   id)
    (title :col-type string  :accessor title :initarg :title))
   (:metaclass dao-class)
@@ -57,7 +57,7 @@
 (defmethod city-id ((title string))
   (with-db ()
     (query (:select 'id :from 'city :where (:= 'title title))
-	   :single)))
+           :single)))
 
 (defclass company ()
   ((id         :col-type integer :reader   id)
@@ -68,27 +68,27 @@
    (address    :col-type string  :accessor address    :initarg :address)
    (city-id    :col-type string  :accessor city-id    :initarg :city-id)
    (pobox      :col-type integer :accessor pobox      :initarg :pobox)
-   (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode)) 
+   (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode))
   (:default-initargs
       :id nil :title nil :occupation nil :tof-id nil :tin nil
       :address nil :city nil :pobox nil :zipcode nil)
-  (:metaclass dao-class) 
+  (:metaclass dao-class)
   (:keys id))
 
 (defmethod company-id ((title string))
   (with-db ()
     (query (:select 'id :from 'company
-		    :where (:= 'title title))
-	   :single)))
+                    :where (:= 'title title))
+           :single)))
 
 (defclass cheque ()
-  ((id         :col-type integer :reader   id) 
-   (bank-id    :col-type string  :accessor bank-id    :initarg :bank-id) 
+  ((id         :col-type integer :reader   id)
+   (bank-id    :col-type string  :accessor bank-id    :initarg :bank-id)
    (company-id :col-type integer :accessor company-id :initarg :company-id)
    (due-date   :col-type date    :accessor due-date   :initarg :due-date)
    (amount     :col-type integer :accessor amount     :initarg :amount)
    (status     :col-type string  :accessor status     :initarg :status)
-   (payable-p  :col-type boolean :accessor payable-p  :initarg :payable-p)) 
+   (payable-p  :col-type boolean :accessor payable-p  :initarg :payable-p))
   (:metaclass dao-class)
   (:keys id))
 
@@ -99,12 +99,12 @@
   (:keys status))
 
 (defclass cheque-stran ()
-  ((id            :col-type integer :reader   id) 
-   (description   :col-type string  :accessor description   :initarg :description) 
+  ((id            :col-type integer :reader   id)
+   (description   :col-type string  :accessor description   :initarg :description)
    (old-status    :col-type string  :accessor old-status    :initarg :old-status)
    (new-status    :col-type string  :accessor new-status    :initarg :new-status)
    (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -119,32 +119,32 @@
 (defmethod account-id ((title string))
   (with-db ()
     (query (:select 'id :from 'account :where (:= 'title title))
-	   :single)))
+           :single)))
 
 (defmethod debit-p ((acc-id integer))
   (with-db ()
     (query (:select 'debit-p :from 'account :where (:= 'id acc-id))
-	   :single)))
+           :single)))
 
 (defclass tx ()
-  ((id            :col-type integer :reader   id) 
+  ((id            :col-type integer :reader   id)
    (tx-date       :col-type date    :accessor tx-date       :initarg :tx-date)
    (description   :col-type string  :accessor description   :initarg :description)
    (company-id    :col-type integer :accessor company-id    :initarg :company-id)
    (amount        :col-type integer :accessor amount        :initarg :amount)
    (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id) 
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)
    (src-id        :col-type src-id  :accessor src-id        :initarg :src-id)
-   (src-tbl       :col-type src-tbl :accessor src-tbl       :initarg :src-tbl)) 
+   (src-tbl       :col-type src-tbl :accessor src-tbl       :initarg :src-tbl))
   (:metaclass dao-class)
   (:keys id))
 
 
 (defclass temtx ()
-  ((id            :col-type integer :reader   id) 
-   (description   :col-type string  :accessor description   :initarg :description) 
+  ((id            :col-type integer :reader   id)
+   (description   :col-type string  :accessor description   :initarg :description)
    (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -174,12 +174,12 @@
   (:keys id))
 
 (defclass project-stran ()
-  ((id            :col-type integer :reader   id) 
-   (description   :col-type string  :accessor description   :initarg :description) 
+  ((id            :col-type integer :reader   id)
+   (description   :col-type string  :accessor description   :initarg :description)
    (old-status    :col-type string  :accessor old-status    :initarg :old-status)
    (new-status    :col-type string  :accessor new-status    :initarg :new-status)
    (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)) 
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -188,7 +188,7 @@
 
 ;; (defclass webuser ()
 ;;   ((id       :col-type integer :accessor id)
-;;    (username :col-type string  :accessor username :initarg :username) 
+;;    (username :col-type string  :accessor username :initarg :username)
 ;;    (password :col-type string  :accessor password :initarg :password)
 ;;    (webrole  :col-type string  :accessor webrole  :initarg :webrole))
 ;;   (:metaclass dao-class)
@@ -213,7 +213,7 @@
 
 ;; (defclass account-group ()
 ;;   ((id       :col-type integer :reader   id)
-;;    (basename :col-type string  :accessor basename :initarg :basename) 
+;;    (basename :col-type string  :accessor basename :initarg :basename)
 ;;    (title    :col-type string  :accessor title    :initarg :title)
 ;;    (debit-p  :col-type boolean :accessor debit-p  :initarg :debit-p))
 ;;   (:default-initargs :basename nil :title nil :debit-p nil)
@@ -225,8 +225,8 @@
 
 ;; (defclass account ()
 ;;   ((id        :col-type integer :reader   id)
-;;    (parent-id :col-type integer :accessor parent-id :initarg :parent-id) 
-;;    (title     :col-type string  :accessor title     :initarg :title) 
+;;    (parent-id :col-type integer :accessor parent-id :initarg :parent-id)
+;;    (title     :col-type string  :accessor title     :initarg :title)
 ;;    (debit-p   :col-type boolean :accessor debit-p   :initarg :debit-p))
 ;;   (:default-initargs :title nil :account-group-id nil)
 ;;   (:metaclass dao-class)
@@ -246,8 +246,8 @@
 ;;; Transactions
 
 ;; (defclass tx-type ()
-;;   ((id            :col-type integer :reader   id) 
-;;    (title         :col-type string  :accessor title         :initarg :title) 
+;;   ((id            :col-type integer :reader   id)
+;;    (title         :col-type string  :accessor title         :initarg :title)
 ;;    (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
 ;;    (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id))
 ;;   (:default-initargs :title nil :debit-acc-id nil :credit-acc-id nil)
@@ -258,7 +258,7 @@
 
 
 ;; (defclass tx ()
-;;   ((id            :col-type integer :reader   id) 
+;;   ((id            :col-type integer :reader   id)
 ;;    (tx-date       :col-type date    :accessor tx-date       :initarg :tx-date)
 ;;    (title         :col-type string  :accessor title         :initarg :title)
 ;;    (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
@@ -283,11 +283,3 @@
 
 
 ;; (define-table-create/update/delete project id (company-id title location price))
-
-
-
-
-
-
-    
-

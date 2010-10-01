@@ -49,12 +49,12 @@
            (or (second (assoc (error-type param)
                               (getf messages (name param))))
                "Unknown error in generic-errorbar.")))
-    (html (params messages) 
-      (unless (every #'validp params) 
+    (html (params messages)
+      (unless (every #'validp params)
         (htm
          (:div (:ul :class "error"
                     (iter (for p in params)
-                          (unless (validp p) 
+                          (unless (validp p)
                             (htm (:li (str (get-message p messages)))))))))))))
 
 
@@ -80,7 +80,7 @@
 
 (defmacro with-form (url &body body)
   (let ((page-name (first url))
-        (hidden (rest url))) 
+        (hidden (rest url)))
     `(form ',page-name (list ,@hidden)
            ,@body)))
 
@@ -148,32 +148,28 @@
                   (htm (:th (str item))))
                 args)))))
 
-(defun textbox-cell (name value style)
-  (with-html
-    (:td (textbox name :style style :value value))))
-
-(defun selector-cell (states)
+(defun selector-link (states)
   (html (state)
-    (:td (:a :href (second (assoc state states))
-             (img (if (true state)
-                      "bullet_red.png"
-                      "bullet_blue.png"))))))
+    (:a :href (second (assoc state states))
+        (img (if (true state)
+                 "bullet_red.png"
+                 "bullet_blue.png")))))
 
-(defun ok-cell (visiblep)
+(defun ok-link (visiblep)
   (if visiblep
       (with-html
-        (:td (submit (html ()
-                       (img "tick.png")))))
+        (submit (html ()
+                  (img "tick.png"))))
       (with-html
-        (:td ""))))
+        "")))
 
-(defun cancel-cell (href visiblep)
+(defun cancel-link (href visiblep)
   (if visiblep
       (with-html
-        (:td (:a :href href
-                 (img "cancel.png"))))
+        (:a :href href
+            (img "cancel.png")))
       (with-html
-        (:td ""))))
+        "")))
 
 
 
@@ -226,7 +222,3 @@
 ;;                (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
 ;;                             (plist-collect payload-keys row-data)))))
 ;;         (t (error "Unknown operation: ~A" op))))
-
-
-
-

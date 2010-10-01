@@ -5,36 +5,36 @@
 
 ;;; --- Home --------------------
 
-(define-dynamic-page home ("") () 
+(define-dynamic-page home ("") ()
   (with-document ()
     (:head
      (:title "Αρχική")
      (head-css-std))
     (:body
      (:div :id "header"
-	   (logo)
-	   (primary-navbar 'home))
+           (logo)
+           (primary-navbar 'home))
      (:div :id "body"
-	   (:p "Home content not yet available")))))
+           (:p "Home content not yet available")))))
 
 
 ;;; --- Autocomplete --------------------
 
 ;; (define-dynamic-page autocomplete ((table symbol)
-;; 				   (column symbol)
-;; 				   (term string))
+;;                                 (column symbol)
+;;                                 (term string))
 ;;     ("autocomplete" :content-type "text/plain")
 ;;   (with-db ()
 ;;     (with-parameter-rebinding #'val
 ;;       (let ((results (query (:select column :from table
-;; 				     :where (:like column (concatenate 'string
-;; 								       "%" term "%")))
-;; 			    :column)))
-;; 	(if results
-;; 	    (with-html-output (*standard-output* nil :indent nil :prologue nil) 
-;; 	      (write-json (map 'vector #'identity results)))
-;; 	    (with-html-output (*standard-output* nil :indent nil :prologue nil)
-;; 	      "[]"))))))
+;;                                   :where (:like column (concatenate 'string
+;;                                                                     "%" term "%")))
+;;                          :column)))
+;;      (if results
+;;          (with-html-output (*standard-output* nil :indent nil :prologue nil)
+;;            (write-json (map 'vector #'identity results)))
+;;          (with-html-output (*standard-output* nil :indent nil :prologue nil)
+;;            "[]"))))))
 
 ;;; --- Generic error --------------------
 
@@ -49,12 +49,12 @@
      (head-css-std))
     (:body
      (:div :id "header"
-	   (logo)
-	   (primary-navbar 'companies))
+           (logo)
+           (primary-navbar 'companies))
      (:div :id "body"
-	   (:div :id "content" :class "summary"
-		 (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
-		 (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
+           (:div :id "content" :class "summary"
+                 (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
+                 (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
 
 (define-dynamic-page error-page ("error-page") ()
   (no-cache)
@@ -64,11 +64,11 @@
      (head-css-std))
     (:body
      (:div :id "header"
-	   (logo))
+           (logo))
      (:div :id "body"
-	   (:div :id "content" :class "summary"
-		 (:p "An error has occured.")
-		 (:p "You are supposed to see this page because of illegal URL manipulation"))))))
+           (:div :id "content" :class "summary"
+                 (:p "An error has occured.")
+                 (:p "You are supposed to see this page because of illegal URL manipulation"))))))
 
 
 ;; (define-dynamic-page no-fsm-data () ("no-fsm-data")
@@ -79,11 +79,11 @@
 ;;      (head-css-std))
 ;;     (:body
 ;;      (:div :id "header"
-;; 	   (logo)
-;; 	   (primary-navbar 'companies))
+;;         (logo)
+;;         (primary-navbar 'companies))
 ;;      (:div :id "body"
-;; 	   (:div :id "content" :class "summary"
-;; 		 (:p "No FSM Transitions data found."))))))
+;;         (:div :id "content" :class "summary"
+;;               (:p "No FSM Transitions data found."))))))
 
 
 ;;; --- dataTables --------------------
@@ -91,13 +91,13 @@
 
 
 ;; (define-dynamic-page banks-data ((iDisplayStart integer)
-;;                                  (idisplaylength integer) 
-;;                                  (sSearch string) 
+;;                                  (idisplaylength integer)
+;;                                  (sSearch string)
 ;;                                  (sEcho integer))
 ;;     ("data/banks")
 ;;   (no-cache)
 ;;   (with-parameter-rebinding #'val
-;;     (with-html-output (*standard-output* nil :indent nil :prologue nil) 
+;;     (with-html-output (*standard-output* nil :indent nil :prologue nil)
 ;;       (with-db ()
 ;;         (let* ((pattern (concatenate 'string
 ;;                                      "%"
@@ -128,7 +128,7 @@
 ;;                    columns
 ;;                    search
 ;;                    escape-regex
-;;                    echo) 
+;;                    echo)
 ;;   (with-db ()
 ;;     (let* ((pattern (concatenate 'string "%" search "%"))
 ;;            (table-len (query (:select (:count 'id) :from 'bank) :single))

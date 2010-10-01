@@ -12,8 +12,8 @@
           :page-specs '((bank "Τράπεζες")
                         (tof  "Δ.Ο.Υ.")
                         (city "Πόλεις")
-                        ;; (accounts "Λογαριασμοί")
-                        ;; (temtx	   "Πρότυπες Συναλλαγές")
+                        (account "Λογαριασμοί")
+                        ;; (temtx          "Πρότυπες Συναλλαγές")
                         ;;(stran "Καταστατικές Μεταβολές")
                         )
           :active-page-name active))
@@ -30,17 +30,17 @@
      (head-css-std))
     (:body
      (:div :id "header"
-	   (logo)
-	   (primary-navbar 'config)
-	   (config-navbar nil))
-     (:div :id "body" 
-	   (:div :id "content" :class "window"
-		 "Don't touch")
-	   (footer)))))
+           (logo)
+           (primary-navbar 'config)
+           (config-navbar nil))
+     (:div :id "body"
+           (:div :id "content" :class "window"
+                 "Don't touch")
+           (footer)))))
 
 
 
-;;; Configuration pages 
+;;; Configuration pages
 
 (defun config-data (table-name)
   (with-db ()
@@ -54,5 +54,3 @@
           (logo)
           (primary-navbar 'config)
           (config-navbar config-choice))))
-
-

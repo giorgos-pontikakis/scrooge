@@ -116,21 +116,21 @@
          ;; id, payload and the row itself
          (row-id-fn (mkfn-row-id id-keys))
          (row-payload-fn (mkfn-row-payload payload-keys))
-         (row (mkfn-crud-row row-id-fn
-                             row-payload-fn
-                             row-selected-p-fn
-                             row-controls-p-fn
-                             row-readonly-p-fn
-                             selector-states-fn
-                             cancel-url)))
+         (row-fn (mkfn-crud-row row-id-fn
+                                row-payload-fn
+                                row-selected-p-fn
+                                row-controls-p-fn
+                                row-readonly-p-fn
+                                selector-states-fn
+                                cancel-url)))
     (html ()
       (:table :class "table-half forms-in-row"
               (thead "" "Ονομασία Δ.Ο.Υ." "" "")
               (:tbody
                (when (eql op 'create)
-                 (funcall row nil))
+                 (funcall row-fn nil))
                (iter (for db-row in db-table)
-                     (funcall row db-row)))))))
+                     (funcall row-fn db-row)))))))
 
 
 
