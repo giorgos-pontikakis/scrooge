@@ -107,7 +107,7 @@
   (let* ((id-keys '(:id))
          (payload-keys '(:title))
          (db-table (config-data 'bank))
-         (cancel-url (bank :id (val* id)))
+         (cancel-url (bank :id id))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
          (selector-states-fn (mkfn-bank-selector-states))
          ;; op-specific
@@ -152,10 +152,11 @@
                (:div :class "message"
                      (:h2 :class "info" "Κατάλογος τραπεζών"))
                (:div :id "bank" :class "window"
-                     (bank-menu (val id) (if (val id)
-                                             '(create update delete)
-                                             '(create)))
-                     (render (bank-table 'view id)))
+                     (bank-menu (val id)
+                                (if (val id)
+                                    '(create update delete)
+                                    '(create)))
+                     (render (bank-table 'view (val* id))))
                (footer))))
       (see-other (notfound))))
 
@@ -196,12 +197,12 @@
                (:div :id "bank" :class "window"
                      (bank-menu (val id) '(view delete))
                      (with-form (actions/bank/update :id (val id))
-                       (bank-table 'update id)))
+                       (bank-table 'update (val* id))))
                (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page bank/delete ("config/bank/delete")
-    ((id integer chk-bank-id t))
+    ((id integer chk-bank-id/ref t))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -216,6 +217,6 @@
                (:div :id "bank" :class "window"
                      (bank-menu (val id) '(view update))
                      (with-form (actions/bank/delete :id (val id))
-                       (bank-table 'delete id)))
+                       (bank-table 'delete (val* id))))
                (footer))))
       (see-other (notfound))))

@@ -53,7 +53,7 @@
       (with-db ()
         (insert-dao (make-instance 'city :title (val title)))
         (see-other (city :id (city-id (val title)))))
-      (see-other (city/create :title (val title)))))
+      (see-other (city/create :title (raw title)))))
 
 (define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
     ((id    integer chk-city-id t)
@@ -65,10 +65,10 @@
                           'title (val title)
                           :where (:= 'id (val id))))
         (see-other (city :id (val id))))
-      (see-other (city/update :id (val id) :title (val title)))))
+      (see-other (city/update :id (raw id) :title (raw title)))))
 
 (define-dynamic-page actions/city/delete ("actions/city/delete" :request-type :post)
-    ((id integer chk-city-id t))
+    ((id integer chk-city-id/ref t))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'city (val id)))
@@ -107,7 +107,7 @@
   (let* ((id-keys '(:id))
          (payload-keys '(:title))
          (db-table (config-data 'city))
-         (cancel-url (city :id (val* id)))
+         (cancel-url (city :id id))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
          (selector-states-fn (mkfn-city-selector-states))
          ;; op-specific
@@ -155,7 +155,7 @@
                      (city-menu (val id) (if (val id)
                                              '(create update delete)
                                              '(create)))
-                     (render (city-table 'view id)))
+                     (render (city-table 'view (val* id))))
                (footer))))
       (see-other (notfound))))
 
@@ -196,12 +196,12 @@
                (:div :id "city" :class "window"
                      (city-menu (val id) '(view delete))
                      (with-form (actions/city/update :id (val id))
-                       (city-table 'update id)))
+                       (city-table 'update (val* id))))
                (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page city/delete ("config/city/delete")
-    ((id integer chk-city-id t))
+    ((id integer chk-city-id/ref t))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -216,6 +216,6 @@
                (:div :id "city" :class "window"
                      (city-menu (val id) '(view update))
                      (with-form (actions/city/delete :id (val id))
-                       (city-table 'delete id)))
+                       (city-table 'delete (val* id))))
                (footer))))
       (see-other (notfound))))

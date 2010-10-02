@@ -39,11 +39,6 @@
 (defun see-other (url)
   (redirect url :code +http-see-other+))
 
-(defun find-datum (plist key)
-  (if plist
-      (getf plist key)
-      nil))
-
 (defun true (x)
   (eq x t))
 

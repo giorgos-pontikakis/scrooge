@@ -161,6 +161,10 @@
                  "bullet_red.png"
                  "bullet_blue.png")))))
 
+(defun arrow ()
+  (html ()
+    (:a :href )))
+
 (defun ok-link (visiblep)
   (if visiblep
       (with-html
@@ -187,7 +191,7 @@
   (lambda (id)
     (let ((result (mapcar (lambda (key)
                             (eql (val* (find-parameter key))
-                                 (find-datum id key)))
+                                 (getf id key) #|(find-datum id key)|#))
                           id-keys)))
       (every #'true result))))
 

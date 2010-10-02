@@ -107,7 +107,7 @@
   (let* ((id-keys '(:id))
          (payload-keys '(:title))
          (db-table (config-data 'tof))
-         (cancel-url (tof :id (val* id)))
+         (cancel-url (tof :id id))
          (row-selected-p-fn (mkfn-row-selected-p id-keys))
          (selector-states-fn (mkfn-tof-selector-states))
          ;; op-specific
@@ -155,7 +155,7 @@
                      (tof-menu (val id) (if (val id)
                                             '(create update delete)
                                             '(create)))
-                     (render (tof-table 'view id)))
+                     (render (tof-table 'view (val* id))))
                (footer))))
       (see-other (notfound))))
 
@@ -196,12 +196,12 @@
                (:div :id "tof" :class "window"
                      (tof-menu (val id) '(view delete))
                      (with-form (actions/tof/update :id (val id))
-                       (tof-table 'update id)))
+                       (tof-table 'update (val* id))))
                (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page tof/delete ("config/tof/delete")
-    ((id integer chk-tof-id t))
+    ((id integer chk-tof-id/ref t))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -216,6 +216,6 @@
                (:div :id "tof" :class "window"
                      (tof-menu (val id) '(view update))
                      (with-form (actions/tof/delete :id (val id))
-                       (tof-table 'delete id)))
+                       (tof-table 'delete (val* id))))
                (footer))))
       (see-other (notfound))))
