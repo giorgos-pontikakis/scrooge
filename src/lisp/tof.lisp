@@ -174,7 +174,7 @@
                  (tof-errorbar (list title)))
            (:div :id "tof" :class "window"
                  (tof-menu nil '(view))
-                 (with-form (actions/tof/create :title title)
+                 (with-form (actions/tof/create :title (val* title))
                    (tof-table 'create nil)))
            (footer)))))
 

@@ -174,7 +174,7 @@
                  (city-errorbar (list title)))
            (:div :id "city" :class "window"
                  (city-menu nil '(view))
-                 (with-form (actions/city/create :title title)
+                 (with-form (actions/city/create :title (val* title))
                    (city-table 'create nil)))
            (footer)))))
 

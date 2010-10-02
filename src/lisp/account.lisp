@@ -79,14 +79,14 @@
         (with-db ()
           (insert-dao (make-instance 'account
                                      :title (val title)
-                                     :parent-id (or (val parent-id) :null)
+                                     :id (or (val parent-id) :null)
                                      :debit-p debit-p))
           (see-other (account))))
       (if (and (validp parent-id) (validp debitp))
           ;; input error - go back to create page
-          (see-other (account/create :parent-id (val parent-id)
-                                     :title (val title)
-                                     :debitp (val debitp)))
+          (see-other (account/create :id (raw parent-id)
+                                     :title (raw title)
+                                     :debitp (raw debitp)))
           ;; tampered URL - abort
           (see-other (notfound)))))
 
@@ -129,7 +129,6 @@
                                  (:is-null 'parent-id)))
            :plists)))
 
-
 (defun account-children-data (id)
   (when id
     (with-db ()
@@ -144,10 +143,10 @@
 ;;; Account menus
 ;;; ------------------------------------------------------------
 
-(defun account-menu (id enabled-items)
+(defun account-menu (id debitp enabled-items)
   (funcall (actions-menu)
            :item-specs (standard-actions-spec (account :id id)
-                                              (account/create)
+                                              (account/create :debitp debitp)
                                               (account/update :id id)
                                               (if (or (null id)
                                                       (acc-referenced-p id))
@@ -216,13 +215,15 @@
   (with-html
     (:ul :class style
          (iter (for db-row in db-table)
-               ;; (when (and (eql row-id  id)
-               ;;             (eql op 'create))
-               ;;    (funcall row-fn nil))
                (funcall row-fn db-row)
                (account-subtree row-fn
                                 (account-children-data (getf db-row :id))
                                 "indent")))))
+
+
+(when (and (eql parent-id active-id)
+           (eql op 'create))
+  (funcall row-fn nil))
 
 ;;; ------------------------------------------------------------
 ;;; Account pages
@@ -244,12 +245,14 @@
                        (:h2 :class "info" "Κατάλογος λογαριασμών"))
                  (:div :id "debit-accounts" :class "window"
                        (account-menu (val id)
+                                     t
                                      (if (and (val id) id-debit-p)
                                          '(create update delete)
                                          '(create)))
                        (render (account-tree 'view (val* id) t)))
                  (:div :id "credit-accounts" :class "window"
                        (account-menu (val id)
+                                     nil
                                      (if (and (val id) (not id-debit-p))
                                          '(create update delete)
                                          '(create)))
@@ -259,11 +262,10 @@
 
 (define-dynamic-page account/create ("account/create")
     ((id        integer chk-acc-id)
-     (parent-id integer chk-parent-acc-id)
-     (title     string  chk-acc-title)
-     (debitp    boolean (chk-debitp debitp id)))
+     (debitp    boolean (chk-debitp debitp id))
+     (title     string  chk-acc-title))
   (no-cache)
-  (if (every #'validp (parameters *page*))
+  (if (and (validp id) (validp debitp))
       (let ((id-debit-p (if (val id) (debit-p (val id)) nil)))
         (with-document ()
           (:head
@@ -273,20 +275,29 @@
            (config-header 'account)
            (:div :id "body"
                  (:div :class "message"
-                       (:h2 :class "info" "Δημιουργία λογαριασμού"))
+                       (:h2 :class "info" "Δημιουργία λογαριασμού")
+                       (acc-errorbar (list title)))
                  (:div :id "debit-accounts" :class "window"
-                       (account-menu (val id) (if id-debit-p
-                                                  '(view)
-                                                  '()))
+                       (account-menu (val id)
+                                     t
+                                     (if id-debit-p
+                                         '(view)
+                                         '()))
                        (:h2 "Χρεωστικοί Λογαριασμοί")
-                       (with-form (actions/account/create :parent-id parent-id :title title)
+                       (with-form (actions/account/create :parent-id (val id)
+                                                          :title (val* title)
+                                                          :debitp (val debitp))
                          (account-tree 'create (val id) t)))
                  (:div :id "credit-accounts" :class "window"
-                       (account-menu (val id) (if id-debit-p
-                                                  '()
-                                                  '(view)))
+                       (account-menu (val id)
+                                     nil
+                                     (if id-debit-p
+                                         '()
+                                         '(view)))
                        (:h2 "Πιστωτικοί Λογαριασμοί")
-                       (with-form (actions/account/create :parent-id parent-id :title title)
+                       (with-form (actions/account/create :parent-id (val id)
+                                                          :title (val* title)
+                                                          :debitp (val debitp))
                          (account-tree 'create (val id) nil)))
                  (footer)))))
       (see-other (notfound))))
@@ -309,6 +320,7 @@
                        (acc-errorbar (list title)))
                  (:div :id "debit-accounts" :class "window"
                        (account-menu (val id)
+                                     t
                                      (if id-debit-p
                                          '(create view delete)
                                          '(create)))
@@ -316,6 +328,7 @@
                          (account-tree 'update (val* id) t)))
                  (:div :id "credit-accounts" :class "window"
                        (account-menu (val id)
+                                     nil
                                      (if id-debit-p
                                          '(create)
                                          '(create view delete)))
@@ -340,6 +353,7 @@
                        (:h2 :class "info" "Διαγραφή λογαριασμού"))
                  (:div :id "debit-accounts" :class "window"
                        (account-menu (val id)
+                                     t
                                      (if (and (val id) id-debit-p)
                                          '(view update)
                                          '()))
@@ -347,6 +361,7 @@
                          (account-tree 'delete (val* id) t)))
                  (:div :id "credit-accounts" :class "window"
                        (account-menu (val id)
+                                     nil
                                      (if (and (val id) (not id-debit-p))
                                          '()
                                          '(view update)))

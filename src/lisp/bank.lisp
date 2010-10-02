@@ -174,7 +174,7 @@
                  (bank-errorbar (list title)))
            (:div :id "bank" :class "window"
                  (bank-menu nil '(view))
-                 (with-form (actions/bank/create :title title)
+                 (with-form (actions/bank/create :title (val* title))
                    (bank-table 'create nil)))
            (footer)))))
 
