@@ -138,7 +138,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Table rows and cells
+;;; Tables
 ;;; ------------------------------------------------------------
 
 (defun thead (&rest args)
@@ -147,6 +147,12 @@
      (:tr (mapc (lambda (item)
                   (htm (:th (str item))))
                 args)))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Links
+;;; ------------------------------------------------------------
 
 (defun selector-link (states)
   (html (state)
@@ -208,17 +214,3 @@
         (plist-collect payload-keys row-data)
         (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
                      (plist-collect payload-keys row-data)))))
-
-
-;; (defun mkfn-row-payload (op payload-keys ro-ops rw-ops)
-;;   (cond ((member op ro-ops)
-;;          (lambda (row-data readonly-p)
-;;            (declare)
-;;            (plist-collect payload-keys row-data)))
-;;         ((member op rw-ops)
-;;          (lambda (row-data readonly-p)
-;;            (if readonly-p
-;;                (plist-collect payload-keys row-data)
-;;                (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
-;;                             (plist-collect payload-keys row-data)))))
-;;         (t (error "Unknown operation: ~A" op))))

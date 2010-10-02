@@ -28,17 +28,17 @@
         ((not (tof-title-unique-p title id)) 'tof-title-exists)
         (t nil)))
 
-(defun tof-errorbar (params)
-  (funcall (generic-errorbar)
-           params
-           '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
-                    (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη")))))
-
 (defun chk-tof-id/ref (id)
   (if (and (null (chk-tof-id id))
            (null (tof-referenced-p id)))
       nil
       'tof-referenced))
+
+(defun tof-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
+                    (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη")))))
 
 
 
