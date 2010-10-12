@@ -11,5 +11,4 @@
         :veil
         :simple-date
         :postmodern
-        :metabang-bind
         :json))

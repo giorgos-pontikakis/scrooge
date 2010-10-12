@@ -36,6 +36,10 @@
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun full-url (page-name)
+  (let ((page (find-page page-name *webapp*)))
+    (concatenate 'string (webroot (webapp page)) (base-url page))))
+
 (defun see-other (url)
   (redirect url :code +http-see-other+))
 

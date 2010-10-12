@@ -64,7 +64,7 @@
 ;;; ------------------------------------------------------------
 
 (defun form (submit-page hidden body)
-  (let ((page (find-page submit-page)))
+  (let ((page (find-page submit-page *webapp*)))
     (with-html
       (:form :method (request-type page)
              :action (concatenate 'string (webroot (webapp page)) (base-url page))
