@@ -6,22 +6,23 @@
 ;;; ----------------------------------------------------------------------
 ;;; Application configuration
 ;;; ----------------------------------------------------------------------
-(define-webapp *scrooge*
-  :name 'scrooge
-  :port 3001
-  :webroot "/scrooge/"
-  :debug-p t)
+(define-webapp *scrooge* (webapp)
+    :name 'scrooge
+    :port 3001
+    :web-root "/scrooge/"
+    :fs-root #p"/home/gnp/www/scrooge/public/"
+    :fs-paths '()
+    :debug-p (not (string-equal (machine-instance) "www"))
+    :database (make-instance 'database
+                             :dbname "scrooge"
+                             :dbhost "localhost"
+                             :dbuser "gnp"
+                             :dbpass ""
+                             :adapter "postgres"))
 
-(defparameter *webapp* *scrooge*)
 
-(define-db *scrooge-db*
-  :dbname "scrooge"
-  :dbhost "localhost"
-  :dbuser "gnp"
-  :dbpass ""
-  :adapter "postgres")
 
-(defparameter *db* *scrooge-db*)
+
 
 
 ;;; ----------------------------------------------------------------------
