@@ -4,18 +4,18 @@
 
 (asdf:defsystem :scrooge
   :serial t
-  :depends-on (:veil :simple-date :postmodern :metabang-bind :json)
+  :depends-on (:veil :bricks)
   :components ((:file "package")
                (:file "init")
-               ;; (:file "utils")
+               (:file "utils")
                (:file "tables")
 
                ;; (:file "validators")
-               ;; (:file "widgets")
-               ;; (:file "snippets")
-               ;; (:file "root")
-               ;; (:file "config")
-               ;; (:file "bank")
+               (:file "widgets")
+               (:file "snippets")
+               (:file "root")
+               (:file "config")
+               (:file "bank")
                ;; (:file "tof")
                ;; (:file "city")
                ;; (:file "account")

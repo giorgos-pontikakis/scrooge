@@ -2,6 +2,14 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
+;;; Root widgets
+
+(defun primary-navbar (active-page-name)
+  (display (make-instance 'horizontal-navbar
+                          :id "navbar"
+                          :spec '((home "Αρχική")
+                                  (config "Ρυθμίσεις")))
+           :active-page-name active-page-name))
 
 ;;; --- Home --------------------
 

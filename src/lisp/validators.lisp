@@ -22,20 +22,20 @@
 
 ;;; --- Banks --------------------
 
-(define-existence-validator bank-id-exists-p bank id)
-(define-existence-validator bank-exists-p bank title)
+(define-existence-predicate bank-id-exists-p bank id)
+(define-existence-predicate bank-exists-p bank title)
 
 
 ;;; --- Taxation Offices --------------------
 
-(define-existence-validator tof-id-exists-p tof id)
-(define-existence-validator tof-exists-p tof title)
+(define-existence-predicate tof-id-exists-p tof id)
+(define-existence-predicate tof-exists-p tof title)
 
 
 ;;; --- Cities --------------------
 
-(define-existence-validator city-id-exists-p city id)
-(define-existence-validator city-exists-p city title)
+(define-existence-predicate city-id-exists-p city id)
+(define-existence-predicate city-exists-p city title)
 
 
 
@@ -54,8 +54,8 @@
 
 ;;; --- Companies --------------------
 
-(define-existence-validator company-exists-p    company title)
-(define-existence-validator company-id-exists-p company id)
+(define-existence-predicate company-exists-p    company title)
+(define-existence-predicate company-id-exists-p company id)
 
 (defun valid-company-p (val)
   (company-exists-p val))
@@ -67,7 +67,7 @@
 
 ;;; --- Contacts --------------------
 
-(define-existence-validator contact-id-exists-p contact id)
+(define-existence-predicate contact-id-exists-p contact id)
 
 (defun valid-contact-id-p (val)
   (and (positive-nonnull-p val)
@@ -76,8 +76,8 @@
 
 ;;; --- Accounts --------------------
 
-(define-existence-validator acc-id-exists-p account id)
-(define-existence-validator acc-exists-p    account title)
+(define-existence-predicate acc-id-exists-p account id)
+(define-existence-predicate acc-exists-p    account title)
 
 (defun valid-acc-id-p (val)
   (and (positive-nonnull-p val)
@@ -95,7 +95,7 @@
 
 ;;; --- Transactions --------------------
 
-(define-existence-validator tx-id-exists-p tx id)
+(define-existence-predicate tx-id-exists-p tx id)
 
 (defun valid-tx-id-p (val)
   (and (positive-nonnull-p val)
@@ -104,8 +104,8 @@
 
 ;;; --- Transaction Templates --------------------
 
-(define-existence-validator temtx-id-exists-p temtx id)
-(define-existence-validator temtx-exists-p    temtx description)
+(define-existence-predicate temtx-id-exists-p temtx id)
+(define-existence-predicate temtx-exists-p    temtx description)
 
 (defun valid-temtx-id-p (val)
   (and (positive-p val)
@@ -114,7 +114,7 @@
 
 ;;; --- Cheques --------------------
 
-(define-existence-validator cheque-id-exists-p cheque id)
+(define-existence-predicate cheque-id-exists-p cheque id)
 
 (defun valid-cheque-id-p (val)
   (and (positive-nonnull-p val)
@@ -132,4 +132,4 @@
 
 ;;; --- Projects --------------------
 
-(define-existence-validator valid-project-id-p project id)
+(define-existence-predicate valid-project-id-p project id)

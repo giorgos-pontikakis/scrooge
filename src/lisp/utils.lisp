@@ -36,17 +36,17 @@
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
-(defun full-url (page-name)
-  (let ((page (find-page page-name *webapp*)))
-    (concatenate 'string (webroot (webapp page)) (base-url page))))
+;; (defun full-url (page-name)
+;;   (let ((page (find-page page-name *webapp*)))
+;;     (concatenate 'string (webroot (webapp page)) (base-url page))))
 
-(defun see-other (url)
-  (redirect url :code +http-see-other+))
+;; (defun see-other (url)
+;;   (redirect url :code +http-see-other+))
 
-(defun true (x)
-  (eq x t))
+;; (defun true (x)
+;;   (eq x t))
 
-(defun params->plist (parameters)
-  (iter (for p in parameters)
-        (collect (key p))
-        (collect (val* p))))
+;; (defun params->plist (parameters)
+;;   (iter (for p in parameters)
+;;         (collect (key p))
+;;         (collect (val* p))))

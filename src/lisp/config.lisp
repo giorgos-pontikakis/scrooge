@@ -6,17 +6,17 @@
 
 ;;; Widgets
 
-(defun config-navbar (active)
-  (render (hnavbar)
-          :id "subnavbar"
-          :page-specs '((bank "Τράπεζες")
-                        (tof  "Δ.Ο.Υ.")
-                        (city "Πόλεις")
-                        (account "Λογαριασμοί")
-                        ;; (temtx          "Πρότυπες Συναλλαγές")
-                        ;;(stran "Καταστατικές Μεταβολές")
-                        )
-          :active-page-name active))
+(defun config-navbar (active-page-name)
+  (display (make-instance 'horizontal-navbar
+                          :id "subnavbar"
+                          :spec '((bank "Τράπεζες")
+                                  ;; (tof  "Δ.Ο.Υ.")
+                                  ;; (city "Πόλεις")
+                                  ;; (account "Λογαριασμοί")
+                                  ;; (temtx          "Πρότυπες Συναλλαγές")
+                                  ;;(stran "Καταστατικές Μεταβολές")
+                                  ))
+           :active-page-name active-page-name))
 
 
 
