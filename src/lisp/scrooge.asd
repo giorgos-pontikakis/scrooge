@@ -9,8 +9,6 @@
                (:file "init")
                (:file "utils")
                (:file "tables")
-
-               ;; (:file "validators")
                (:file "widgets")
                (:file "snippets")
                (:file "root")
