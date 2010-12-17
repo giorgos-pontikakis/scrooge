@@ -132,27 +132,33 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Navigation bars
+;;; Menus
 ;;; ------------------------------------------------------------
-(defclass navbar (widget)
+
+(defclass menu (widget)
   ((id                  :accessor id                  :initarg :id)
    (spec                :accessor spec                :initarg :spec)
    (ul-style            :accessor ul-style            :initarg :ul-style)
    (active-page-style   :accessor active-page-style   :initarg :active-page-style)
    (inactive-page-style :accessor inactive-page-style :initarg :inactive-page-style)))
 
-(defmethod display ((navbar navbar) &key active-page-name)
+(defmethod display ((menu menu) &key active-page-name)
   (with-html
-    (:div :id (id navbar)
-          (:ul :class (ul-style navbar)
-               (iter (for (page-name label) in (spec navbar))
+    (:div :id (id menu)
+          (:ul :class (ul-style menu)
+               (iter (for (page-name label) in (spec menu))
                      (htm (:li (:a :class  (if (eql page-name active-page-name)
-                                               (active-page-style navbar)
-                                               (inactive-page-style navbar))
+                                               (active-page-style menu)
+                                               (inactive-page-style menu))
                                    :href (url (base-url (find-page page-name (package-webapp))))
                                    (str label)))))))))
 
-(defclass horizontal-navbar (navbar)
+(defclass horizontal-menu (menu)
+  ((active-page-style   :initform "active")
+   (inactive-page-style :initform nil)
+   (ul-style            :initform "hmenu")))
+
+(defclass vertical-menu (menu)
   ((active-page-style   :initform "active")
    (inactive-page-style :initform nil)
    (ul-style            :initform "hmenu")))

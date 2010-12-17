@@ -2,16 +2,8 @@
 
 (declaim (optimize (speed 0) (debug 3)))
 
-;;; Root widgets
 
-(defun primary-navbar (active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :id "navbar"
-                          :spec '((home "Αρχική")
-                                  (config "Ρυθμίσεις")))
-           :active-page-name active-page-name))
-
-;;; --- Home --------------------
+;;; --- Home, main and config --------------------
 
 (define-dynamic-page home ("") ()
   (with-document ()
@@ -24,6 +16,44 @@
            (primary-navbar 'home))
      (:div :id "body"
            (:p "Home content not yet available")))))
+
+
+
+;;; Config main page
+
+(define-dynamic-page config ("config/") ()
+  (no-cache)
+  (with-document ()
+    (:head
+     (:title "Ρυθμίσεις")
+     (head-css-std))
+    (:body
+     (:div :id "header"
+           (logo)
+           (primary-navbar 'config)
+           (config-navbar nil))
+     (:div :id "body"
+           (:div :id "content" :class "window"
+                 "Don't touch")
+           (footer)))))
+
+
+
+;;; Configuration utilities
+
+(defun config-data (table-name)
+  (with-db ()
+    (query (sql-compile
+            `(:select 'id 'title :from ,table-name))
+           :plists)))
+
+(defun config-header (config-choice)
+  (with-html
+    (:div :id "header"
+          (logo)
+          (primary-navbar 'config)
+          (config-navbar config-choice))))
+
 
 
 ;;; --- Autocomplete --------------------
@@ -44,7 +74,9 @@
 ;;          (with-html-output (*standard-output* nil :indent nil :prologue nil)
 ;;            "[]"))))))
 
-;;; --- Generic error --------------------
+
+
+;;; --- Error pages --------------------
 
 
 ;;; :TODO: This should be a static page

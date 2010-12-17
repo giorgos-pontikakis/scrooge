@@ -3,14 +3,15 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 
-
-;;; Static References
+;;; ------------------------------------------------------------
+;;; Static references
+;;; ------------------------------------------------------------
 
 (defun css (path)
   (with-html (:link :rel "stylesheet" :type "text/css" :href (url path))))
 
 (defun js (path)
-  (with-html (:script :type "application/javascript" :src (url  path))))
+  (with-html (:script :type "application/javascript" :src (url path))))
 
 (defun img (path)
   (with-html
@@ -21,8 +22,9 @@
                       :src (url "lib" path))))
 
 
-
+;;; ------------------------------------------------------------
 ;;; HTML Head
+;;; ------------------------------------------------------------
 
 (defun head-js-std ()
   (mapc #'js '("lib/jquery/jquery-1.4.2.min.js"
@@ -42,7 +44,9 @@
 
 
 
+;;; ------------------------------------------------------------
 ;;; User interface elements
+;;; ------------------------------------------------------------
 
 (defun ok-button ()
   (with-html
@@ -60,9 +64,30 @@
   (with-html
     (:div :id "footer" "Powered by lisp")))
 
+(defun navbar (active-page-name)
+  (display (make-instance 'horizontal-menu
+                          :id "navbar"
+                          :spec '((home   "Αρχική")
+                                  (main   "Οικονομικά")
+                                  (admin  "Διαχείριση")
+                                  (config "Ρυθμίσεις")))
+           :active-page-name active-page-name))
+
+(defun main-menu (active-page-name)
+  (display (make-instance 'horizontal-menu
+                          :id "main-menu"
+                          :spec '((companies "Εταιρίες")
+                                  (projects "Έργα")
+                                  (transactions "Συναλλαγές")))
+           :active-page-name active-page-name))
 
 
+
+
+
+;;; ------------------------------------------------------------
 ;;; CRUD actions menu
+;;; ------------------------------------------------------------
 
 (defun standard-actions-spec (view create update delete)
   `((view   ,view   "Προβολή"     "magnifier.png")

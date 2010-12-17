@@ -4,18 +4,17 @@
 
 
 
-;;; Widgets
+;;; UI elements
 
-(defun config-navbar (active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :id "subnavbar"
-                          :spec '((bank "Τράπεζες")
-                                  ;; (tof  "Δ.Ο.Υ.")
-                                  ;; (city "Πόλεις")
-                                  ;; (account "Λογαριασμοί")
-                                  ;; (temtx          "Πρότυπες Συναλλαγές")
-                                  ;;(stran "Καταστατικές Μεταβολές")
-                                  ))
+(defun config-menu (active-page-name)
+  (display (make-instance 'horizontal-menu
+                          :id "config-menu"
+                          :spec '((cities "Πόλεις")
+                                  (banks "Τράπεζες")
+                                  (tofs "Δ.Ο.Υ.")
+                                  (accounts "Λογαριασμοί")
+                                  (temtx "Πρότυπες Συναλλαγές")
+                                  (stran "Καταστατικές Μεταβολές")))
            :active-page-name active-page-name))
 
 
