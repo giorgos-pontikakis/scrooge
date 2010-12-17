@@ -3,44 +3,47 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; Static references
 ;;; ------------------------------------------------------------
 
-(defun css (path)
-  (with-html (:link :rel "stylesheet" :type "text/css" :href (url path))))
-
-(defun js (path)
-  (with-html (:script :type "application/javascript" :src (url path))))
-
-(defun img (path)
+(defun css (file)
   (with-html
-    (:img :src (url "img/" path))))
+    (:link :href file
+           :rel "stylesheet"
+           :type "text/css")))
 
-(defun lib (path)
-  (with-html (:script :type "application/javascript"
-                      :src (url "lib" path))))
+(defun js (file)
+  (with-html
+    (:script :type "text/javascript"
+             :src file)))
+
+(defun img (file)
+  (with-html
+    (:img :src (url 'img file))))
+
 
 
 ;;; ------------------------------------------------------------
 ;;; HTML Head
 ;;; ------------------------------------------------------------
 
-(defun head-js-std ()
-  (mapc #'js '("lib/jquery/jquery-1.4.2.min.js"
-               "lib/jquery-ui/js/jquery-ui-1.8.2.custom.min.js"
-               "js/main.js")))
+(defun jquery ()
+  (js (url 'lib "jquery-1.4.4/jquery-1.4.4.min.js")))
 
+(defun 960gs ()
+  (mapc #'(lambda (filename)
+            (css (url 'lib "960gs/code/css/" filename ".css")))
+        (list "reset" "960" "text")))
 
-(defun head-css-std ()
-  (mapc #'css '("css/reset.css"
-                "css/main.css"
-                "lib/jquery-ui/css/smoothness/jquery-ui-1.8.2.custom.css")))
+(defun error-headers ()
+  (css (url 'css "global.css")))
 
-(defun head-config ()
-  (head-css-std)
-  (css '"css/table.css")
-  (head-js-std))
+(defun global-headers ()
+  (jquery)
+  (960gs)
+  (css (url 'css "global.css")))
 
 
 
@@ -58,24 +61,40 @@
 
 (defun logo ()
   (with-html
-    (:h1 "Scrooge")))
+    (:div :id "logo"
+          :class "grid_2"
+          (:h1 "Scrooge"))))
+
+(defun header (active-item)
+  (with-html
+    (:div :id "header"
+          (logo)
+          (primary-navbar active-item)
+          (logout-menu))))
 
 (defun footer ()
   (with-html
     (:div :id "footer" "Powered by lisp")))
 
-(defun navbar (active-page-name)
-  (display (make-instance 'horizontal-menu
+(defun primary-navbar (active-page-name)
+  (display (make-instance 'horizontal-navbar
                           :id "navbar"
+                          :style "hnavbar grid_8 prefix_1"
                           :spec '((home   "Αρχική")
                                   (main   "Οικονομικά")
                                   (admin  "Διαχείριση")
                                   (config "Ρυθμίσεις")))
            :active-page-name active-page-name))
 
+(defun logout-menu ()
+  (display (make-instance 'menu
+                          :id "logout"
+                          :style "hnavbar grid_1"
+                          :spec `((logout "" "Έξοδος")))))
+
 (defun main-menu (active-page-name)
-  (display (make-instance 'horizontal-menu
-                          :id "main-menu"
+  (display (make-instance 'horizontal-navbar
+                          :id "main-navbar"
                           :spec '((companies "Εταιρίες")
                                   (projects "Έργα")
                                   (transactions "Συναλλαγές")))

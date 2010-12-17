@@ -9,13 +9,13 @@
   (with-document ()
     (:head
      (:title "Αρχική")
-     (head-css-std))
+     (global-headers))
     (:body
-     (:div :id "header"
-           (logo)
-           (primary-navbar 'home))
-     (:div :id "body"
-           (:p "Home content not yet available")))))
+     (:div :id "container" :class "container_12"
+           (header 'home)
+           (:div :class "clear")
+           (:div :id "body"
+                 (:p "Home content not yet available"))))))
 
 
 
@@ -49,11 +49,10 @@
   (with-document ()
     (:head
      (:title "Άγνωστη σελίδα")
-     (head-css-std))
+     (error-headers))
     (:body
      (:div :id "header"
-           (logo)
-           (primary-navbar 'companies))
+           (logo))
      (:div :id "body"
            (:div :id "content" :class "summary"
                  (:p "Η σελίδα που προσπαθείτε να προσπελάσετε δεν υπάρχει.")
@@ -64,13 +63,13 @@
   (with-document ()
     (:head
      (:title "Generic error page")
-     (head-css-std))
+     (error-headers))
     (:body
      (:div :id "header"
            (logo))
      (:div :id "body"
            (:div :id "content" :class "summary"
-                 (:p "An error has occured.")
+                 (:p "An internal error has occured.")
                  (:p "You are supposed to see this page because of illegal URL manipulation"))))))
 
 

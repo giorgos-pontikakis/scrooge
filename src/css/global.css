@@ -1,0 +1,41 @@
+li {
+    margin: 0;
+    padding: 0;
+}
+
+a, a:hover img {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#container {
+    height: 100%;
+    background-color: #cde;
+}
+
+
+#logo {
+    background-color: #bbb;
+}
+
+#logo h1 {
+    margin: 4px 0px;
+    text-align: center;
+}
+
+.hnavbar ul {
+    background-color: #eee;
+}
+
+.hnavbar ul li {
+    list-style: none;
+    display: inline;
+    margin-right: 30px;
+}
+
+.active {
+    background-color: yellow;
+}

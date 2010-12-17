@@ -14,14 +14,14 @@
                (:file "root")
                ;; config
                (:file "config/config")
-               (:file "config/bank")
-               (:file "config/tof")
-               (:file "config/city")
-               (:file "config/account")
-               (:file "config/stran")
-               (:file "config/temtx")
+               #|(:file "config/bank")|#
+               #|(:file "config/tof")|#
+               #|(:file "config/city")|#
+               #|(:file "config/account")|#
+               #|(:file "config/stran")|#
+               #|(:file "config/temtx")|#
                ;; main
-               (:file "main/company")
-               (:file "main/cheque")
-               (:file "main/project")
-               (:file "main/tx")))
+               #|(:file "main/company")|#
+               #|(:file "main/cheque")|#
+               #|(:file "main/project")|#
+               #|(:file "main/tx")|#))

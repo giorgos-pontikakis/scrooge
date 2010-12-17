@@ -7,15 +7,18 @@
 ;;; Application configuration
 ;;; ----------------------------------------------------------------------
 (define-webapp *scrooge* (webapp)
-    :name 'scrooge
-    :port 3001
-    :web-root "/scrooge/"
-    :fs-root #p"/home/gnp/www/scrooge/public/"
-    :fs-paths '()
-    :debug-p (not (string-equal (machine-instance) "www"))
-    :database (make-instance 'database
-                             :dbname "scrooge"
-                             :dbhost "localhost"
-                             :dbuser "gnp"
-                             :dbpass ""
-                             :adapter "postgres"))
+  :name 'scrooge
+  :port 3001
+  :web-root "/scrooge/"
+  :fs-root #p"/home/gnp/www/scrooge/public/"
+  :web-paths '((css  . "css/")
+               (js   . "js/")
+               (lib  . "lib/")
+               (img  . "img/"))
+  :debug-p (not (string-equal (machine-instance) "www"))
+  :database (make-instance 'database
+                           :dbname "scrooge"
+                           :dbhost "localhost"
+                           :dbuser "gnp"
+                           :dbpass ""
+                           :adapter "postgres"))

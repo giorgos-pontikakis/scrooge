@@ -49,11 +49,11 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-table (widget)
-  ((op          :accessor op          :initarg :op)
-   (selected-id :accessor selected-id :initarg :selected-id)
-   (header      :accessor header)
-   (db-table-fn :accessor db-table-fn)
-   (row-class   :accessor row-class)))
+  ((op            :accessor op            :initarg :op)
+   (selected-id   :accessor selected-id   :initarg :selected-id)
+   (header-labels :accessor header-labels)
+   (db-table-fn   :accessor db-table-fn)
+   (row-class     :accessor row-class)))
 
 (defmethod display ((table crud-table) &key)
   (let ((rows (mapcar (lambda (db-row)
@@ -68,7 +68,7 @@
       (:table :class "table-half forms-in-fow"
               (:thead (mapc (lambda (i)
                               (htm (:td (str i))))
-                            (header table)))
+                            (header-labels table)))
               (:tbody
                (iter (for r in rows)
                      (display r)))))))
@@ -131,61 +131,72 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Menus
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
+;;; NAVBARS
+;;;
+;;; A navbar is a unordered list of anchors. One of them may be
+;;; active, i.e. its class is active-style instead of
+;;; inactive-style. The idea is to represent the link to the page we
+;;; are currently viewing with a separate style.
+;;; ----------------------------------------------------------------------
 
-(defclass menu (widget)
-  ((id                  :accessor id                  :initarg :id)
-   (spec                :accessor spec                :initarg :spec)
-   (ul-style            :accessor ul-style            :initarg :ul-style)
-   (active-page-style   :accessor active-page-style   :initarg :active-page-style)
-   (inactive-page-style :accessor inactive-page-style :initarg :inactive-page-style)))
+(defclass navbar (widget)
+  ((id             :accessor id             :initarg :id)
+   (spec           :accessor spec           :initarg :spec)
+   (style          :accessor style          :initarg :style)
+   (active-style   :accessor active-style   :initarg :active-style)
+   (inactive-style :accessor inactive-style :initarg :inactive-style)))
 
-(defmethod display ((menu menu) &key active-page-name)
+(defmethod display ((navbar navbar) &key active-page-name)
   (with-html
-    (:div :id (id menu)
-          (:ul :class (ul-style menu)
-               (iter (for (page-name label) in (spec menu))
-                     (htm (:li (:a :class  (if (eql page-name active-page-name)
-                                               (active-page-style menu)
-                                               (inactive-page-style menu))
-                                   :href (url (base-url (find-page page-name (package-webapp))))
-                                   (str label)))))))))
+    (:div :id (id navbar) :class (style navbar)
+          (:ul
+           (iter (for (page-name label) in (spec navbar))
+                 (htm (:li (:a :class  (if (eql page-name active-page-name)
+                                           (active-style navbar)
+                                           (inactive-style navbar))
+                               :href (if (fboundp page-name)
+                                         (funcall page-name)
+                                         (error-page))
+                               (str label)))))))))
 
-(defclass horizontal-menu (menu)
-  ((active-page-style   :initform "active")
-   (inactive-page-style :initform nil)
-   (ul-style            :initform "hmenu")))
+(defclass horizontal-navbar (navbar)
+  ((active-style   :initform "active")
+   (inactive-style :initform nil)
+   (style          :initform "hnavbar")))
 
-(defclass vertical-menu (menu)
-  ((active-page-style   :initform "active")
-   (inactive-page-style :initform nil)
-   (ul-style            :initform "hmenu")))
+(defclass vertical-navbar (navbar)
+  ((active-style   :initform "active")
+   (inactive-style :initform nil)
+   (style          :initform "vnavbar")))
 
 
 
-;;; ------------------------------------------------------------
-;;; Menus
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
+;;; MENUS
+;;;
+;;; A menu is an unordered list of anchors. Some may be disabled.
+;;; ----------------------------------------------------------------------
 
 (defclass menu (widget)
-  ((div-style :accessor div-style :initarg :div-style)
-   (ul-style  :accessor ul-style  :initarg :ul-style)
+  ((id        :accessor id        :initarg :id)
+   (style     :accessor style     :initarg :style)
    (spec      :accessor spec      :initarg :spec)))
 
-(defmethod display ((menu menu) &key id enabled-items)
+(defmethod display ((menu menu) &key disabled-items)
   (with-html
-    (:div :id id
-          :class (div-style menu)
-          (:ul :class (ul-style menu)
-               (iter (for (action-name href label img-url) in (spec menu))
-                     (when (and (member action-name enabled-items)
-                                (not (null href)))
-                       (htm (:li (:a :href href
-                                     (when img-url
-                                       (img img-url))
-                                     (str label))))))))))
+    (:div :id (id menu)
+          :class (style menu)
+          (:ul
+           (iter (for (action-name href label &optional img-url) in (spec menu))
+                 (unless (or (member action-name disabled-items)
+                             (null href))
+                   (htm (:li (:a :href href
+                                 (when img-url
+                                   (img img-url))
+                                 (str label))))))))))
+
+
 
 (defclass actions-menu (menu)
   ((div-style :initform "actions")

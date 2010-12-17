@@ -247,7 +247,7 @@
       (with-document ()
         (:head
          (:title "Λογαριασμοί")
-         (head-config))
+         (global-headers))
         (:body
          (config-header 'account)
          (:div :id "body"
@@ -279,7 +279,7 @@
       (with-document ()
         (:head
          (:title "Δημιουργία λογαριασμού")
-         (head-config))
+         (global-headers))
         (:body
          (config-header 'account)
          (:div :id "body"
@@ -317,7 +317,7 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία λογαριασμού")
-         (head-config))
+         (global-headers))
         (:body
          (config-header 'account)
          (:div :id "body"
@@ -350,7 +350,7 @@
       (with-document ()
         (:head
          (:title "Διαγραφή λογαριασμού")
-         (head-config))
+         (global-headers))
         (:body
          (config-header 'account)
          (:div :id "body"

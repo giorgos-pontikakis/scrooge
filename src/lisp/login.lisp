@@ -20,7 +20,7 @@
 (define-dynamic-page login () ("login")
   (with-page ()
     (:head
-     :title "Σκρουτζ: Login")
+     (:title "Σκρουτζ: Login"))
     (:body
      (with-form (verify-login)
        (:p (label 'username "Username:"))
@@ -32,6 +32,6 @@
 (define-dynamic-page unauthorized () ("unauthorized")
   (with-page ()
     (:head
-     :title "Σκρουτζ: Πρόβλημα εξουσιοδότησης")
+     (:title "Σκρουτζ: Πρόβλημα εξουσιοδότησης"))
     (:body
      (:p "Δεν έχετε εξουσιοδότηση για να δείτε αυτή τη σελίδα"))))
