@@ -39,7 +39,7 @@
 
 
 
-;;; Configuration pages
+;;; Config utilities
 
 (defun config-data (table-name)
   (with-db ()
