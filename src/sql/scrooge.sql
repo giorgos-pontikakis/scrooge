@@ -1,19 +1,18 @@
-drop table contact;
 drop table project;
 drop table project_stran;
 drop table project_status;
-drop table tx;
-drop table temtx;
-drop table stran_tables;
-drop table cheque_stran;
+
 drop table cheque;
+drop table cheque_stran;
 drop table cheque_status;
 
+drop table stran;
+drop table temtx;
+drop table tx;
+
+drop table contact;
 drop table company;
--- drop table debit_account;
--- drop table credit_account;
 drop table account;
--- drop table account_type;
 
 drop table city;
 drop table bank;
@@ -39,17 +38,16 @@ create table city (
 --- Companies and contacts ------------------------------
 
 create table company (
-       id		serial primary key
-       ,title		varchar(256) unique not null
-       ,occupation	varchar(64)
-       ,tof_id       	integer references tof(id)
-       ,tin       	char(9) unique
-       ,address		varchar(256)
-       ,city		varchar(64)
-       ,pobox		integer check (pobox > 10000 and pobox < 89999)
-       ,zipcode		integer check (zipcode > 0)
+       id serial primary key,
+       title varchar(256) unique not null,
+       occupation varchar(64),
+       tof_id integer references tof(id),
+       tin char(9) unique,
+       address varchar(256),
+       city_id integer references city(id),
+       pobox integer check (pobox > 10000 and pobox < 99999),
+       zipcode integer check (zipcode > 0 and zipcode < 99999)
 );
-
 
 create table contact (
        id serial primary key
@@ -85,7 +83,7 @@ create table tx (
 );
 
 create table temtx (
-       id serial primary key 
+       id serial primary key
        ,description varchar(256) not null
        ,debit_acc_id integer references account(id)
        ,credit_acc_id integer references account(id)
@@ -96,7 +94,7 @@ create table temtx (
 
 create table stran (
        id varchar(16) primary key
-       ,description varchar(32)  
+       ,description varchar(32)
 );
 insert into stran(id, description) values ('cheque', 'Επιταγή');
 insert into stran(id, description) values ('project', 'Έργο');
@@ -107,7 +105,7 @@ insert into stran(id, description) values ('project', 'Έργο');
 create table cheque_status (
        id serial primary key
        ,status varchar(32)
-       ,description varchar(32) 
+       ,description varchar(32)
 );
 insert into cheque_status (status, description) values('pending', 'Εκκρεμεί');
 insert into cheque_status (status, description) values('paid', 'Πληρωμένη');
@@ -128,7 +126,7 @@ create table cheque (
        ,bank_id integer not null references bank(id)
        ,company_id integer not null references company(id)
        ,due_date date not null
-       ,amount integer not null check (amount > 0) 
+       ,amount integer not null check (amount > 0)
        ,status integer not null references cheque_status(id)
        ,payable_p boolean default 'f'
 );
@@ -139,7 +137,7 @@ create table cheque (
 
 create table project_status (
        status varchar(32) primary key
-       ,description varchar(32) 
+       ,description varchar(32)
 );
 insert into project_status (status, description) values('quoted', 'Δόθηκε προσφορά');
 insert into project_status (status, description) values('ongoing', 'Σε εξέλιξη');
@@ -162,11 +160,8 @@ create table project (
        ,description varchar(64) not null
        ,location varchar(64)
        ,price integer check (price > 0)
-       ,start_date date 
+       ,start_date date
        ,end_date date
        ,status varchar(8) not null references project_status(status) default 'quoted'
        ,vat integer check (vat > 0)
 );
-
-
-
