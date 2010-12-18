@@ -49,11 +49,13 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-table (widget)
-  ((op            :accessor op            :initarg :op)
+  ((id            :accessor id            :initarg :id)
+   (op            :accessor op            :initarg :op)
    (selected-id   :accessor selected-id   :initarg :selected-id)
    (header-labels :accessor header-labels)
    (db-table-fn   :accessor db-table-fn)
-   (row-class     :accessor row-class)))
+   (row-class     :accessor row-class))
+  (:default-initargs :id "crud-table"))
 
 (defmethod display ((table crud-table) &key)
   (let ((rows (mapcar (lambda (db-row)
@@ -65,10 +67,10 @@
       (push (make-instance (row-class table) :table table :data ())
             rows))
     (with-html
-      (:table :class "crud-table"
-              (:thead (mapc (lambda (i)
-                              (htm (:td (str i))))
-                            (header-labels table)))
+      (:table :id (id table) :class "crud-table"
+              (:thead (:tr (mapc (lambda (i)
+                                   (htm (:th (str i))))
+                                 (header-labels table))))
               (:tbody
                (iter (for r in rows)
                      (display r)))))))

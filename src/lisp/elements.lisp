@@ -32,6 +32,10 @@
 (defun jquery ()
   (js (url 'lib "jquery-1.4.4/jquery-1.4.4.min.js")))
 
+
+#|(defun datatables ()
+  (js (url 'lib "DataTables-1.7.5/media/js/jquery.dataTables.js")))|#
+
 (defun 960gs ()
   (css (url 'css "reset.css"))
   (css (url 'lib "960gs/code/css/960.css")))
@@ -45,7 +49,8 @@
 
 (defun config-headers ()
   (global-headers)
-  (jquery))
+  (jquery)
+  #|(js (url 'js "config.js"))|#)
 
 (defun clear ()
   (with-html
