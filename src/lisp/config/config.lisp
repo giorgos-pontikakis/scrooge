@@ -11,7 +11,7 @@
                           :id "config-menu"
                           :style "hnavbar grid_12"
                           :spec '((cities "Πόλεις")
-                                  (banks "Τράπεζες")
+                                  (bank "Τράπεζες")
                                   (tofs "Δ.Ο.Υ.")
                                   (accounts "Λογαριασμοί")
                                   (temtx "Πρότυπες Συναλλαγές")
@@ -31,7 +31,6 @@
     (:body
      (:div :id "container" :class "container_12"
            (header 'config)
-           (:div :class "clear")
            (config-menu)
            (:div :id "body"
                  (:p "Config content not yet available"))))))

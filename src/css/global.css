@@ -2,16 +2,29 @@
 
 a, a:hover img {
     text-decoration: none;
-}
-
-li {
-    margin: 0;
-    padding: 0;
+    color: blue;
 }
 
 body {
     background-color: #F5F5F5;
+    line-height: 1.5;
+    font-size: 13px;
+    font-family: "Helvetica Neue", "Tahoma", "Arial", "Liberation Sans", sans-serif
 }
+
+h1 {
+    font-size: 25px;
+}
+
+h2 {
+    font-size: 21px;
+}
+
+h3 {
+    font-size: 17px;
+}
+
+
 
 /* ---------------------------------------------------------------------- */
 /* layout */
@@ -23,7 +36,6 @@ body {
 
 #logo h1 {
     text-align: center;
-    margin: 0;
 }
 
 #navbar, #logout {
@@ -62,6 +74,14 @@ body {
 #config-menu ul li a {
     padding: 8px 10px;
     color: white;
+    font-weight: bold;
+}
+
+#config-menu ul li p {
+    padding: 8px 10px;
+    color: white;
+    font-weight: bold;
+    background-color: #843418;
 }
 
 #config-menu ul li a:hover {
@@ -71,25 +91,155 @@ body {
 
 
 
+#container {
+    background-color: #FFFFFF;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* navbars and menus */
+/* ---------------------------------------------------------------------- */
+
 .hnavbar ul li {
     list-style: none;
-    float: left
+    float: left;
 }
 
 .hnavbar ul li a {
     display: block;
 }
 
+/* ul.hmenu { */
+/*     clear: both; */
+/* } */
+
+/* .hmenu ul li { */
+/*     list-style: none; */
+/*     float: left; */
+/* } */
+
+/* .hmenu li { */
+/*     float: left; */
+/* } */
+
+/* .hmenu li img { */
+/*     padding: 0px; */
+/*     vertical-align: text-top; */
+/* } */
+
+/* .hmenu a { */
+/*     display: block; */
+/* } */
+
 
 /* ---------------------------------------------------------------------- */
-/* helpers */
+/* controls */
 /* ---------------------------------------------------------------------- */
 
-#logo {
-    background-color: #bbb;
+.controls {
+    background-color: #FFFFFF;
+    margin-top: 10px;
 }
 
 
-#container {
+/* ---------------------------------------------------------------------- */
+/* window */
+/* ---------------------------------------------------------------------- */
+
+.window {
     background-color: #FFFFFF;
+    margin-top: 10px;
+}
+
+/* #window-title { */
+/*     margin-bottom: 5px; */
+/* } */
+
+.title {
+    font-weight: bold;
+    background-color: #4F5C4E;
+    color: white;
+    margin-bottom: 5px;
+    line-height: 2;
+    padding-left: 10px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* actions */
+/* ---------------------------------------------------------------------- */
+.actions {
+    background-color: #7B8D78;
+}
+
+/* ---------------------------------------------------------------------- */
+/* crud-table */
+/* ---------------------------------------------------------------------- */
+
+.crud-table {
+    clear: both;
+    background-color: #F5F5F5;
+}
+
+.crud-table tr  {
+    border-top: solid 1px #bbb;
+    border-bottom: solid 1px #bbb;
+    line-height: 32px;
+}
+
+.crud-table tr.active, .crud-table ul.active {
+    background-color: #fcfcfc;
+}
+
+.crud-table td, .crud-table th  {
+    /* line-height = 32 (tr.height) -1 (tr.border) */
+    line-height: 31px;
+    text-align: left;
+}
+
+.crud-table ul {
+    line-height: 32px;
+}
+
+.crud-table li {
+    line-height: 31px;
+}
+
+.crud-table ui li span {
+    display: block;
+}
+
+.crud-table input {
+    margin-top: 4px;
+}
+
+.crud-table input:hover, .crud-table input:focus {
+    border: solid 1px #000;
+}
+
+.crud-table input[readonly] {
+    background-color: #f4f4f4;
+}
+
+.crud-table button {
+    padding: 0px;
+    background-color: transparent;
+    border: none;
+    position: relative;
+    top: 4px;
+}
+
+.crud-table button:hover {
+    cursor: pointer;
+}
+
+.crud-table a img {
+    vertical-align: middle;
+}
+
+
+.crud-table .button, .crud-table .button button {
+    width: 30px;
+    padding: 0px;
 }

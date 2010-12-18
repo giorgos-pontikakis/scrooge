@@ -82,8 +82,9 @@
 ;;; Bank menu
 ;;; ------------------------------------------------------------
 
-(defun bank-menu (id enabled-items)
+(defun bank-menu (id &optional disabled-items)
   (display (make-instance 'actions-menu
+                          :id "bank-actions"
                           :spec (standard-actions-spec (bank :id id)
                                                        (bank/create)
                                                        (bank/update :id id)
@@ -91,8 +92,7 @@
                                                                (bank-referenced-p id))
                                                            nil
                                                            (bank/delete :id id))))
-           :id id
-           :enabled-items enabled-items))
+           :disabled-items disabled-items))
 
 
 
@@ -103,10 +103,10 @@
 ;;; table
 
 (defclass bank-table (crud-table)
-  ((header      :initform '("" "Ονομασία τράπεζας" "" ""))
-   (db-table-fn :initform (lambda ()
-                            (config-data 'bank)))
-   (row-class   :initform 'bank-row)))
+  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
+   (db-table-fn   :initform (lambda ()
+                              (config-data 'bank)))
+   (row-class     :initform 'bank-row)))
 
 
 ;;; rows
@@ -141,6 +141,15 @@
                (getf (cells row) :controls)))))
 
 
+(defun controls-menu ()
+  (with-html
+    (:div :id "controls" :class "controls grid_3"
+          (:div :id "filters"
+                (:p :class "title" "Φίλτρα")
+                (:p "Search:" (textbox 'search)))
+          (:div :id "messages"
+                (:p :class "title" "Μηνύματα")))))
+
 
 
 
@@ -155,17 +164,18 @@
       (with-document ()
         (:head
          (:title "Τράπεζες")
-         (head-config))
+         (config-headers))
         (:body
-         (config-header 'bank)
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Κατάλογος τραπεζών"))
-               (:div :id "bank" :class "window"
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-menu 'bank)
+               (controls-menu)
+               (:div :id "bank-window" :class "window grid_9"
+                     (:div :class "title" "Κατάλογος τραπεζών")
                      (bank-menu (val id)
                                 (if (val id)
-                                    '(create update delete)
-                                    '(create)))
+                                    '(view)
+                                    '(view update delete)))
                      (display (make-instance 'bank-table
                                              :op 'view
                                              :selected-id (val* id))))
@@ -178,15 +188,15 @@
   (with-document ()
     (:head
      (:title "Δημιουργία τράπεζας")
-     (head-config))
+     (config-headers))
     (:body
-     (config-header 'bank)
-     (:div :id "body"
-           (:div :class "message"
-                 (:h2 :class "info" "Δημιουργία τράπεζας")
-                 (bank-errorbar (list title)))
-           (:div :id "bank" :class "window"
-                 (bank-menu nil '(view))
+     (:div :id "container" :class "container_12"
+           (header 'config)
+           (config-menu 'bank)
+           (controls-menu)
+           (:div :id "bank-window" :class "window grid_9"
+                 (:div :class "title" "Δημιουργία τράπεζας")
+                 (bank-menu nil '(create update delete))
                  (with-form (actions/bank/create :title (val* title))
                    (display (make-instance 'bank-table
                                            :op 'create
@@ -201,20 +211,36 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία τράπεζας")
-         (head-config))
+         (config-headers))
         (:body
-         (config-header 'bank)
-         (:div :id "body"
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-menu 'bank)
+               (controls-menu)
+               (:div :id "bank-window" :class "window grid_9"
+                     (:div :class "title" "Επεξεργασία τράπεζας")
+                     (bank-menu (val id) '(create update))
+                     (with-form (actions/bank/update :id (val* id)
+                                                     :title (val* title))
+                       (display (make-instance 'bank-table
+                                               :op 'update
+                                               :selected-id (val* id)))))
+               (footer))
+
+
+
+
+         #|(:div :id "body"
                (:div :class "message"
                      (:h2 :class "info" "Επεξεργασία τράπεζας")
                      (bank-errorbar (list title)))
                (:div :id "bank" :class "window"
-                     (bank-menu (val id) '(view delete))
+                     (bank-menu (val id) '(create update))
                      (with-form (actions/bank/update :id (val id))
                        (display (make-instance 'bank-table
                                                :op 'update
                                                :selected-id (val* id)))))
-               (footer))))
+               (footer))|#))
       (see-other (notfound))))
 
 (define-dynamic-page bank/delete ("config/bank/delete")
@@ -224,14 +250,15 @@
       (with-document ()
         (:head
          (:title "Διαγραφή τράπεζας")
-         (head-config))
+         (config-headers))
         (:body
-         (config-header 'bank)
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Διαγραφή τράπεζας"))
-               (:div :id "bank" :class "window"
-                     (bank-menu (val id) '(view update))
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-menu 'bank)
+               (controls-menu)
+               (:div :id "bank-window" :class "window grid_9"
+                     (:div :class "title" "Διαγραφή τράπεζας")
+                     (bank-menu (val id) '(create delete))
                      (with-form (actions/bank/delete :id (val id))
                        (display (make-instance 'bank-table
                                                :op 'delete

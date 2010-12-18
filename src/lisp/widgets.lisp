@@ -65,7 +65,7 @@
       (push (make-instance (row-class table) :table table :data ())
             rows))
     (with-html
-      (:table :class "table-half forms-in-fow"
+      (:table :class "crud-table"
               (:thead (mapc (lambda (i)
                               (htm (:td (str i))))
                             (header-labels table)))
@@ -155,8 +155,7 @@
                                (htm (:a :href (if (fboundp page-name)
                                                   (funcall page-name)
                                                   (error-page))
-                                        (str label))))
-                           )))))))
+                                        (str label)))))))))))
 
 (defclass horizontal-navbar (navbar)
   ((active-style   :initform "active")
@@ -186,19 +185,19 @@
     (:div :id (id menu)
           :class (style menu)
           (:ul
-           (iter (for (action-name href label &optional img-url) in (spec menu))
-                 (unless (or (member action-name disabled-items)
-                             (null href))
-                   (htm (:li (:a :href href
-                                 (when img-url
-                                   (img img-url))
-                                 (str label))))))))))
+           (iter (for spec-line in (spec menu))
+                 (destructuring-bind (action-name href label &optional img-url) spec-line
+                   (unless (or (member action-name disabled-items)
+                               (null href))
+                     (htm (:li (:a :href href
+                                   (when img-url
+                                     (img img-url))
+                                   (str label)))))))))))
 
 
 
 (defclass actions-menu (menu)
-  ((div-style :initform "actions")
-   (ul-style  :initform "hmenu")))
+  ((style :initform "hnavbar actions")))
 
 
 

@@ -33,17 +33,23 @@
   (js (url 'lib "jquery-1.4.4/jquery-1.4.4.min.js")))
 
 (defun 960gs ()
-  (mapc #'(lambda (filename)
-            (css (url 'lib "960gs/code/css/" filename ".css")))
-        (list "reset" "960" "text")))
+  (css (url 'css "reset.css"))
+  (css (url 'lib "960gs/code/css/960.css")))
 
 (defun error-headers ()
   (css (url 'css "global.css")))
 
 (defun global-headers ()
-  (jquery)
   (960gs)
   (css (url 'css "global.css")))
+
+(defun config-headers ()
+  (global-headers)
+  (jquery))
+
+(defun clear ()
+  (with-html
+    (:div :class "clear")))
 
 
 
@@ -70,7 +76,8 @@
     (:div :id "header"
           (logo)
           (primary-navbar active-item)
-          (logout-menu))))
+          (logout-menu)
+          (clear))))
 
 (defun footer ()
   (with-html
