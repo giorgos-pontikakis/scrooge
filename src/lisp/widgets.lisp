@@ -58,12 +58,16 @@
    (row-class     :accessor row-class))
   (:default-initargs :id "crud-table"))
 
-(defmethod display ((table crud-table) &key)
-  (let ((rows (mapcar (lambda (db-row)
-                        (make-instance (row-class table)
-                                       :table table
-                                       :data db-row))
-                      (funcall (db-table-fn table) (filter table)))))
+(defmethod display ((table crud-table) &key start)
+  (let* ((db-data (funcall (db-table-fn table) (filter table)))
+         (len (length db-data))
+         (rows (mapcar (lambda (db-row)
+                         (make-instance (row-class table)
+                                        :table table
+                                        :data db-row))
+                       (if (not start)
+                           db-data
+                           (subseq db-data (min (1- start) len) (min (+ start 10) len))))))
     (when (eq (op table) 'create)
       (push (make-instance (row-class table) :table table :data ())
             rows))
