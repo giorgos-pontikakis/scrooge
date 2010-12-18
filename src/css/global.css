@@ -1,41 +1,95 @@
-li {
-    margin: 0;
-    padding: 0;
-}
+/* global */
 
 a, a:hover img {
     text-decoration: none;
 }
 
-a:hover {
-    text-decoration: underline;
+li {
+    margin: 0;
+    padding: 0;
 }
+
+body {
+    background-color: #F5F5F5;
+}
+
+/* ---------------------------------------------------------------------- */
+/* layout */
+/* ---------------------------------------------------------------------- */
 
 #container {
     height: 100%;
-    background-color: #cde;
 }
 
+#logo h1 {
+    text-align: center;
+    margin: 0;
+}
+
+#navbar, #logout {
+    position: relative;
+    top: 3px;
+}
+
+#navbar ul li, #logout ul li {
+    margin-right: 20px;
+}
+
+#navbar a, #logout a {
+    text-decoration: underline;
+}
+
+#navbar p, #logout p {
+    color: #000;
+    font-weight: bold;
+}
+
+
+
+#config-menu {
+    margin-top: 10px;
+}
+
+#config-menu {
+    background-color: #5E2510;
+}
+
+#config-menu ul li {
+    background-color: #5E2510;
+    border-right: 1px solid #aaa;
+}
+
+#config-menu ul li a {
+    padding: 8px 10px;
+    color: white;
+}
+
+#config-menu ul li a:hover {
+    background-color: #843418;
+    color: white;
+}
+
+
+
+.hnavbar ul li {
+    list-style: none;
+    float: left
+}
+
+.hnavbar ul li a {
+    display: block;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* helpers */
+/* ---------------------------------------------------------------------- */
 
 #logo {
     background-color: #bbb;
 }
 
-#logo h1 {
-    margin: 4px 0px;
-    text-align: center;
-}
 
-.hnavbar ul {
-    background-color: #eee;
-}
-
-.hnavbar ul li {
-    list-style: none;
-    display: inline;
-    margin-right: 30px;
-}
-
-.active {
-    background-color: yellow;
+#container {
+    background-color: #FFFFFF;
 }

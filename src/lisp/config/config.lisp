@@ -6,15 +6,16 @@
 
 ;;; UI elements
 
-(defun config-menu (active-page-name)
-  (display (make-instance 'horizontal-menu
+(defun config-menu (&optional active-page-name)
+  (display (make-instance 'horizontal-navbar
                           :id "config-menu"
+                          :style "hnavbar grid_12"
                           :spec '((cities "Πόλεις")
                                   (banks "Τράπεζες")
                                   (tofs "Δ.Ο.Υ.")
-                                  #|(accounts "Λογαριασμοί")|#
-                                  #|(temtx "Πρότυπες Συναλλαγές")|#
-                                  #|(stran "Καταστατικές Μεταβολές")|#))
+                                  (accounts "Λογαριασμοί")
+                                  (temtx "Πρότυπες Συναλλαγές")
+                                  (stran "Καταστατικές Μεταβολές")))
            :active-page-name active-page-name))
 
 
@@ -31,6 +32,7 @@
      (:div :id "container" :class "container_12"
            (header 'config)
            (:div :class "clear")
+           (config-menu)
            (:div :id "body"
                  (:p "Config content not yet available"))))))
 
