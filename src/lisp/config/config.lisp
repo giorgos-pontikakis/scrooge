@@ -39,8 +39,11 @@
 
 ;;; Config utilities
 
-(defun config-data (table-name)
+(defun config-data (table-name filter)
   (with-db ()
     (query (sql-compile
-            `(:select 'id 'title :from ,table-name))
+            (if filter
+                `(:select 'id 'title :from ,table-name
+                          :where (:ilike 'title ,(ilike filter)))
+                `(:select 'id 'title :from ,table-name)))
            :plists)))

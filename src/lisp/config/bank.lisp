@@ -98,8 +98,8 @@
 
 (defclass bank-table (crud-table)
   ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
-   (db-table-fn   :initform (lambda ()
-                              (config-data 'bank)))
+   (db-table-fn   :initform (lambda (filter)
+                              (config-data 'bank filter)))
    (row-class     :initform 'bank-row)))
 
 
@@ -115,8 +115,9 @@
   (let ((id (get-id row))
         (data (data row)))
     (list :selector (make-instance 'selector-cell
-                                   :states (list :on (bank)
-                                                 :off (bank :id id)))
+                                   :states (list :on (bank :filter (filter (table row)))
+                                                 :off (bank :filter (filter (table row))
+                                                            :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :value (getf data :title))
@@ -160,7 +161,8 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page bank ("config/bank")
-    ((id integer chk-bank-id))
+    ((id integer chk-bank-id)
+     (filter string ))
   (no-cache)
   (if (validp id)
       (with-document ()
@@ -181,7 +183,8 @@
                                     '(view update delete)))
                      (display (make-instance 'bank-table
                                              :op 'view
-                                             :selected-id (val* id))))
+                                             :selected-id (val* id)
+                                             :filter (val* filter))))
                (footer))))
       (see-other (notfound))))
 

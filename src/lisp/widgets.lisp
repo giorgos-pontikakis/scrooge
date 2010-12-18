@@ -52,6 +52,7 @@
   ((id            :accessor id            :initarg :id)
    (op            :accessor op            :initarg :op)
    (selected-id   :accessor selected-id   :initarg :selected-id)
+   (filter        :accessor filter        :initarg :filter)
    (header-labels :accessor header-labels)
    (db-table-fn   :accessor db-table-fn)
    (row-class     :accessor row-class))
@@ -62,7 +63,7 @@
                         (make-instance (row-class table)
                                        :table table
                                        :data db-row))
-                      (funcall (db-table-fn table)))))
+                      (funcall (db-table-fn table) (filter table)))))
     (when (eq (op table) 'create)
       (push (make-instance (row-class table) :table table :data ())
             rows))
