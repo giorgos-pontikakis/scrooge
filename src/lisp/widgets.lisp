@@ -185,14 +185,12 @@
     (:div :id (id menu)
           :class (style menu)
           (:ul
-           (iter (for spec-line in (spec menu))
-                 (destructuring-bind (action-name href label &optional img-url) spec-line
-                   (unless (or (member action-name disabled-items)
-                               (null href))
-                     (htm (:li (:a :href href
-                                   (when img-url
-                                     (img img-url))
-                                   (str label)))))))))))
+           (iter (for (action-name href label) in (spec menu))
+                 (unless (or (member action-name disabled-items)
+                             (null href))
+                   (htm (:li (:a :href href
+                                 :class (string-downcase action-name)
+                                 (str label))))))))))
 
 
 
@@ -202,24 +200,29 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Errorbar
+;;; MESSENGER
 ;;; ------------------------------------------------------------
 
-(defclass errorbar (widget)
-  ((messages :accessor messages :initarg :messages)))
+(defclass messenger (widget)
+  ((style    :accessor style    :initarg :style)
+   (messages :accessor messages :initarg :messages)))
 
-(defmethod display ((errorbar errorbar) &key params)
+(defmethod display ((messenger messenger) &key params)
   (flet ((get-message (param messages)
            (or (second (assoc (error-type param)
                               (getf messages (name param))))
-               "Unknown error in generic-errorbar.")))
-    (with-html
-      (unless (every #'validp params)
-        (htm
-         (:div (:ul :class "error"
-                    (iter (for p in params)
-                          (unless (validp p)
-                            (htm (:li (str (get-message p (messages errorbar))))))))))))))
+               "Internal error: Unknown message in messenger widget.")))
+    (unless (every #'validp params)
+      (with-html
+        (:ul (iter (for p in params)
+                   (unless (validp p)
+                     (htm (:li :class (style messenger)
+                               (str (get-message p (messages messenger))))))))))))
+
+(defun messenger (message-spec &optional style)
+  (make-instance 'messenger
+                 :messages message-spec
+                 :style style))
 
 
 

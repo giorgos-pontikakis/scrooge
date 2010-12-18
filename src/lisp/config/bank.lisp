@@ -34,13 +34,6 @@
         ((not (bank-title-unique-p title id)) 'bank-title-exists)
         (t nil)))
 
-(defun bank-errorbar (params)
-  (display
-   (make-instance 'errorbar
-                  :messages '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
-                                     (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))
-   :params params))
-
 
 
 ;;; ------------------------------------------------------------
@@ -85,6 +78,7 @@
 (defun bank-menu (id &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "bank-actions"
+                          :style "hnavbar actions grid_9 alpha"
                           :spec (standard-actions-spec (bank :id id)
                                                        (bank/create)
                                                        (bank/update :id id)
@@ -140,16 +134,24 @@
                  (htm (:td (display cell :activep (controls-p row)))))
                (getf (cells row) :controls)))))
 
+;;; ------------------------------------------------------------
+;;; Other areas
+;;; ------------------------------------------------------------
 
-(defun controls-menu ()
+(defun filters-area ()
   (with-html
-    (:div :id "controls" :class "controls grid_3"
-          (:div :id "filters"
-                (:p :class "title" "Φίλτρα")
-                (:p "Search:" (textbox 'search)))
-          (:div :id "messages"
-                (:p :class "title" "Μηνύματα")))))
+    (:div :id "filters"
+          (:p :class "title" "Φίλτρα")
+          (:p "Search:" (textbox 'search)))))
 
+(defun notifications (&rest params)
+  (let ((messenger (messenger '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
+                                     (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
+                              "msg-error")))
+    (with-html
+      (:div :id "notifications"
+            (:p :class "title" "Μηνύματα")
+            (display messenger :params params)))))
 
 
 
@@ -169,7 +171,8 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-menu 'bank)
-               (controls-menu)
+               (:div :id "controls" :class "controls grid_3"
+                     (filters-area))
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Κατάλογος τραπεζών")
                      (bank-menu (val id)
@@ -193,7 +196,9 @@
      (:div :id "container" :class "container_12"
            (header 'config)
            (config-menu 'bank)
-           (controls-menu)
+           (:div :id "controls" :class "controls grid_3"
+                     (filters-area)
+                     (notifications title))
            (:div :id "bank-window" :class "window grid_9"
                  (:div :class "title" "Δημιουργία τράπεζας")
                  (bank-menu nil '(create update delete))
@@ -216,7 +221,9 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-menu 'bank)
-               (controls-menu)
+               (:div :id "controls" :class "controls grid_3"
+                     (filters-area)
+                     (notifications title))
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Επεξεργασία τράπεζας")
                      (bank-menu (val id) '(create update))
@@ -225,22 +232,7 @@
                        (display (make-instance 'bank-table
                                                :op 'update
                                                :selected-id (val* id)))))
-               (footer))
-
-
-
-
-         #|(:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Επεξεργασία τράπεζας")
-                     (bank-errorbar (list title)))
-               (:div :id "bank" :class "window"
-                     (bank-menu (val id) '(create update))
-                     (with-form (actions/bank/update :id (val id))
-                       (display (make-instance 'bank-table
-                                               :op 'update
-                                               :selected-id (val* id)))))
-               (footer))|#))
+               (footer))))
       (see-other (notfound))))
 
 (define-dynamic-page bank/delete ("config/bank/delete")
@@ -255,7 +247,8 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-menu 'bank)
-               (controls-menu)
+               (:div :id "controls" :class "controls grid_3"
+                     (filters-area))
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Διαγραφή τράπεζας")
                      (bank-menu (val id) '(create delete))

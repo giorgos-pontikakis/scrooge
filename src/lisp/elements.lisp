@@ -114,10 +114,10 @@
 ;;; ------------------------------------------------------------
 
 (defun standard-actions-spec (view create update delete)
-  `((view   ,view   "Προβολή"     "magnifier.png")
-    (create ,create "Δημιουργία"  "add.png")
-    (update ,update "Επεξεργασία" "pencil.png")
-    (delete ,delete "Διαγραφή"    "delete.png")))
+  `((view   ,view   "Προβολή")
+    (create ,create "Δημιουργία")
+    (update ,update "Επεξεργασία")
+    (delete ,delete "Διαγραφή")))
 
 ;; (defun actions-menu ()
 ;;   (generic-menu :div-style "actions"

@@ -8,8 +8,8 @@ a, a:hover img {
 body {
     background-color: #F5F5F5;
     line-height: 1.5;
-    font-size: 13px;
-    font-family: "Helvetica Neue", "Tahoma", "Arial", "Liberation Sans", sans-serif
+    font-size: 12px;
+    font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
 }
 
 h1 {
@@ -22,6 +22,32 @@ h2 {
 
 h3 {
     font-size: 17px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* backgrounds */
+/* ---------------------------------------------------------------------- */
+
+.view {
+    background: transparent url(/scrooge/img/magnifier.png) no-repeat left center;
+}
+
+.create {
+    background: transparent url(/scrooge/img/add.png) no-repeat left center;
+}
+
+.update {
+    background: transparent url(/scrooge/img/pencil.png) no-repeat left center;
+}
+
+.delete {
+    background: transparent url(/scrooge/img/delete.png) no-repeat left center;
+}
+
+.msg-error {
+    background: transparent url(/scrooge/img/error.png) no-repeat left top;
 }
 
 
@@ -113,10 +139,26 @@ h3 {
 /*     clear: both; */
 /* } */
 
-/* .hmenu ul li { */
-/*     list-style: none; */
-/*     float: left; */
-/* } */
+.hmenu ul li {
+    list-style: none;
+    display: inline;
+    line-height: 26px;
+}
+
+.hmenu ul li a {
+    line-height: 26px;
+    color: #fff;
+    padding: 5px 8px;
+}
+
+.hmenu ul li a:hover {
+    background-color: #4F5C4E;
+}
+
+.hmenu ul li a img {
+    padding: 0px 4px;
+    vertical-align: text-bottom;
+}
 
 /* .hmenu li { */
 /*     float: left; */
@@ -159,8 +201,7 @@ h3 {
     font-weight: bold;
     background-color: #4F5C4E;
     color: white;
-    margin-bottom: 5px;
-    line-height: 2;
+    line-height: 26px;
     padding-left: 10px;
 }
 
@@ -172,6 +213,21 @@ h3 {
 .actions {
     background-color: #7B8D78;
 }
+
+.actions ul {
+    margin-left: 10px;
+}
+
+.actions a {
+    padding: 0px 19px;
+    line-height: 26px;
+    color: #ffffff;
+}
+
+.actions a:hover {
+    text-decoration: underline;
+}
+
 
 /* ---------------------------------------------------------------------- */
 /* crud-table */
@@ -242,4 +298,32 @@ h3 {
 .crud-table .button, .crud-table .button button {
     width: 30px;
     padding: 0px;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* notifications */
+/* ---------------------------------------------------------------------- */
+
+#notifications {
+    margin-top: 30px;
+}
+
+#notifications ul {
+    margin-top: 10px;
+}
+
+#notifications li {
+    padding-left: 22px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* filters */
+/* ---------------------------------------------------------------------- */
+
+#filters input {
+    margin-top: 10px;
+}
+#filters input {
+    margin-top: 10px;
 }
