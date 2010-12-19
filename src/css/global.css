@@ -56,6 +56,10 @@ input {
     background: transparent url(/scrooge/img/error.png) no-repeat left top;
 }
 
+.attention {
+    background-color: #fdd;
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -252,8 +256,8 @@ input {
     line-height: 32px;
 }
 
-.crud-table tr.active, .crud-table ul.active {
-    background-color: #fcfcfc;
+.crud-table tr.selected, .crud-table ul.selected {
+    background-color: #FFFFDD;
 }
 
 .crud-table td, .crud-table th  {

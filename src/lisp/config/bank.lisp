@@ -151,14 +151,20 @@
                                     :href (bank :id id))))))
 
 (defmethod display ((row bank-row) &key selected-id)
-  (with-html
-    (:tr (display (getf (cells row) :selector)
-                  :state (if (selected-p row selected-id) :on :off))
-         (display (getf (cells row) :payload)
-                  :readonlyp (readonly-p row selected-id))
-         (mapc (lambda (cell)
-                 (htm (display cell :activep (controls-p row selected-id))))
-               (getf (cells row) :controls)))))
+  (let ((selected-p (selected-p row selected-id)))
+    (with-html
+      (:tr :class (if selected-p
+                      (if (eq (op (table row)) 'delete)
+                          "attention"
+                          "selected")
+                      nil)
+           (display (getf (cells row) :selector)
+                    :state (if selected-p :on :off))
+           (display (getf (cells row) :payload)
+                    :readonlyp (readonly-p row selected-id))
+           (mapc (lambda (cell)
+                   (htm (display cell :activep (controls-p row selected-id))))
+                 (getf (cells row) :controls))))))
 
 
 
