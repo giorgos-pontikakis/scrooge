@@ -32,8 +32,11 @@
                   (make-row table row-data))
                 (slot-value table 'db-data))))
 
-(defmethod display ((table crud-table) &key start selected-id selected-data)
+(defmethod display ((table crud-table) &key selected-id selected-data start)
   (let* ((pg (paginator table))
+         (start (if (null selected-id)
+                    (or start 0)
+                    (pg-start table pg selected-id)))
          (pg-rows (pg-rows table pg start)))
     (when (eq (op table) 'create)
       (push (make-row table selected-data) pg-rows))
@@ -75,7 +78,7 @@
                    (+ start delta)
                    nil)))
     (with-html
-      (:div :id (id pg) :style (style pg)
+      (:div :id (id pg) :class (style pg)
             (if prev
                 (htm (:a :href (funcall (urlfn pg) prev)
                          (img "arrow_left.png" )))
@@ -103,9 +106,9 @@
           (min (+ start (delta pg)) (length (db-data table)))))
 
 
-(defgeneric start-pos (crud-table paginator selected-id))
+(defgeneric pg-start (crud-table paginator selected-id))
 
-(defmethod start-pos ((table crud-table) (pg paginator) selected-id)
+(defmethod pg-start ((table crud-table) (pg paginator) selected-id)
   (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
                                                               (getf db-row :id)))
                  0))
@@ -163,26 +166,31 @@
 ;;; ------------------------------------------------------------
 
 (defclass textbox-cell (widget)
-  ((id  :accessor id  :initarg :id)
+  ((name  :accessor name  :initarg :name)
+   (style :accessor style :initarg :style)
    (value :accessor value :initarg :value)))
 
 (defmethod display ((cell textbox-cell) &key readonlyp)
   (if readonlyp
       (with-html
-        (:td (str (value cell))))
+        (:td :class (style cell)
+             (str (value cell))))
       (with-html
-        (:td (textbox (id cell)
+        (:td :class (style cell)
+             (textbox (name cell)
                       :readonlyp readonlyp
                       :value (value cell))))))
 
 
 
 (defclass selector-cell (widget)
-  ((states :accessor states :initarg :states)))
+  ((style  :accessor style  :initarg :style)
+   (states :accessor states :initarg :states)))
 
 (defmethod display ((cell selector-cell) &key state)
   (with-html
-    (:td (:a :href (getf (states cell) state)
+    (:td :class (style cell)
+         (:a :href (getf (states cell) state)
              (img (if (eq state :on)
                       "bullet_red.png"
                       "bullet_blue.png"))))))
@@ -190,28 +198,34 @@
 
 
 (defclass ok-cell (widget)
-  ())
+  ((style :accessor style :initarg :style)
+   ))
 
 (defmethod display ((cell ok-cell) &key activep)
   (if activep
       (with-html
-        (:td (submit (html ()
+        (:td :class (style cell)
+             (submit (html ()
                        (img "tick.png")))))
       (with-html
-        (:td ""))))
+        (:td :class (style cell)
+             ""))))
 
 
 
 (defclass cancel-cell (widget)
-  ((href :accessor href :initarg :href)))
+  ((style :accessor style :initarg :style)
+   (href  :accessor href  :initarg :href)))
 
 (defmethod display ((cell cancel-cell) &key activep)
   (if activep
       (with-html
-        (:td (:a :href (href cell)
+        (:td :class (style cell)
+             (:a :href (href cell)
                  (img "cancel.png"))))
       (with-html
-        (:td ""))))
+        (:td :class (style cell)
+             ""))))
 
 
 
@@ -225,9 +239,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass navbar (widget)
-  ((id  :accessor id  :initarg :id)
-   (spec  :accessor spec  :initarg :spec)
-   (style :accessor style :initarg :style)))
+  ((id    :accessor id    :initarg :id)
+   (style :accessor style :initarg :style)
+   (spec  :accessor spec  :initarg :spec)))
 
 (defmethod display ((navbar navbar) &key active-page-name)
   (with-html
@@ -260,7 +274,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass menu (widget)
-  ((id  :accessor id  :initarg :id)
+  ((id    :accessor id    :initarg :id)
    (style :accessor style :initarg :style)
    (spec  :accessor spec  :initarg :spec)))
 
@@ -306,5 +320,5 @@
 (defun messenger (message-spec &optional id style)
   (make-instance 'messenger
                  :id id
-                 :messages message-spec
-                 :style style))
+                 :style style
+                 :messages message-spec))

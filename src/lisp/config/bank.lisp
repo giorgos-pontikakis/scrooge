@@ -134,16 +134,21 @@
          (pg (paginator table ))
          (filter (filter table)))
     (list :selector (make-instance 'selector-cell
+                                   :style "selector"
                                    :states (list :on (bank :filter filter
-                                                           :start (start-pos table pg id))
+                                                           :start (pg-start table pg id))
                                                  :off (bank :filter filter
                                                             :id id)))
           :payload (make-instance 'textbox-cell
-                                  :id 'title
+                                  :name 'title
+                                  :style "payload"
                                   :value (getf data :title))
           :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell :href (bank :id id))))))
+                     (make-instance 'ok-cell
+                                    :style "control")
+                     (make-instance 'cancel-cell
+                                    :style "control"
+                                    :href (bank :id id))))))
 
 (defmethod display ((row bank-row) &key selected-id)
   (with-html
@@ -191,10 +196,9 @@
      (start integer))
   (no-cache)
   (if (validp id)
-      (let* ((bank-table (make-instance 'bank-table
+      (let ((bank-table (make-instance 'bank-table
                                         :op 'view
-                                        :filter (val* filter)))
-             (pg (paginator bank-table)))
+                                        :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Τράπεζες")
@@ -213,9 +217,7 @@
                                       '(view)
                                       '(view update delete)))
                        (display bank-table
-                                :start (if (val* id)
-                                           (start-pos bank-table pg (val* id))
-                                           (or (val* start) 0))
+                                :start (val* start)
                                 :selected-id (val* id)))
                  (footer)))))
       (see-other (notfound))))
@@ -245,7 +247,6 @@
                               '(create update delete))
                    (with-form (actions/bank/create :title (val* title))
                      (display bank-table
-                              :start 0
                               :selected-id nil
                               :selected-data (list :id nil :title (val* title)))))
              (footer))))))
@@ -256,10 +257,9 @@
      (filter string))
   (no-cache)
   (if (validp id)
-      (let* ((bank-table (make-instance 'bank-table
-                                        :op 'update
-                                        :filter (val* filter)))
-             (pg (paginator bank-table)))
+      (let ((bank-table (make-instance 'bank-table
+                                       :op 'update
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Επεξεργασία τράπεζας")
@@ -279,7 +279,6 @@
                        (with-form (actions/bank/update :id (val* id)
                                                        :title (val* title))
                          (display bank-table
-                                  :start (start-pos bank-table pg (val id))
                                   :selected-id (val id)
                                   :selected-data (list :title (val* title)))))
                  (footer)))))
@@ -290,10 +289,9 @@
      (filter string))
   (no-cache)
   (if (validp id)
-      (let* ((bank-table (make-instance 'bank-table
-                                        :op 'delete
-                                        :filter (val* filter)))
-             (pg (paginator bank-table)))
+      (let ((bank-table (make-instance 'bank-table
+                                       :op 'delete
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Διαγραφή τράπεζας")
@@ -311,7 +309,6 @@
                                   '(create delete))
                        (with-form (actions/bank/delete :id (val id))
                          (display bank-table
-                                  :start (start-pos bank-table pg (val id))
                                   :selected-id (val id))))
                  (footer)))))
       (see-other (notfound))))
