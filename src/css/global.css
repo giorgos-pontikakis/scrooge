@@ -24,6 +24,12 @@ h3 {
     font-size: 17px;
 }
 
+input {
+    border: 1px solid #ddd;
+    padding: 5px;
+    font-size: 12px;
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -236,6 +242,8 @@ h3 {
 .crud-table {
     clear: both;
     background-color: #F5F5F5;
+    margin-top: 10px;
+    width: 100%;
 }
 
 .crud-table tr  {
@@ -267,7 +275,8 @@ h3 {
 }
 
 .crud-table input {
-    margin-top: 4px;
+    width: 95%;
+    margin-top: 2px;
 }
 
 .crud-table input:hover, .crud-table input:focus {
@@ -300,6 +309,15 @@ h3 {
     padding: 0px;
 }
 
+.crud-table .selector {
+    width: 30px;
+    padding: 0px 0px 0px 5px;
+}
+
+.crud-table .control {
+    width: 25px;
+    text-align: center;
+}
 
 /* ---------------------------------------------------------------------- */
 /* notifications */
@@ -321,15 +339,16 @@ h3 {
 /* filters */
 /* ---------------------------------------------------------------------- */
 
-#filters input {
-    border: 2px solid #444444;
-    height: 19px;
+.search input {
+    border: 1px solid #444444;
     margin-top: 10px;
-    width: 190px;
+    width: 180px;
+    border-radius: 7px 7px 7px 7px;
+    -moz-border-radius: 7px 7px 7px 7px;
 }
 
-#filters button {
-    width: 26px;
-    height: 26px;
+.search button {
+    width: 28px;
+    height: 28px;
     vertical-align: bottom;
 }

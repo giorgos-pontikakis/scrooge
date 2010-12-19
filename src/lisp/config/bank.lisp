@@ -172,7 +172,8 @@
           (:p :class "title" "Φίλτρα")
           (with-form (bank)
             (htm
-             (:p (textbox 'filter :value filter) (submit (html ()
+             (:p :class "search"
+                 (textbox 'filter :value filter) (submit (html ()
                                                            (img "magnifier.png")))))))))
 
 (defun notifications (&rest params)
