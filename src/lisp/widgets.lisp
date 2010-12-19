@@ -48,25 +48,25 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-table (widget)
-  ((id            :accessor id            :initarg :id)
+  ((name          :accessor name          :initarg :name)
    (op            :accessor op            :initarg :op)
+   (db-data-fn    :accessor db-data-fn)
+   (db-data       :accessor db-data)
    (filter        :accessor filter        :initarg :filter)
    (header-labels :accessor header-labels)
-   (db-table-fn   :accessor db-table-fn)
    (row-class     :accessor row-class)
-   (delta         :reader delta :initform 10)
-   (db-data       :reader db-data))
-  (:default-initargs :id "crud-table"))
+   (delta         :accessor delta         :initform 10))
+  (:default-initargs :name "crud-table"))
 
 (defmethod initialize-instance :after ((table crud-table) &key)
   (setf (slot-value table 'db-data)
-        (funcall (db-table-fn table) (filter table))))
+        (funcall (db-data-fn table) (filter table))))
 
 (defgeneric start-pos (crud-table selected-id))
 
 (defmethod start-pos ((table crud-table) selected-id)
   (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
-                                                           (getf db-row :id)))
+                                                              (getf db-row :id)))
                  0))
         (delta (delta table)))
     (* (floor (/ pos delta))
@@ -93,7 +93,7 @@
       (push (make-instance (row-class table) :table table :data ())
             rows))
     (with-html
-      (:table :id (id table) :class "crud-table"
+      (:table :id (name table) :class "crud-table"
               (:thead (:tr (mapc (lambda (i)
                                    (htm (:th (str i))))
                                  (header-labels table))))

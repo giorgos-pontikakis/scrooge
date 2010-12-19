@@ -101,17 +101,16 @@
 
 (defclass bank-table (crud-table)
   ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
-   (db-table-fn   :initform (lambda (filter)
-                              (config-data 'bank filter)))
+   (db-data-fn    :initform (lambda (filter)
+                             (config-data 'bank filter)))
    (row-class     :initform 'bank-row)))
-
-
-
-;;; rows
 
 (defmethod paginator ((table bank-table))
   (lambda (new-start)
     (bank :filter (filter table) :start new-start)))
+
+
+;;; rows
 
 (defclass bank-row (crud-row)
   ())
@@ -143,6 +142,8 @@
          (mapc (lambda (cell)
                  (htm (:td (display cell :activep (controls-p row selected-id)))))
                (getf (cells row) :controls)))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Other areas
