@@ -82,7 +82,7 @@
 
 (defun footer ()
   (with-html
-    (:div :id "footer" "Powered by lisp")))
+    (:div :class "grid_12" :id "footer" "Powered by lisp")))
 
 (defun primary-navbar (active-page-name)
   (display (make-instance 'horizontal-navbar

@@ -49,14 +49,14 @@
         (setf (data row)
               (plist-union selected-data (data row)))))
     (with-html
+      (display (paginator table) :start start)
       (:table :id (id table) :class (style table)
               (:thead (:tr (mapc (lambda (i)
                                    (htm (:th (str i))))
                                  (header-labels table))))
               (:tbody
                (iter (for r in pg-rows)
-                     (display r :selected-id selected-id))))
-      (display (paginator table) :start start))))
+                     (display r :selected-id selected-id)))))))
 
 
 
@@ -83,18 +83,18 @@
                    nil)))
     (with-html
       (:div :id (id pg) :class (style pg)
-            (if prev
-                (htm (:a :href (funcall (urlfn pg) prev)
-                         (img "arrow_left.png" )))
-                (img "arrow_left_inactive.png"))
             (fmt "Εγγραφές ~A–~A από ~A"
                  (1+ start)
                  (min (+ start delta) (len pg))
                  (len pg))
+            (if prev
+                (htm (:a :href (funcall (urlfn pg) prev)
+                         (img "resultset_previous.png" )))
+                (img "resultset_first.png"))
             (if next
                 (htm (:a :href (funcall (urlfn pg) next)
-                         (img "arrow_right.png" )))
-                (img "arrow_right_inactive.png"))))))
+                         (img "resultset_next.png" )))
+                (img "resultset_last.png"))))))
 
 
 

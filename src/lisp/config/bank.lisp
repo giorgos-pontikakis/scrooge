@@ -113,7 +113,7 @@
 (defmethod paginator ((table bank-table))
   (make-instance 'paginator
                  :id "bank-paginator"
-                 :style "paginator"
+                 :style "paginator grid_9 alpha"
                  :delta 10
                  :urlfn (lambda (start)
                           (bank :filter (filter table) :start start))
