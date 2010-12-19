@@ -243,8 +243,7 @@
   (if (validp id)
       (let ((bank-table (make-instance 'bank-table
                                        :op 'update
-                                       :filter (val* filter)
-                                       :selected-id (val id))))
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Επεξεργασία τράπεζας")
@@ -264,7 +263,8 @@
                        (with-form (actions/bank/update :id (val* id)
                                                        :title (val* title))
                          (display bank-table
-                                  :start (start-pos bank-table (val id)))))
+                                  :start (start-pos bank-table (val id))
+                                  :selected-id (val id))))
                  (footer)))))
       (see-other (notfound))))
 
