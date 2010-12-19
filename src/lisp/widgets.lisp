@@ -26,6 +26,9 @@
   (:documentation "Returns the id of the row, which should be
   comparable with the selected-id slot of the row's table."))
 
+(defgeneric get-payload (row))
+
+
 (defclass crud-row ()
   ((table :accessor table :initarg :table)
    (data  :accessor data  :initarg :data)))
@@ -50,62 +53,76 @@
 (defclass crud-table (widget)
   ((name          :accessor name          :initarg :name)
    (op            :accessor op            :initarg :op)
-   (db-data-fn    :accessor db-data-fn)
-   (db-data       :accessor db-data)
    (filter        :accessor filter        :initarg :filter)
-   (header-labels :accessor header-labels)
-   (row-class     :accessor row-class)
-   (delta         :accessor delta         :initform 10))
-  (:default-initargs :name "crud-table"))
-
-(defmethod initialize-instance :after ((table crud-table) &key)
-  (setf (slot-value table 'db-data)
-        (funcall (db-data-fn table) (filter table))))
+   (header-labels :accessor header-labels :initarg :header-labels)
+   (pg-delta      :accessor pg-delta      :initarg :pg-delta)
+   (db-data       :accessor db-data)
+   (rows          :accessor rows))
+  (:default-initargs :name "crud-table" :pg-delta 10))
 
 (defgeneric start-pos (crud-table selected-id))
+(defgeneric pg-url (crud-table new-start))
+(defgeneric read-data (crud-table))
+(defgeneric make-row (crud-table data))
+
+(defmethod initialize-instance :after ((table crud-table) &key)
+  ;; First store db-data
+  (setf (slot-value table 'db-data)
+        (read-data table))
+  ;; Then store row objects
+  (setf (slot-value table 'rows)
+        (mapcar (lambda (row-data)
+                  (make-row table row-data))
+                (slot-value table 'db-data))))
 
 (defmethod start-pos ((table crud-table) selected-id)
   (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
                                                               (getf db-row :id)))
                  0))
-        (delta (delta table)))
-    (* (floor (/ pos delta))
-       delta)))
+        (pg-delta (pg-delta table)))
+    (* (floor (/ pos pg-delta))
+       pg-delta)))
 
-(defmethod display ((table crud-table) &key (start 0) selected-id)
+(defmethod display ((table crud-table) &key start selected-id selected-data)
   (let* ((db-data (db-data table))
-         (delta (delta table))
+         (pg-delta (pg-delta table))
          (len (length db-data))
-         (rows (mapcar (lambda (db-row)
-                         (make-instance (row-class table)
-                                        :table table
-                                        :data db-row))
-                       (subseq db-data
-                               (max start 0)
-                               (min (+ start delta) len))))
-         (prev (if (>= (- start delta) 0)
-                   (- start delta)
+         (pg-rows (subseq (rows table)
+                          (max start 0)
+                          (min (+ start pg-delta) len)))
+         (prev (if (>= (- start pg-delta) 0)
+                   (- start pg-delta)
                    (if (> start 0)
                        0
                        nil)))
-         (next (if (<= (+ start delta) (1- len)) (+ start delta) nil )))
+         (next (if (<= (+ start pg-delta) (1- len))
+                   (+ start pg-delta)
+                   nil)))
     (when (eq (op table) 'create)
-      (push (make-instance (row-class table) :table table :data ())
-            rows))
+      (push (make-row table selected-data) pg-rows))
+    (when (eq (op table) 'update)
+      (let ((row (find selected-id (rows table) :key #'get-id)))
+        (setf (data row)
+              (plist-union selected-data (data row)))))
     (with-html
       (:table :id (name table) :class "crud-table"
               (:thead (:tr (mapc (lambda (i)
                                    (htm (:th (str i))))
                                  (header-labels table))))
               (:tbody
-               (iter (for r in rows)
+               (iter (for r in pg-rows)
                      (display r :selected-id selected-id))))
-      (:div (if prev
-                (htm (:a :href (funcall (paginator table) prev)
+      (:div :id (concatenate 'string (name table) "-paginator")
+            (if prev
+                (htm (:a :href (pg-url table prev)
                          (img "arrow_left.png" )))
                 (img "arrow_left_inactive.png"))
+            (fmt "Εγγραφές ~A–~A από ~A"
+                 (1+ start)
+                 (min (+ start pg-delta) len)
+                 len)
             (if next
-                (htm (:a :href (funcall (paginator table) next)
+                (htm (:a :href (pg-url table next)
                          (img "arrow_right.png" )))
                 (img "arrow_right_inactive.png"))))))
 

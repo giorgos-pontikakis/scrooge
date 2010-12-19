@@ -100,15 +100,18 @@
 ;;; table
 
 (defclass bank-table (crud-table)
-  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
-   (db-data-fn    :initform (lambda (filter)
-                             (config-data 'bank filter)))
-   (row-class     :initform 'bank-row)))
+  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))))
 
-(defmethod paginator ((table bank-table))
-  (lambda (new-start)
-    (bank :filter (filter table) :start new-start)))
+(defmethod pg-url ((table bank-table) new-start)
+  (bank :filter (filter table) :start new-start))
 
+(defmethod read-data ((table bank-table))
+  (config-data 'bank (filter table)))
+
+(defmethod make-row ((table bank-table) data)
+  (make-instance 'bank-row
+                 :table table
+                 :data data))
 
 ;;; rows
 
@@ -120,11 +123,12 @@
 
 (defmethod cells ((row bank-row))
   (let ((id (get-id row))
-        (data (data row)))
+        (data (data row))
+        (filter (filter (table row))))
     (list :selector (make-instance 'selector-cell
-                                   :states (list :on (bank :filter (filter (table row))
+                                   :states (list :on (bank :filter filter
                                                            :start (start-pos (table row) id))
-                                                 :off (bank :filter (filter (table row))
+                                                 :off (bank :filter filter
                                                             :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
@@ -233,7 +237,8 @@
                    (with-form (actions/bank/create :title (val* title))
                      (display bank-table
                               :start 0
-                              :selected-id nil)))
+                              :selected-id nil
+                              :selected-data (list :id nil :title (val* title)))))
              (footer))))))
 
 (define-dynamic-page bank/update ("config/bank/update")
@@ -265,7 +270,8 @@
                                                        :title (val* title))
                          (display bank-table
                                   :start (start-pos bank-table (val id))
-                                  :selected-id (val id))))
+                                  :selected-id (val id)
+                                  :selected-data (list :id (val id) :title (val* title)))))
                  (footer)))))
       (see-other (notfound))))
 
