@@ -35,7 +35,11 @@
 (defmethod display ((table crud-table) &key selected-id selected-data start)
   (let* ((pg (paginator table))
          (start (if (null selected-id)
-                    (or start 0)
+                    (if (or (null start)
+                            (< start 0)
+                            (> start (len pg)))
+                        0
+                        start)
                     (pg-start table pg selected-id)))
          (pg-rows (pg-rows table pg start)))
     (when (eq (op table) 'create)
