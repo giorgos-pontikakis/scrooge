@@ -134,14 +134,14 @@
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell :href (bank :id id))))))
 
-(defmethod display ((row bank-row) &key)
+(defmethod display ((row bank-row) &key selected-id)
   (with-html
     (:tr (:td (display (getf (cells row) :selector)
-                       :state (if (selected-p row) :on :off)))
+                       :state (if (selected-p row selected-id) :on :off)))
          (:td (display (getf (cells row) :payload)
-                       :readonlyp (readonly-p row)))
+                       :readonlyp (readonly-p row selected-id)))
          (mapc (lambda (cell)
-                 (htm (:td (display cell :activep (controls-p row)))))
+                 (htm (:td (display cell :activep (controls-p row selected-id)))))
                (getf (cells row) :controls)))))
 
 ;;; ------------------------------------------------------------
@@ -180,8 +180,7 @@
   (if (validp id)
       (let ((bank-table (make-instance 'bank-table
                                        :op 'view
-                                       :filter (val* filter)
-                                       :selected-id (val* id))))
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Τράπεζες")
@@ -202,7 +201,8 @@
                        (display bank-table
                                 :start (if (val* id)
                                            (start-pos bank-table (val* id))
-                                           (or (val* start) 0))))
+                                           (or (val* start) 0))
+                                :selected-id (val* id)))
                  (footer)))))
       (see-other (notfound))))
 
@@ -212,8 +212,7 @@
   (no-cache)
   (let ((bank-table (make-instance 'bank-table
                                    :op 'create
-                                   :filter (val* filter)
-                                   :selected-id nil)))
+                                   :filter (val* filter))))
     (with-document ()
       (:head
        (:title "Δημιουργία τράπεζας")
@@ -232,7 +231,8 @@
                               '(create update delete))
                    (with-form (actions/bank/create :title (val* title))
                      (display bank-table
-                              :start 0)))
+                              :start 0
+                              :selected-id nil)))
              (footer))))))
 
 (define-dynamic-page bank/update ("config/bank/update")
@@ -275,8 +275,7 @@
   (if (validp id)
       (let ((bank-table (make-instance 'bank-table
                                        :op 'delete
-                                       :filter (val* filter)
-                                       :selected-id (val id))))
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Διαγραφή τράπεζας")
@@ -294,7 +293,8 @@
                                   '(create delete))
                        (with-form (actions/bank/delete :id (val id))
                          (display bank-table
-                                  :start (start-pos bank-table (val id)))))
+                                  :start (start-pos bank-table (val id))
+                                  :selected-id (val id))))
                  (footer)))))
       (see-other (notfound))))
 

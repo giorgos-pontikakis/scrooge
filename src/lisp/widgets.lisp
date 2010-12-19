@@ -8,13 +8,13 @@
 ;;; Rows
 ;;; ------------------------------------------------------------
 
-(defgeneric selected-p (row)
+(defgeneric selected-p (row selected-id)
   (:documentation "Returns T if the row is selected."))
 
-(defgeneric readonly-p (row)
+(defgeneric readonly-p (row selected-id)
   (:documentation "Returns T if the row is readonly."))
 
-(defgeneric controls-p (row)
+(defgeneric controls-p (row selected-id)
   (:documentation "Returns T if the row has active controls."))
 
 (defgeneric cells (row)
@@ -30,16 +30,15 @@
   ((table :accessor table :initarg :table)
    (data  :accessor data  :initarg :data)))
 
-(defmethod selected-p ((row crud-row))
-  (eql (get-id row)
-       (selected-id (table row))))
+(defmethod selected-p ((row crud-row) selected-id)
+  (eql (get-id row) selected-id))
 
-(defmethod readonly-p ((row crud-row))
-  (or (not (selected-p row))
+(defmethod readonly-p ((row crud-row) selected-id)
+  (or (not (selected-p row selected-id))
       (member (op (table row)) '(view delete))))
 
-(defmethod controls-p ((row crud-row))
-  (and (selected-p row)
+(defmethod controls-p ((row crud-row) selected-id)
+  (and (selected-p row selected-id)
        (member (op (table row)) '(create update delete))))
 
 
@@ -51,12 +50,11 @@
 (defclass crud-table (widget)
   ((id            :accessor id            :initarg :id)
    (op            :accessor op            :initarg :op)
-   (selected-id   :accessor selected-id   :initarg :selected-id)
    (filter        :accessor filter        :initarg :filter)
    (header-labels :accessor header-labels)
    (db-table-fn   :accessor db-table-fn)
    (row-class     :accessor row-class)
-   (delta          :reader delta :initform 10)
+   (delta         :reader delta :initform 10)
    (db-data       :reader db-data))
   (:default-initargs :id "crud-table"))
 
@@ -74,7 +72,7 @@
     (* (floor (/ pos delta))
        delta)))
 
-(defmethod display ((table crud-table) &key (start 0))
+(defmethod display ((table crud-table) &key (start 0) selected-id)
   (let* ((db-data (db-data table))
          (delta (delta table))
          (len (length db-data))
@@ -101,12 +99,14 @@
                                  (header-labels table))))
               (:tbody
                (iter (for r in rows)
-                     (display r))))
+                     (display r :selected-id selected-id))))
       (:div (if prev
-                (htm (:a :href (funcall (paginator table) prev) (img "arrow_left.png" )))
+                (htm (:a :href (funcall (paginator table) prev)
+                         (img "arrow_left.png" )))
                 (img "arrow_left_inactive.png"))
             (if next
-                (htm (:a :href (funcall (paginator table) next) (img "arrow_right.png" )))
+                (htm (:a :href (funcall (paginator table) next)
+                         (img "arrow_right.png" )))
                 (img "arrow_right_inactive.png"))))))
 
 
