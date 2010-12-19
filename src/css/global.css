@@ -322,8 +322,14 @@ h3 {
 /* ---------------------------------------------------------------------- */
 
 #filters input {
+    border: 2px solid #444444;
+    height: 19px;
     margin-top: 10px;
+    width: 190px;
 }
-#filters input {
-    margin-top: 10px;
+
+#filters button {
+    width: 26px;
+    height: 26px;
+    vertical-align: bottom;
 }

@@ -75,17 +75,24 @@
 ;;; Bank menu
 ;;; ------------------------------------------------------------
 
-(defun bank-menu (id filter &optional disabled-items)
+(defun bank-menu (id start filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "bank-actions"
                           :style "hnavbar actions grid_9 alpha"
-                          :spec (standard-actions-spec (bank :id id :filter filter)
-                                                       (bank/create :filter filter)
-                                                       (bank/update :id id :filter filter)
+                          :spec (standard-actions-spec (bank :id id
+                                                             :filter filter
+                                                             :start start)
+                                                       (bank/create :filter filter
+                                                                    :start start)
+                                                       (bank/update :id id
+                                                                    :filter filter
+                                                                    :start start)
                                                        (if (or (null id)
                                                                (bank-referenced-p id))
                                                            nil
-                                                           (bank/delete :id id :filter filter))))
+                                                           (bank/delete :id id
+                                                                        :filter filter
+                                                                        :start start))))
            :disabled-items disabled-items))
 
 
@@ -105,6 +112,10 @@
 
 ;;; rows
 
+(defmethod paginator ((table bank-table))
+  (lambda (new-start)
+    (bank :filter (filter table) :start new-start)))
+
 (defclass bank-row (crud-row)
   ())
 
@@ -115,8 +126,10 @@
   (let ((id (get-id row))
         (data (data row)))
     (list :selector (make-instance 'selector-cell
-                                   :states (list :on (bank :filter (filter (table row)))
+                                   :states (list :on (bank :filter (filter (table row))
+                                                           :start (start (table row)))
                                                  :off (bank :filter (filter (table row))
+                                                            :start (start (table row))
                                                             :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
@@ -145,7 +158,8 @@
           (:p :class "title" "Φίλτρα")
           (with-form (bank)
             (htm
-             (:p (textbox 'filter :value filter) (submit "Αναζήτηση")))))))
+             (:p (textbox 'filter :value filter) (submit (html ()
+                                                           (img "magnifier.png")))))))))
 
 (defun notifications (&rest params)
   (let ((messenger (messenger '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
@@ -181,6 +195,7 @@
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Κατάλογος τραπεζών")
                      (bank-menu (val id)
+                                (val start)
                                 (val filter)
                                 (if (val id)
                                     '(view)
@@ -188,8 +203,8 @@
                      (display (make-instance 'bank-table
                                              :op 'view
                                              :filter (val* filter)
-                                             :selected-id (val* id))
-                              :start (val* start)))
+                                             :selected-id (val* id)
+                                             :start (or (val* start) 1))))
                (footer))))
       (see-other (notfound))))
 
@@ -212,14 +227,15 @@
            (:div :id "bank-window" :class "window grid_9"
                  (:div :class "title" "Δημιουργία τράπεζας")
                  (bank-menu nil
+                            (val start)
                             (val filter)
                             '(create update delete))
                  (with-form (actions/bank/create :title (val* title))
                    (display (make-instance 'bank-table
                                            :op 'create
                                            :filter (val* filter)
-                                           :selected-id nil)
-                            :start (val* start))))
+                                           :selected-id nil
+                                           :start (or (val* start) 1)))))
            (footer)))))
 
 (define-dynamic-page bank/update ("config/bank/update")
@@ -243,6 +259,7 @@
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Επεξεργασία τράπεζας")
                      (bank-menu (val id)
+                                (val start)
                                 (val filter)
                                 '(create update))
                      (with-form (actions/bank/update :id (val* id)
@@ -250,8 +267,8 @@
                        (display (make-instance 'bank-table
                                                :op 'update
                                                :filter (val* filter)
-                                               :selected-id (val* id))
-                                :start (val* start))))
+                                               :selected-id (val* id)
+                                               :start (or (val* start) 1)))))
                (footer))))
       (see-other (notfound))))
 
@@ -274,14 +291,15 @@
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Διαγραφή τράπεζας")
                      (bank-menu (val id)
+                                (val start)
                                 (val filter)
                                 '(create delete))
                      (with-form (actions/bank/delete :id (val id))
                        (display (make-instance 'bank-table
                                                :op 'delete
                                                :filter (val* filter)
-                                               :selected-id (val* id))
-                                :start (val* start))))
+                                               :selected-id (val* id)
+                                               :start (or (val* start) 1)))))
                (footer))))
       (see-other (notfound))))
 

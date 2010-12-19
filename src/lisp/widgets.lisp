@@ -55,11 +55,14 @@
    (filter        :accessor filter        :initarg :filter)
    (header-labels :accessor header-labels)
    (db-table-fn   :accessor db-table-fn)
-   (row-class     :accessor row-class))
+   (row-class     :accessor row-class)
+   (start         :accessor start :initarg :start))
   (:default-initargs :id "crud-table"))
 
-(defmethod display ((table crud-table) &key start)
-  (let* ((db-data (funcall (db-table-fn table) (filter table)))
+(defmethod display ((table crud-table) &key)
+  (let* ((step 10)
+         (start (start table))
+         (db-data (funcall (db-table-fn table) (filter table)))
          (len (length db-data))
          (rows (mapcar (lambda (db-row)
                          (make-instance (row-class table)
@@ -67,7 +70,11 @@
                                         :data db-row))
                        (if (not start)
                            db-data
-                           (subseq db-data (min (1- start) len) (min (+ start 10) len))))))
+                           (subseq db-data
+                                   (max start 0)
+                                   (min (+ start (1- step)) (1- len))))))
+         (prev (if (>= (- start step) 0) (- start step) nil))
+         (next (if (<= (+ start step) (1- len)) (+ start step) nil )))
     (when (eq (op table) 'create)
       (push (make-instance (row-class table) :table table :data ())
             rows))
@@ -78,7 +85,13 @@
                                  (header-labels table))))
               (:tbody
                (iter (for r in rows)
-                     (display r)))))))
+                     (display r))))
+      (:div (if prev
+                (htm (:a :href (funcall (paginator table) prev) (img "arrow_left.png" )))
+                (img "arrow_left_inactive.png"))
+            (if next
+                (htm (:a :href (funcall (paginator table) next) (img "arrow_right.png" )))
+                (img "arrow_right_inactive.png"))))))
 
 
 
