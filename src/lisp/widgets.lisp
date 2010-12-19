@@ -5,7 +5,118 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Rows
+;;; CRUD Tables
+;;; ------------------------------------------------------------
+
+(defclass crud-table (widget)
+  ((id          :accessor id          :initarg :id)
+   (style         :accessor style         :initarg :style)
+   (op            :accessor op            :initarg :op)
+   (filter        :accessor filter        :initarg :filter)
+   (header-labels :accessor header-labels :initarg :header-labels)
+   (db-data       :reader   db-data)
+   (rows          :reader   rows))
+  (:default-initargs :id "crud-table" :style "crud-table"))
+
+(defgeneric read-data (crud-table))
+(defgeneric make-row (crud-table data))
+(defgeneric paginator (table))
+
+(defmethod initialize-instance :after ((table crud-table) &key)
+  ;; First store db-data
+  (setf (slot-value table 'db-data)
+        (read-data table))
+  ;; Then store row objects
+  (setf (slot-value table 'rows)
+        (mapcar (lambda (row-data)
+                  (make-row table row-data))
+                (slot-value table 'db-data))))
+
+(defmethod display ((table crud-table) &key start selected-id selected-data)
+  (let* ((pg (paginator table))
+         (pg-rows (pg-rows table pg start)))
+    (when (eq (op table) 'create)
+      (push (make-row table selected-data) pg-rows))
+    (when (eq (op table) 'update)
+      (let ((row (find selected-id (rows table) :key #'get-id)))
+        (setf (data row)
+              (plist-union selected-data (data row)))))
+    (with-html
+      (:table :id (id table) :class (style table)
+              (:thead (:tr (mapc (lambda (i)
+                                   (htm (:th (str i))))
+                                 (header-labels table))))
+              (:tbody
+               (iter (for r in pg-rows)
+                     (display r :selected-id selected-id))))
+      (display (paginator table) :start start))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Table Paginator
+;;; ------------------------------------------------------------
+
+(defclass paginator ()
+  ((id    :accessor id    :initarg :id)
+   (style :accessor style :initarg :style)
+   (delta :accessor delta :initarg :delta)
+   (urlfn :accessor urlfn :initarg :urlfn)
+   (len   :accessor len   :initarg :len)))
+
+(defmethod display ((pg paginator) &key (start 0))
+  (let* ((delta (delta pg))
+         (prev (if (>= (- start delta) 0)
+                   (- start delta)
+                   (if (> start 0)
+                       0
+                       nil)))
+         (next (if (<= (+ start delta) (1- (len pg)))
+                   (+ start delta)
+                   nil)))
+    (with-html
+      (:div :id (id pg) :style (style pg)
+            (if prev
+                (htm (:a :href (funcall (urlfn pg) prev)
+                         (img "arrow_left.png" )))
+                (img "arrow_left_inactive.png"))
+            (fmt "Εγγραφές ~A–~A από ~A"
+                 (1+ start)
+                 (min (+ start delta) (len pg))
+                 (len pg))
+            (if next
+                (htm (:a :href (funcall (urlfn pg) next)
+                         (img "arrow_right.png" )))
+                (img "arrow_right_inactive.png"))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Table - Paginator methods
+;;; ------------------------------------------------------------
+
+(defgeneric pg-rows (table paginator start))
+
+(defmethod pg-rows ((table crud-table) (pg paginator) start)
+  (subseq (rows table)
+          (max start 0)
+          (min (+ start (delta pg)) (length (db-data table)))))
+
+
+(defgeneric start-pos (crud-table paginator selected-id))
+
+(defmethod start-pos ((table crud-table) (pg paginator) selected-id)
+  (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
+                                                              (getf db-row :id)))
+                 0))
+        (delta (delta pg)))
+    (* (floor (/ pos delta))
+       delta)))
+
+
+
+;;; ------------------------------------------------------------
+;;; Table Rows
 ;;; ------------------------------------------------------------
 
 (defgeneric selected-p (row selected-id)
@@ -18,7 +129,7 @@
   (:documentation "Returns T if the row has active controls."))
 
 (defgeneric cells (row)
-  (:documentation "Returns a property list which contains the names of
+  (:documentation "Returns a property list which contains the ids of
   the various cells as keys and lists of cell objects as the
   corresponding values."))
 
@@ -46,103 +157,23 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Tables
-;;; ------------------------------------------------------------
-
-(defclass crud-table (widget)
-  ((name          :accessor name          :initarg :name)
-   (op            :accessor op            :initarg :op)
-   (filter        :accessor filter        :initarg :filter)
-   (header-labels :accessor header-labels :initarg :header-labels)
-   (pg-delta      :accessor pg-delta      :initarg :pg-delta)
-   (db-data       :accessor db-data)
-   (rows          :accessor rows))
-  (:default-initargs :name "crud-table" :pg-delta 10))
-
-(defgeneric start-pos (crud-table selected-id))
-(defgeneric pg-url (crud-table new-start))
-(defgeneric read-data (crud-table))
-(defgeneric make-row (crud-table data))
-
-(defmethod initialize-instance :after ((table crud-table) &key)
-  ;; First store db-data
-  (setf (slot-value table 'db-data)
-        (read-data table))
-  ;; Then store row objects
-  (setf (slot-value table 'rows)
-        (mapcar (lambda (row-data)
-                  (make-row table row-data))
-                (slot-value table 'db-data))))
-
-(defmethod start-pos ((table crud-table) selected-id)
-  (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
-                                                              (getf db-row :id)))
-                 0))
-        (pg-delta (pg-delta table)))
-    (* (floor (/ pos pg-delta))
-       pg-delta)))
-
-(defmethod display ((table crud-table) &key start selected-id selected-data)
-  (let* ((db-data (db-data table))
-         (pg-delta (pg-delta table))
-         (len (length db-data))
-         (pg-rows (subseq (rows table)
-                          (max start 0)
-                          (min (+ start pg-delta) len)))
-         (prev (if (>= (- start pg-delta) 0)
-                   (- start pg-delta)
-                   (if (> start 0)
-                       0
-                       nil)))
-         (next (if (<= (+ start pg-delta) (1- len))
-                   (+ start pg-delta)
-                   nil)))
-    (when (eq (op table) 'create)
-      (push (make-row table selected-data) pg-rows))
-    (when (eq (op table) 'update)
-      (let ((row (find selected-id (rows table) :key #'get-id)))
-        (setf (data row)
-              (plist-union selected-data (data row)))))
-    (with-html
-      (:table :id (name table) :class "crud-table"
-              (:thead (:tr (mapc (lambda (i)
-                                   (htm (:th (str i))))
-                                 (header-labels table))))
-              (:tbody
-               (iter (for r in pg-rows)
-                     (display r :selected-id selected-id))))
-      (:div :id (concatenate 'string (name table) "-paginator")
-            (if prev
-                (htm (:a :href (pg-url table prev)
-                         (img "arrow_left.png" )))
-                (img "arrow_left_inactive.png"))
-            (fmt "Εγγραφές ~A–~A από ~A"
-                 (1+ start)
-                 (min (+ start pg-delta) len)
-                 len)
-            (if next
-                (htm (:a :href (pg-url table next)
-                         (img "arrow_right.png" )))
-                (img "arrow_right_inactive.png"))))))
-
-
 
 ;;; ------------------------------------------------------------
 ;;; Cells
 ;;; ------------------------------------------------------------
 
 (defclass textbox-cell (widget)
-  ((name  :accessor name  :initarg :name)
+  ((id  :accessor id  :initarg :id)
    (value :accessor value :initarg :value)))
 
 (defmethod display ((cell textbox-cell) &key readonlyp)
   (if readonlyp
       (with-html
-        (str (value cell)))
-      (textbox (name cell)
-               :readonlyp readonlyp
-               :value (value cell))))
+        (:td (str (value cell))))
+      (with-html
+        (:td (textbox (id cell)
+                      :readonlyp readonlyp
+                      :value (value cell))))))
 
 
 
@@ -151,10 +182,10 @@
 
 (defmethod display ((cell selector-cell) &key state)
   (with-html
-    (:a :href (getf (states cell) state)
-        (img (if (eq state :on)
-                 "bullet_red.png"
-                 "bullet_blue.png")))))
+    (:td (:a :href (getf (states cell) state)
+             (img (if (eq state :on)
+                      "bullet_red.png"
+                      "bullet_blue.png"))))))
 
 
 
@@ -164,10 +195,10 @@
 (defmethod display ((cell ok-cell) &key activep)
   (if activep
       (with-html
-        (submit (html ()
-                  (img "tick.png"))))
+        (:td (submit (html ()
+                       (img "tick.png")))))
       (with-html
-        "")))
+        (:td ""))))
 
 
 
@@ -177,10 +208,10 @@
 (defmethod display ((cell cancel-cell) &key activep)
   (if activep
       (with-html
-        (:a :href (href cell)
-            (img "cancel.png")))
+        (:td (:a :href (href cell)
+                 (img "cancel.png"))))
       (with-html
-        "")))
+        (:td ""))))
 
 
 
@@ -194,19 +225,19 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass navbar (widget)
-  ((id             :accessor id             :initarg :id)
-   (spec           :accessor spec           :initarg :spec)
-   (style          :accessor style          :initarg :style)))
+  ((id  :accessor id  :initarg :id)
+   (spec  :accessor spec  :initarg :spec)
+   (style :accessor style :initarg :style)))
 
 (defmethod display ((navbar navbar) &key active-page-name)
   (with-html
     (:div :id (id navbar) :class (style navbar)
           (:ul
-           (iter (for (page-name label) in (spec navbar))
-                 (htm (:li (if (eql page-name active-page-name)
+           (iter (for (page-id label) in (spec navbar))
+                 (htm (:li (if (eql page-id active-page-name)
                                (htm (:p (str label)))
-                               (htm (:a :href (if (fboundp page-name)
-                                                  (funcall page-name)
+                               (htm (:a :href (if (fboundp page-id)
+                                                  (funcall page-id)
                                                   (error-page))
                                         (str label)))))))))))
 
@@ -229,23 +260,21 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass menu (widget)
-  ((id        :accessor id        :initarg :id)
-   (style     :accessor style     :initarg :style)
-   (spec      :accessor spec      :initarg :spec)))
+  ((id  :accessor id  :initarg :id)
+   (style :accessor style :initarg :style)
+   (spec  :accessor spec  :initarg :spec)))
 
 (defmethod display ((menu menu) &key disabled-items)
   (with-html
     (:div :id (id menu)
           :class (style menu)
           (:ul
-           (iter (for (action-name href label) in (spec menu))
-                 (unless (or (member action-name disabled-items)
+           (iter (for (action-id href label) in (spec menu))
+                 (unless (or (member action-id disabled-items)
                              (null href))
                    (htm (:li (:a :href href
-                                 :class (string-downcase action-name)
+                                 :class (string-downcase action-id)
                                  (str label))))))))))
-
-
 
 (defclass actions-menu (menu)
   ((style :initform "hnavbar actions")))
@@ -257,7 +286,8 @@
 ;;; ------------------------------------------------------------
 
 (defclass messenger (widget)
-  ((style    :accessor style    :initarg :style)
+  ((id       :accessor id       :initarg :id)
+   (style    :accessor style    :initarg :style)
    (messages :accessor messages :initarg :messages)))
 
 (defmethod display ((messenger messenger) &key params)
@@ -267,231 +297,14 @@
                "Internal error: Unknown message in messenger widget.")))
     (unless (every #'validp params)
       (with-html
-        (:ul (iter (for p in params)
+        (:ul :id (id messenger)
+             (iter (for p in params)
                    (unless (validp p)
                      (htm (:li :class (style messenger)
                                (str (get-message p (messages messenger))))))))))))
 
-(defun messenger (message-spec &optional style)
+(defun messenger (message-spec &optional id style)
   (make-instance 'messenger
+                 :id id
                  :messages message-spec
                  :style style))
-
-
-
-;; ;;; ------------------------------------------------------------
-;; ;;; Forms
-;; ;;; ------------------------------------------------------------
-
-;; (defun form (submit-page hidden body)
-;;   (let ((page (find-page submit-page '*webapp*)))
-;;     (with-html
-;;       (:form :method (request-type page)
-;;              :action (concatenate 'string (webroot (webapp page)) (base-url page))
-;;              (iter (for key in hidden by #'cddr)
-;;                    (for val in (rest hidden) by #'cddr)
-;;                    (htm
-;;                      (:input :type "hidden"
-;;                              :id (string-downcase key)
-;;                              :style "display: none;"
-;;                              :name (string-downcase key)
-;;                              :value (lisp->html val))))
-;;              (render body)))))
-
-;; (defmacro with-form (url &body body)
-;;   (let ((page-name (first url))
-;;         (hidden (rest url)))
-;;     `(form ',page-name (list ,@hidden)
-;;            ,@body)))
-
-
-;; (defun textbox (name &key id style readonlyp disabledp passwordp value)
-;;   (with-html
-;;     (:input :id id
-;;             :class style
-;;             :type (if passwordp "password" "text")
-;;             :name (string-downcase name)
-;;             :value (lisp->html (or value :null))
-;;             :readonly readonlyp
-;;             :disabled disabledp)))
-
-;; (defun radio (name label-value-alist &key id style readonlyp disabledp checked)
-;;   (with-html
-;;     (:ul :id (or id (string-downcase name))
-;;          :class style
-;;          (iter (for (label value) in label-value-alist)
-;;                (htm (:li (:input :type "radio"
-;;                                  :name (string-downcase name)
-;;                                  :value (lisp->html value)
-;;                                  :checked (equal value checked)
-;;                                  :readonly readonlyp
-;;                                  :disabled disabledp)
-;;                          (render label)))))))
-
-;; (defun dropdown (name label-value-alist &key style readonlyp disabledp selected)
-;;   (with-html
-;;     (:select :id (string-downcase name)
-;;              :class style
-;;              :name (string-downcase name)
-;;              :disabled disabledp
-;;              (iter (for (label value) in label-value-alist)
-;;                    (htm (:option :value (lisp->html value)
-;;                                  :selected (equal value selected)
-;;                                  :readonly readonlyp
-;;                                  (render label)))))))
-
-;; (defun label (name text &key style)
-;;   (with-html
-;;     (:label :class style
-;;             :for (string-downcase name)
-;;             (render text))))
-
-;; (defun submit (label &key name value style disabledp)
-;;   (with-html
-;;     (:button :class style
-;;              :type "submit"
-;;              :name (if name (string-downcase name) nil)
-;;              :value (if value (lisp->html value) nil)
-;;              :disabled disabledp
-;;              (render label))))
-
-
-
-;; ;;; ------------------------------------------------------------
-;; ;;; Tables
-;; ;;; ------------------------------------------------------------
-
-;; (defun thead (&rest args)
-;;   (with-html
-;;     (:thead
-;;      (:tr (mapc (lambda (item)
-;;                   (htm (:th (str item))))
-;;                 args)))))
-
-
-
-;; ;;; ------------------------------------------------------------
-;; ;;; Links
-;; ;;; ------------------------------------------------------------
-
-;; (defun selector-link (states)
-;;   (html (state)
-;;     (:a :href (second (assoc state states))
-;;         (img (if (true state)
-;;                  "bullet_red.png"
-;;                  "bullet_blue.png")))))
-
-;; (defun arrow ()
-;;   (html ()
-;;     (:a :href )))
-
-;; (defun ok-link (visiblep)
-;;   (if visiblep
-;;       (with-html
-;;         (submit (html ()
-;;                   (img "tick.png"))))
-;;       (with-html
-;;         "")))
-
-;; (defun cancel-link (href visiblep)
-;;   (if visiblep
-;;       (with-html
-;;         (:a :href href
-;;             (img "cancel.png")))
-;;       (with-html
-;;         "")))
-
-
-
-;; ;;; ------------------------------------------------------------
-;; ;;; Table with inline form
-;; ;;; ------------------------------------------------------------
-
-;; (defun mkfn-row-selected-p (id-keys)
-;;   (lambda (id)
-;;     (let ((result (mapcar (lambda (key)
-;;                             (eql (val* (find-parameter key))
-;;                                  (getf id key) #|(find-datum id key)|#))
-;;                           id-keys)))
-;;       (every #'true result))))
-
-;; (defun mkfn-row-controls-p (op form-ops)
-;;   (lambda (selected-p)
-;;     (and selected-p
-;;          (member op form-ops))))
-
-;; (defun mkfn-row-readonly-p (op ro-ops rw-ops)
-;;   (cond ((member op ro-ops)
-;;          (constantly t))
-;;         ((member op rw-ops)
-;;          (lambda (selected-p)
-;;            (not selected-p)))
-;;         (t (error "Unknown operation: ~A" op))))
-
-;; (defun mkfn-row-id (id-keys)
-;;   (lambda (row-data)
-;;     (plist-collect id-keys row-data)))
-
-;; (defun mkfn-row-payload (payload-keys)
-;;   (lambda (row-data readonly-p)
-;;     (if readonly-p
-;;         (plist-collect payload-keys row-data)
-;;         (plist-union (plist-collect payload-keys (params->plist (parameters *page*)))
-;;                      (plist-collect payload-keys row-data)))))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;; (defgeneric renderer (widget)
-;;   (:documentation "Funcall it to render the widget."))
-
-
-
-;; ;;; ------------------------------------------------------------
-;; ;;; Tables interface
-;; ;;; ------------------------------------------------------------
-
-;; (defclass crud-table ()
-;;   ((header          :accessor header          :initarg :header)
-;;    (operation       :accessor operation       :initarg :operation)
-;;    (cancel-href     :accessor cancel-href     :initarg :cancel-href)
-;;    (id-fn           :accessor id-fn           :initarg :id-fn)
-;;    (payload-fn      :accessor payload-fn      :initarg :payload-fn)
-;;    (data-fn         :accessor data-fn         :initarg :data-fn)
-;;    (selector-states :accessor selector-states :initarg :selector-states)))
-
-;; (defmethod renderer ((table crud-table))
-;;   ())
-
-
-
-
-;; ;;; ------------------------------------------------------------
-;; ;;; Rows interface
-;; ;;; ------------------------------------------------------------
-
-;; (defclass crud-row ()
-;;   ((id      :accessor id      :initarg :id)
-;;    (payload :accessor payload :initarg :payload)))
-
-;; (defgeneric activep-fn (row &key)
-;;   (:documentation
-;;    "Returns T if it is active, NIL otherwise. This should depend on
-;;    the data of the table and other parameters given via keyword
-;;    arguments. It should be defined separately for each table."))
-
-
-;; (defgeneric readonlyp (row)
-;;   (:documentation "This method return the read-only status of the row."))
-
-;; (defmethod readonlyp ((row crud-row))
-;;   (if (funcall (activep-fn row))
-;;       (member (operation (table row)) '(view delete))
-;;       nil))
-
-;; (defmethod renderer ((row crud-row))
-;;   (html ()
-;;     (:tr :class (if (readonlyp row) "active" nil)
-;;          (mapc #'render (cells row)))))

@@ -33,9 +33,6 @@
   (js (url 'lib "jquery-1.4.4/jquery-1.4.4.min.js")))
 
 
-#|(defun datatables ()
-  (js (url 'lib "DataTables-1.7.5/media/js/jquery.dataTables.js")))|#
-
 (defun 960gs ()
   (css (url 'css "reset.css"))
   (css (url 'lib "960gs/code/css/960.css")))
@@ -49,8 +46,7 @@
 
 (defun config-headers ()
   (global-headers)
-  (jquery)
-  #|(js (url 'js "config.js"))|#)
+  (jquery))
 
 (defun clear ()
   (with-html
@@ -123,40 +119,3 @@
     (create ,create "Δημιουργία")
     (update ,update "Επεξεργασία")
     (delete ,delete "Διαγραφή")))
-
-;; (defun actions-menu ()
-;;   (generic-menu :div-style "actions"
-;;                 :ul-style "hmenu"))
-
-
-
-;;; CRUD Tables
-
-;; (defun mkfn-crud-row-controls-p (op)
-;;   (mkfn-row-controls-p op '(create update delete)))
-
-;; (defun mkfn-crud-row-readonly-p (op)
-;;   (mkfn-row-readonly-p op
-;;                        '(view delete)
-;;                        '(create update)))
-
-;; (defun mkfn-crud-row (row-id-fn row-payload-fn
-;;                       row-selected-p-fn row-controls-p-fn row-readonly-p-fn
-;;                       selector-states-fn cancel-url)
-;;   (html (row-data)
-;;     (let* ((id (funcall row-id-fn row-data))
-;;            (row-selected-p (funcall row-selected-p-fn id))
-;;            (row-controls-p (funcall row-controls-p-fn row-selected-p))
-;;            (row-readonly-p (funcall row-readonly-p-fn row-selected-p)))
-;;       (htm (:tr :class (if row-selected-p "active" nil)
-;;                 (:td (funcall (selector-link (funcall selector-states-fn id))
-;;                               row-selected-p))
-;;                 (plist-map (lambda (key value)
-;;                              (if row-readonly-p
-;;                                  (htm (:td (str value)))
-;;                                  (htm (:td (textbox (symbolicate key)
-;;                                                     :value value
-;;                                                     :style nil))))) ;; todo -- style missing
-;;                            (funcall row-payload-fn row-data row-readonly-p))
-;;                 (:td (ok-link row-controls-p))
-;;                 (:td (cancel-link cancel-url row-controls-p)))))))

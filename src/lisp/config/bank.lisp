@@ -102,9 +102,6 @@
 (defclass bank-table (crud-table)
   ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))))
 
-(defmethod pg-url ((table bank-table) new-start)
-  (bank :filter (filter table) :start new-start))
-
 (defmethod read-data ((table bank-table))
   (config-data 'bank (filter table)))
 
@@ -112,6 +109,15 @@
   (make-instance 'bank-row
                  :table table
                  :data data))
+
+(defmethod paginator ((table bank-table))
+  (make-instance 'paginator
+                 :id "bank-paginator"
+                 :style "paginator"
+                 :delta 10
+                 :urlfn (lambda (start)
+                          (bank :filter (filter table) :start start))
+                 :len (length (db-data table))))
 
 ;;; rows
 
@@ -122,16 +128,18 @@
   (getf (data row) :id))
 
 (defmethod cells ((row bank-row))
-  (let ((id (get-id row))
-        (data (data row))
-        (filter (filter (table row))))
+  (let* ((id (get-id row))
+         (data (data row))
+         (table (table row))
+         (pg (paginator table ))
+         (filter (filter table)))
     (list :selector (make-instance 'selector-cell
                                    :states (list :on (bank :filter filter
-                                                           :start (start-pos (table row) id))
+                                                           :start (start-pos table pg id))
                                                  :off (bank :filter filter
                                                             :id id)))
           :payload (make-instance 'textbox-cell
-                                  :name 'title
+                                  :id 'title
                                   :value (getf data :title))
           :controls (list
                      (make-instance 'ok-cell)
@@ -139,12 +147,12 @@
 
 (defmethod display ((row bank-row) &key selected-id)
   (with-html
-    (:tr (:td (display (getf (cells row) :selector)
-                       :state (if (selected-p row selected-id) :on :off)))
-         (:td (display (getf (cells row) :payload)
-                       :readonlyp (readonly-p row selected-id)))
+    (:tr (display (getf (cells row) :selector)
+                  :state (if (selected-p row selected-id) :on :off))
+         (display (getf (cells row) :payload)
+                  :readonlyp (readonly-p row selected-id))
          (mapc (lambda (cell)
-                 (htm (:td (display cell :activep (controls-p row selected-id)))))
+                 (htm (display cell :activep (controls-p row selected-id))))
                (getf (cells row) :controls)))))
 
 
@@ -183,9 +191,10 @@
      (start integer))
   (no-cache)
   (if (validp id)
-      (let ((bank-table (make-instance 'bank-table
-                                       :op 'view
-                                       :filter (val* filter))))
+      (let* ((bank-table (make-instance 'bank-table
+                                        :op 'view
+                                        :filter (val* filter)))
+             (pg (paginator bank-table)))
         (with-document ()
           (:head
            (:title "Τράπεζες")
@@ -205,7 +214,7 @@
                                       '(view update delete)))
                        (display bank-table
                                 :start (if (val* id)
-                                           (start-pos bank-table (val* id))
+                                           (start-pos bank-table pg (val* id))
                                            (or (val* start) 0))
                                 :selected-id (val* id)))
                  (footer)))))
@@ -247,9 +256,10 @@
      (filter string))
   (no-cache)
   (if (validp id)
-      (let ((bank-table (make-instance 'bank-table
-                                       :op 'update
-                                       :filter (val* filter))))
+      (let* ((bank-table (make-instance 'bank-table
+                                        :op 'update
+                                        :filter (val* filter)))
+             (pg (paginator bank-table)))
         (with-document ()
           (:head
            (:title "Επεξεργασία τράπεζας")
@@ -269,9 +279,9 @@
                        (with-form (actions/bank/update :id (val* id)
                                                        :title (val* title))
                          (display bank-table
-                                  :start (start-pos bank-table (val id))
+                                  :start (start-pos bank-table pg (val id))
                                   :selected-id (val id)
-                                  :selected-data (list :id (val id) :title (val* title)))))
+                                  :selected-data (list :title (val* title)))))
                  (footer)))))
       (see-other (notfound))))
 
@@ -280,9 +290,10 @@
      (filter string))
   (no-cache)
   (if (validp id)
-      (let ((bank-table (make-instance 'bank-table
-                                       :op 'delete
-                                       :filter (val* filter))))
+      (let* ((bank-table (make-instance 'bank-table
+                                        :op 'delete
+                                        :filter (val* filter)))
+             (pg (paginator bank-table)))
         (with-document ()
           (:head
            (:title "Διαγραφή τράπεζας")
@@ -300,42 +311,7 @@
                                   '(create delete))
                        (with-form (actions/bank/delete :id (val id))
                          (display bank-table
-                                  :start (start-pos bank-table (val id))
+                                  :start (start-pos bank-table pg (val id))
                                   :selected-id (val id))))
                  (footer)))))
       (see-other (notfound))))
-
-
-;; (defun mkfn-bank-selector-states ()
-;;   (lambda (id)
-;;     `((t   ,(bank))
-;;       (nil ,(apply #'bank id)))))
-
-;; (defun bank-table (op id)
-;;   (let* ((id-keys '(:id))
-;;          (payload-keys '(:title))
-;;          (db-table (config-data 'bank))
-;;          (cancel-url (bank :id id))
-;;          (row-selected-p-fn (mkfn-row-selected-p id-keys))
-;;          (selector-states-fn (mkfn-bank-selector-states))
-;;          ;; op-specific
-;;          (row-controls-p-fn (mkfn-crud-row-controls-p op))
-;;          (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
-;;          ;; id, payload and the row itself
-;;          (row-id-fn (mkfn-row-id id-keys))
-;;          (row-payload-fn (mkfn-row-payload payload-keys))
-;;          (row-fn (mkfn-crud-row row-id-fn
-;;                                 row-payload-fn
-;;                                 row-selected-p-fn
-;;                                 row-controls-p-fn
-;;                                 row-readonly-p-fn
-;;                                 selector-states-fn
-;;                                 cancel-url)))
-;;     (html ()
-;;       (:table :class "table-half forms-in-row"
-;;               (thead "" "Ονομασία τράπεζας" "" "")
-;;               (:tbody
-;;                (when (eql op 'create)
-;;                  (funcall row-fn nil))
-;;                (iter (for db-row in db-table)
-;;                      (funcall row-fn db-row)))))))
