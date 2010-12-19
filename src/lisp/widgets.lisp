@@ -56,25 +56,41 @@
    (header-labels :accessor header-labels)
    (db-table-fn   :accessor db-table-fn)
    (row-class     :accessor row-class)
-   (start         :accessor start :initarg :start))
+   (delta          :reader delta :initform 10)
+   (db-data       :reader db-data))
   (:default-initargs :id "crud-table"))
 
-(defmethod display ((table crud-table) &key)
-  (let* ((step 10)
-         (start (start table))
-         (db-data (funcall (db-table-fn table) (filter table)))
+(defmethod initialize-instance :after ((table crud-table) &key)
+  (setf (slot-value table 'db-data)
+        (funcall (db-table-fn table) (filter table))))
+
+(defgeneric start-pos (crud-table selected-id))
+
+(defmethod start-pos ((table crud-table) selected-id)
+  (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
+                                                           (getf db-row :id)))
+                 0))
+        (delta (delta table)))
+    (* (floor (/ pos delta))
+       delta)))
+
+(defmethod display ((table crud-table) &key (start 0))
+  (let* ((db-data (db-data table))
+         (delta (delta table))
          (len (length db-data))
          (rows (mapcar (lambda (db-row)
                          (make-instance (row-class table)
                                         :table table
                                         :data db-row))
-                       (if (not start)
-                           db-data
-                           (subseq db-data
-                                   (max start 0)
-                                   (min (+ start (1- step)) (1- len))))))
-         (prev (if (>= (- start step) 0) (- start step) nil))
-         (next (if (<= (+ start step) (1- len)) (+ start step) nil )))
+                       (subseq db-data
+                               (max start 0)
+                               (min (+ start delta) len))))
+         (prev (if (>= (- start delta) 0)
+                   (- start delta)
+                   (if (> start 0)
+                       0
+                       nil)))
+         (next (if (<= (+ start delta) (1- len)) (+ start delta) nil )))
     (when (eq (op table) 'create)
       (push (make-instance (row-class table) :table table :data ())
             rows))
