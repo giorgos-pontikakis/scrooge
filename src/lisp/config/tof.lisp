@@ -23,22 +23,16 @@
       nil
       'tof-id-unknown))
 
-(defun chk-tof-title (title &optional id)
-  (cond ((eql :null title) 'tof-title-null)
-        ((not (tof-title-unique-p title id)) 'tof-title-exists)
-        (t nil)))
-
 (defun chk-tof-id/ref (id)
   (if (and (null (chk-tof-id id))
            (null (tof-referenced-p id)))
       nil
       'tof-referenced))
 
-(defun tof-errorbar (params)
-  (funcall (generic-errorbar)
-           params
-           '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
-                    (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη")))))
+(defun chk-tof-title (title &optional id)
+  (cond ((eql :null title) 'tof-title-null)
+        ((not (tof-title-unique-p title id)) 'tof-title-exists)
+        (t nil)))
 
 
 
@@ -82,15 +76,20 @@
 ;;; ------------------------------------------------------------
 
 (defun tof-menu (id enabled-items)
-  (funcall (actions-menu)
-           :item-specs (standard-actions-spec (tof :id id)
-                                              (tof/create)
-                                              (tof/update :id id)
-                                              (if (or (null id)
-                                                      (tof-referenced-p id))
-                                                  nil
-                                                  (tof/delete :id id)))
-           :enabled-items enabled-items))
+  (display (make-instance 'actions-menu
+                          :id "tof-actions"
+                          :style "hnavbar actions grid_9 alpha"
+                          :spec (standard-actions-spec (tof :id id
+                                                            :filter filter)
+                                                       (tof/create :filter filter)
+                                                       (tof/update :id id
+                                                                   :filter filter)
+                                                       (if (or (null id)
+                                                               (tof-referenced-p id))
+                                                           nil
+                                                           (tof/delete :id id
+                                                                       :filter filter))))
+           :disabled-items disabled-items))
 
 
 
@@ -98,39 +97,93 @@
 ;;; TOF table
 ;;; ------------------------------------------------------------
 
-(defun mkfn-tof-selector-states ()
-  (lambda (id)
-    `((t   ,(tof))
-      (nil ,(apply #'tof id)))))
 
-(defun tof-table (op id)
-  (let* ((id-keys '(:id))
-         (payload-keys '(:title))
-         (db-table (config-data 'tof))
-         (cancel-url (tof :id id))
-         (row-selected-p-fn (mkfn-row-selected-p id-keys))
-         (selector-states-fn (mkfn-tof-selector-states))
-         ;; op-specific
-         (row-controls-p-fn (mkfn-crud-row-controls-p op))
-         (row-readonly-p-fn (mkfn-crud-row-readonly-p op))
-         ;; id, payload and the row itself
-         (row-id-fn (mkfn-row-id id-keys))
-         (row-payload-fn (mkfn-row-payload payload-keys))
-         (row-fn (mkfn-crud-row row-id-fn
-                                row-payload-fn
-                                row-selected-p-fn
-                                row-controls-p-fn
-                                row-readonly-p-fn
-                                selector-states-fn
-                                cancel-url)))
-    (html ()
-      (:table :class "table-half forms-in-row"
-              (thead "" "Ονομασία Δ.Ο.Υ." "" "")
-              (:tbody
-               (when (eql op 'create)
-                 (funcall row-fn nil))
-               (iter (for db-row in db-table)
-                     (funcall row-fn db-row)))))))
+;;; table
+
+(defclass tof-table (crud-table)
+  ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))))
+
+(defmethod read-data ((table tof-table))
+  (config-data 'tof (filter table)))
+
+(defmethod make-row ((table tof-table) data)
+  (make-instance 'tof-row
+                 :table table
+                 :data data))
+
+(defmethod paginator ((table tof-table))
+  (make-instance 'paginator
+                 :id "tof-paginator"
+                 :style "paginator"
+                 :delta 10
+                 :urlfn (lambda (start)
+                          (tof :filter (filter table) :start start))
+                 :len (length (db-data table))))
+
+;; rows
+
+(defclass tof-row (crud-row)
+  ())
+
+(defmethod get-id ((row tof-row))
+  (getf (data row) :id))
+
+(defmethod cells ((row tof-row))
+  (let* ((id (get-id row))
+         (data (data row))
+         (table (table row))
+         (pg (paginator table ))
+         (filter (filter table)))
+    (list :selector (make-instance 'selector-cell
+                                   :style "selector"
+                                   :states (list :on (tof :filter filter
+                                                          :start (pg-start table pg id))
+                                                 :off (tof :filter filter
+                                                           :id id)))
+          :payload (make-instance 'textbox-cell
+                                  :name 'title
+                                  :style "payload"
+                                  :value (getf data :title))
+          :controls (list
+                     (make-instance 'ok-cell
+                                    :style "control")
+                     (make-instance 'cancel-cell
+                                    :style "control"
+                                    :href (tof :id id))))))
+
+(defmethod display ((row tof-row) &key selected-id)
+  (with-html
+    (:tr (display (getf (cells row) :selector)
+                  :state (if (selected-p row selected-id) :on :off))
+         (display (getf (cells row) :payload)
+                  :readonlyp (readonly-p row selected-id))
+         (mapc (lambda (cell)
+                 (htm (display cell :activep (controls-p row selected-id))))
+               (getf (cells row) :controls)))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Other areas
+;;; ------------------------------------------------------------
+
+(defun tof-filters (filter)
+  (with-html
+    (:div :id "filters"
+          (:p :class "title" "Φίλτρα")
+          (with-form (tof)
+            (htm
+             (:p (textbox 'filter :value filter) (submit (html ()
+                                                           (img "magnifier.png")))))))))
+
+(defun notifications (&rest params)
+  (let ((messenger (messenger '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
+                                     (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
+                              "msg-error")))
+    (with-html
+      (:div :id "notifications"
+            (:p :class "title" "Μηνύματα")
+            (display messenger :params params)))))
 
 
 
@@ -139,83 +192,124 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page tof ("config/tof")
-    ((id integer chk-tof-id))
+    ((id integer chk-tof-id)
+     (filter string)
+     (start integer))
   (no-cache)
   (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Δ.Ο.Υ.")
-         (head-config))
-        (:body
-         (config-header 'tof)
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Κατάλογος Δ.Ο.Υ."))
-               (:div :id "tof" :class "window"
-                     (tof-menu (val id) (if (val id)
-                                            '(create update delete)
-                                            '(create)))
-                     (render (tof-table 'view (val* id))))
-               (footer))))
+      (let ((tof-table (make-instance 'tof-table
+                                        :op 'view
+                                        :filter (val* filter))))
+        (with-document ()
+          (:head
+           (:title "Τράπεζες")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-menu 'tof)
+                 (:div :id "controls" :class "controls grid_3"
+                       (tof-filters (val filter)))
+                 (:div :id "tof-window" :class "window grid_9"
+                       (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
+                       (tof-menu (val id)
+                                  (val filter)
+                                  (if (val id)
+                                      '(view)
+                                      '(view update delete)))
+                       (display tof-table
+                                :start (val* start)
+                                :selected-id (val* id)))
+                 (footer)))))
       (see-other (notfound))))
 
 (define-dynamic-page tof/create ("config/tof/create")
-    ((title string chk-tof-title))
+    ((title string chk-tof-title)
+     (filter string))
   (no-cache)
-  (with-document ()
-    (:head
-     (:title "Δημιουργία Δ.Ο.Υ.")
-     (head-config))
-    (:body
-     (config-header 'tof)
-     (:div :id "body"
-           (:div :class "message"
-                 (:h2 :class "info" "Δημιουργία τράπεζας")
-                 (tof-errorbar (list title)))
-           (:div :id "tof" :class "window"
-                 (tof-menu nil '(view))
-                 (with-form (actions/tof/create :title (val* title))
-                   (tof-table 'create nil)))
-           (footer)))))
+  (let ((tof-table (make-instance 'tof-table
+                                   :op 'create
+                                   :filter (val* filter))))
+    (with-document ()
+      (:head
+       (:title "Δημιουργία Δ.Ο.Υ.")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-menu 'tof)
+             (:div :id "controls" :class "controls grid_3"
+                   (tof-filters (val filter))
+                   (notifications title))
+             (:div :id "tof-window" :class "window grid_9"
+                   (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
+                   (tof-menu nil
+                              (val filter)
+                              '(create update delete))
+                   (with-form (actions/tof/create :title (val* title))
+                     (display tof-table
+                              :selected-id nil
+                              :selected-data (list :id nil :title (val* title)))))
+             (footer))))))
 
 (define-dynamic-page tof/update ("config/tof/update")
     ((id    integer chk-tof-id t)
-     (title string  (chk-tof-title title id)))
+     (title string  (chk-tof-title title id))
+     (filter string))
   (no-cache)
   (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Επεξεργασία Δ.Ο.Υ.")
-         (head-config))
-        (:body
-         (config-header 'tof)
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Επεξεργασία Δ.Ο.Υ.")
-                     (tof-errorbar (list title)))
-               (:div :id "tof" :class "window"
-                     (tof-menu (val id) '(view delete))
-                     (with-form (actions/tof/update :id (val id))
-                       (tof-table 'update (val* id))))
-               (footer))))
+      (let ((tof-table (make-instance 'tof-table
+                                       :op 'update
+                                       :filter (val* filter))))
+        (with-document ()
+          (:head
+           (:title "Επεξεργασία Δ.Ο.Υ.")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-menu 'tof)
+                 (:div :id "controls" :class "controls grid_3"
+                       (tof-filters (val filter))
+                       (notifications title))
+                 (:div :id "tof-window" :class "window grid_9"
+                       (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
+                       (tof-menu (val id)
+                                  (val filter)
+                                  '(create update))
+                       (with-form (actions/tof/update :id (val* id)
+                                                       :title (val* title))
+                         (display tof-table
+                                  :selected-id (val id)
+                                  :selected-data (list :title (val* title)))))
+                 (footer)))))
       (see-other (notfound))))
 
 (define-dynamic-page tof/delete ("config/tof/delete")
-    ((id integer chk-tof-id/ref t))
+    ((id integer chk-tof-id/ref t)
+     (filter string))
   (no-cache)
   (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Διαγραφή Δ.Ο.Υ.")
-         (head-config))
-        (:body
-         (config-header 'tof)
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Διαγραφή Δ.Ο.Υ."))
-               (:div :id "tof" :class "window"
-                     (tof-menu (val id) '(view update))
-                     (with-form (actions/tof/delete :id (val id))
-                       (tof-table 'delete (val* id))))
-               (footer))))
+      (let ((tof-table (make-instance 'tof-table
+                                       :op 'delete
+                                       :filter (val* filter))))
+        (with-document ()
+          (:head
+           (:title "Διαγραφή Δ.Ο.Υ.")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-menu 'tof)
+                 (:div :id "controls" :class "controls grid_3"
+                       (tof-filters (val filter)))
+                 (:div :id "tof-window" :class "window grid_9"
+                       (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
+                       (tof-menu (val id)
+                                  (val filter)
+                                  '(create delete))
+                       (with-form (actions/tof/delete :id (val id))
+                         (display tof-table
+                                  :selected-id (val id))))
+                 (footer)))))
       (see-other (notfound))))
