@@ -248,7 +248,7 @@
                    (with-form (actions/city/create :title (val* title))
                      (display city-table
                               :selected-id nil
-                              :selected-data (list :id nil :title (val* title)))))
+                              :selected-data (list :title (val* title)))))
              (footer))))))
 
 (define-dynamic-page city/update ("config/city/update")

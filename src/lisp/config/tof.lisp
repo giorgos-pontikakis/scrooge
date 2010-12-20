@@ -249,7 +249,7 @@
                    (with-form (actions/tof/create :title (val* title))
                      (display tof-table
                               :selected-id nil
-                              :selected-data (list :id nil :title (val* title)))))
+                              :selected-data (list :title (val* title)))))
              (footer))))))
 
 (define-dynamic-page tof/update ("config/tof/update")
