@@ -10,9 +10,9 @@
   (display (make-instance 'horizontal-navbar
                           :id "config-menu"
                           :style "hnavbar grid_12"
-                          :spec '((cities "Πόλεις")
+                          :spec '((city "Πόλεις")
                                   (bank "Τράπεζες")
-                                  (tofs "Δ.Ο.Υ.")
+                                  (tof "Δ.Ο.Υ.")
                                   (accounts "Λογαριασμοί")
                                   (temtx "Πρότυπες Συναλλαγές")
                                   (stran "Καταστατικές Μεταβολές")))

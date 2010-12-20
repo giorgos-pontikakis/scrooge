@@ -306,7 +306,8 @@
 (defclass messenger (widget)
   ((id       :accessor id       :initarg :id)
    (style    :accessor style    :initarg :style)
-   (messages :accessor messages :initarg :messages)))
+   (messages :accessor messages :initarg :messages))
+  (:default-initargs :id nil))
 
 (defmethod display ((messenger messenger) &key params)
   (flet ((get-message (param messages)
@@ -320,9 +321,3 @@
                    (unless (validp p)
                      (htm (:li :class (style messenger)
                                (str (get-message p (messages messenger))))))))))))
-
-(defun messenger (message-spec &optional id style)
-  (make-instance 'messenger
-                 :id id
-                 :style style
-                 :messages message-spec))

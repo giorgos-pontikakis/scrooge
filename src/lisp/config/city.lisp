@@ -75,7 +75,7 @@
 ;;; City menu
 ;;; ------------------------------------------------------------
 
-(defun city-menu (id enabled-items)
+(defun city-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "city-actions"
                           :style "hnavbar actions grid_9 alpha"
@@ -113,7 +113,7 @@
 (defmethod paginator ((table city-table))
   (make-instance 'paginator
                  :id "city-paginator"
-                 :style "paginator"
+                 :style "paginator grid_9 alpha"
                  :delta 10
                  :urlfn (lambda (start)
                           (city :filter (filter table) :start start))
@@ -172,19 +172,15 @@
           (:p :class "title" "Φίλτρα")
           (with-form (city)
             (htm
-             (:p (textbox 'filter :value filter) (submit (html ()
-                                                           (img "magnifier.png")))))))))
+             (:p :class "search"
+                 (textbox 'filter :value filter)
+                 (submit (html ()
+                           (img "magnifier.png")))))))))
 
-(defun notifications (&rest params)
-  (let ((messenger (messenger '(title ((city-title-null "Το όνομα της πόλης είναι κενό.")
-                                     (city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
-                              "msg-error")))
-    (with-html
-      (:div :id "notifications"
-            (:p :class "title" "Μηνύματα")
-            (display messenger :params params)))))
-
-
+(defun city-notifications (&rest params)
+  (notifications '(title ((city-title-null "Το όνομα πόλης είναι κενό.")
+                          (city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
+                 params))
 
 ;;; ------------------------------------------------------------
 ;;; City - Pages
@@ -239,7 +235,7 @@
              (config-menu 'city)
              (:div :id "controls" :class "controls grid_3"
                    (city-filters (val filter))
-                   (notifications title))
+                   (city-notifications title))
              (:div :id "city-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία πόλης")
                    (city-menu nil
@@ -270,7 +266,7 @@
                  (config-menu 'city)
                  (:div :id "controls" :class "controls grid_3"
                        (city-filters (val filter))
-                       (notifications title))
+                       (city-notifications title))
                  (:div :id "city-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία πόλης")
                        (city-menu (val id)

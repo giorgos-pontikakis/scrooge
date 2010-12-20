@@ -109,6 +109,15 @@
            :active-page-name active-page-name))
 
 
+(defun notifications (messages params)
+  (with-html
+    (:div :id "notifications"
+          (:p :class "title" "Μηνύματα")
+          (display (make-instance 'messenger
+                                  :messages messages
+                                  :style "msg-error")
+                   :params params))))
+
 
 ;;; ------------------------------------------------------------
 ;;; CRUD actions menu

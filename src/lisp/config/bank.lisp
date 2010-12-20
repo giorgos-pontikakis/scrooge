@@ -179,19 +179,14 @@
           (with-form (bank)
             (htm
              (:p :class "search"
-                 (textbox 'filter :value filter) (submit (html ()
-                                                           (img "magnifier.png")))))))))
+                 (textbox 'filter :value filter)
+                 (submit (html ()
+                           (img "magnifier.png")))))))))
 
-(defun notifications (&rest params)
-  (let ((messenger (messenger '(title ((bank-title-null "Το όνομα της τράπεζας είναι κενό.")
-                                     (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
-                              "msg-error")))
-    (with-html
-      (:div :id "notifications"
-            (:p :class "title" "Μηνύματα")
-            (display messenger :params params)))))
-
-
+(defun bank-notifications (&rest params)
+  (notifications '(title ((bank-title-null "Το όνομα τράπεζας είναι κενό.")
+                          (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
+                 params))
 
 ;;; ------------------------------------------------------------
 ;;; Bank - Pages
@@ -246,7 +241,7 @@
              (config-menu 'bank)
              (:div :id "controls" :class "controls grid_3"
                    (bank-filters (val filter))
-                   (notifications title))
+                   (bank-notifications title))
              (:div :id "bank-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία τράπεζας")
                    (bank-menu nil
@@ -277,7 +272,7 @@
                  (config-menu 'bank)
                  (:div :id "controls" :class "controls grid_3"
                        (bank-filters (val filter))
-                       (notifications title))
+                       (bank-notifications title))
                  (:div :id "bank-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία τράπεζας")
                        (bank-menu (val id)

@@ -75,7 +75,7 @@
 ;;; TOF menu
 ;;; ------------------------------------------------------------
 
-(defun tof-menu (id enabled-items)
+(defun tof-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "tof-actions"
                           :style "hnavbar actions grid_9 alpha"
@@ -114,7 +114,7 @@
 (defmethod paginator ((table tof-table))
   (make-instance 'paginator
                  :id "tof-paginator"
-                 :style "paginator"
+                 :style "paginator grid_9 alpha"
                  :delta 10
                  :urlfn (lambda (start)
                           (tof :filter (filter table) :start start))
@@ -173,17 +173,15 @@
           (:p :class "title" "Φίλτρα")
           (with-form (tof)
             (htm
-             (:p (textbox 'filter :value filter) (submit (html ()
-                                                           (img "magnifier.png")))))))))
+             (:p :class "search"
+                 (textbox 'filter :value filter)
+                 (submit (html ()
+                           (img "magnifier.png")))))))))
 
-(defun notifications (&rest params)
-  (let ((messenger (messenger '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
-                                     (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
-                              "msg-error")))
-    (with-html
-      (:div :id "notifications"
-            (:p :class "title" "Μηνύματα")
-            (display messenger :params params)))))
+(defun tof-notifications (&rest params)
+  (notifications '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
+                          (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
+                 params))
 
 
 
@@ -240,7 +238,7 @@
              (config-menu 'tof)
              (:div :id "controls" :class "controls grid_3"
                    (tof-filters (val filter))
-                   (notifications title))
+                   (tof-notifications title))
              (:div :id "tof-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
                    (tof-menu nil
@@ -271,7 +269,7 @@
                  (config-menu 'tof)
                  (:div :id "controls" :class "controls grid_3"
                        (tof-filters (val filter))
-                       (notifications title))
+                       (tof-notifications title))
                  (:div :id "tof-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
                        (tof-menu (val id)
