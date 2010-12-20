@@ -255,7 +255,7 @@
                    (with-form (actions/bank/create :title (val* title))
                      (display bank-table
                               :selected-id nil
-                              :selected-data (list :id nil :title (val* title)))))
+                              :selected-data (list :title (val* title)))))
              (footer))))))
 
 (define-dynamic-page bank/update ("config/bank/update")
