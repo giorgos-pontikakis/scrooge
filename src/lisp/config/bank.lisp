@@ -107,7 +107,7 @@
 
 (defmethod make-row ((table bank-table) data)
   (make-instance 'bank-row
-                 :table table
+                 :collection table
                  :data data))
 
 (defmethod paginator ((table bank-table))
@@ -130,8 +130,8 @@
 (defmethod cells ((row bank-row))
   (let* ((id (get-id row))
          (data (data row))
-         (table (table row))
-         (pg (paginator table ))
+         (table (collection row))
+         (pg (paginator table))
          (filter (filter table)))
     (list :selector (make-instance 'selector-cell
                                    :style "selector"
@@ -154,16 +154,19 @@
   (let ((selected-p (selected-p row selected-id)))
     (with-html
       (:tr :class (if selected-p
-                      (if (eq (op (table row)) 'delete)
+                      (if (eq (op (collection row)) 'delete)
                           "attention"
                           "selected")
                       nil)
-           (display (getf (cells row) :selector)
-                    :state (if selected-p :on :off))
-           (display (getf (cells row) :payload)
-                    :readonlyp (readonly-p row selected-id))
+           (:td :class "selector"
+                (display (getf (cells row) :selector)
+                         :state (if selected-p :on :off)))
+           (:td :class "payload"
+                (display (getf (cells row) :payload)
+                         :readonlyp (readonly-p row selected-id)))
            (mapc (lambda (cell)
-                   (htm (display cell :activep (controls-p row selected-id))))
+                   (htm (:td :class "control"
+                             (display cell :activep (controls-p row selected-id)))))
                  (getf (cells row) :controls))))))
 
 

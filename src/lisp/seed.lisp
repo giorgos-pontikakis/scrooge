@@ -1,5 +1,9 @@
 (in-package :scrooge)
 
+(declaim (optimize (speed 0) (debug 3)))
+
+
+
 ;;; ----------------------------------------------------------------------
 ;;; Default table values (only for development)
 ;;; ----------------------------------------------------------------------
@@ -87,7 +91,8 @@
           "ΝΙΚΑΙΑΣ"
           "ΠΑΛ. ΦΑΛΗΡΟΥ"
           "ΠΑΛΛΗΝΗΣ"
-          "Α΄ ΠΕΙΡΑΙΑ (Α΄,Β΄)"
+          "Α΄ ΠΕΙΡΑΙΑ"
+          "Β΄ ΠΕΙΡΑΙΑ"
           "Γ΄ ΠΕΙΡΑΙΑ"
           "Δ΄ ΠΕΙΡΑΙΑ"
           "Ε΄ ΠΕΙΡΑΙΑ"
@@ -359,6 +364,61 @@
            "Θεσσαλονίκη"
            :null
            :null))))
+
+(defun seed-accounts ()
+  (with-db ()
+    (let ((debit-accounts
+           '((assets "Ενεργητικό"
+              ((current-assets "Κυκλοφορούν Ενεργητικό"
+                               ((cash "Μετρητά" ())
+                                (cheques-receivable "Επιταγές εισπρακτέες" ())
+                                (receivables "Απαιτήσεις"
+                                             ((accounts-receivable "Εισπρακτέοι λογαριασμοί" ())
+                                              (bad-debts "Φέσια" ())))
+                                (bank-checking-account "Λογαριασμός όψεως" ())
+                                (supplies "Αναλώσιμα" ())
+                                (raw-materials "Πρώτες ύλες" ())
+                                (manufacturing-supplies "Εξοπλισμός παραγωγής" ())
+                                (prepaid-expenses "Προπληρωμένα έξοδα" ())))
+               (property "Περιουσιακά στοιχεία"
+                         ((vehicles "Οχήματα" ())
+                          (machinery "Εργαλεία και εργαλειομηχανές" ())
+                          (equipment "Λοιπός εξοπλισμός" ())
+                          (depreciation "Απαξίωση περιουσιακών στοιχείων" ())))))
+             (expenses "Έξοδα" ((operating-expenses "Λειτουργικά έξοδα" ())
+                                (manufacturing-expenses "Έξοδα παραγωγής" ())))))
+          (credit-accounts '((liabilities "Παθητικό"
+                              ((current-liabilities "Τρέχουσες Υποχρεώσεις" ())
+                               (accounts-payable "foobar")))
+                             (revenues "Έσοδα"
+                              ((services "Υπηρεσίες" ())
+                               (sales "Πωλήσεις" ())
+                               (projects "Έργα" ())))))
+          (*debitp* nil))
+      (declare (special *debitp*))
+      (labels ((create-accounts (account-list parent-id)
+                 (let (list)
+                   (mapc (lambda (acc)
+                           (let* ((db-id (if (eql (first acc) :null)
+                                             :null
+                                             (string-downcase (first acc))))
+                                  (db-pid (if (eql parent-id :null)
+                                              :null
+                                              (string-downcase parent-id)))
+                                  (inst (make-instance 'account
+                                                       :id db-id
+                                                       :title (second acc)
+                                                       :parent-id db-pid
+                                                       :debit-p *debitp*)))
+                             (insert-dao inst)
+                             (push inst list)
+                             (create-accounts (third acc) db-id)))
+                         account-list)
+                   list)))
+        (setf *debitp* nil)
+        (create-accounts credit-accounts :null)
+        (setf *debitp* t)
+        (create-accounts debit-accounts :null)))))
 
 (defun seed-all ()
   (seed-banks)

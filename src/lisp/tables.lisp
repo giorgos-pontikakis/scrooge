@@ -93,7 +93,7 @@
   (:keys id))
 
 (defclass cheque-status ()
-  ((status :col-type string :reader status)
+  ((status      :col-type string :reader   status)
    (description :col-type string :accessor description :initarg :description))
   (:metaclass dao-class)
   (:keys status))
@@ -109,10 +109,10 @@
   (:keys id))
 
 (defclass account ()
-  ((id        :col-type integer :accessor id        :initarg :id)
+  ((id        :col-type string  :accessor id        :initarg :id)
    (title     :col-type string  :accessor title     :initarg :title)
    (debit-p   :col-type boolean :accessor debit-p   :initarg :debit-p)
-   (parent-id :col-type integer :accessor parent-id :initarg :parent-id))
+   (parent-id :col-type string  :accessor parent-id :initarg :parent-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -130,12 +130,10 @@
   ((id            :col-type integer :reader   id)
    (tx-date       :col-type date    :accessor tx-date       :initarg :tx-date)
    (description   :col-type string  :accessor description   :initarg :description)
-   (company-id    :col-type integer :accessor company-id    :initarg :company-id)
-   (amount        :col-type integer :accessor amount        :initarg :amount)
    (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id)
-   (src-id        :col-type src-id  :accessor src-id        :initarg :src-id)
-   (src-tbl       :col-type src-tbl :accessor src-tbl       :initarg :src-tbl))
+   (company-id    :col-type integer :accessor company-id    :initarg :company-id)
+   (amount        :col-type integer :accessor amount        :initarg :amount))
   (:metaclass dao-class)
   (:keys id))
 

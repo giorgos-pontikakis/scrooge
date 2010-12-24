@@ -13,7 +13,7 @@
                           :spec '((city "Πόλεις")
                                   (bank "Τράπεζες")
                                   (tof "Δ.Ο.Υ.")
-                                  (accounts "Λογαριασμοί")
+                                  (account "Λογαριασμοί")
                                   (temtx "Πρότυπες Συναλλαγές")
                                   (stran "Καταστατικές Μεταβολές")))
            :active-page-name active-page-name))

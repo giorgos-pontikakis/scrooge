@@ -108,7 +108,7 @@
 
 (defmethod make-row ((table tof-table) data)
   (make-instance 'tof-row
-                 :table table
+                 :collection table
                  :data data))
 
 (defmethod paginator ((table tof-table))
@@ -131,7 +131,7 @@
 (defmethod cells ((row tof-row))
   (let* ((id (get-id row))
          (data (data row))
-         (table (table row))
+         (table (collection row))
          (pg (paginator table ))
          (filter (filter table)))
     (list :selector (make-instance 'selector-cell
@@ -152,14 +152,23 @@
                                     :href (tof :id id))))))
 
 (defmethod display ((row tof-row) &key selected-id)
-  (with-html
-    (:tr (display (getf (cells row) :selector)
-                  :state (if (selected-p row selected-id) :on :off))
-         (display (getf (cells row) :payload)
-                  :readonlyp (readonly-p row selected-id))
-         (mapc (lambda (cell)
-                 (htm (display cell :activep (controls-p row selected-id))))
-               (getf (cells row) :controls)))))
+  (let ((selected-p (selected-p row selected-id)))
+    (with-html
+      (:tr :class (if selected-p
+                      (if (eq (op (collection row)) 'delete)
+                          "attention"
+                          "selected")
+                      nil)
+           (:td :class "selector"
+                (display (getf (cells row) :selector)
+                         :state (if (selected-p row selected-id) :on :off)))
+           (:td :class "payload"
+                (display (getf (cells row) :payload)
+                         :readonlyp (readonly-p row selected-id)))
+           (mapc (lambda (cell)
+                   (htm (:td :class "control"
+                             (display cell :activep (controls-p row selected-id)))))
+                 (getf (cells row) :controls))))))
 
 
 

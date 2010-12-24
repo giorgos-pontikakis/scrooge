@@ -3,23 +3,111 @@
 (declaim (optimize (speed 0) (debug 3)))
 
 
+(defclass widget ()
+  ((id    :accessor id    :initarg :id)
+   (style :accessor style :initarg :style)))
+
+
+
+;;; ------------------------------------------------------------
+;;; CRUD Collections
+;;; ------------------------------------------------------------
+
+(defclass crud-collection (widget)
+  ((op      :accessor op      :initarg :op)
+   (filter  :accessor filter  :initarg :filter)
+   (db-data :reader   db-data)
+   (rows    :reader   rows)))
+
+(defmethod initialize-instance :after ((collection crud-collection) &key)
+  ;; First store db-data
+  (setf (slot-value collection 'db-data)
+        (read-data collection))
+  ;; Then store row objects
+  (setf (slot-value collection 'rows)
+        (mapcar (lambda (row-data)
+                  (make-row collection row-data))
+                (slot-value collection 'db-data))))
+
+
+(defgeneric read-data (crud-collection))
+(defgeneric make-row (crud-collection data))
+
+
+
+;;; ------------------------------------------------------------
+;;; CRUD Collection Items
+;;; ------------------------------------------------------------
+
+(defgeneric selected-p (row selected-id)
+  (:documentation "Returns T if the row is selected."))
+
+(defgeneric readonly-p (row selected-id)
+  (:documentation "Returns T if the row is readonly."))
+
+(defgeneric controls-p (row selected-id)
+  (:documentation "Returns T if the row has active controls."))
+
+(defgeneric cells (row)
+  (:documentation "Returns a property list which contains the ids of
+  the various cells as keys and lists of cell objects as the
+  corresponding values."))
+
+(defgeneric get-id (row)
+  (:documentation "Returns the id of the row, which should be
+  comparable with the selected-id slot of the row's collection."))
+
+(defgeneric get-payload (row))
+
+
+(defclass crud-row ()
+  ((collection :accessor collection :initarg :collection)
+   (data       :accessor data       :initarg :data)))
+
+(defmethod selected-p ((row crud-row) selected-id)
+  (eql (get-id row) selected-id))
+
+(defmethod readonly-p ((row crud-row) selected-id)
+  (or (not (selected-p row selected-id))
+      (member (op (collection row)) '(view delete))))
+
+(defmethod controls-p ((row crud-row) selected-id)
+  (and (selected-p row selected-id)
+       (member (op (collection row)) '(create update delete))))
+
+
+
+
+;;; ------------------------------------------------------------
+;;; Trees
+;;; ------------------------------------------------------------
+
+(defclass crud-tree (crud-collection)
+  ((parent   :accessor parent   :initarg :parent)
+   (children :accessor children :initarg :children)
+   (content  :accessor content  :initarg :content)))
+
+(defgeneric db-data->tree-data (tree))
+
+
+
+(defmethod display ((tree crud-tree) &key selected-id)
+  (with-html
+    (:ul :style (style tree)
+         (mapc (lambda (x)
+                 (htm (:li (display x))))
+               (content tree)))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; CRUD Tables
 ;;; ------------------------------------------------------------
 
-(defclass crud-table (widget)
-  ((id          :accessor id          :initarg :id)
-   (style         :accessor style         :initarg :style)
-   (op            :accessor op            :initarg :op)
-   (filter        :accessor filter        :initarg :filter)
-   (header-labels :accessor header-labels :initarg :header-labels)
-   (db-data       :reader   db-data)
-   (rows          :reader   rows))
+(defclass crud-table (crud-collection)
+  ((header-labels :accessor header-labels :initarg :header-labels))
   (:default-initargs :id "crud-table" :style "crud-table"))
 
-(defgeneric read-data (crud-table))
-(defgeneric make-row (crud-table data))
 (defgeneric paginator (table))
 
 (defmethod initialize-instance :after ((table crud-table) &key)
@@ -64,10 +152,8 @@
 ;;; Table Paginator
 ;;; ------------------------------------------------------------
 
-(defclass paginator ()
-  ((id    :accessor id    :initarg :id)
-   (style :accessor style :initarg :style)
-   (delta :accessor delta :initarg :delta)
+(defclass paginator (widget)
+  ((delta :accessor delta :initarg :delta)
    (urlfn :accessor urlfn :initarg :urlfn)
    (len   :accessor len   :initarg :len)))
 
@@ -123,64 +209,20 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Table Rows
-;;; ------------------------------------------------------------
-
-(defgeneric selected-p (row selected-id)
-  (:documentation "Returns T if the row is selected."))
-
-(defgeneric readonly-p (row selected-id)
-  (:documentation "Returns T if the row is readonly."))
-
-(defgeneric controls-p (row selected-id)
-  (:documentation "Returns T if the row has active controls."))
-
-(defgeneric cells (row)
-  (:documentation "Returns a property list which contains the ids of
-  the various cells as keys and lists of cell objects as the
-  corresponding values."))
-
-(defgeneric get-id (row)
-  (:documentation "Returns the id of the row, which should be
-  comparable with the selected-id slot of the row's table."))
-
-(defgeneric get-payload (row))
-
-
-(defclass crud-row ()
-  ((table :accessor table :initarg :table)
-   (data  :accessor data  :initarg :data)))
-
-(defmethod selected-p ((row crud-row) selected-id)
-  (eql (get-id row) selected-id))
-
-(defmethod readonly-p ((row crud-row) selected-id)
-  (or (not (selected-p row selected-id))
-      (member (op (table row)) '(view delete))))
-
-(defmethod controls-p ((row crud-row) selected-id)
-  (and (selected-p row selected-id)
-       (member (op (table row)) '(create update delete))))
-
-
-
-
-;;; ------------------------------------------------------------
 ;;; Cells
 ;;; ------------------------------------------------------------
 
 (defclass textbox-cell (widget)
   ((name  :accessor name  :initarg :name)
-   (style :accessor style :initarg :style)
    (value :accessor value :initarg :value)))
 
 (defmethod display ((cell textbox-cell) &key readonlyp)
   (if readonlyp
       (with-html
-        (:td :class (style cell)
+        (:div :class (style cell)
              (str (value cell))))
       (with-html
-        (:td :class (style cell)
+        (:div :class (style cell)
              (textbox (name cell)
                       :readonlyp readonlyp
                       :value (value cell))))))
@@ -188,12 +230,11 @@
 
 
 (defclass selector-cell (widget)
-  ((style  :accessor style  :initarg :style)
-   (states :accessor states :initarg :states)))
+  ((states :accessor states :initarg :states)))
 
 (defmethod display ((cell selector-cell) &key state)
   (with-html
-    (:td :class (style cell)
+    (:div :class (style cell)
          (:a :href (getf (states cell) state)
              (img (if (eq state :on)
                       "bullet_red.png"
@@ -202,34 +243,32 @@
 
 
 (defclass ok-cell (widget)
-  ((style :accessor style :initarg :style)
-   ))
+  ())
 
 (defmethod display ((cell ok-cell) &key activep)
   (if activep
       (with-html
-        (:td :class (style cell)
+        (:div :class (style cell)
              (submit (html ()
                        (img "tick.png")))))
       (with-html
-        (:td :class (style cell)
+        (:div :class (style cell)
              ""))))
 
 
 
 (defclass cancel-cell (widget)
-  ((style :accessor style :initarg :style)
-   (href  :accessor href  :initarg :href)))
+  ((href  :accessor href  :initarg :href)))
 
 (defmethod display ((cell cancel-cell) &key activep)
   (if activep
       (with-html
-        (:td :class (style cell)
-             (:a :href (href cell)
-                 (img "cancel.png"))))
+        (:div :class (style cell)
+              (:a :href (href cell)
+                  (img "cancel.png"))))
       (with-html
-        (:td :class (style cell)
-             ""))))
+        (:div :class (style cell)
+              ""))))
 
 
 
@@ -243,9 +282,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass navbar (widget)
-  ((id    :accessor id    :initarg :id)
-   (style :accessor style :initarg :style)
-   (spec  :accessor spec  :initarg :spec)))
+  ((spec  :accessor spec  :initarg :spec)))
 
 (defmethod display ((navbar navbar) &key active-page-name)
   (with-html
@@ -278,9 +315,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass menu (widget)
-  ((id    :accessor id    :initarg :id)
-   (style :accessor style :initarg :style)
-   (spec  :accessor spec  :initarg :spec)))
+  ((spec  :accessor spec  :initarg :spec)))
 
 (defmethod display ((menu menu) &key disabled-items)
   (with-html
@@ -304,9 +339,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass messenger (widget)
-  ((id       :accessor id       :initarg :id)
-   (style    :accessor style    :initarg :style)
-   (messages :accessor messages :initarg :messages))
+  ((messages :accessor messages :initarg :messages))
   (:default-initargs :id nil))
 
 (defmethod display ((messenger messenger) &key params)
