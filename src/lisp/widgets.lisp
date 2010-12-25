@@ -124,8 +124,6 @@
   (setf (slot-value table 'rows)
         (read-items table))
   (when-let (pg (paginator table))
-    (setf (slot-value pg 'len)
-          (length (slot-value table 'rows)))
     (setf (slot-value pg 'table)
           table)))
 
@@ -159,7 +157,8 @@
                 (:tbody
                  (iter (for row in (subseq (rows table)
                                            page-start
-                                           (min (+ page-start (delta pg)) (len pg))))
+                                           (min (+ page-start (delta pg))
+                                                (length (rows table)))))
                        (display row
                                 :selected-id selected-id
                                 :start start))))))))
@@ -202,8 +201,7 @@
 (defclass paginator (widget)
   ((table :accessor table :initarg :table)
    (delta :accessor delta :initarg :delta)
-   (urlfn :accessor urlfn :initarg :urlfn)
-   (len   :reader   len)))
+   (urlfn :accessor urlfn :initarg :urlfn)))
 
 (defgeneric page-start (paginator index start))
 
@@ -211,7 +209,7 @@
   (if (null index)
       (if (or (null start)
               (< start 0)
-              (> start (len pg)))
+              (> start (length (rows (table pg)))))
           0
           start)
       (let ((delta (delta pg)))
@@ -220,20 +218,21 @@
 
 (defmethod display ((pg paginator) &key (start 0))
   (let* ((delta (delta pg))
+         (len (length (rows (table pg))))
          (prev (if (>= (- start delta) 0)
                    (- start delta)
                    (if (> start 0)
                        0
                        nil)))
-         (next (if (<= (+ start delta) (1- (len pg)))
+         (next (if (<= (+ start delta) (1- len))
                    (+ start delta)
                    nil)))
     (with-html
       (:div :id (id pg) :class (style pg)
             (fmt "Εγγραφές ~A–~A από ~A"
                  (1+ start)
-                 (min (+ start delta) (len pg))
-                 (len pg))
+                 (min (+ start delta) len)
+                 len)
             (if prev
                 (htm (:a :href (funcall (urlfn pg) (filter (table pg)) prev)
                          (img "resultset_previous.png" )))

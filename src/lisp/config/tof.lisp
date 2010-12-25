@@ -157,7 +157,7 @@
                                     :style "control")
                      (make-instance 'cancel-cell
                                     :style "control"
-                                    :href (tof :id id))))))
+                                    :href (tof :id id :filter filter))))))
 
 
 

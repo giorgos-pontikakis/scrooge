@@ -156,7 +156,7 @@
                                     :style "control")
                      (make-instance 'cancel-cell
                                     :style "control"
-                                    :href (bank :id id))))))
+                                    :href (bank :id id :filter filter))))))
 
 
 
