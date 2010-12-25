@@ -51,22 +51,24 @@
 
 (define-dynamic-page actions/bank/update ("actions/bank/update" :request-type :post)
     ((id    integer chk-bank-id t)
-     (title string  (chk-bank-title title id) t))
+     (title string  (chk-bank-title title id) t)
+     (filter string))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
         (execute (:update 'bank :set
                           'title (val title)
                           :where (:= 'id (val id))))
-        (see-other (bank :id (val id))))
-      (see-other (bank/update :id (raw id) :title (raw title)))))
+        (see-other (bank :id (val id) :filter (val filter))))
+      (see-other (bank/update :id (raw id) :title (raw title) :filter (raw filter)))))
 
 (define-dynamic-page actions/bank/delete ("actions/bank/delete" :request-type :post)
-    ((id integer chk-bank-id/ref t))
+    ((id integer chk-bank-id/ref t)
+     (filter string))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'bank (val id)))
-        (see-other (bank)))
+        (see-other (bank :filter (val filter))))
       (see-other (notfound))))
 
 
@@ -100,74 +102,61 @@
 ;;; table
 
 (defclass bank-table (crud-table)
-  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))))
+  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
+   (paginator     :initform (make-instance 'paginator
+                                           :id "bank-paginator"
+                                           :style "paginator grid_9 alpha"
+                                           :delta 10
+                                           :urlfn (lambda (filter start)
+                                                    (bank :filter filter
+                                                          :start start))))))
 
-(defmethod read-data ((table bank-table))
-  (config-data 'bank (filter table)))
+(defmethod read-items ((table bank-table))
+  (iter (for rec in (config-data 'bank (filter table)))
+        (for i from 0)
+        (collect (make-instance 'bank-row
+                                :key (getf rec :id)
+                                :record rec
+                                :collection table
+                                :index i))))
 
-(defmethod make-item ((table bank-table) data)
-  (make-instance 'bank-row
-                 :collection table
-                 :data data))
+(defmethod insert-item ((table bank-table) &key record index)
+  (let* ((rows (rows table))
+         (new-row (make-instance 'bank-row
+                                  :key (getf record :id)
+                                  :record record
+                                  :collection table
+                                  :index index)))
+    (setf (rows table)
+          (ninsert-list index new-row rows))))
 
-(defmethod paginator ((table bank-table))
-  (make-instance 'paginator
-                 :id "bank-paginator"
-                 :style "paginator grid_9 alpha"
-                 :delta 10
-                 :urlfn (lambda (start)
-                          (bank :filter (filter table) :start start))
-                 :len (length (db-data table))))
 
 ;;; rows
 
-(defclass bank-row (crud-item)
+(defclass bank-row (crud-row)
   ())
 
-(defmethod get-id ((row bank-row))
-  (getf (data row) :id))
-
-(defmethod cells ((row bank-row))
-  (let* ((id (get-id row))
-         (data (data row))
-         (table (collection row))
-         (pg (paginator table))
-         (filter (filter table)))
+(defmethod cells ((row bank-row) &key start)
+  (let* ((id (key row))
+         (record (record row))
+         (pg (paginator (collection row)))
+         (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :style "selector"
                                    :states (list :on (bank :filter filter
-                                                           :start (pg-start table pg id))
+                                                           :start (page-start pg (index row) start))
                                                  :off (bank :filter filter
                                                             :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :style "payload"
-                                  :value (getf data :title))
+                                  :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell
                                     :style "control")
                      (make-instance 'cancel-cell
                                     :style "control"
                                     :href (bank :id id))))))
-
-(defmethod display ((row bank-row) &key selected-id)
-  (let ((selected-p (selected-p row selected-id)))
-    (with-html
-      (:tr :class (if selected-p
-                      (if (eq (op (collection row)) 'delete)
-                          "attention"
-                          "selected")
-                      nil)
-           (:td :class "selector"
-                (display (getf (cells row) :selector)
-                         :state (if selected-p :on :off)))
-           (:td :class "payload"
-                (display (getf (cells row) :payload)
-                         :readonlyp (readonly-p row selected-id)))
-           (mapc (lambda (cell)
-                   (htm (:td :class "control"
-                             (display cell :activep (controls-p row selected-id)))))
-                 (getf (cells row) :controls))))))
 
 
 
@@ -202,8 +191,8 @@
   (no-cache)
   (if (validp id)
       (let ((bank-table (make-instance 'bank-table
-                                        :op 'view
-                                        :filter (val* filter))))
+                                       :op 'view
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Τράπεζες")
@@ -222,8 +211,8 @@
                                       '(view)
                                       '(view update delete)))
                        (display bank-table
-                                :start (val* start)
-                                :selected-id (val* id)))
+                                :selected-id (val* id)
+                                :start (val* start)))
                  (footer)))))
       (see-other (notfound))))
 
@@ -282,7 +271,8 @@
                                   (val filter)
                                   '(create update))
                        (with-form (actions/bank/update :id (val* id)
-                                                       :title (val* title))
+                                                       :title (val* title)
+                                                       :filter (val* filter))
                          (display bank-table
                                   :selected-id (val id)
                                   :selected-data (list :title (val* title)))))
@@ -312,7 +302,8 @@
                        (bank-menu (val id)
                                   (val filter)
                                   '(create delete))
-                       (with-form (actions/bank/delete :id (val id))
+                       (with-form (actions/bank/delete :id (val id)
+                                                       :filter (val* filter))
                          (display bank-table
                                   :selected-id (val id))))
                  (footer)))))

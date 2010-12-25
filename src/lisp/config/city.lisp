@@ -51,22 +51,24 @@
 
 (define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
     ((id    integer chk-city-id t)
-     (title string (chk-city-title title id) t))
+     (title string (chk-city-title title id) t)
+     (filter string))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
         (execute (:update 'city :set
                           'title (val title)
                           :where (:= 'id (val id))))
-        (see-other (city :id (val id))))
-      (see-other (city/update :id (raw id) :title (raw title)))))
+        (see-other (city :id (val id) :filter (val filter))))
+      (see-other (city/update :id (raw id) :title (raw title) :filter (raw filter)))))
 
 (define-dynamic-page actions/city/delete ("actions/city/delete" :request-type :post)
-    ((id integer chk-city-id/ref t))
+    ((id integer chk-city-id/ref t)
+     (filter string))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'city (val id)))
-        (see-other (city)))
+        (see-other (city :filter (val filter))))
       (see-other (notfound))))
 
 
@@ -100,49 +102,55 @@
 ;;; table
 
 (defclass city-table (crud-table)
-  ((header-labels :initform '("" "Ονομασία πόλης" "" ""))))
+  ((header-labels :initform '("" "Ονομασία πόλης" "" ""))
+   (paginator :initform (make-instance 'paginator
+                                       :id "city-paginator"
+                                       :style "paginator grid_9 alpha"
+                                       :delta 10
+                                       :urlfn (lambda (filter start)
+                                                (city :filter filter
+                                                      :start start))))))
 
-(defmethod read-data ((table city-table))
-  (config-data 'city (filter table)))
+(defmethod read-items ((table city-table))
+  (iter (for rec in (config-data 'city (filter table)))
+        (for i from 0)
+        (collect (make-instance 'city-row
+                                :key (getf rec :id)
+                                :record rec
+                                :collection table
+                                :index i))))
 
-(defmethod make-row ((table city-table) data)
-  (make-instance 'city-row
-                 :collection table
-                 :data data))
+(defmethod insert-item ((table city-table) &key record index)
+  (let* ((rows (rows table))
+         (new-row (make-instance 'city-row
+                                  :key (getf record :id)
+                                  :record record
+                                  :collection table
+                                  :index index)))
+    (setf (rows table)
+          (ninsert-list index new-row rows))))
 
-(defmethod paginator ((table city-table))
-  (make-instance 'paginator
-                 :id "city-paginator"
-                 :style "paginator grid_9 alpha"
-                 :delta 10
-                 :urlfn (lambda (start)
-                          (city :filter (filter table) :start start))
-                 :len (length (db-data table))))
 
 ;;; rows
 
-(defclass city-row (crud-item)
+(defclass city-row (crud-row)
   ())
 
-(defmethod get-id ((row city-row))
-  (getf (data row) :id))
-
-(defmethod cells ((row city-row))
-  (let* ((id (get-id row))
-         (data (data row))
-         (table (collection row))
-         (pg (paginator table))
-         (filter (filter table)))
+(defmethod cells ((row city-row) &key start)
+  (let* ((id (key row))
+         (record (record row))
+         (pg (paginator (collection row)))
+         (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :style "selector"
                                    :states (list :on (city :filter filter
-                                                           :start (pg-start table pg id))
+                                                           :start (page-start pg (index row) start))
                                                  :off (city :filter filter
                                                             :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :style "payload"
-                                  :value (getf data :title))
+                                  :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell
                                     :style "control")
@@ -150,24 +158,7 @@
                                     :style "control"
                                     :href (city :id id))))))
 
-(defmethod display ((row city-row) &key selected-id)
-  (let ((selected-p (selected-p row selected-id)))
-    (with-html
-      (:tr :class (if selected-p
-                      (if (eq (op (collection row)) 'delete)
-                          "attention"
-                          "selected")
-                      nil)
-           (:td :class "selector"
-                (display (getf (cells row) :selector)
-                         :state (if (selected-p row selected-id) :on :off)))
-           (:td :class "payload"
-                (display (getf (cells row) :payload)
-                         :readonlyp (readonly-p row selected-id)))
-           (mapc (lambda (cell)
-                   (htm (:td :class "control"
-                             (display cell :activep (controls-p row selected-id)))))
-                 (getf (cells row) :controls))))))
+
 
 
 
@@ -202,8 +193,8 @@
   (no-cache)
   (if (validp id)
       (let ((city-table (make-instance 'city-table
-                                        :op 'view
-                                        :filter (val* filter))))
+                                       :op 'view
+                                       :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Πόλεις")
@@ -222,8 +213,8 @@
                                       '(view)
                                       '(view update delete)))
                        (display city-table
-                                :start (val* start)
-                                :selected-id (val* id)))
+                                :selected-id (val* id)
+                                :start (val* start)))
                  (footer)))))
       (see-other (notfound))))
 
@@ -282,7 +273,8 @@
                                   (val filter)
                                   '(create update))
                        (with-form (actions/city/update :id (val* id)
-                                                       :title (val* title))
+                                                       :title (val* title)
+                                                       :filter (val* filter))
                          (display city-table
                                   :selected-id (val id)
                                   :selected-data (list :title (val* title)))))
@@ -312,7 +304,8 @@
                        (city-menu (val id)
                                   (val filter)
                                   '(create delete))
-                       (with-form (actions/city/delete :id (val id))
+                       (with-form (actions/city/delete :id (val id)
+                                                       :filter (val* filter))
                          (display city-table
                                   :selected-id (val id))))
                  (footer)))))

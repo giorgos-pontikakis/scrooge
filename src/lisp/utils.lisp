@@ -36,17 +36,12 @@
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
-;; (defun full-url (page-name)
-;;   (let ((page (find-page page-name *webapp*)))
-;;     (concatenate 'string (webroot (webapp page)) (base-url page))))
-
-;; (defun see-other (url)
-;;   (redirect url :code +http-see-other+))
-
-;; (defun true (x)
-;;   (eq x t))
-
-;; (defun params->plist (parameters)
-;;   (iter (for p in parameters)
-;;         (collect (key p))
-;;         (collect (val* p))))
+(defun ninsert-list (n thing list)
+  ;; by Kent Pitman (named insert-before-element-n-destructively 28 Oct 1992)
+  (if (= n 0)
+      (cons thing list) ;There's no way to be destructive in this case, so just cons.
+      (let ((tail (nthcdr (1- n) list)))
+        (when (null tail)
+          (error "There is no position ~D in ~S." n list))
+        (push thing (cdr tail))
+        list)))

@@ -43,7 +43,9 @@
   (with-db ()
     (query (sql-compile
             (if filter
-                `(:select 'id 'title :from ,table-name
-                          :where (:ilike 'title ,(ilike filter)))
-                `(:select 'id 'title :from ,table-name)))
+                `(:order-by (:select 'id 'title :from ,table-name
+                                     :where (:ilike 'title ,(ilike filter)))
+                            'title)
+                `(:order-by (:select 'id 'title :from ,table-name)
+                            'title)))
            :plists)))

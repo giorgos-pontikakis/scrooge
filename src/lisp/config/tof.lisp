@@ -51,22 +51,24 @@
 
 (define-dynamic-page actions/tof/update ("actions/tof/update" :request-type :post)
     ((id    integer chk-tof-id t)
-     (title string (chk-tof-title title id) t))
+     (title string (chk-tof-title title id) t)
+     (filter string))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
         (execute (:update 'tof :set
                           'title (val title)
                           :where (:= 'id (val id))))
-        (see-other (tof :id (val id))))
-      (see-other (tof/update :id (raw id) :title (raw title)))))
+        (see-other (tof :id (val id) :filter (val filter))))
+      (see-other (tof/update :id (raw id) :title (raw title) :filter (raw filter)))))
 
 (define-dynamic-page actions/tof/delete ("actions/tof/delete" :request-type :post)
-    ((id integer chk-tof-id/ref t))
+    ((id integer chk-tof-id/ref t)
+     (filter string))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'tof (val id)))
-        (see-other (tof)))
+        (see-other (tof :filter (val filter))))
       (see-other (notfound))))
 
 
@@ -97,78 +99,65 @@
 ;;; TOF table
 ;;; ------------------------------------------------------------
 
-
 ;;; table
 
 (defclass tof-table (crud-table)
-  ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))))
+  ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
+   (paginator     :initform (make-instance 'paginator
+                                           :id "tof-paginator"
+                                           :style "paginator grid_9 alpha"
+                                           :delta 10
+                                           :urlfn (lambda (filter start)
+                                                    (tof :filter filter
+                                                         :start start))))))
 
-(defmethod read-data ((table tof-table))
-  (config-data 'tof (filter table)))
 
-(defmethod make-row ((table tof-table) data)
-  (make-instance 'tof-row
-                 :collection table
-                 :data data))
+(defmethod read-items ((table tof-table))
+  (iter (for rec in (config-data 'tof (filter table)))
+        (for i from 0)
+        (collect (make-instance 'tof-row
+                                :key (getf rec :id)
+                                :record rec
+                                :collection table
+                                :index i))))
 
-(defmethod paginator ((table tof-table))
-  (make-instance 'paginator
-                 :id "tof-paginator"
-                 :style "paginator grid_9 alpha"
-                 :delta 10
-                 :urlfn (lambda (start)
-                          (tof :filter (filter table) :start start))
-                 :len (length (db-data table))))
+(defmethod insert-item ((table tof-table) &key record index)
+  (let* ((rows (rows table))
+         (new-row (make-instance 'tof-row
+                                 :key (getf record :id)
+                                 :record record
+                                 :collection table
+                                 :index index)))
+    (setf (rows table)
+          (ninsert-list index new-row rows))))
+
 
 ;; rows
 
-(defclass tof-row (crud-item)
+(defclass tof-row (crud-row)
   ())
 
-(defmethod get-id ((row tof-row))
-  (getf (data row) :id))
-
-(defmethod cells ((row tof-row))
-  (let* ((id (get-id row))
-         (data (data row))
-         (table (collection row))
-         (pg (paginator table ))
-         (filter (filter table)))
+(defmethod cells ((row tof-row) &key start)
+  (let* ((id (key row))
+         (record (record row))
+         (pg (paginator (collection row)))
+         (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :style "selector"
                                    :states (list :on (tof :filter filter
-                                                          :start (pg-start table pg id))
+                                                          :start (page-start pg (index row) start))
                                                  :off (tof :filter filter
                                                            :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :style "payload"
-                                  :value (getf data :title))
+                                  :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell
                                     :style "control")
                      (make-instance 'cancel-cell
                                     :style "control"
                                     :href (tof :id id))))))
-
-(defmethod display ((row tof-row) &key selected-id)
-  (let ((selected-p (selected-p row selected-id)))
-    (with-html
-      (:tr :class (if selected-p
-                      (if (eq (op (collection row)) 'delete)
-                          "attention"
-                          "selected")
-                      nil)
-           (:td :class "selector"
-                (display (getf (cells row) :selector)
-                         :state (if (selected-p row selected-id) :on :off)))
-           (:td :class "payload"
-                (display (getf (cells row) :payload)
-                         :readonlyp (readonly-p row selected-id)))
-           (mapc (lambda (cell)
-                   (htm (:td :class "control"
-                             (display cell :activep (controls-p row selected-id)))))
-                 (getf (cells row) :controls))))))
 
 
 
@@ -205,8 +194,8 @@
   (no-cache)
   (if (validp id)
       (let ((tof-table (make-instance 'tof-table
-                                        :op 'view
-                                        :filter (val* filter))))
+                                      :op 'view
+                                      :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Τράπεζες")
@@ -225,8 +214,8 @@
                                       '(view)
                                       '(view update delete)))
                        (display tof-table
-                                :start (val* start)
-                                :selected-id (val* id)))
+                                :selected-id (val* id)
+                                :start (val* start)))
                  (footer)))))
       (see-other (notfound))))
 
@@ -235,8 +224,8 @@
      (filter string))
   (no-cache)
   (let ((tof-table (make-instance 'tof-table
-                                   :op 'create
-                                   :filter (val* filter))))
+                                  :op 'create
+                                  :filter (val* filter))))
     (with-document ()
       (:head
        (:title "Δημιουργία Δ.Ο.Υ.")
@@ -266,8 +255,8 @@
   (no-cache)
   (if (validp id)
       (let ((tof-table (make-instance 'tof-table
-                                       :op 'update
-                                       :filter (val* filter))))
+                                      :op 'update
+                                      :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Επεξεργασία Δ.Ο.Υ.")
@@ -285,7 +274,8 @@
                                   (val filter)
                                   '(create update))
                        (with-form (actions/tof/update :id (val* id)
-                                                       :title (val* title))
+                                                      :title (val* title)
+                                                      :filter (val* filter))
                          (display tof-table
                                   :selected-id (val id)
                                   :selected-data (list :title (val* title)))))
@@ -298,8 +288,8 @@
   (no-cache)
   (if (validp id)
       (let ((tof-table (make-instance 'tof-table
-                                       :op 'delete
-                                       :filter (val* filter))))
+                                      :op 'delete
+                                      :filter (val* filter))))
         (with-document ()
           (:head
            (:title "Διαγραφή Δ.Ο.Υ.")
@@ -315,7 +305,8 @@
                        (tof-menu (val id)
                                   (val filter)
                                   '(create delete))
-                       (with-form (actions/tof/delete :id (val id))
+                       (with-form (actions/tof/delete :id (val id)
+                                                      :filter (val* filter))
                          (display tof-table
                                   :selected-id (val id))))
                  (footer)))))

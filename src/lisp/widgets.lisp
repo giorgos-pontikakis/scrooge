@@ -13,18 +13,35 @@
 ;;; CRUD Collections
 ;;; ------------------------------------------------------------
 
-(defclass crud-collection (widget)
-  ((op      :accessor op      :initarg :op)
-   (filter  :accessor filter  :initarg :filter)
-   (db-data :reader   db-data)))
+(defclass collection (widget)
+  ((op     :accessor op     :initarg :op)
+   (filter :accessor filter :initarg :filter)))
 
-(defgeneric read-data (crud-collection))
+(defgeneric read-items (collection))
+
+(defgeneric insert-item (collection &key)
+  (:documentation "Insert an new item to the collection"))
+
+(defgeneric update-item (collection &key)
+  (:documentation "Update an item of the collection"))
 
 
 
 ;;; ------------------------------------------------------------
 ;;; CRUD Collection Items
 ;;; ------------------------------------------------------------
+
+(defclass item ()
+  ((collection :accessor collection :initarg :collection)
+   (key        :accessor key        :initarg :key)
+   (record     :accessor record     :initarg :record)))
+
+(defclass node (item)
+  ((parent-key :accessor parent-key :initarg :parent-key)
+   (children   :accessor children   :initarg :children)))
+
+(defclass row (item)
+  ((index :accessor index :initarg :index)))
 
 (defgeneric selected-p (item selected-id)
   (:documentation "Returns T if the item is selected."))
@@ -35,33 +52,25 @@
 (defgeneric controls-p (item selected-id)
   (:documentation "Returns T if the item has active controls."))
 
-(defgeneric cells (item)
+(defgeneric cells (item &key)
   (:documentation "Returns a property list which contains the ids of
   the various cells as keys and lists of cell objects as the
   corresponding values."))
 
-(defgeneric get-id (item)
-  (:documentation "Returns the id of the item, which should be
-  comparable with the selected-id slot of the item's collection."))
+;; (defgeneric get-id (item)
+;;   (:documentation "Returns the id of the item, which should be
+;;   comparable with the selected-id slot of the item's collection."))
 
-(defgeneric get-payload (item))
+(defmethod selected-p ((item item) selected-id)
+  (eql (key item) selected-id))
 
-
-(defclass crud-item ()
-  ((collection :accessor collection :initarg :collection)
-   (data       :accessor data       :initarg :data)))
-
-(defmethod selected-p ((item crud-item) selected-id)
-  (eql (get-id item) selected-id))
-
-(defmethod readonly-p ((item crud-item) selected-id)
+(defmethod readonly-p ((item item) selected-id)
   (or (not (selected-p item selected-id))
       (member (op (collection item)) '(view delete))))
 
-(defmethod controls-p ((item crud-item) selected-id)
+(defmethod controls-p ((item item) selected-id)
   (and (selected-p item selected-id)
        (member (op (collection item)) '(create update delete))))
-
 
 
 
@@ -69,106 +78,145 @@
 ;;; Trees
 ;;; ------------------------------------------------------------
 
-(defclass crud-tree (crud-collection)
-  ()
-  (:default-initargs :id "crud-table" :style "crud-table"))
+;; (defclass crud-tree (collection)
+;;   ((root :accessor root :initarg :root))
+;;   (:default-initargs :id "crud-table" :style "crud-table"))
 
-(defclass node-mixin ()
-  ((parent   :accessor parent   :initarg :parent)
-   (children :accessor children :initarg :children)))
-
-
-
-(defmethod initialize-instance :after ((collection crud-tree) &key)
-  ;; First store db-data
-  (setf (slot-value collection 'db-data)
-        (read-data collection))
-  ;; Then store row objects
-  #|(setf (slot-value collection 'root)
-        )|#)
+;; (defmethod initialize-instance :after ((collection crud-tree) &key)
+;;   ;; First store db-data
+;;   (setf (slot-value collection 'db-data)
+;;         (read-items collection))
+;;   ;; Then store row objects
+;;   #|(setf (slot-value collection 'root)
+;;         )|#)
 
 
-(defmethod display ((tree crud-tree) &key selected-id selected-data)
-  (with-html
-    (:ul :style (style tree)
-         (mapc (lambda (node)
-                 (:li (display (make-instance 'account-row
-                                              :data (value node)
-                                              :collection collection)
-                               :selected-id selected-id)
-                      (:ul (display (children node)))))
-               (children (db-data tree))))))
+;; (defmethod display ((tree crud-tree) &key selected-id selected-data)
+;;   (with-html
+;;     (:ul :style (style tree)
+;;          (mapc (lambda (node)
+;;                  (:li (display (make-instance 'account-row
+;;                                               :data (value node)
+;;                                               :collection collection)
+;;                                :selected-id selected-id)
+;;                       (:ul (display (children node)))))
+;;                (children (db-data tree))))))
 
-(defmethod display ((node node) &key)
-  (with-html
-    (:li (display (make-instance 'account-row
-                                 :data (value node)
-                                 :collection collection))
-         (:ul (display (children node))))))
+;; (defmethod display ((node node) &key)
+;;   (with-html
+;;     (:li (display (make-instance 'account-row
+;;                                  :data (value node)
+;;                                  :collection collection))
+;;          (:ul (display (children node))))))
 
 
 ;;; ------------------------------------------------------------
-;;; CRUD Tables
+;;; TABLES
 ;;; ------------------------------------------------------------
 
-(defclass crud-table (crud-collection)
+(defclass crud-table (collection)
   ((header-labels :accessor header-labels :initarg :header-labels)
-   (rows    :reader   rows))
+   (paginator     :reader   paginator)
+   (rows          :accessor rows))
   (:default-initargs :id "crud-table" :style "crud-table"))
-
-(defgeneric make-item (crud-collection data))
-(defgeneric paginator (table))
 
 (defmethod initialize-instance :after ((table crud-table) &key)
-  ;; First store db-data
-  (setf (slot-value table 'db-data)
-        (read-data table))
-  ;; Then store row objects
   (setf (slot-value table 'rows)
-        (mapcar (lambda (row-data)
-                  (make-item table row-data))
-                (slot-value table 'db-data))))
+        (read-items table))
+  (when-let (pg (paginator table))
+    (setf (slot-value pg 'len)
+          (length (slot-value table 'rows)))
+    (setf (slot-value pg 'table)
+          table)))
+
+(defmethod update-item ((table crud-table) &key record index)
+  (let ((row (nth index (rows table))))
+    (setf (record row)
+          (plist-union record (record row)))))
 
 (defmethod display ((table crud-table) &key selected-id selected-data start)
-  (let* ((pg (paginator table))
-         (start (if (null selected-id)
-                    (if (or (null start)
-                            (< start 0)
-                            (> start (len pg)))
-                        0
-                        start)
-                    (pg-start table pg selected-id)))
-         (pg-rows (pg-rows table pg start)))
-    ;; Maybe create an extra row at the beginning
-    (when (eq (op table) 'create)
-      (push (make-item table selected-data) pg-rows))
-    ;; Merge user input with data from db
-    ;; Useful when there is an error in the page
-    (when (eq (op table) 'update)
-      (let ((row (find selected-id (rows table) :key #'get-id)))
-        (setf (data row)
-              (plist-union selected-data (data row)))))
-    ;; Finally display paginator and table
-    (with-html
-      (display (paginator table) :start start)
-      (:table :id (id table) :class (style table)
-              (:thead (:tr (mapc (lambda (i)
-                                   (htm (:th (str i))))
-                                 (header-labels table))))
-              (:tbody
-               (iter (for r in pg-rows)
-                     (display r :selected-id selected-id)))))))
+  (let ((selected-row (find selected-id (rows table) :key #'key :test #'equal)))
+    (let* ((index (if selected-row (index selected-row) nil))
+           (pg (paginator table))
+           (page-start (page-start pg index start)))
+      ;; Create: insert extra item with user input
+      (when (eq (op table) 'create)
+        (insert-item table
+                     :record selected-data
+                     :index 0))
+      ;; Update: update selected-item with user input
+      (when (eq (op table) 'update)
+        (update-item table
+                     :record selected-data
+                     :index index))
+      ;; Finally display paginator and table
+      (with-html
+        (display pg :start page-start)
+        (:table :id (id table) :class (style table)
+                (:thead (:tr (mapc (lambda (i)
+                                     (htm (:th (str i))))
+                                   (header-labels table))))
+                (:tbody
+                 (iter (for row in (subseq (rows table)
+                                           page-start
+                                           (min (+ page-start (delta pg)) (len pg))))
+                       (display row
+                                :selected-id selected-id
+                                :start start))))))))
 
 
 
 ;;; ------------------------------------------------------------
-;;; Table Paginator
+;;; CRUD ROW
+;;; ------------------------------------------------------------
+
+(defclass crud-row (row)
+  ())
+
+(defmethod display ((row crud-row) &key selected-id start)
+  (let ((selected-p (selected-p row selected-id))
+        (cells (cells row :start start)))
+    (with-html
+      (:tr :class (if selected-p
+                      (if (eq (op (collection row)) 'delete)
+                          "attention"
+                          "selected")
+                      nil)
+           (:td :class "selector"
+                (display (getf cells :selector)
+                         :state (if (selected-p row selected-id) :on :off)))
+           (:td :class "payload"
+                (display (getf cells :payload)
+                         :readonlyp (readonly-p row selected-id)))
+           (mapc (lambda (cell)
+                   (htm (:td :class "control"
+                             (display cell :activep (controls-p row selected-id)))))
+                 (getf cells :controls))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; TABLE PAGINATOR
 ;;; ------------------------------------------------------------
 
 (defclass paginator (widget)
-  ((delta :accessor delta :initarg :delta)
+  ((table :accessor table :initarg :table)
+   (delta :accessor delta :initarg :delta)
    (urlfn :accessor urlfn :initarg :urlfn)
-   (len   :accessor len   :initarg :len)))
+   (len   :reader   len)))
+
+(defgeneric page-start (paginator index start))
+
+(defmethod page-start ((pg paginator) index start)
+  (if (null index)
+      (if (or (null start)
+              (< start 0)
+              (> start (len pg)))
+          0
+          start)
+      (let ((delta (delta pg)))
+        (* (floor (/ index delta))
+           delta))))
 
 (defmethod display ((pg paginator) &key (start 0))
   (let* ((delta (delta pg))
@@ -187,42 +235,19 @@
                  (min (+ start delta) (len pg))
                  (len pg))
             (if prev
-                (htm (:a :href (funcall (urlfn pg) prev)
+                (htm (:a :href (funcall (urlfn pg) (filter (table pg)) prev)
                          (img "resultset_previous.png" )))
                 (img "resultset_first.png"))
             (if next
-                (htm (:a :href (funcall (urlfn pg) next)
+                (htm (:a :href (funcall (urlfn pg) (filter (table pg)) next)
                          (img "resultset_next.png" )))
                 (img "resultset_last.png"))))))
 
 
 
-;;; ------------------------------------------------------------
-;;; Combined table - paginator methods
-;;; ------------------------------------------------------------
-
-(defgeneric pg-rows (table paginator start))
-
-(defmethod pg-rows ((table crud-table) (pg paginator) start)
-  (subseq (rows table)
-          (max start 0)
-          (min (+ start (delta pg)) (length (db-data table)))))
-
-
-(defgeneric pg-start (crud-table paginator selected-id))
-
-(defmethod pg-start ((table crud-table) (pg paginator) selected-id)
-  (let ((pos (or (position selected-id (db-data table) :key (lambda (db-row)
-                                                              (getf db-row :id)))
-                 0))
-        (delta (delta pg)))
-    (* (floor (/ pos delta))
-       delta)))
-
-
 
 ;;; ------------------------------------------------------------
-;;; Cells
+;;; CELLS
 ;;; ------------------------------------------------------------
 
 (defclass textbox-cell (widget)
