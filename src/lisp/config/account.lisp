@@ -113,10 +113,11 @@
 ;;; ------------------------------------------------------------
 ;;; Account menu
 ;;; ------------------------------------------------------------
+
 (defun account-menu (id debitp &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "account-actions"
-                          :style "hnavbar actions grid_4 alpha"
+                          :style "hnavbar actions grid_6 alpha"
                           :spec (standard-actions-spec (account :id id)
                                                        (account/create :debitp debitp :parent-id id)
                                                        (account/update :id id)
@@ -128,70 +129,92 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Accounts table widget for recursive subtables
-;;; ------------------------------------------------------------
-
-;; (defun account-root-data (debit-p)
-;;   (with-db ()
-;;     (query (:select 'id 'title 'parent-id
-;;                     :from 'account
-;;                     :where (:and (:= 'debit-p debit-p)
-;;                                  (:is-null 'parent-id)))
-;;            :plists)))
-
-;; (defun account-children-data (id)
-;;   (when id
-;;     (with-db ()
-;;       (query (:select 'id 'title 'parent-id
-;;                       :from 'account
-;;                       :where (:= 'parent-id id))
-;;              :plists))))
-
 
 ;;; ------------------------------------------------------------
 ;;; Account tree
 ;;; ------------------------------------------------------------
 
+;;; tree
+
 (defclass account-tree (crud-tree)
-  ((header-labels :initform '("" "Ονομασία λογαριασμού" "" ""))))
+  ())
 
 (defmethod read-data ((tree account-tree))
   (with-db ()
-    (query (:select 'id 'title 'parent-id
-                    :from 'account
-                    :where (:and (:is-null 'parent-id)
-                                 (:= 'debit-p (filter tree)))))))
+    (if (parent tree)
+        (query (:select 'id 'title 'parent-id
+                        :from 'account
+                        :where (:= 'debit-p (filter tree)))
+               :plists)
+        (query (:select 'id 'title 'parent-id
+                        :from 'account
+                        :where (:and (:= 'debit-p (filter tree))
+                                     (:is-null 'debit-p)))
+               :plists))))
 
-(defmethod make-row ((tree account-tree) data)
-  (make-instance 'crud-row
+(defmethod make-item ((tree account-tree) data)
+  (make-instance 'account-node
                  :collection tree
                  :data data))
 
-(defmethod db-data->tree-data ((tree account-tree))
-  (labels ((make-nodes (id)
-             (mapcar (lambda (row)
-                       (make-instance 'tree
-                                      :content row
-                                      :children (make-nodes (getf row :id))))
-                     (remove-if-not (lambda (row)
-                                      (eq id (getf row :parent-id)))
-                                    (db-data tree)))))
-    (make-nodes :null)))
+(defmethod read-data ((tree account-tree))
+  (with-db ()
+    (let ((records (query (:select 'id 'title 'parent-id
+                                   :from 'account
+                                   :where (:= 'debit-p (filter tree)))
+                          :plists)))
+      (labels ((make-nodes (id)
+                 (mapcar (lambda (rec)
+                           (make-instance 'node
+                                          :value rec
+                                          :parent id
+                                          :children (make-nodes (getf rec :id))))
+                         (remove-if-not (lambda (rec)
+                                          (equal id (getf rec :parent-id)))
+                                        records))))
+        (make-instance 'node
+                       :parent nil
+                       :value 'root-node
+                       :children (make-nodes :null))))))
+
+(DEFMETHOD READ-DATA ((TREE ACCOUNT-TREE))
+  (WITH-DB ()
+    (QUERY (:SELECT 'ID 'TITLE 'PARENT-ID
+                    :FROM 'ACCOUNT
+                    :WHERE (:= 'DEBIT-P (FILTER TREE)))
+           :PLISTS)))
+
+(DEFMETHOD MAKE-ITEM ((TREE ACCOUNT-TREE) &KEY DATA PARENT-ID)
+  (LABELS ((MAKE-NODES (ID)
+             (MAPCAR (LAMBDA (REC)
+                       (MAKE-INSTANCE 'NODE
+                                      :COLLECTION TREE
+                                      :DATA REC
+                                      :PARENT ID
+                                      :CHILDREN (MAKE-NODES (GETF REC :ID))))
+                     (REMOVE-IF-NOT (LAMBDA (REC)
+                                      (EQUAL ID (GETF REC :PARENT-ID)))
+                                    RECORDS))))
+    (MAKE-INSTANCE 'ACCOUNT-NODE
+                   :COLLECTION TREE
+                   :DATA DATA   ????
+                   :PARENT NIL  ????
+                   :CHILDREN (MAKE-NODES PARENT-ID))))
 
 
-;;; rows
 
-(defclass account-row (crud-row)
+;;; nodes
+
+(defclass account-node (crud-item node)
   ())
 
-(defmethod get-id ((row account-row))
-  (getf (data row) :id))
+(defmethod get-id ((node account-node))
+  (getf (data node) :id))
 
-(defmethod cells ((row account-row))
-  (let* ((id (get-id row))
-         (data (data row))
-         (collection (collection row)))
+(defmethod cells ((node account-node))
+  (let* ((id (get-id node))
+         (data (data node))
+         (collection (collection node)))
     (list :selector (make-instance 'selector-cell
                                    :style "selector"
                                    :states (list :on (account)
@@ -207,21 +230,21 @@
                                     :style "control"
                                     :href (account :id id))))))
 
-(defmethod display ((row account-row) &key selected-id)
-  (let ((selected-p (selected-p row selected-id)))
+(defmethod display ((node account-node) &key selected-id)
+  (let ((selected-p (selected-p node selected-id)))
     (with-html
-      (:div :class (if selected-p
-                       (if (eq (op (collection row)) 'delete)
-                           "attention"
-                           "selected")
-                       nil)
-            (display (getf (cells row) :selector)
-                     :state (if selected-p :on :off))
-            (display (getf (cells row) :payload)
-                     :readonlyp (readonly-p row selected-id))
-            (mapc (lambda (cell)
-                    (htm (display cell :activep (controls-p row selected-id))))
-                  (getf (cells row) :controls))))))
+      (:li (:div :class (if selected-p
+                            (if (eq (op (collection node)) 'delete)
+                                "attention"
+                                "selected")
+                            nil)
+                 (display (getf (cells node) :selector)
+                          :state (if selected-p :on :off))
+                 (display (getf (cells node) :payload)
+                          :readonlyp (readonly-p node selected-id))
+                 (mapc (lambda (cell)
+                         (htm (display cell :activep (controls-p node selected-id))))
+                       (getf (cells node) :controls)))))))
 
 
 ;;; ------------------------------------------------------------
@@ -262,9 +285,9 @@
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (htm
                     (:div :id div-id :class "window grid_6"
-                          (:div :class "title" window-title)
+                          (:div :class "title" (str window-title))
                           (account-menu (val id)
-                                        t
+                                        flag
                                         (if (and (val id) flag)
                                             '(view)
                                             '(view update delete)))
@@ -467,3 +490,24 @@
 ;;                            (funcall row-payload-fn row-data row-readonly-p))
 ;;                 (ok-link row-controls-p)
 ;;                 (cancel-link cancel-url row-controls-p))))))
+
+
+;;; ------------------------------------------------------------
+;;; Accounts table widget for recursive subtables
+;;; ------------------------------------------------------------
+
+;; (defun account-root-data (debit-p)
+;;   (with-db ()
+;;     (query (:select 'id 'title 'parent-id
+;;                     :from 'account
+;;                     :where (:and (:= 'debit-p debit-p)
+;;                                  (:is-null 'parent-id)))
+;;            :plists)))
+
+;; (defun account-children-data (id)
+;;   (when id
+;;     (with-db ()
+;;       (query (:select 'id 'title 'parent-id
+;;                       :from 'account
+;;                       :where (:= 'parent-id id))
+;;              :plists))))

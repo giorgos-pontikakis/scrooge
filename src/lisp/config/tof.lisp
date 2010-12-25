@@ -122,7 +122,7 @@
 
 ;; rows
 
-(defclass tof-row (crud-row)
+(defclass tof-row (crud-item)
   ())
 
 (defmethod get-id ((row tof-row))

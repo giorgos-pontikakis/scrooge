@@ -16,22 +16,9 @@
 (defclass crud-collection (widget)
   ((op      :accessor op      :initarg :op)
    (filter  :accessor filter  :initarg :filter)
-   (db-data :reader   db-data)
-   (rows    :reader   rows)))
-
-(defmethod initialize-instance :after ((collection crud-collection) &key)
-  ;; First store db-data
-  (setf (slot-value collection 'db-data)
-        (read-data collection))
-  ;; Then store row objects
-  (setf (slot-value collection 'rows)
-        (mapcar (lambda (row-data)
-                  (make-row collection row-data))
-                (slot-value collection 'db-data))))
-
+   (db-data :reader   db-data)))
 
 (defgeneric read-data (crud-collection))
-(defgeneric make-row (crud-collection data))
 
 
 
@@ -39,41 +26,41 @@
 ;;; CRUD Collection Items
 ;;; ------------------------------------------------------------
 
-(defgeneric selected-p (row selected-id)
-  (:documentation "Returns T if the row is selected."))
+(defgeneric selected-p (item selected-id)
+  (:documentation "Returns T if the item is selected."))
 
-(defgeneric readonly-p (row selected-id)
-  (:documentation "Returns T if the row is readonly."))
+(defgeneric readonly-p (item selected-id)
+  (:documentation "Returns T if the item is readonly."))
 
-(defgeneric controls-p (row selected-id)
-  (:documentation "Returns T if the row has active controls."))
+(defgeneric controls-p (item selected-id)
+  (:documentation "Returns T if the item has active controls."))
 
-(defgeneric cells (row)
+(defgeneric cells (item)
   (:documentation "Returns a property list which contains the ids of
   the various cells as keys and lists of cell objects as the
   corresponding values."))
 
-(defgeneric get-id (row)
-  (:documentation "Returns the id of the row, which should be
-  comparable with the selected-id slot of the row's collection."))
+(defgeneric get-id (item)
+  (:documentation "Returns the id of the item, which should be
+  comparable with the selected-id slot of the item's collection."))
 
-(defgeneric get-payload (row))
+(defgeneric get-payload (item))
 
 
-(defclass crud-row ()
+(defclass crud-item ()
   ((collection :accessor collection :initarg :collection)
    (data       :accessor data       :initarg :data)))
 
-(defmethod selected-p ((row crud-row) selected-id)
-  (eql (get-id row) selected-id))
+(defmethod selected-p ((item crud-item) selected-id)
+  (eql (get-id item) selected-id))
 
-(defmethod readonly-p ((row crud-row) selected-id)
-  (or (not (selected-p row selected-id))
-      (member (op (collection row)) '(view delete))))
+(defmethod readonly-p ((item crud-item) selected-id)
+  (or (not (selected-p item selected-id))
+      (member (op (collection item)) '(view delete))))
 
-(defmethod controls-p ((row crud-row) selected-id)
-  (and (selected-p row selected-id)
-       (member (op (collection row)) '(create update delete))))
+(defmethod controls-p ((item crud-item) selected-id)
+  (and (selected-p item selected-id)
+       (member (op (collection item)) '(create update delete))))
 
 
 
@@ -83,21 +70,41 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-tree (crud-collection)
+  ()
+  (:default-initargs :id "crud-table" :style "crud-table"))
+
+(defclass node-mixin ()
   ((parent   :accessor parent   :initarg :parent)
-   (children :accessor children :initarg :children)
-   (content  :accessor content  :initarg :content)))
-
-(defgeneric db-data->tree-data (tree))
+   (children :accessor children :initarg :children)))
 
 
 
-(defmethod display ((tree crud-tree) &key selected-id)
+(defmethod initialize-instance :after ((collection crud-tree) &key)
+  ;; First store db-data
+  (setf (slot-value collection 'db-data)
+        (read-data collection))
+  ;; Then store row objects
+  #|(setf (slot-value collection 'root)
+        )|#)
+
+
+(defmethod display ((tree crud-tree) &key selected-id selected-data)
   (with-html
     (:ul :style (style tree)
-         (mapc (lambda (x)
-                 (htm (:li (display x))))
-               (content tree)))))
+         (mapc (lambda (node)
+                 (:li (display (make-instance 'account-row
+                                              :data (value node)
+                                              :collection collection)
+                               :selected-id selected-id)
+                      (:ul (display (children node)))))
+               (children (db-data tree))))))
 
+(defmethod display ((node node) &key)
+  (with-html
+    (:li (display (make-instance 'account-row
+                                 :data (value node)
+                                 :collection collection))
+         (:ul (display (children node))))))
 
 
 ;;; ------------------------------------------------------------
@@ -105,9 +112,11 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-table (crud-collection)
-  ((header-labels :accessor header-labels :initarg :header-labels))
+  ((header-labels :accessor header-labels :initarg :header-labels)
+   (rows    :reader   rows))
   (:default-initargs :id "crud-table" :style "crud-table"))
 
+(defgeneric make-item (crud-collection data))
 (defgeneric paginator (table))
 
 (defmethod initialize-instance :after ((table crud-table) &key)
@@ -117,7 +126,7 @@
   ;; Then store row objects
   (setf (slot-value table 'rows)
         (mapcar (lambda (row-data)
-                  (make-row table row-data))
+                  (make-item table row-data))
                 (slot-value table 'db-data))))
 
 (defmethod display ((table crud-table) &key selected-id selected-data start)
@@ -130,12 +139,16 @@
                         start)
                     (pg-start table pg selected-id)))
          (pg-rows (pg-rows table pg start)))
+    ;; Maybe create an extra row at the beginning
     (when (eq (op table) 'create)
-      (push (make-row table selected-data) pg-rows))
+      (push (make-item table selected-data) pg-rows))
+    ;; Merge user input with data from db
+    ;; Useful when there is an error in the page
     (when (eq (op table) 'update)
       (let ((row (find selected-id (rows table) :key #'get-id)))
         (setf (data row)
               (plist-union selected-data (data row)))))
+    ;; Finally display paginator and table
     (with-html
       (display (paginator table) :start start)
       (:table :id (id table) :class (style table)
@@ -185,7 +198,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Table - Paginator methods
+;;; Combined table - paginator methods
 ;;; ------------------------------------------------------------
 
 (defgeneric pg-rows (table paginator start))

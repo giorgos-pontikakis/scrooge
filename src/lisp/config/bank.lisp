@@ -105,7 +105,7 @@
 (defmethod read-data ((table bank-table))
   (config-data 'bank (filter table)))
 
-(defmethod make-row ((table bank-table) data)
+(defmethod make-item ((table bank-table) data)
   (make-instance 'bank-row
                  :collection table
                  :data data))
@@ -121,7 +121,7 @@
 
 ;;; rows
 
-(defclass bank-row (crud-row)
+(defclass bank-row (crud-item)
   ())
 
 (defmethod get-id ((row bank-row))

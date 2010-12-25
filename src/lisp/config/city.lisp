@@ -121,7 +121,7 @@
 
 ;;; rows
 
-(defclass city-row (crud-row)
+(defclass city-row (crud-item)
   ())
 
 (defmethod get-id ((row city-row))
