@@ -64,7 +64,7 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
-    ((parent-id integer chk-parent-acc-id)
+    ((parent-id string  chk-parent-acc-id)
      (title     string  chk-acc-title t)
      (debitp    boolean (chk-debitp debitp parent-id)))
   (no-cache)
@@ -84,8 +84,8 @@
           (see-other (notfound)))))
 
 (define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
-    ((id    integer chk-acc-id t)
-     (title string  (chk-acc-title title id) t))
+    ((id    string chk-acc-id t)
+     (title string (chk-acc-title title id) t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -115,17 +115,18 @@
 ;;; ------------------------------------------------------------
 
 (defun account-menu (id debitp &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "account-actions"
-                          :style "hnavbar actions grid_6 alpha"
-                          :spec (standard-actions-spec (account :id id)
-                                                       (account/create :debitp debitp :parent-id id)
-                                                       (account/update :id id)
-                                                       (if (or (null id)
-                                                               (acc-referenced-p id))
-                                                           nil
-                                                           (account/delete :id id))))
-           :disabled-items disabled-items))
+  (let ((prefix (if debitp "debit" "credit")))
+    (display (make-instance 'actions-menu
+                            :id (conc prefix "-account-actions")
+                            :style "hnavbar actions grid_6 alpha"
+                            :spec (standard-actions-spec (account :id id)
+                                                         (account/create :debitp debitp :parent-id id)
+                                                         (account/update :id id)
+                                                         (if (or (null id)
+                                                                 (acc-referenced-p id))
+                                                             nil
+                                                             (account/delete :id id))))
+             :disabled-items disabled-items)))
 
 
 
@@ -145,18 +146,19 @@
                                    :from 'account
                                    :where (:= 'debit-p (filter tree)))
                           :plists)))
-      (labels ((make-nodes (key)
+      (labels ((make-nodes (parent-key)
                  (mapcar (lambda (rec)
-                           (make-instance 'crud-node
-                                          :collection tree
-                                          :key key
-                                          :record rec
-                                          :parent-key key
-                                          :children (make-nodes (getf rec :id))))
+                           (let ((key (getf rec :id)))
+                            (make-instance 'account-node
+                                           :collection tree
+                                           :key key
+                                           :record rec
+                                           :parent-key parent-key
+                                           :children (make-nodes key))))
                          (remove-if-not (lambda (rec)
-                                          (equal key (getf rec :parent-id)))
+                                          (equal parent-key (getf rec :parent-id)))
                                         records))))
-        (make-instance 'crud-node
+        (make-instance 'account-node
                        :collection tree
                        :key 'root
                        :record nil
@@ -165,7 +167,7 @@
 
 (defmethod insert-item ((tree account-tree) &key record parent-key)
   (let ((parent-node (find-node (root tree) parent-key))
-        (new-node (make-instance 'node
+        (new-node (make-instance 'account-node
                                  :key (getf record :id)
                                  :record record
                                  :collection tree
@@ -219,38 +221,38 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page account ("config/account")
-    ((id integer chk-acc-id)
+    ((id string chk-acc-id)
      (debitp boolean))
   (no-cache)
   (if (validp id)
-      (let ((account-tree (make-instance 'account-tree
-                                         :op 'view
-                                         :filter (val* debitp))))
-        (with-document ()
-          (:head
-           (:title "Λογαριασμοί")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'account)
-                 (iter
-                   (for flag = (list debitp (not debitp)))
-                   (for div-id in '("debit-accounts" "credit-accounts"))
-                   (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (htm
-                    (:div :id div-id :class "window grid_6"
-                          (:div :class "title" (str window-title))
-                          (account-menu (val id)
-                                        flag
-                                        (if (and (val id) flag)
-                                            '(view)
-                                            '(view update delete)))
-                          (display account-tree :selected-id (val* id)))))))))
+      (with-document ()
+        (:head
+         (:title "Λογαριασμοί")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-menu 'account)
+               (iter
+                 (for flag in (list t nil))
+                 (for div-id in '("debit-accounts" "credit-accounts"))
+                 (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+                 (for account-tree = (make-instance 'account-tree
+                                                    :op 'view
+                                                    :filter flag))
+                 (htm
+                  (:div :id div-id :class "window grid_6"
+                        (:div :class "title" (str window-title))
+                        (account-menu (val id)
+                                      flag
+                                      (if (and (val id) (eql flag (val debitp)))
+                                          '(view)
+                                          '(view update delete)))
+                        (display account-tree :selected-id (val* id))))))))
       (see-other (notfound))))
 
 (define-dynamic-page account/create ("account/create")
-    ((parent-id integer chk-acc-id)
+    ((parent-id string chk-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-acc-title))
   (no-cache)

@@ -77,7 +77,7 @@
   corresponding values."))
 
 (defmethod selected-p ((item item) selected-id)
-  (eql (key item) selected-id))
+  (equal (key item) selected-id))
 
 (defmethod readonly-p ((item item) selected-id)
   (or (not (selected-p item selected-id))
@@ -107,23 +107,14 @@
           (plist-union record (record node)))))
 
 
-;; (defmethod display ((tree crud-tree) &key selected-id selected-data)
-;;   (with-html
-;;     (:ul :style (style tree)
-;;          (mapc (lambda (node)
-;;                  (:li (display (make-instance 'account-row
-;;                                               :data (value node)
-;;                                               :collection collection)
-;;                                :selected-id selected-id)
-;;                       (:ul (display (children node)))))
-;;                (children (db-data tree))))))
+(defmethod display ((tree crud-tree) &key selected-id selected-data)
+  (with-html
+    (:ul :class "crud-tree"
+         (mapc (lambda (node)
+                 (htm (display node :selected-id selected-id)))
+               (children (root tree))))))
 
-;; (defmethod display ((node node) &key)
-;;   (with-html
-;;     (:li (display (make-instance 'account-row
-;;                                  :data (value node)
-;;                                  :collection collection))
-;;          (:ul (display (children node))))))
+
 
 ;;; ------------------------------------------------------------
 ;;; CRUD NODE
@@ -132,22 +123,28 @@
 (defclass crud-node (node)
   ())
 
-
 (defmethod display ((node crud-node) &key selected-id)
   (let ((selected-p (selected-p node selected-id)))
     (with-html
-      (:li (:div :class (if selected-p
-                            (if (eq (op (collection node)) 'delete)
-                                "attention"
-                                "selected")
-                            nil)
-                 (display (getf (cells node) :selector)
-                          :state (if selected-p :on :off))
-                 (display (getf (cells node) :payload)
-                          :readonlyp (readonly-p node selected-id))
-                 (mapc (lambda (cell)
-                         (htm (display cell :activep (controls-p node selected-id))))
-                       (getf (cells node) :controls)))))))
+      (:li :class (if selected-p
+                      (if (eq (op (collection node)) 'delete)
+                          "attention"
+                          "selected")
+                      nil)
+           (display (getf (cells node) :selector)
+                    :state (if selected-p :on :off))
+           (display (getf (cells node) :payload)
+                    :readonlyp (readonly-p node selected-id))
+           (mapc (lambda (cell)
+                   (htm (display cell :activep (controls-p node selected-id))))
+                 (getf (cells node) :controls))
+           (when (children node)
+             (htm (:ul :class "indent"
+                       (mapc (lambda (node)
+                               (display node :selected-id selected-id))
+                             (children node)))))))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; TABLES
@@ -220,15 +217,12 @@
                           "attention"
                           "selected")
                       nil)
-           (:td :class "selector"
-                (display (getf cells :selector)
+           (:td (display (getf cells :selector)
                          :state (if (selected-p row selected-id) :on :off)))
-           (:td :class "payload"
-                (display (getf cells :payload)
+           (:td (display (getf cells :payload)
                          :readonlyp (readonly-p row selected-id)))
            (mapc (lambda (cell)
-                   (htm (:td :class "control"
-                             (display cell :activep (controls-p row selected-id)))))
+                   (htm (:td (display cell :activep (controls-p row selected-id)))))
                  (getf cells :controls))))))
 
 
@@ -312,7 +306,7 @@
   (with-html
     (:div :class (style cell)
          (:a :href (getf (states cell) state)
-             (img (if (eq state :on)
+             (img (if (eql state :on)
                       "bullet_red.png"
                       "bullet_blue.png"))))))
 

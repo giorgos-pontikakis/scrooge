@@ -423,4 +423,5 @@
 (defun seed-all ()
   (seed-banks)
   (seed-tofs)
-  (seed-companies))
+  (seed-companies)
+  (seed-accounts))

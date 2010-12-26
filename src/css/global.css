@@ -31,7 +31,6 @@ input {
 }
 
 
-
 /* ---------------------------------------------------------------------- */
 /* backgrounds */
 /* ---------------------------------------------------------------------- */
@@ -58,6 +57,49 @@ input {
 
 .attention {
     background-color: #fdd;
+}
+
+.indent {
+    margin-left: 25px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* crud-tree */
+/* ---------------------------------------------------------------------- */
+
+.crud-tree {
+    clear: both;
+    padding-top: 10px;
+    line-height: 24px;
+}
+
+.crud-tree a img {
+    vertical-align: middle;
+    padding-right: 2px;
+}
+
+.crud-tree button {
+    padding: 0px;
+    background-color: transparent;
+    border: none;
+    position: relative;
+    top: 4px;
+}
+
+div.selector {
+    display: inline;
+    padding: 0px 0px 0px 5px;
+}
+
+div.payload {
+    display: inline;
+}
+
+div.pushbutton {
+    display: inline;
+    text-align: center;
 }
 
 
@@ -124,8 +166,6 @@ input {
     background-color: #843418;
     color: white;
 }
-
-
 
 #container {
     background-color: #FFFFFF;
@@ -246,20 +286,9 @@ input {
     text-align: left;
 }
 
-.crud-table ul {
-    line-height: 32px;
-}
-
-.crud-table li {
-    line-height: 31px;
-}
-
-.crud-table ui li span {
-    display: block;
-}
 
 .crud-table input {
-    width: 95%;
+    width: 590px;
 }
 
 .crud-table input:hover, .crud-table input:focus {
@@ -270,6 +299,11 @@ input {
     background-color: #f4f4f4;
 }
 
+
+.crud-table a img {
+    vertical-align: middle;
+}
+
 .crud-table button {
     padding: 0px;
     background-color: transparent;
@@ -278,29 +312,15 @@ input {
     top: 4px;
 }
 
-.crud-table button:hover {
-    cursor: pointer;
-}
-
-.crud-table a img {
-    vertical-align: middle;
-}
-
-
-.crud-table .button, .crud-table .button button {
+.crud-table td:nth-child(1),
+.crud-table td:nth-child(3),
+.crud-table td:nth-child(4) {
     width: 30px;
     padding: 0px;
-}
-
-.crud-table .selector {
-    width: 30px;
-    padding: 0px 0px 0px 5px;
-}
-
-.crud-table .control {
-    width: 25px;
     text-align: center;
 }
+
+
 
 /* ---------------------------------------------------------------------- */
 /* notifications */
@@ -317,6 +337,8 @@ input {
 #notifications li {
     padding-left: 22px;
 }
+
+
 
 /* ---------------------------------------------------------------------- */
 /* filters */

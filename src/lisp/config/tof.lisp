@@ -154,9 +154,9 @@
                                   :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell
-                                    :style "control")
+                                    :style "pushbutton")
                      (make-instance 'cancel-cell
-                                    :style "control"
+                                    :style "pushbutton"
                                     :href (tof :id id :filter filter))))))
 
 
