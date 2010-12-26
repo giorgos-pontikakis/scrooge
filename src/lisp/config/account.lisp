@@ -139,25 +139,7 @@
 (defclass account-tree (crud-tree)
   ())
 
-(defmethod read-data ((tree account-tree))
-  (with-db ()
-    (if (parent tree)
-        (query (:select 'id 'title 'parent-id
-                        :from 'account
-                        :where (:= 'debit-p (filter tree)))
-               :plists)
-        (query (:select 'id 'title 'parent-id
-                        :from 'account
-                        :where (:and (:= 'debit-p (filter tree))
-                                     (:is-null 'debit-p)))
-               :plists))))
-
-(defmethod make-item ((tree account-tree) data)
-  (make-instance 'account-node
-                 :collection tree
-                 :data data))
-
-(defmethod read-data ((tree account-tree))
+(defmethod read-items ((tree account-tree))
   (with-db ()
     (let ((records (query (:select 'id 'title 'parent-id
                                    :from 'account
@@ -177,39 +159,22 @@
                        :value 'root-node
                        :children (make-nodes :null))))))
 
-(DEFMETHOD READ-DATA ((TREE ACCOUNT-TREE))
-  (WITH-DB ()
-    (QUERY (:SELECT 'ID 'TITLE 'PARENT-ID
-                    :FROM 'ACCOUNT
-                    :WHERE (:= 'DEBIT-P (FILTER TREE)))
-           :PLISTS)))
-
-(DEFMETHOD MAKE-ITEM ((TREE ACCOUNT-TREE) &KEY DATA PARENT-ID)
-  (LABELS ((MAKE-NODES (ID)
-             (MAPCAR (LAMBDA (REC)
-                       (MAKE-INSTANCE 'NODE
-                                      :COLLECTION TREE
-                                      :DATA REC
-                                      :PARENT ID
-                                      :CHILDREN (MAKE-NODES (GETF REC :ID))))
-                     (REMOVE-IF-NOT (LAMBDA (REC)
-                                      (EQUAL ID (GETF REC :PARENT-ID)))
-                                    RECORDS))))
-    (MAKE-INSTANCE 'ACCOUNT-NODE
-                   :COLLECTION TREE
-                   :DATA DATA   ????
-                   :PARENT NIL  ????
-                   :CHILDREN (MAKE-NODES PARENT-ID))))
-
+(defmethod insert-item ((tree account-tree) &key record parent-key)
+  (let ((parent-node (find-node (root tree) parent-key))
+        (new-node (make-instance 'node
+                                 :key (getf record :id)
+                                 :record record
+                                 :collection tree
+                                 :children ())))
+    (setf (children parent-node)
+          (cons new-node (children parent-node)))
+    new-node))
 
 
 ;;; nodes
 
-(defclass account-node (crud-item node)
+(defclass account-node (crud-node)
   ())
-
-(defmethod get-id ((node account-node))
-  (getf (data node) :id))
 
 (defmethod cells ((node account-node))
   (let* ((id (get-id node))
@@ -230,21 +195,7 @@
                                     :style "control"
                                     :href (account :id id))))))
 
-(defmethod display ((node account-node) &key selected-id)
-  (let ((selected-p (selected-p node selected-id)))
-    (with-html
-      (:li (:div :class (if selected-p
-                            (if (eq (op (collection node)) 'delete)
-                                "attention"
-                                "selected")
-                            nil)
-                 (display (getf (cells node) :selector)
-                          :state (if selected-p :on :off))
-                 (display (getf (cells node) :payload)
-                          :readonlyp (readonly-p node selected-id))
-                 (mapc (lambda (cell)
-                         (htm (display cell :activep (controls-p node selected-id))))
-                       (getf (cells node) :controls)))))))
+
 
 
 ;;; ------------------------------------------------------------

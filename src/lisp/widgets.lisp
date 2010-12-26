@@ -40,6 +40,25 @@
   ((parent-key :accessor parent-key :initarg :parent-key)
    (children   :accessor children   :initarg :children)))
 
+(defgeneric find-node (node key))
+
+(defmethod find-node ((node node) key)
+  (find-node-rec key (list node)))
+
+(defun find-node-rec (target-key fringe)
+  (let ((node (first fringe)))
+    (cond
+      ;; fringe exhausted, target not found
+      ((null node)
+       nil)
+      ;; target found
+      ((equal (key node) target-key)
+       node)
+      ;; expand fringe and continue (depth-first)
+      (t
+       (find-node target-key
+                  (append (children node) (rest fringe)))))))
+
 (defclass row (item)
   ((index :accessor index :initarg :index)))
 
@@ -56,10 +75,6 @@
   (:documentation "Returns a property list which contains the ids of
   the various cells as keys and lists of cell objects as the
   corresponding values."))
-
-;; (defgeneric get-id (item)
-;;   (:documentation "Returns the id of the item, which should be
-;;   comparable with the selected-id slot of the item's collection."))
 
 (defmethod selected-p ((item item) selected-id)
   (eql (key item) selected-id))
@@ -78,17 +93,18 @@
 ;;; Trees
 ;;; ------------------------------------------------------------
 
-;; (defclass crud-tree (collection)
-;;   ((root :accessor root :initarg :root))
-;;   (:default-initargs :id "crud-table" :style "crud-table"))
+(defclass crud-tree (collection)
+  ((root :accessor root :initarg :root))
+  (:default-initargs :id "crud-table" :style "crud-table"))
 
-;; (defmethod initialize-instance :after ((collection crud-tree) &key)
-;;   ;; First store db-data
-;;   (setf (slot-value collection 'db-data)
-;;         (read-items collection))
-;;   ;; Then store row objects
-;;   #|(setf (slot-value collection 'root)
-;;         )|#)
+(defmethod initialize-instance :after ((tree crud-tree) &key)
+  (setf (slot-value tree 'root)
+        (read-items tree)))
+
+(defmethod update-item ((tree crud-tree) &key record key)
+  (let ((node (find-node tree key)))
+    (setf (record node)
+          (plist-union record (record node)))))
 
 
 ;; (defmethod display ((tree crud-tree) &key selected-id selected-data)
@@ -109,6 +125,29 @@
 ;;                                  :collection collection))
 ;;          (:ul (display (children node))))))
 
+;;; ------------------------------------------------------------
+;;; CRUD NODE
+;;; ------------------------------------------------------------
+
+(defclass crud-node (node)
+  ())
+
+
+(defmethod display ((node crud-node) &key selected-id)
+  (let ((selected-p (selected-p node selected-id)))
+    (with-html
+      (:li (:div :class (if selected-p
+                            (if (eq (op (collection node)) 'delete)
+                                "attention"
+                                "selected")
+                            nil)
+                 (display (getf (cells node) :selector)
+                          :state (if selected-p :on :off))
+                 (display (getf (cells node) :payload)
+                          :readonlyp (readonly-p node selected-id))
+                 (mapc (lambda (cell)
+                         (htm (display cell :activep (controls-p node selected-id))))
+                       (getf (cells node) :controls)))))))
 
 ;;; ------------------------------------------------------------
 ;;; TABLES
