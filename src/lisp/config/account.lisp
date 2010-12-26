@@ -145,18 +145,22 @@
                                    :from 'account
                                    :where (:= 'debit-p (filter tree)))
                           :plists)))
-      (labels ((make-nodes (id)
+      (labels ((make-nodes (key)
                  (mapcar (lambda (rec)
-                           (make-instance 'node
-                                          :value rec
-                                          :parent id
+                           (make-instance 'crud-node
+                                          :collection tree
+                                          :key key
+                                          :record rec
+                                          :parent-key key
                                           :children (make-nodes (getf rec :id))))
                          (remove-if-not (lambda (rec)
-                                          (equal id (getf rec :parent-id)))
+                                          (equal key (getf rec :parent-id)))
                                         records))))
-        (make-instance 'node
-                       :parent nil
-                       :value 'root-node
+        (make-instance 'crud-node
+                       :collection tree
+                       :key 'root
+                       :record nil
+                       :parent-key nil
                        :children (make-nodes :null))))))
 
 (defmethod insert-item ((tree account-tree) &key record parent-key)
@@ -176,9 +180,9 @@
 (defclass account-node (crud-node)
   ())
 
-(defmethod cells ((node account-node))
-  (let* ((id (get-id node))
-         (data (data node))
+(defmethod cells ((node account-node) &key)
+  (let* ((id (key node))
+         (record (record node))
          (collection (collection node)))
     (list :selector (make-instance 'selector-cell
                                    :style "selector"
@@ -187,7 +191,7 @@
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :style "payload"
-                                  :value (getf data :title))
+                                  :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell
                                     :style "control")
