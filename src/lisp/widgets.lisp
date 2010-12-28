@@ -42,8 +42,8 @@
 
 (defgeneric find-node (node key))
 
-(defmethod find-node ((node node) key)
-  (find-node-rec key (list node)))
+(defmethod find-node ((root node) key)
+  (find-node-rec key (list root)))
 
 (defun find-node-rec (target-key fringe)
   (let ((node (first fringe)))
@@ -56,8 +56,8 @@
        node)
       ;; expand fringe and continue (depth-first)
       (t
-       (find-node target-key
-                  (append (children node) (rest fringe)))))))
+       (find-node-rec target-key
+                      (append (children node) (rest fringe)))))))
 
 (defclass row (item)
   ((index :accessor index :initarg :index)))
@@ -80,12 +80,8 @@
   (equal (key item) selected-id))
 
 (defmethod readonly-p ((item item) selected-id)
-  (or (not (selected-p item selected-id))
+  (or (not (controls-p item selected-id))
       (member (op (collection item)) '(view delete))))
-
-(defmethod controls-p ((item item) selected-id)
-  (and (selected-p item selected-id)
-       (member (op (collection item)) '(create update delete))))
 
 
 
@@ -102,7 +98,7 @@
         (read-items tree)))
 
 (defmethod update-item ((tree crud-tree) &key record key)
-  (let ((node (find-node tree key)))
+  (let ((node (find-node (root tree) key)))
     (setf (record node)
           (plist-union record (record node)))))
 
@@ -111,7 +107,9 @@
   (with-html
     (:ul :class "crud-tree"
          (mapc (lambda (node)
-                 (htm (display node :selected-id selected-id)))
+                 (htm (display node
+                               :selected-id selected-id
+                               :selected-data selected-data)))
                (children (root tree))))))
 
 
@@ -123,7 +121,16 @@
 (defclass crud-node (node)
   ())
 
-(defmethod display ((node crud-node) &key selected-id)
+(defmethod controls-p ((item crud-node) selected-id)
+  (let ((parent-item (find-node (root (collection item)) (parent-key item))))
+    (or (and (member (op (collection item)) '(update delete))
+             (selected-p item selected-id))
+        (and (eql (op (collection item)) 'create)
+             (eql (key item) :new-slot)
+             parent-item
+             (selected-p parent-item selected-id)))))
+
+(defmethod display ((node crud-node) &key selected-id selected-data)
   (let ((selected-p (selected-p node selected-id)))
     (with-html
       (:li :class (if selected-p
@@ -138,10 +145,17 @@
            (mapc (lambda (cell)
                    (htm (display cell :activep (controls-p node selected-id))))
                  (getf (cells node) :controls))
+           (when (and selected-p
+                      (eql (op (collection node)) 'create))
+             (insert-item (collection node)
+                          :record selected-data
+                          :parent-key selected-id))
            (when (children node)
              (htm (:ul :class "indent"
                        (mapc (lambda (node)
-                               (display node :selected-id selected-id))
+                               (display node
+                                        :selected-id selected-id
+                                        :selected-data selected-data))
                              (children node)))))))))
 
 
@@ -207,6 +221,10 @@
 
 (defclass crud-row (row)
   ())
+
+(defmethod controls-p ((item row) selected-id)
+  (and (selected-p item selected-id)
+       (member (op (collection item)) '(create update delete))))
 
 (defmethod display ((row crud-row) &key selected-id start)
   (let ((selected-p (selected-p row selected-id))

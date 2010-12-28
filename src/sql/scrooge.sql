@@ -65,9 +65,9 @@ create table contact (
 --- Accounts -----------------------------
 
 create table account (
-       id varchar(32) primary key
+       id serial primary key
        ,title varchar(128) unique not null
-       ,parent_id varchar(32) references account(id)
+       ,parent_id integer references account(id)
        ,debit_p boolean not null
 );
 
@@ -79,8 +79,8 @@ create table tx (
        id serial primary key
        ,tx_date date
        ,description varchar(256)
-       ,debit_acc_id varchar(32) not null references account(id)
-       ,credit_acc_id varchar(32) not null references account(id)
+       ,debit_acc_id integer not null references account(id)
+       ,credit_acc_id integer not null references account(id)
        ,company_id integer not null references company(id)
        ,amount integer check (amount > 0)
 
@@ -89,8 +89,8 @@ create table tx (
 create table temtx (
        id serial primary key
        ,description varchar(256) not null
-       ,debit_acc_id varchar(32) references account(id)
-       ,credit_acc_id varchar(32) references account(id)
+       ,debit_acc_id integer references account(id)
+       ,credit_acc_id integer references account(id)
 );
 
 
@@ -120,8 +120,8 @@ insert into cheque_status (id, description) values('returned', 'Επιστράφ
 create table cheque_stran (
        id serial primary key
        ,description varchar(256)
-       ,debit_acc_id  varchar(32) not null references account(id)
-       ,credit_acc_id varchar(32) not null references account(id)
+       ,debit_acc_id  integer not null references account(id)
+       ,credit_acc_id integer not null references account(id)
        ,old_status varchar(32) references cheque_status(id)
        ,new_status varchar(32) references cheque_status(id)
 );
@@ -155,8 +155,8 @@ insert into project_status (id, description) values('cancelled', 'Ακυρώθη
 create table project_stran (
        id serial primary key
        ,description varchar(256) not null
-       ,debit_acc_id varchar(32) not null references account(id)
-       ,credit_acc_id varchar(32) not null references account(id)
+       ,debit_acc_id integer not null references account(id)
+       ,credit_acc_id integer not null references account(id)
        ,old_status varchar(32) not null references project_status(id)
        ,new_status varchar(32) not null references project_status(id)
 );

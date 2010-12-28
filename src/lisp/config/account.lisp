@@ -64,7 +64,7 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
-    ((parent-id string  chk-parent-acc-id)
+    ((parent-id integer chk-parent-acc-id)
      (title     string  chk-acc-title t)
      (debitp    boolean (chk-debitp debitp parent-id)))
   (no-cache)
@@ -84,7 +84,7 @@
           (see-other (notfound)))))
 
 (define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
-    ((id    string chk-acc-id t)
+    ((id    integer chk-acc-id t)
      (title string (chk-acc-title title id) t))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -120,7 +120,8 @@
                             :id (conc prefix "-account-actions")
                             :style "hnavbar actions grid_6 alpha"
                             :spec (standard-actions-spec (account :id id)
-                                                         (account/create :debitp debitp :parent-id id)
+                                                         (account/create :debitp debitp
+                                                                         :parent-id id)
                                                          (account/update :id id)
                                                          (if (or (null id)
                                                                  (acc-referenced-p id))
@@ -168,13 +169,12 @@
 (defmethod insert-item ((tree account-tree) &key record parent-key)
   (let ((parent-node (find-node (root tree) parent-key))
         (new-node (make-instance 'account-node
-                                 :key (getf record :id)
+                                 :key :new-slot
                                  :record record
                                  :collection tree
+                                 :parent-key parent-key
                                  :children ())))
-    (setf (children parent-node)
-          (cons new-node (children parent-node)))
-    new-node))
+    (push new-node (children parent-node))))
 
 
 ;;; nodes
@@ -196,9 +196,9 @@
                                   :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell
-                                    :style "control")
+                                    :style "pushbutton")
                      (make-instance 'cancel-cell
-                                    :style "control"
+                                    :style "pushbutton"
                                     :href (account :id id))))))
 
 
@@ -221,7 +221,7 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page account ("config/account")
-    ((id string chk-acc-id)
+    ((id     integer chk-acc-id)
      (debitp boolean))
   (no-cache)
   (if (validp id)
@@ -252,7 +252,7 @@
       (see-other (notfound))))
 
 (define-dynamic-page account/create ("account/create")
-    ((parent-id string chk-acc-id)
+    ((parent-id integer chk-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-acc-title))
   (no-cache)
@@ -261,44 +261,59 @@
         (:head
          (:title "Δημιουργία λογαριασμού")
          (config-headers))
-        #|(:body
+        (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-menu 'account)
-               (:div :id "debit-accounts" :class "window grid_6"
-                     (:div :class "title" "Δημιουργία λογαριασμού")
-                     (account-menu (val parent-id)
-                                   t
-                                   (if (and (val parent-id) (debit-p (val parent-id)))
-                                       '()
-                                       '(create update delete)))))
-
-         (:div :id "body"
-               (:div :class "message"
-                     (:h2 :class "info" "Δημιουργία λογαριασμού")
-                     (acc-errorbar (list title)))
-               (:div :id "debit-accounts" :class "window"
-                     (account-menu (val parent-id)
-                                   t
-                                   (if (and (val parent-id) (debit-p (val parent-id)))
-                                       '(view)
-                                       '()))
-                     (with-form (actions/account/create :parent-id (val parent-id)
-                                                        :title (val* title)
-                                                        :debitp (val debitp))
-                       (account-tree 'create t (val parent-id) (val debitp))))
-               (:div :id "credit-accounts" :class "window"
-                     (account-menu (val parent-id)
-                                   nil
-                                   (if (and (val parent-id) (debit-p (val parent-id)))
-                                       '()
-                                       '(view)))
-                     (with-form (actions/account/create :parent-id (val parent-id)
-                                                        :title (val* title)
-                                                        :debitp (val debitp))
-                       (account-tree 'create nil (val parent-id) (val debitp))))
-               (footer)))|#)
+               (iter
+                 (for flag in (list t nil))
+                 (for div-id in '("debit-accounts" "credit-accounts"))
+                 (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+                 (for account-tree = (make-instance 'account-tree
+                                                    :op (if (eql flag (val debitp))
+                                                            'create
+                                                            'view)
+                                                    :filter flag))
+                 (htm
+                  (:div :id div-id :class "window grid_6"
+                        (:div :class "title" (str window-title))
+                        (account-menu (val parent-id)
+                                      flag
+                                      '(create update delete))
+                        (with-form (actions/account/create :parent-id (val parent-id)
+                                                           :title (val* title)
+                                                           :debitp (val debitp))
+                          (display account-tree
+                                   :selected-id (val* parent-id)
+                                   :selected-data (list :title (val* title))))))))))
       (see-other (notfound))))
+
+#|(:div :id "body"
+      (:div :class "message"
+            (:h2 :class "info" "Δημιουργία λογαριασμού")
+            (acc-errorbar (list title)))
+      (:div :id "debit-accounts" :class "window"
+            (account-menu (val parent-id)
+                          t
+                          (if (and (val parent-id) (debit-p (val parent-id)))
+                              '(view)
+                              '()))
+            (with-form (actions/account/create :parent-id (val parent-id)
+                                               :title (val* title)
+                                               :debitp (val debitp))
+              (account-tree 'create t (val parent-id) (val debitp))))
+      (:div :id "credit-accounts" :class "window"
+            (account-menu (val parent-id)
+                          nil
+                          (if (and (val parent-id) (debit-p (val parent-id)))
+                              '()
+                              '(view)))
+            (with-form (actions/account/create :parent-id (val parent-id)
+                                               :title (val* title)
+                                               :debitp (val debitp))
+              (account-tree 'create nil (val parent-id) (val debitp))))
+      (footer))|#
+
 
 (define-dynamic-page account/update ("account/update")
     ((id    integer chk-acc-id t)
