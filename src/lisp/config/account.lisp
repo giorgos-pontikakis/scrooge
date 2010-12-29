@@ -161,7 +161,7 @@
                                         records))))
         (make-instance 'account-node
                        :collection tree
-                       :key 'root
+                       :key nil
                        :record nil
                        :parent-key nil
                        :children (make-nodes :null))))))
@@ -169,7 +169,7 @@
 (defmethod insert-item ((tree account-tree) &key record parent-key)
   (let ((parent-node (find-node (root tree) parent-key))
         (new-node (make-instance 'account-node
-                                 :key nil
+                                 :key parent-key
                                  :record record
                                  :collection tree
                                  :parent-key parent-key

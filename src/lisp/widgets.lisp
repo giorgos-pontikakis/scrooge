@@ -77,8 +77,7 @@
   corresponding values."))
 
 (defmethod selected-p ((item item) selected-id)
-  (and selected-id
-       (equal (key item) selected-id)))
+  (equal (key item) selected-id))
 
 (defmethod readonly-p ((item item) selected-id)
   (or (not (controls-p item selected-id))
@@ -109,7 +108,7 @@
              (null selected-id))
     (insert-item tree
                  :record selected-data
-                 :parent-key 'root))
+                 :parent-key nil))
   (with-html
     (:ul :class "crud-tree"
          (mapc (lambda (node)
@@ -134,9 +133,8 @@
      (and (member (op (collection item)) '(update delete))
           (selected-p item selected-id))
      ;; create
-     (and (null (key item)) ;; empty item implies create
-          (or (null selected-id) ;; toplevel node
-              (selected-p parent-item selected-id))))))
+     (and (eql (key item) (parent-key item)) ;; this implies create
+          (selected-p parent-item selected-id)))))
 
 (defmethod display ((node crud-node) &key selected-id selected-data)
   (let ((selected-p (selected-p node selected-id))
