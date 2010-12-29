@@ -126,15 +126,16 @@
     (or (and (member (op (collection item)) '(update delete))
              (selected-p item selected-id))
         (and (eql (op (collection item)) 'create)
-             (eql (key item) :new-slot)
+             (null (key item))
              parent-item
              (selected-p parent-item selected-id)))))
 
 (defmethod display ((node crud-node) &key selected-id selected-data)
-  (let ((selected-p (selected-p node selected-id)))
+  (let ((selected-p (selected-p node selected-id))
+        (tree (collection node)))
     (with-html
       (:li :class (if selected-p
-                      (if (eq (op (collection node)) 'delete)
+                      (if (eq (op tree) 'delete)
                           "attention"
                           "selected")
                       nil)
@@ -145,11 +146,18 @@
            (mapc (lambda (cell)
                    (htm (display cell :activep (controls-p node selected-id))))
                  (getf (cells node) :controls))
+           ;; Create
            (when (and selected-p
-                      (eql (op (collection node)) 'create))
-             (insert-item (collection node)
+                      (eql (op tree) 'create))
+             (insert-item tree
                           :record selected-data
                           :parent-key selected-id))
+           ;; Update
+           (when (and selected-p
+                      (eql (op tree) 'update))
+             (update-item tree
+                          :record selected-data
+                          :key selected-id))
            (when (children node)
              (htm (:ul :class "indent"
                        (mapc (lambda (node)
@@ -187,12 +195,12 @@
     (let* ((index (if selected-row (index selected-row) nil))
            (pg (paginator table))
            (page-start (page-start pg index start)))
-      ;; Create: insert extra item with user input
+      ;; Create
       (when (eq (op table) 'create)
         (insert-item table
                      :record selected-data
                      :index 0))
-      ;; Update: update selected-item with user input
+      ;; Update
       (when (eq (op table) 'update)
         (update-item table
                      :record selected-data
