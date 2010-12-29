@@ -77,7 +77,8 @@
   corresponding values."))
 
 (defmethod selected-p ((item item) selected-id)
-  (equal (key item) selected-id))
+  (and selected-id
+       (equal (key item) selected-id)))
 
 (defmethod readonly-p ((item item) selected-id)
   (or (not (controls-p item selected-id))
@@ -104,12 +105,17 @@
 
 
 (defmethod display ((tree crud-tree) &key selected-id selected-data)
+  (when (and (eq (op tree) 'create)
+             (null selected-id))
+    (insert-item tree
+                 :record selected-data
+                 :parent-key 'root))
   (with-html
     (:ul :class "crud-tree"
          (mapc (lambda (node)
-                 (htm (display node
-                               :selected-id selected-id
-                               :selected-data selected-data)))
+                 (display node
+                          :selected-id selected-id
+                          :selected-data selected-data))
                (children (root tree))))))
 
 
@@ -123,12 +129,14 @@
 
 (defmethod controls-p ((item crud-node) selected-id)
   (let ((parent-item (find-node (root (collection item)) (parent-key item))))
-    (or (and (member (op (collection item)) '(update delete))
-             (selected-p item selected-id))
-        (and (eql (op (collection item)) 'create)
-             (null (key item))
-             parent-item
-             (selected-p parent-item selected-id)))))
+    (or
+     ;; update or delete
+     (and (member (op (collection item)) '(update delete))
+          (selected-p item selected-id))
+     ;; create
+     (and (null (key item)) ;; empty item implies create
+          (or (null selected-id) ;; toplevel node
+              (selected-p parent-item selected-id))))))
 
 (defmethod display ((node crud-node) &key selected-id selected-data)
   (let ((selected-p (selected-p node selected-id))
@@ -158,6 +166,7 @@
              (update-item tree
                           :record selected-data
                           :key selected-id))
+           ;; Continue with children
            (when (children node)
              (htm (:ul :class "indent"
                        (mapc (lambda (node)
