@@ -68,7 +68,11 @@ case $# in
         }
 
         push_git_origin () {
-            for i in $deps $project_root
+
+            get_branch $project_root
+            git push origin $branch:$branch
+
+            for i in $deps
             do
                 cd $HOME/$i
                 echo
