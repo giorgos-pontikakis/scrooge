@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+case $1 in
+
+    start)
+        exists=$(screen -ls | grep scrooge)
+        if [[ -z $exists ]]
+        then
+            echo 'Starting detached sbcl/scrooge chain'
+            screen -S scrooge -d -m sbcl --eval '(require :scrooge)'
+            exit 0
+        else
+            echo 'It seems that sbcl is already running, please stop it first'
+            exit 1
+        fi
+        ;;
+
+    stop)
+        pid=$(screen -ls | grep scrooge | cut -d. -f1)
+        echo 'Killing screen/sbcl/scrooge chain'
+        kill $pid
+        ;;
+
+    *)
+        echo "Usage: scrooge start|stop"
+        ;;
+
+esac

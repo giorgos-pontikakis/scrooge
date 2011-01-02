@@ -1,19 +1,29 @@
 #!/bin/bash
 
-remote=pulsar
+case $# in
+    0) echo 'Usage: deploy <remote machine>'
+        exit 1
+;;
+esac
+
+user=gnp
+project_name=scrooge
 project_root="www/scrooge"
 deps="src/lisputils src/veil src/bricks"
+static="public db_dumps lib"
 
-
+# Set the global $branch equal to the branch of the repo
+# given as the first argument
 get_branch () {
     dir=$1
-    cd ; cd $dir
-    branch=$(git branch | head -n 1 | cut -d" " -f 2)
+    cd $HOME/$dir
+    branch=$(git branch | grep '*' | cut -d" " -f 2)
 }
 
+# Test the status of the repo given as the first argument
 is_clean () {
     dir=$1
-    cd ; cd $dir
+    cd $HOME/$dir
     status=$(git status | tail -n 1)
     if [[ $status == 'nothing to commit (working directory clean)' ]]
     then
@@ -25,19 +35,71 @@ is_clean () {
 
 chk_repos_clean () {
 
-    for i in $deps
+    for i in $deps $project_root
     do
-        echo $i
         is_clean $i
         if [[ $? -eq 100 ]]
         then
             echo ABORT: Repository at $HOME/$i is not clean
             exit 100
         else
-            echo PASS: Repository at $HOME/$i is clean
+            echo Repository at $HOME/$i is clean
         fi
     done
 }
 
+
+
+chk_deps_branch () {
+
+    get_branch $project_root
+    project_branch=$branch
+
+    for i in $deps
+    do
+        get_branch $i
+        if [[ $branch == 'master' || $branch == "${project_name}-${project_branch}" ]]
+        then
+            echo Repository at $HOME/$i at correct branch
+        else
+            echo ABORT: Repository at $HOME/$i at incorrect branch
+            exit 100
+        fi
+    done
+}
+
+push_git_origin () {
+    for i in $deps $project_root
+    do
+        cd $HOME/$i
+        echo
+        echo Attempting to push repo at $HOME/$i
+        if $(git push origin $branch:$branch)
+        then
+            echo Pushed repository at $HOME/$i to origin
+        else
+            echo ABORT: Failed to push repository at $HOME/$i to origin. Return code $?
+            exit 100
+        fi
+    done
+}
+
+sync_static () {
+    for i in $static
+    do
+        echo
+        echo Rsyncing $HOME/$i
+        rsync -rz "$HOME/$project_root/$i" \
+            "$user@$remote:$HOME/$project_root/$i"
+    done
+}
+
+echo
+chk_deps_branch
+echo
 chk_repos_clean
-echo "Deploying..."
+push_git_origin
+echo
+dump_db
+sync_static
+echo "End of deployment"

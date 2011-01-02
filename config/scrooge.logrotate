@@ -1,0 +1,11 @@
+/home/gnp/www/scrooge/logs/*.log {
+  rotate 100
+  notifempty
+  size=5M
+  compress
+  delaycompress
+  sharedscripts
+  postrotate
+    /etc/init.d/apache2 reload > /dev/null
+  endscript
+}
