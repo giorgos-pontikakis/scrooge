@@ -75,6 +75,7 @@ case $# in
             for i in $deps
             do
                 cd $HOME/$i
+                get_branch $i
                 echo
                 echo Attempting to push repo at $HOME/$i
                 if $(git push origin $branch:$branch)
