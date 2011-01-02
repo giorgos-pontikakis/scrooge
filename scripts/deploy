@@ -92,7 +92,7 @@ case $# in
                     "$user@$remote:$HOME/$project_root/$i"
             done
         }
-        sync_static
+
         echo
         chk_deps_branch
         echo
