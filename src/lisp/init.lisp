@@ -20,5 +20,5 @@
                            :dbname "scrooge"
                            :dbhost "localhost"
                            :dbuser "gnp"
-                           :dbpass ""
+                           :dbpass "gnp!p0stgresql"
                            :adapter "postgres"))
