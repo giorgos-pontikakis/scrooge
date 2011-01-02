@@ -100,6 +100,6 @@ echo
 chk_repos_clean
 push_git_origin
 echo
-dump_db
+scripts/dump_db
 sync_static
 echo "End of deployment"
