@@ -15,7 +15,7 @@ is_clean () {
     dir=$1
     cd ; cd $dir
     status=$(git status | tail -n 1)
-    if [[ status == 'nothing to commit (working directory clean)' ]]
+    if [[ $status == 'nothing to commit (working directory clean)' ]]
     then
         return 0
     else
@@ -25,7 +25,7 @@ is_clean () {
 
 chk_repos_clean () {
 
-    for i in $project_root $deps
+    for i in $deps
     do
         echo $i
         is_clean $i
