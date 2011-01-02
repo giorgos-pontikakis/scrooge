@@ -1,12 +1,15 @@
 #!/bin/bash
 
+
 case $# in
     1)
-        user=gnp
         project_name=scrooge
         project_root="www/scrooge"
         deps="src/lisputils src/veil src/bricks"
         static="public db_dumps lib"
+
+        remote=$1
+        user=`whoami`
 
 # Set the global $branch equal to the branch of the repo
 # given as the first argument
@@ -84,12 +87,12 @@ case $# in
             for i in $static
             do
                 echo
-                echo Rsyncing $HOME/$project_root/$i
+                echo Rsyncing $HOME/$project_root/$i to "$user@$remote:$HOME/$project_root/$i"
                 rsync -rz "$HOME/$project_root/$i" \
                     "$user@$remote:$HOME/$project_root/$i"
             done
         }
-
+        sync_static
         echo
         chk_deps_branch
         echo
