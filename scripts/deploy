@@ -1,0 +1,43 @@
+#!/bin/bash
+
+remote=pulsar
+project_root="/home/gnp/www/scrooge"
+deps="src/lisputils src/veil src/bricks"
+
+
+get_branch () {
+    dir=$1
+    cd ; cd $dir
+    branch=$(git branch | head -n 1 | cut -d" " -f 2)
+}
+
+is_clean () {
+    dir=$1
+    cd ; cd $dir
+    status=$(git status | tail -n 1)
+    if [[ status == 'nothing to commit (working directory clean)' ]]
+    then
+        return 0
+    else
+        return 100
+    fi
+}
+
+chk_repos_clean () {
+
+    for i in $project_root $deps
+    do
+        echo $i
+        is_clean $i
+        if [[ $? -eq 100 ]]
+        then
+            echo ABORT: Repository at $HOME/$i is not clean
+            exit 100
+        else
+            echo PASS: Repository at $HOME/$i is clean
+        fi
+    done
+}
+
+chk_repos_clean
+echo "Deploying..."
