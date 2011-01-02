@@ -94,7 +94,7 @@ case $# in
                 echo
                 echo Rsyncing $HOME/$project_root/$i to "$user@$remote:$HOME/$project_root/$i"
                 rsync -rz "$HOME/$project_root/$i" \
-                    "$user@$remote:$HOME/$project_root/$i"
+                    "$user@$remote:$HOME/$project_root"
             done
         }
 
