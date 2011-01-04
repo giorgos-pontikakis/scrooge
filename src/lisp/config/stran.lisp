@@ -61,6 +61,8 @@
       nil
       'stran-status-unknown))
 
+
+
 ;;; ------------------------------------------------------------
 ;;; State transitions - Actions
 ;;; ------------------------------------------------------------
@@ -133,25 +135,35 @@
 
 
 ;;; ------------------------------------------------------------
-;;; State transitions - Snippets
+;;; stran menu
 ;;; ------------------------------------------------------------
 
-(defun stran-menu (id tbl enabled-items)
-  (funcall (actions-menu)
-           :item-specs (standard-actions-spec (stran :id id :tbl tbl)
-                                              (stran/create)
-                                              (stran/update :id id :tbl tbl)
-                                              (stran/delete :id id :tbl tbl))
-           :enabled-items enabled-items))
+(defun stran-menu (id filter &optional disabled-items)
+  (display (make-instance 'actions-menu
+                          :id "stran-actions"
+                          :style "hnavbar actions grid_9 alpha"
+                          :spec (standard-actions-spec (stran :id id
+                                                              :filter filter)
+                                                       (stran/create :filter filter)
+                                                       (stran/update :id id
+                                                                     :filter filter)
+                                                       (if (null id)
+                                                           nil
+                                                           (stran/delete :id id
+                                                                         :filter filter))))
+           :disabled-items disabled-items))
 
-(defun stran-errorbar (params)
-  (funcall (generic-errorbar)
-           params
-           '((description "Η περιγραφή δεν πρέπει να είναι κενή")
-             (debit-acc "Άκυρος λογαριασμός χρέωσης")
-             (credit-acc "Άκυρος λογαριασμός πίστωσης")
-             (old-status "Άκυρη αρχική κατάσταση")
-             (new-status "Άκυρη τελική κατάσταση"))))
+
+
+;;; ------------------------------------------------------------
+;;; stran table
+;;; ------------------------------------------------------------
+
+;;; table
+
+(defclass stran-table (crud-table)
+  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
+   (paginator     :initform nil)))
 
 (defun stran-data ()
   (flet ((select (table)
@@ -179,6 +191,41 @@
       (query (sql-compile `(:union ,(select "project")
                                    ,(select "cheque")))
              :plists))))
+
+(defmethod read-items ((table stran-table))
+  (iter (for rec in (config-data 'bank (filter table)))
+        (for i from 0)
+        (collect (make-instance 'stran-row
+                                :key (getf rec :id)
+                                :record rec
+                                :collection table
+                                :index i))))
+
+
+
+
+;;; ------------------------------------------------------------
+;;; State transitions - Snippets
+;;; ------------------------------------------------------------
+
+(defun stran-menu (id tbl enabled-items)
+  (funcall (actions-menu)
+           :item-specs (standard-actions-spec (stran :id id :tbl tbl)
+                                              (stran/create)
+                                              (stran/update :id id :tbl tbl)
+                                              (stran/delete :id id :tbl tbl))
+           :enabled-items enabled-items))
+
+(defun stran-errorbar (params)
+  (funcall (generic-errorbar)
+           params
+           '((description "Η περιγραφή δεν πρέπει να είναι κενή")
+             (debit-acc "Άκυρος λογαριασμός χρέωσης")
+             (credit-acc "Άκυρος λογαριασμός πίστωσης")
+             (old-status "Άκυρη αρχική κατάσταση")
+             (new-status "Άκυρη τελική κατάσταση"))))
+
+
 
 
 
