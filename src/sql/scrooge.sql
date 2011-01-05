@@ -95,17 +95,6 @@ create table temtx (
 
 
 
---- Status transitions ------------------------------
-
-create table stran (
-       id varchar(16) primary key
-       ,description varchar(32)
-);
-insert into stran(id, description) values ('cheque', 'Επιταγή');
-insert into stran(id, description) values ('project', 'Έργο');
-
-
-
 --- Cheques ------------------------------
 
 create table cheque_status (
@@ -116,15 +105,6 @@ insert into cheque_status (id, description) values('pending', 'Εκκρεμεί'
 insert into cheque_status (id, description) values('paid', 'Πληρωμένη');
 insert into cheque_status (id, description) values('bounced', 'Ακάλυπτη');
 insert into cheque_status (id, description) values('returned', 'Επιστράφηκε');
-
-create table cheque_stran (
-       id serial primary key
-       ,description varchar(256)
-       ,debit_acc_id  integer not null references account(id)
-       ,credit_acc_id integer not null references account(id)
-       ,old_status varchar(32) references cheque_status(id)
-       ,new_status varchar(32) references cheque_status(id)
-);
 
 create table cheque (
        id serial primary key
@@ -151,15 +131,6 @@ insert into project_status (id, description) values('cancelled', 'Ακυρώθη
 
 
 -- project status transitions
-
-create table project_stran (
-       id serial primary key
-       ,description varchar(256) not null
-       ,debit_acc_id integer not null references account(id)
-       ,credit_acc_id integer not null references account(id)
-       ,old_status varchar(32) not null references project_status(id)
-       ,new_status varchar(32) not null references project_status(id)
-);
 
 create table project (
        id serial primary key

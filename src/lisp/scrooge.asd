@@ -18,7 +18,6 @@
                (:file "config/tof")
                (:file "config/city")
                (:file "config/account")
-               #|(:file "config/stran")|#
                #|(:file "config/temtx")|#
                ;; main
                #|(:file "main/company")|#

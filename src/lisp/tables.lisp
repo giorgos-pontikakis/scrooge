@@ -98,16 +98,6 @@
   (:metaclass dao-class)
   (:keys status))
 
-(defclass cheque-stran ()
-  ((id            :col-type integer :reader   id)
-   (description   :col-type string  :accessor description   :initarg :description)
-   (old-status    :col-type string  :accessor old-status    :initarg :old-status)
-   (new-status    :col-type string  :accessor new-status    :initarg :new-status)
-   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
-  (:metaclass dao-class)
-  (:keys id))
-
 (defclass account ()
   ((id        :col-type string  :accessor id        :initarg :id)
    (title     :col-type string  :accessor title     :initarg :title)
@@ -171,15 +161,6 @@
   (:metaclass dao-class)
   (:keys id))
 
-(defclass project-stran ()
-  ((id            :col-type integer :reader   id)
-   (description   :col-type string  :accessor description   :initarg :description)
-   (old-status    :col-type string  :accessor old-status    :initarg :old-status)
-   (new-status    :col-type string  :accessor new-status    :initarg :new-status)
-   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
-  (:metaclass dao-class)
-  (:keys id))
 
 
 ;;; Auxiliary tables
