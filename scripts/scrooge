@@ -1,29 +1,31 @@
 #!/bin/bash
 
+self=$(basename $0)
 
 case $1 in
 
     start)
-        exists=$(screen -ls | grep scrooge)
+        exists=$(screen -ls | grep $self)
         if [[ -z $exists ]]
         then
-            echo 'Starting detached sbcl/scrooge chain'
-            screen -S scrooge -d -m sbcl --eval '(require :scrooge)'
+            echo "Starting detached screen/sbcl/$self chain"
+            screen -S $self -d -m sbcl --eval "(require :$self)"
             exit 0
         else
-            echo 'It seems that sbcl is already running, please stop it first'
+            echo "It seems that a detached screen/sbcl/$self chain is already running"
+            echo "Please stop it and retry"
             exit 1
         fi
         ;;
 
     stop)
-        pid=$(screen -ls | grep scrooge | cut -d. -f1)
-        echo 'Killing screen/sbcl/scrooge chain'
+        pid=$(screen -ls | grep $self | cut -d. -f1)
+        echo "Killing screen/sbcl/$self chain"
         kill $pid
         ;;
 
     *)
-        echo "Usage: scrooge start|stop"
+        echo "Usage: $self start|stop"
         ;;
 
 esac

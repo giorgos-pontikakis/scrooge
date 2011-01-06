@@ -97,7 +97,7 @@
   (with-db ()
     (query (:select 'description 'location 'price 'start-date 'end-date 'status 'vat
                     :from 'project
-                    :left-join 'company
+                    :inner-join 'company
                     :on (:= 'project.company-.id 'company.id)
                     :where (:= 'project.id id))
            :row)))

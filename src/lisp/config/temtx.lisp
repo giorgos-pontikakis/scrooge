@@ -251,9 +251,9 @@
       (let ((auto-txs (query (:select 'temtx.id 'description
                                       'debit-account.title 'credit-account.title
                                       :from 'temtx
-                                      :left-join (:as 'account 'debit-account)
+                                      :inner-join (:as 'account 'debit-account)
                                       :on (:= 'debit-account.id 'temtx.debit-acc-id)
-                                      :left-join (:as 'account 'credit-account)
+                                      :inner-join (:as 'account 'credit-account)
                                       :on (:= 'credit-account.id 'temtx.credit-acc-id))))
             (header '("" "Περιγραφή" "Λογαριασμός Χρέωσης" "Λογαριασμός Πίστωσης" "" ""))
             (inputs (if params

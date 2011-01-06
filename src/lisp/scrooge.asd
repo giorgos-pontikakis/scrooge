@@ -20,7 +20,7 @@
                (:file "config/account")
                #|(:file "config/temtx")|#
                ;; main
-               #|(:file "main/company")|#
+               (:file "main/company")
                #|(:file "main/cheque")|#
                #|(:file "main/project")|#
                #|(:file "main/tx")|#))

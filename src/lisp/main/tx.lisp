@@ -271,11 +271,11 @@
       (let ((transactions (query (:select 'tx.id 'tx.tx-date 'tx.description 'company.title 'tx.amount
                                           'debit-account.title 'credit-account.title 'tx.company-id
                                           :from 'tx
-                                          :left-join 'company
+                                          :inner-join 'company
                                           :on (:= 'company.id 'tx.company-id)
-                                          :left-join (:as 'account 'debit-account)
+                                          :inner-join (:as 'account 'debit-account)
                                           :on (:= 'debit-account.id 'tx.debit-acc-id)
-                                          :left-join (:as 'account 'credit-account)
+                                          :inner-join (:as 'account 'credit-account)
                                           :on (:= 'credit-account.id 'tx.credit-acc-id))))
             (header '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Ποσό"
                       "Χρέωστικός λογαρ." "Πιστωτικός λογαρ."))

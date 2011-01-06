@@ -87,7 +87,7 @@
                                                        (bank/update :id id
                                                                     :filter filter)
                                                        (if (or (null id)
-                                                               (bank-referenced-p id))
+                                                               (chk-bank-id/ref id))
                                                            nil
                                                            (bank/delete :id id
                                                                         :filter filter))))

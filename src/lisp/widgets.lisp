@@ -252,8 +252,10 @@
                       nil)
            (:td (display (getf cells :selector)
                          :state (if (selected-p row selected-id) :on :off)))
-           (:td (display (getf cells :payload)
-                         :readonlyp (readonly-p row selected-id)))
+           (mapc (lambda (cell)
+                   (htm (:td (display cell
+                                      :readonlyp (readonly-p row selected-id)))))
+                 (ensure-list (getf cells :payload)))
            (mapc (lambda (cell)
                    (htm (:td (display cell :activep (controls-p row selected-id)))))
                  (getf cells :controls))))))

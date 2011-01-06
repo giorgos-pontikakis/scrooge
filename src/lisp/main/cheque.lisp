@@ -93,9 +93,9 @@
                       'cheque.amount 'cheque.due-date
                       'company-id 'cheque.status
                       :from 'cheque
-                      :left-join 'company
+                      :inner-join 'company
                       :on (:= 'company.id 'cheque.company-id)
-                      :left-join 'bank
+                      :inner-join 'bank
                       :on (:= 'bank.id 'cheque.bank-id)
                       :where (:= 'cheque.payable-p payable-p))
              :plists))))
