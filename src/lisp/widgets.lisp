@@ -5,7 +5,8 @@
 
 (defclass widget ()
   ((id    :accessor id    :initarg :id)
-   (style :accessor style :initarg :style)))
+   (style :accessor style :initarg :style))
+  (:default-initargs :id nil :style nil))
 
 
 
@@ -145,12 +146,15 @@
                           "attention"
                           "selected")
                       nil)
-           (display (getf (cells node) :selector)
-                    :state (if selected-p :on :off))
-           (display (getf (cells node) :payload)
-                    :readonlyp (readonly-p node selected-id))
+           (:span :class "selector"
+                  (display (getf (cells node) :selector)
+                           :state (if selected-p :on :off)))
+           (:span :class "payload"
+                  (display (getf (cells node) :payload)
+                           :readonlyp (readonly-p node selected-id)))
            (mapc (lambda (cell)
-                   (htm (display cell :activep (controls-p node selected-id))))
+                   (htm (:span :class "pushbutton"
+                               (display cell :activep (controls-p node selected-id)))))
                  (getf (cells node) :controls))
            ;; Create
            (when (and selected-p
@@ -250,14 +254,17 @@
                           "attention"
                           "selected")
                       nil)
-           (:td (display (getf cells :selector)
+           (:td :class "selector"
+                (display (getf cells :selector)
                          :state (if (selected-p row selected-id) :on :off)))
            (mapc (lambda (cell)
-                   (htm (:td (display cell
+                   (htm (:td :class "payload"
+                             (display cell
                                       :readonlyp (readonly-p row selected-id)))))
                  (ensure-list (getf cells :payload)))
            (mapc (lambda (cell)
-                   (htm (:td (display cell :activep (controls-p row selected-id)))))
+                   (htm (:td :class "pushbutton"
+                             (display cell :activep (controls-p row selected-id)))))
                  (getf cells :controls))))))
 
 

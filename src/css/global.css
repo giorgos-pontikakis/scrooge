@@ -28,6 +28,7 @@ input {
     border: 1px solid #ddd;
     padding: 5px 5px 3px 5px;
     font-size: 12px;
+    font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
 }
 
 
@@ -63,44 +64,6 @@ input {
     margin-left: 25px;
 }
 
-
-
-/* ---------------------------------------------------------------------- */
-/* crud-tree */
-/* ---------------------------------------------------------------------- */
-
-.crud-tree {
-    clear: both;
-    padding-top: 10px;
-    line-height: 24px;
-}
-
-.crud-tree a img {
-    vertical-align: middle;
-    padding-right: 2px;
-}
-
-.crud-tree button {
-    padding: 0px;
-    background-color: transparent;
-    border: none;
-    position: relative;
-    top: 4px;
-}
-
-div.selector {
-    display: inline;
-    padding: 0px 0px 0px 5px;
-}
-
-div.payload {
-    display: inline;
-}
-
-div.pushbutton {
-    display: inline;
-    text-align: center;
-}
 
 
 
@@ -286,38 +249,68 @@ div.pushbutton {
     text-align: left;
 }
 
-
 .crud-table input {
     width: 590px;
 }
 
-.crud-table input:hover, .crud-table input:focus {
-    border: solid 1px grey;
+
+
+/* ---------------------------------------------------------------------- */
+/* crud-tree */
+/* ---------------------------------------------------------------------- */
+
+.crud-tree {
+    clear: both;
+    padding-top: 10px;
+    line-height: 26px;
 }
 
-.crud-table input[readonly] {
-    background-color: #f4f4f4;
+.crud-tree a img {
+    vertical-align: middle;
+    padding-right: 2px;
+}
+
+.crud-tree div {
+    display: inline;
+}
+
+.crud-tree input {
+    width: 50%;
 }
 
 
-.crud-table a img {
+/* ---------------------------------------------------------------------- */
+/* crud items */
+/* ---------------------------------------------------------------------- */
+
+.selector, .pushbutton {
+    width: 30px;
+    padding: 0px;
+    text-align: center;
+}
+
+.selector a img, .pushbutton a img {
     vertical-align: middle;
 }
 
-.crud-table button {
+.selector div, .pushbutton div {
+    text-align: center;
+}
+
+.payload input:hover, .crud-table input:focus {
+    border: solid 1px #7B8D78;
+}
+
+.payload input[readonly] {
+    background-color: #f4f4f4;
+}
+
+.pushbutton button {
     padding: 0px;
     background-color: transparent;
     border: none;
     position: relative;
     top: 4px;
-}
-
-.crud-table td:nth-child(1),
-.crud-table td:nth-child(3),
-.crud-table td:nth-child(4) {
-    width: 30px;
-    padding: 0px;
-    text-align: center;
 }
 
 

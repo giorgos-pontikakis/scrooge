@@ -187,18 +187,14 @@
          (record (record node))
          #|(filter (filter (collection node)))|#)
     (list :selector (make-instance 'selector-cell
-                                   :style "selector"
                                    :states (list :on (account)
                                                  :off (account :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
-                                  :style "payload"
                                   :value (getf record :title))
           :controls (list
-                     (make-instance 'ok-cell
-                                    :style "pushbutton")
+                     (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :style "pushbutton"
                                     :href (account :id id))))))
 
 

@@ -118,7 +118,6 @@
          (pg (paginator (collection row)))
          (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
-                                   :style "selector"
                                    :states (list
                                             :on (company :filter filter
                                                          :start (page-start pg (index row) start))
@@ -127,14 +126,11 @@
           :payload (mapcar (lambda (name)
                              (make-instance 'textbox-cell
                                             :name name
-                                            :style "payload"
                                             :value (getf record (make-keyword name))))
                            '(title tin tof address city-name))
           :controls (list
-                     (make-instance 'ok-cell
-                                    :style "pushbutton")
+                     (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :style "pushbutton"
                                     :href (company :id id :filter filter))))))
 
 

@@ -142,20 +142,16 @@
          (pg (paginator (collection row)))
          (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
-                                   :style "selector"
                                    :states (list :on (bank :filter filter
                                                            :start (page-start pg (index row) start))
                                                  :off (bank :filter filter
                                                             :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
-                                  :style "payload"
                                   :value (getf record :title))
           :controls (list
-                     (make-instance 'ok-cell
-                                    :style "pushbutton")
+                     (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :style "pushbutton"
                                     :href (bank :id id :filter filter))))))
 
 
