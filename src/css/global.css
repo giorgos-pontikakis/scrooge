@@ -178,6 +178,7 @@ input {
 .controls {
     background-color: #f5f5f5;
     margin-top: 10px;
+    margint-bottom: 30px;
 }
 
 
@@ -318,10 +319,6 @@ input {
 /* ---------------------------------------------------------------------- */
 /* notifications */
 /* ---------------------------------------------------------------------- */
-
-#notifications {
-    margin-top: 30px;
-}
 
 #notifications ul {
     margin-top: 10px;

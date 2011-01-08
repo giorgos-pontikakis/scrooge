@@ -16,6 +16,7 @@
                          :where (:= 'tof-id id))))))
 
 (define-existence-predicate tof-id-exists-p tof id)
+(define-existence-predicate tof-title-exists-p tof title)
 (define-uniqueness-predicate tof-title-unique-p tof title id)
 
 (defun chk-tof-id (id)
@@ -29,10 +30,15 @@
       nil
       'tof-referenced))
 
-(defun chk-tof-title (title &optional id)
+(defun chk-new-tof-title (title &optional id)
   (cond ((eql :null title) 'tof-title-null)
         ((not (tof-title-unique-p title id)) 'tof-title-exists)
         (t nil)))
+
+(defun chk-tof-title (title)
+  (if (tof-title-exists-p title)
+      nil
+      'unknown-tof-title))
 
 
 
@@ -41,7 +47,7 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/tof/create ("actions/tof/create" :request-type :post)
-    ((title string chk-tof-title t))
+    ((title string chk-new-tof-title t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -51,7 +57,7 @@
 
 (define-dynamic-page actions/tof/update ("actions/tof/update" :request-type :post)
     ((id    integer chk-tof-id t)
-     (title string (chk-tof-title title id) t)
+     (title string (chk-new-tof-title title id) t)
      (filter string))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -190,7 +196,7 @@
   (no-cache)
   (if (validp id)
       (let ((tof-table (make-instance 'tof-table
-                                      :op 'view
+                                      :op 'catalogue
                                       :filter (val* filter))))
         (with-document ()
           (:head
@@ -207,8 +213,8 @@
                        (tof-menu (val id)
                                   (val filter)
                                   (if (val id)
-                                      '(view)
-                                      '(view update delete)))
+                                      '(catalogue)
+                                      '(catalogue update delete)))
                        (display tof-table
                                 :selected-id (val* id)
                                 :start (val* start)))
@@ -216,7 +222,7 @@
       (see-other (notfound))))
 
 (define-dynamic-page tof/create ("config/tof/create")
-    ((title string chk-tof-title)
+    ((title string chk-new-tof-title)
      (filter string))
   (no-cache)
   (let ((tof-table (make-instance 'tof-table
@@ -246,7 +252,7 @@
 
 (define-dynamic-page tof/update ("config/tof/update")
     ((id    integer chk-tof-id t)
-     (title string  (chk-tof-title title id))
+     (title string  (chk-new-tof-title title id))
      (filter string))
   (no-cache)
   (if (validp id)

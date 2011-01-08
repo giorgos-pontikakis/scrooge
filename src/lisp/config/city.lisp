@@ -16,6 +16,7 @@
                          :where (:= 'city-id id)))|#)))
 
 (define-existence-predicate city-id-exists-p city id)
+(define-existence-predicate city-title-exists-p city title)
 (define-uniqueness-predicate city-title-unique-p city title id)
 
 (defun chk-city-id (id)
@@ -29,19 +30,22 @@
       nil
       'city-referenced))
 
-(defun chk-city-title (title &optional id)
+(defun chk-new-city-title (title &optional id)
   (cond ((eql :null title) 'city-title-null)
         ((not (city-title-unique-p title id)) 'city-title-exists)
         (t nil)))
 
-
+(defun chk-city-title (title)
+  (if (city-title-exists-p title)
+      nil
+      'unknown-city-title))
 
 ;;; ------------------------------------------------------------
 ;;; City - Actions
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/city/create ("actions/city/create" :request-type :post)
-    ((title string chk-city-title t))
+    ((title string chk-new-city-title t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -51,7 +55,7 @@
 
 (define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
     ((id    integer chk-city-id t)
-     (title string (chk-city-title title id) t)
+     (title string (chk-new-city-title title id) t)
      (filter string))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -189,7 +193,7 @@
   (no-cache)
   (if (validp id)
       (let ((city-table (make-instance 'city-table
-                                       :op 'view
+                                       :op 'catalogue
                                        :filter (val* filter))))
         (with-document ()
           (:head
@@ -206,8 +210,8 @@
                        (city-menu (val id)
                                   (val filter)
                                   (if (val id)
-                                      '(view)
-                                      '(view update delete)))
+                                      '(catalogue)
+                                      '(catalogue update delete)))
                        (display city-table
                                 :selected-id (val* id)
                                 :start (val* start)))
@@ -215,7 +219,7 @@
       (see-other (notfound))))
 
 (define-dynamic-page city/create ("config/city/create")
-    ((title string chk-city-title)
+    ((title string chk-new-city-title)
      (filter string))
   (no-cache)
   (let ((city-table (make-instance 'city-table
@@ -245,7 +249,7 @@
 
 (define-dynamic-page city/update ("config/city/update")
     ((id    integer chk-city-id t)
-     (title string  (chk-city-title title id))
+     (title string  (chk-new-city-title title id))
      (filter string))
   (no-cache)
   (if (validp id)

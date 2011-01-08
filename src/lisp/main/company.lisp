@@ -2,15 +2,21 @@
 
 
 (define-existence-predicate company-id-exists-p company id)
+(define-uniqueness-predicate company-title-unique-p company title id)
+
+(defun int-5digits-p (num)
+  (and (integerp num)
+       (or (< num 9999)
+           (> num 99999))))
+
+(defun company-referenced-p (id)
+  (declare (ignore id))
+  nil)
 
 (defun chk-company-id (id)
   (if (company-id-exists-p id)
       nil
       'company-id-unknown))
-
-(defun company-referenced-p (id)
-  (declare (ignore id))
-  nil)
 
 (defun chk-company-id/ref (id)
   (if (and (not (null id))
@@ -19,11 +25,68 @@
       nil
       'company-referenced))
 
+(defun chk-company-title (title)
+  (cond ((eql :null title) 'company-title-null)
+        ((not (company-title-unique-p title)) 'company-title-exists)
+        (t nil)))
+
+(defun chk-tin (tin)
+  (if (or (eql :null tin)
+          (valid-tin-p tin))
+      nil
+      'invalid-tin))
+
+(defun chk-pobox (pobox)
+  (if (int-5digits-p pobox)
+      nil
+      'invalid-pobox))
+
+(defun chk-zipcode (zipcode)
+  (if (int-5digits-p zipcode)
+      nil
+      'invalid-zipcode))
+
 
 
 ;;; ------------------------------------------------------------
 ;;; Actions
 ;;; ------------------------------------------------------------
+
+(define-dynamic-page actions/company/create ("actions/company/create" :request-type :post)
+    ((filter     string)
+     (title      string  chk-company-title)
+     (occupation string)
+     (tof        string  chk-tof-title)
+     (tin        string  chk-tin)
+     (address    string)
+     (city       string  chk-city-title)
+     (pobox      integer chk-pobox)
+     (zipcode    integer chk-zipcode))
+  (no-cache)
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (let ((tof-id (tof-id tof))
+              (city-id (city-id city)))
+          (insert-dao
+           (make-instance 'company
+                          :title (val title)
+                          :occupation (val occupation)
+                          :tof (val tof-id)
+                          :tin (val tin)
+                          :address (val address)
+                          :city (val city-id)
+                          :zipcode (val zipcode)
+                          :pobox (val pobox)))
+          (see-other (company :filter filter))))
+      (see-other (company/create :filter (raw filter)
+                                 :title (raw title)
+                                 :occupation (raw occupation)
+                                 :tof (raw tof)
+                                 :tin (raw tin)
+                                 :address (raw address)
+                                 :city (raw city)
+                                 :zipcode (raw zipcode)
+                                 :pobox (raw pobox)))))
 
 (define-dynamic-page actions/company/delete ("actions/company/delete" :request-type :post)
     ((id integer chk-company-id))
@@ -43,7 +106,7 @@
 (defun company-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "company-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions grid_5 alpha"
                           :spec (standard-actions-spec (company :id id
                                                                 :filter filter)
                                                        (company/create :filter filter)
@@ -135,8 +198,6 @@
 
 
 
-
-
 ;;; ------------------------------------------------------------
 ;;; Other areas
 ;;; ------------------------------------------------------------
@@ -152,7 +213,15 @@
                  (submit (html ()
                            (img "magnifier.png")))))))))
 
-
+(defun company-notifications (&rest params)
+  (notifications '(title   ((company-title-null "Το όνομα της εταιρίας είναι κενό")
+                            (company-title-exists "Το όνομα της εταίρίας υπάρχει ήδη"))
+                   (tof     ((unknown-tof-title ("Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))))
+                   (city    ((unknown-city-title "Η πόλη αυτή δεν έχει οριστεί.")))
+                   (tin     ((invalid-tin "Άκυρος Α.Φ.Μ.")))
+                   (pobox   ((invalid-pobox "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας.")))
+                   (zipcode ((invalid-zipcode "Μη αποδεκτός ταχυδρομικός κωδικός."))))
+                 params))
 
 ;;; ------------------------------------------------------------
 ;;; Company - Pages
@@ -190,14 +259,43 @@
                  (footer)))))
       (see-other (notfound))))
 
-(defun company/create (&rest args)
-  (declare (ignore args))
-  (url "company/create"))
+(define-dynamic-page company/create ("company/create")
+    ((filter     string)
+     (title      string  chk-company-title)
+     (occupation string)
+     (tof        string  chk-tof-title)
+     (tin        string  chk-tin)
+     (address    string)
+     (city       string  chk-city-title)
+     (pobox      integer chk-pobox)
+     (zipcode    integer chk-zipcode))
+  (no-cache)
+  (with-document ()
+    (:head
+     (:title "Δημιουργία εταιρίας")
+     (config-headers))
+    (:body
+     (:div :id "container" :class "container_12"
+           (header 'config)
+           (main-menu 'company)
+           (:div :id "controls" :class "controls grid_3"
+                 (company-notifications title tof tin city pobox zipcode))
+           (:div :id "company-window" :class "window grid_9"
+                 (:div :id "company-details" :class "grid_5 alpha"
+                       (:div :class "title" "Δημιουργία εταιρίας")
+                       (company-menu nil
+                                     (val filter)
+                                     '(create update delete))
+                       (with-form (actions/company/create)
+                         (company-data-form)))
+                 (:div :id "company-contacts" :class "grid_4 omega"
+                       (:div :class "title" "Επαφές")
+                       (:p "Contacts not ready yet")))
+           (footer)))))
 
 (defun company/update (&rest args)
   (declare (ignore args))
   (url "company/update"))
-
 
 (define-dynamic-page company/delete ("company/delete")
     ((id integer chk-company-id)
@@ -218,7 +316,7 @@
                  (:div :id "controls" :class "controls grid_3"
                        (company-filters (val filter)))
                  (:div :id "company-window" :class "window grid_9"
-                       (:div :class "title" "Διαγραφή τράπεζας")
+                       (:div :class "title" "Διαγραφή εταιρίας")
                        (company-menu (val id)
                                      (val filter)
                                      '(create delete))
@@ -228,6 +326,13 @@
                                   :selected-id (val id))))
                  (footer)))))
       (see-other (notfound))))
+
+(defun company-data-form ()
+  (with-html
+    (:p "Company details not ready yet")))
+
+
+
 
 ;; ;;; -------------------- Companies --------------------
 
@@ -464,13 +569,6 @@
 ;;                    :readonlyp readonlyp
 ;;                    :style pobox%)))))))
 
-;; (define-errorbar company-errorbar ()
-;;   (title   "Άκυρο όνομα εταιρίας")
-;;   (tof     "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί.")
-;;   (tin     "Άκυρος Α.Φ.Μ.")
-;;   (city    "Η πόλη αυτή δεν έχει οριστεί.")
-;;   (pobox   "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας.")
-;;   (zipcode "Μη αποδεκτός ταχυδρομικός κωδικός."))
 
 ;; (defun company-data-view (id defaults)
 ;;   (with-html

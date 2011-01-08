@@ -70,7 +70,7 @@
   (with-html
     (:div :id "logo"
           :class "grid_2"
-          (:h1 "Scrooge"))))
+          (:h1 "(scrooge) "))))
 
 (defun header (active-item)
   (with-html
@@ -100,15 +100,6 @@
                           :style "hnavbar grid_1"
                           :spec `((logout "" "Έξοδος")))))
 
-(defun main-menu (active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :id "main-navbar"
-                          :spec '((companies "Εταιρίες")
-                                  (projects "Έργα")
-                                  (transactions "Συναλλαγές")))
-           :active-page-name active-page-name))
-
-
 (defun notifications (messages params)
   (with-html
     (:div :id "notifications"
@@ -124,7 +115,7 @@
 ;;; ------------------------------------------------------------
 
 (defun standard-actions-spec (view create update delete)
-  `((view   ,view   "Προβολή")
+  `((view   ,view   "Κατάλογος")
     (create ,create "Δημιουργία")
     (update ,update "Επεξεργασία")
     (delete ,delete "Διαγραφή")))

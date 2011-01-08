@@ -50,7 +50,7 @@
     (:body
      (:div :id "container" :class "container_12"
            (header 'main)
-           (main-menu)
+           (main-menu nil)
            (:div :id "body"
                  (:p "Main content not yet available"))))))
 

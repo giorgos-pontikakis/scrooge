@@ -16,6 +16,7 @@
                          :where (:= 'bank-id id))))))
 
 (define-existence-predicate bank-id-exists-p bank id)
+(define-existence-predicate bank-title-exists-p bank title)
 (define-uniqueness-predicate bank-title-unique-p bank title id)
 
 (defun chk-bank-id (id)
@@ -29,10 +30,15 @@
       nil
       'bank-referenced))
 
-(defun chk-bank-title (title &optional id)
+(defun chk-new-bank-title (title &optional id)
   (cond ((eql :null title) 'bank-title-null)
         ((not (bank-title-unique-p title id)) 'bank-title-exists)
         (t nil)))
+
+(defun chk-bank-title (title)
+  (if (bank-title-exists-p title)
+      nil
+      'unknown-bank-title))
 
 
 
@@ -41,7 +47,7 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/bank/create ("actions/bank/create" :request-type :post)
-    ((title string chk-bank-title t))
+    ((title string chk-new-bank-title t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -51,7 +57,7 @@
 
 (define-dynamic-page actions/bank/update ("actions/bank/update" :request-type :post)
     ((id    integer chk-bank-id t)
-     (title string  (chk-bank-title title id) t)
+     (title string  (chk-new-bank-title title id) t)
      (filter string))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -187,7 +193,7 @@
   (no-cache)
   (if (validp id)
       (let ((bank-table (make-instance 'bank-table
-                                       :op 'view
+                                       :op 'catalogue
                                        :filter (val* filter))))
         (with-document ()
           (:head
@@ -204,8 +210,8 @@
                        (bank-menu (val id)
                                   (val filter)
                                   (if (val id)
-                                      '(view)
-                                      '(view update delete)))
+                                      '(catalogue)
+                                      '(catalogue update delete)))
                        (display bank-table
                                 :selected-id (val* id)
                                 :start (val* start)))
@@ -213,7 +219,7 @@
       (see-other (notfound))))
 
 (define-dynamic-page bank/create ("config/bank/create")
-    ((title string chk-bank-title)
+    ((title string chk-new-bank-title)
      (filter string))
   (no-cache)
   (let ((bank-table (make-instance 'bank-table
@@ -243,7 +249,7 @@
 
 (define-dynamic-page bank/update ("config/bank/update")
     ((id    integer chk-bank-id t)
-     (title string  (chk-bank-title title id))
+     (title string  (chk-new-bank-title title id))
      (filter string))
   (no-cache)
   (if (validp id)
