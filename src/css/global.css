@@ -31,6 +31,11 @@ input {
     font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
 }
 
+button {
+    font-size: 12px;
+    font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
+}
+
 
 /* ---------------------------------------------------------------------- */
 /* backgrounds */
@@ -363,4 +368,63 @@ input {
 .paginator img {
     margin-left: 10px;
     vertical-align: bottom;
+}
+
+/* ---------------------------------------------------------------------- */
+/* company-data-form */
+/* ---------------------------------------------------------------------- */
+
+#company-data-form fieldset {
+    border: 1px solid grey;
+    padding: 10px 20px;
+}
+
+#company-data-form legend {
+    padding: 0px 10px;
+    font-size: 11px;
+}
+
+#company-data-form label {
+    display: block;
+    font-weight: bold;
+    /* font-size: 11px; */
+}
+
+#company-data-form input {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#company-title {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#company-title input {
+    width: 460px
+}
+
+#company-tax-data input {
+    width: 246px;
+}
+
+#company-address-data input {
+    width: 326px;
+}
+
+.ok-button, .cancel-button {
+    padding: 5px;
+    margin: 0px 10px;
+}
+
+.ok-button img, .cancel-button img{
+    padding: 0px 5px;
+}
+
+.cancel-button {
+    text-decoration: underline;
+}
+
+.footer {
+    margin-top: 40px;
 }

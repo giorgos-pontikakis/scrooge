@@ -22,23 +22,23 @@
 (defun chk-city-id (id)
   (if (city-id-exists-p id)
       nil
-      'city-id-unknown))
+      :city-id-unknown))
 
 (defun chk-city-id/ref (id)
   (if (and (null (chk-city-id id))
            (null (city-referenced-p id)))
       nil
-      'city-referenced))
+      :city-referenced))
 
 (defun chk-new-city-title (title &optional id)
-  (cond ((eql :null title) 'city-title-null)
-        ((not (city-title-unique-p title id)) 'city-title-exists)
+  (cond ((eql :null title) :city-title-null)
+        ((not (city-title-unique-p title id)) :city-title-exists)
         (t nil)))
 
 (defun chk-city-title (title)
   (if (city-title-exists-p title)
       nil
-      'unknown-city-title))
+      :city-title-unknown))
 
 ;;; ------------------------------------------------------------
 ;;; City - Actions
@@ -178,8 +178,8 @@
                            (img "magnifier.png")))))))))
 
 (defun city-notifications (&rest params)
-  (notifications '(title ((city-title-null "Το όνομα πόλης είναι κενό.")
-                          (city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
+  (notifications '(title ((:city-title-null "Το όνομα πόλης είναι κενό.")
+                          (:city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
                  params))
 
 ;;; ------------------------------------------------------------

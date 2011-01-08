@@ -22,23 +22,23 @@
 (defun chk-tof-id (id)
   (if (tof-id-exists-p id)
       nil
-      'tof-id-unknown))
+      :tof-id-unknown))
 
 (defun chk-tof-id/ref (id)
   (if (and (null (chk-tof-id id))
            (null (tof-referenced-p id)))
       nil
-      'tof-referenced))
+      :tof-referenced))
 
 (defun chk-new-tof-title (title &optional id)
-  (cond ((eql :null title) 'tof-title-null)
-        ((not (tof-title-unique-p title id)) 'tof-title-exists)
+  (cond ((eql :null title) :tof-title-null)
+        ((not (tof-title-unique-p title id)) :tof-title-exists)
         (t nil)))
 
 (defun chk-tof-title (title)
   (if (tof-title-exists-p title)
       nil
-      'unknown-tof-title))
+      :tof-title-unknown))
 
 
 
@@ -179,8 +179,8 @@
                            (img "magnifier.png")))))))))
 
 (defun tof-notifications (&rest params)
-  (notifications '(title ((tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
-                          (tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
+  (notifications '(title ((:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
+                          (:tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
                  params))
 
 

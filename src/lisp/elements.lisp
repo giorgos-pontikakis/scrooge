@@ -58,13 +58,15 @@
 ;;; Global User Interface Elements
 ;;; ------------------------------------------------------------
 
-(defun ok-button ()
+(defun ok-button (&optional label)
   (with-html
-    (:button :type "submit" (img "tick.png"))))
+    (:button :class "ok-button"
+             :type "submit" (img "tick.png") (str label))))
 
-(defun cancel-button (href)
+(defun cancel-button (href &optional label)
   (with-html
-    (:a :href href (img "cancel.png"))))
+    (:a :class "cancel-button"
+        :href href (str label))))
 
 (defun logo ()
   (with-html
@@ -82,7 +84,8 @@
 
 (defun footer ()
   (with-html
-    (:div :class "grid_12" :id "footer" "Powered by lisp")))
+    (:div :id "footer" :class "grid_12 footer"
+          (:p "Powered by lisp"))))
 
 (defun primary-navbar (active-page-name)
   (display (make-instance 'horizontal-navbar
@@ -103,7 +106,7 @@
 (defun notifications (messages params)
   (with-html
     (:div :id "notifications"
-          (:p :class "title" "Μηνύματα")
+          #|(:p :class "title" "Μηνύματα")|#
           (display (make-instance 'messenger
                                   :messages messages
                                   :style "msg-error")

@@ -22,23 +22,23 @@
 (defun chk-bank-id (id)
   (if (bank-id-exists-p id)
       nil
-      'bank-id-unknown))
+      :bank-id-unknown))
 
 (defun chk-bank-id/ref (id)
   (if (and (null (chk-bank-id id))
            (null (bank-referenced-p id)))
       nil
-      'bank-referenced))
+      :bank-referenced))
 
 (defun chk-new-bank-title (title &optional id)
-  (cond ((eql :null title) 'bank-title-null)
-        ((not (bank-title-unique-p title id)) 'bank-title-exists)
+  (cond ((eql :null title) :bank-title-null)
+        ((not (bank-title-unique-p title id)) :bank-title-exists)
         (t nil)))
 
 (defun chk-bank-title (title)
   (if (bank-title-exists-p title)
       nil
-      'unknown-bank-title))
+      :bank-title-unknown))
 
 
 
@@ -178,8 +178,8 @@
                            (img "magnifier.png")))))))))
 
 (defun bank-notifications (&rest params)
-  (notifications '(title ((bank-title-null "Το όνομα τράπεζας είναι κενό.")
-                          (bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
+  (notifications '(title ((:bank-title-null "Το όνομα τράπεζας είναι κενό.")
+                          (:bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
                  params))
 
 ;;; ------------------------------------------------------------
