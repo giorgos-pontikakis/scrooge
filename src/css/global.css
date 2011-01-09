@@ -42,7 +42,11 @@ button {
 /* ---------------------------------------------------------------------- */
 
 .view {
-    background: transparent url(/scrooge/img/table.png) no-repeat left center;
+    background: transparent url(/scrooge/img/application_view_list.png) no-repeat left center;
+}
+
+.details {
+    background: transparent url(/scrooge/img/application_form.png) no-repeat left center;
 }
 
 .create {
@@ -55,6 +59,10 @@ button {
 
 .delete {
     background: transparent url(/scrooge/img/delete.png) no-repeat left center;
+}
+
+.archive {
+    background: transparent url(/scrooge/img/package.png) no-repeat left center;
 }
 
 .msg-error {
