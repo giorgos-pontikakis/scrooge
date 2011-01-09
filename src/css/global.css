@@ -52,7 +52,7 @@ button {
 /* backgrounds */
 /* ---------------------------------------------------------------------- */
 
-.view {
+.catalogue {
     background: transparent url(/scrooge/img/application_view_list.png) no-repeat left center;
 }
 
@@ -396,7 +396,7 @@ button {
 #company-data-form label {
     display: block;
     font-weight: bold;
-    /* font-size: 11px; */
+    font-size: 11px;
 }
 
 #company-data-form input {

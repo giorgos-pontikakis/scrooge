@@ -133,16 +133,16 @@
 ;;; CRUD actions menu
 ;;; ------------------------------------------------------------
 
-(defun standard-actions-spec (view create update delete)
-  `((view   ,view   "Κατάλογος")
-    (create ,create "Δημιουργία")
-    (update ,update "Επεξεργασία")
-    (delete ,delete "Διαγραφή")))
+(defun standard-actions-spec (catalogue create update delete)
+  `((catalogue ,catalogue "Κατάλογος")
+    (create    ,create    "Δημιουργία")
+    (update    ,update    "Επεξεργασία")
+    (delete    ,delete    "Διαγραφή")))
 
-(defun company-actions-spec (view details create update archive delete)
-  `((view    ,view    "Κατάλογος")
-    (details ,details "Λεπτομέρειες")
-    (create  ,create  "Δημιουργία")
-    (update  ,update  "Επεξεργασία")
-    (archive ,archive "Αρχειοθέτηση")
-    (delete  ,delete  "Διαγραφή")))
+(defun company-actions-spec (catalogue details create update archive delete)
+  `((catalogue ,catalogue "Κατάλογος")
+    (details   ,details   "Λεπτομέρειες")
+    (create    ,create    "Δημιουργία")
+    (update    ,update    "Επεξεργασία")
+    (archive   ,archive   "Αρχειοθέτηση")
+    (delete    ,delete    "Διαγραφή")))

@@ -306,7 +306,7 @@
   (no-cache)
   (if (validp id)
       (let ((company-table (make-instance 'company-table
-                                          :op 'view
+                                          :op 'catalogue
                                           :filter (val* filter))))
         (with-document ()
           (:head
@@ -321,8 +321,8 @@
                        (company-menu (val id)
                                      (val filter)
                                      (if (val id)
-                                         '(view create)
-                                         '(view details archive update delete)))
+                                         '(catalogue create)
+                                         '(catalogue details archive update delete)))
                        (display company-table
                                 :selected-id (val* id)
                                 :start (val* start)))
@@ -354,7 +354,7 @@
                  (:div :class "title" "Δημιουργία εταιρίας")
                  (company-menu nil
                                (val filter)
-                               '(details create update delete))
+                               '(details create update archive delete))
                  (with-form (actions/company/create)
                    (company-data-form 'create
                                       :filter (val filter)
@@ -478,7 +478,7 @@
                        (:div :class "title" "Διαγραφή εταιρίας")
                        (company-menu (val id)
                                      (val filter)
-                                     '(view create delete))
+                                     '(catalogue create delete))
                        (with-form (actions/company/delete :id (val id)
                                                           :filter (val* filter))
                          (display company-table
