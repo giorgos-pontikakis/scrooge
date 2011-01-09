@@ -48,6 +48,9 @@
                :single)
         :null)))
 
+(defmethod tof-id ((tof-title (eql :null)))
+  :null)
+
 (defclass city ()
   ((id    :col-type integer :reader   id)
    (title :col-type string  :accessor title :initarg :title))
@@ -58,6 +61,9 @@
   (with-db ()
     (query (:select 'id :from 'city :where (:= 'title title))
            :single)))
+
+(defmethod city-id ((city-title (eql :null)))
+  :null)
 
 (defclass company ()
   ((id         :col-type integer :reader   id)

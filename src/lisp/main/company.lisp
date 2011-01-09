@@ -1,9 +1,11 @@
 (in-package :scrooge)
 
+(declaim (optimize (speed 0) (debug 3)))
 
 (define-existence-predicate company-id-exists-p company id)
 (define-existence-predicate tin-exists-p company tin)
 (define-uniqueness-predicate company-title-unique-p company title id)
+(define-uniqueness-predicate tin-unique-p company tin id)
 
 (defun int-5digits-p (num)
   (and (integerp num)
@@ -26,27 +28,28 @@
       nil
       :company-referenced))
 
-(defun chk-company-title (title)
+(defun chk-new-company-title (title &optional id)
   (cond ((eql :null title) :company-title-null)
-        ((not (company-title-unique-p title)) :company-title-exists)
+        ((not (company-title-unique-p title id)) :company-title-exists)
         (t nil)))
 
-(defun chk-tin (tin)
-  (cond ((eql :null tin)
-         nil)
-        ((tin-exists-p tin)
+(defun chk-tin (tin &optional id)
+  (cond ((eql :null tin) nil)
+        ((not (tin-unique-p tin id))
          :tin-exists)
         ((not (valid-tin-p tin))
          :tin-invalid)
         (t nil)))
 
 (defun chk-pobox (pobox)
-  (if (int-5digits-p pobox)
+  (if (or (eql :null pobox)
+          (int-5digits-p pobox))
       nil
       :pobox-invalid))
 
 (defun chk-zipcode (zipcode)
-  (if (int-5digits-p zipcode)
+  (if (or (eql :null zipcode)
+          (int-5digits-p zipcode))
       nil
       :zipcode-invalid))
 
@@ -58,7 +61,7 @@
 
 (define-dynamic-page actions/company/create ("actions/company/create" :request-type :post)
     ((filter     string)
-     (title      string  chk-company-title)
+     (title      string  chk-new-company-title)
      (occupation string)
      (tof        string  chk-tof-title)
      (tin        string  chk-tin)
@@ -83,6 +86,43 @@
             (insert-dao new-company)
             (see-other (company :id (id new-company))))))
       (see-other (company/create :filter (raw filter)
+                                 :title (raw title)
+                                 :occupation (raw occupation)
+                                 :tof (raw tof)
+                                 :tin (raw tin)
+                                 :address (raw address)
+                                 :city (raw city)
+                                 :zipcode (raw zipcode)
+                                 :pobox (raw pobox)))))
+
+(define-dynamic-page actions/company/update ("actions/company/update" :request-type :post)
+    ((filter     string)
+     (id         integer)
+     (title      string  (chk-new-company-title title id))
+     (occupation string)
+     (tof        string  chk-tof-title)
+     (tin        string  (chk-tin tin id))
+     (address    string)
+     (city       string  chk-city-title)
+     (pobox      integer chk-pobox)
+     (zipcode    integer chk-zipcode))
+  (no-cache)
+  (if (every #'validp (parameters *page*))
+      (with-db ()
+        (let ((tof-id (tof-id (val tof)))
+              (city-id (city-id (val city))))
+          (execute (:update 'company :set
+                            'title (val title)
+                            'occupation (val occupation)
+                            'tof-id tof-id
+                            'tin (val tin)
+                            'address (val address)
+                            'city-id city-id
+                            'pobox (val pobox)
+                            'zipcode (val zipcode)
+                            :where (:= 'id (val id))))
+          (see-other (company :id (val id) :filter (val filter)))))
+      (see-other (company/update :id (raw id)
                                  :title (raw title)
                                  :occupation (raw occupation)
                                  :tof (raw tof)
@@ -157,9 +197,9 @@
                                address
                                (:as city.title city-name)
                                :from company
-                               :inner-join city
+                               :left-join city
                                :on (:= city.id company.city-id)
-                               :inner-join tof
+                               :left-join tof
                                :on (:= tof.id company.tof-id)))
          (composite-query (if filter
                               (append base-query
@@ -219,7 +259,7 @@
 
 (defun company-notifications (&rest params)
   (notifications '(title   ((:company-title-null "Το όνομα της εταιρίας είναι κενό")
-                            (:company-title-exists "Το όνομα της εταίρίας υπάρχει ήδη"))
+                            (:company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
                    tof     ((:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
                    city    ((:city-title-unknown "Η πόλη αυτή δεν έχει οριστεί."))
                    tin     ((:tin-exists "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ.")
@@ -270,7 +310,7 @@
 
 (define-dynamic-page company/create ("company/create")
     ((filter     string)
-     (title      string  chk-company-title)
+     (title      string  chk-new-company-title)
      (occupation string)
      (tof        string  chk-tof-title)
      (tin        string  chk-tin)
@@ -293,14 +333,60 @@
                                (val filter)
                                '(create update delete))
                  (with-form (actions/company/create)
-                   (company-data-form filter title occupation tof tin address city pobox zipcode)))
+                   (company-data-form 'create
+                                      :filter filter
+                                      :title title
+                                      :occupation occupation
+                                      :tof tof
+                                      :tin tin
+                                      :address address
+                                      :city city
+                                      :pobox pobox
+                                      :zipcode zipcode)))
            (:div :id "controls" :class "controls grid_3"
                  (company-notifications title tof tin city pobox zipcode))
            (footer)))))
 
-(defun company/update (&rest args)
-  (declare (ignore args))
-  (url "company/update"))
+(define-dynamic-page company/update ("company/")
+    ((filter     string)
+     (id         integer)
+     (title      string  (chk-new-company-title title id))
+     (occupation string)
+     (tof        string  chk-tof-title)
+     (tin        string  (chk-tin tin id))
+     (address    string)
+     (city       string  chk-city-title)
+     (pobox      integer chk-pobox)
+     (zipcode    integer chk-zipcode))
+  (no-cache)
+  (with-document ()
+    (:head
+     (:title "Επεξεργασία εταιρίας")
+     (config-headers))
+    (:body
+     (:div :id "container" :class "container_12"
+           (header 'config)
+           (main-menu 'company)
+           (:div :id "company-window" :class "window grid_9"
+                 (:div :class "title" "Επεξεργασία εταιρίας")
+                 (company-menu nil
+                               (val filter)
+                               '(create update delete))
+                 (with-form (actions/company/update :id (val id))
+                   (company-data-form 'update
+                                      :filter filter
+                                      :id id
+                                      :title title
+                                      :occupation occupation
+                                      :tof tof
+                                      :tin tin
+                                      :address address
+                                      :city city
+                                      :pobox pobox
+                                      :zipcode zipcode)))
+           (:div :id "controls" :class "controls grid_3"
+                 (company-notifications title tof tin city pobox zipcode))
+           (footer)))))
 
 (define-dynamic-page company/delete ("company/delete")
     ((id integer chk-company-id)
@@ -332,53 +418,70 @@
                  (footer)))))
       (see-other (notfound))))
 
-(defun company-data-form (filter title occupation tof tin address city pobox zipcode)
-  (flet ((sty (param)
-           (if (validp param) "" "attention")))
-    (with-html
-      (:div :id "company-data-form"
-            (:div :id "company-title" :class "grid_9 alpha"
-                  (label 'title "Επωνυμία" :style "strong")
-                  (textbox 'title
-                           :value (val* title)
-                           :style (sty title)))
-            (:div :id "company-tax-data" :class "grid_4 alpha"
-                  (:fieldset
-                   (:legend "Φορολογικά στοιχεία")
-                   (:ul (:li (label 'occupation "Επάγγελμα")
-                             (textbox 'occupation
-                                      :value (val* occupation)
-                                      :style (sty occupation)))
-                        (:li (label 'tin "Α.Φ.Μ.")
-                             (textbox 'tin
-                                      :value (val* tin)
-                                      :style (sty tin)))
-                        (:li (label 'tof "Δ.Ο.Υ.")
-                             (textbox 'tof
-                                      :value (val* tof)
-                                      :style (sty tof))))))
-            (:div :id "company-address-data" :class "grid_5 omega"
-                  (:fieldset
-                   (:legend "Διεύθυνση")
-                   (:ul (:li (label 'address "Οδός")
-                             (textbox 'address
-                                      :value (val* address)
-                                      :style (sty address)))
-                        (:li (label 'city "Πόλη")
-                             (textbox 'city
-                                      :value (val* city)
-                                      :style (sty city)))
-                        (:li (label 'zipcode "Ταχυδρομικός κώδικας")
-                             (textbox 'zipcode
-                                      :value (val* zipcode)
-                                      :style (sty zipcode))
-                             (label 'pobox "Ταχυδρομική θυρίδα")
-                             (textbox 'pobox
-                                      :value (val* pobox)
-                                      :style (sty pobox))))))
-            (:div :id "company-data-form-buttons" :class "grid_9"
-                  (ok-button "Δημιουργία")
-                  (cancel-button (company :filter (val* filter)) "Άκυρο"))))))
+(defun company-data-form (op &key filter id title occupation tof tin address city pobox zipcode)
+  (let ((default (if (eql op 'update)
+                     (with-db ()
+                       (query (:select 'company.title 'occupation
+                                       'tin (:as 'tof.title 'tof)
+                                       'address (:as 'city.title 'city)
+                                       'zipcode 'pobox
+                                       :from 'company
+                                       :inner-join 'city
+                                       :on (:= 'company.city-id 'city.id)
+                                       :inner-join 'tof
+                                       :on (:=  'company.tof-id 'tof.id)
+                                       :where (:= 'company.id (val id)))
+                              :plist))
+                     nil)))
+    (flet ((vod (param) ;; vod = value or default
+             (or (val* param)
+                 (getf default (key param))))
+           (sty (param)
+             (if (validp param) "" "attention")))
+      (with-html
+        (:div :id "company-data-form"
+              (:div :id "company-title" :class "grid_9 alpha"
+                    (label 'title "Επωνυμία" :style "strong")
+                    (textbox 'title
+                             :value (vod title)
+                             :style (sty title)))
+              (:div :id "company-tax-data" :class "grid_4 alpha"
+                    (:fieldset
+                     (:legend "Φορολογικά στοιχεία")
+                     (:ul (:li (label 'occupation "Επάγγελμα")
+                               (textbox 'occupation
+                                        :value (vod occupation)
+                                        :style (sty occupation)))
+                          (:li (label 'tin "Α.Φ.Μ.")
+                               (textbox 'tin
+                                        :value (vod tin)
+                                        :style (sty tin)))
+                          (:li (label 'tof "Δ.Ο.Υ.")
+                               (textbox 'tof
+                                        :value (vod tof)
+                                        :style (sty tof))))))
+              (:div :id "company-address-data" :class "grid_5 omega"
+                    (:fieldset
+                     (:legend "Διεύθυνση")
+                     (:ul (:li (label 'address "Οδός")
+                               (textbox 'address
+                                        :value (vod address)
+                                        :style (sty address)))
+                          (:li (label 'city "Πόλη")
+                               (textbox 'city
+                                        :value (vod city)
+                                        :style (sty city)))
+                          (:li (label 'zipcode "Ταχυδρομικός κώδικας")
+                               (textbox 'zipcode
+                                        :value (vod zipcode)
+                                        :style (sty zipcode))
+                               (label 'pobox "Ταχυδρομική θυρίδα")
+                               (textbox 'pobox
+                                        :value (vod pobox)
+                                        :style (sty pobox))))))
+              (:div :id "company-data-form-buttons" :class "grid_9"
+                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (company :filter (vod filter)) "Άκυρο")))))))
 
 
 

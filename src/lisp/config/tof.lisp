@@ -36,7 +36,8 @@
         (t nil)))
 
 (defun chk-tof-title (title)
-  (if (tof-title-exists-p title)
+  (if (or (eql :null title)
+          (tof-title-exists-p title))
       nil
       :tof-title-unknown))
 

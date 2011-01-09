@@ -332,7 +332,7 @@
   (if readonlyp
       (with-html
         (:div :class (style cell)
-             (str (value cell))))
+              (str (lisp->html (value cell)))))
       (with-html
         (:div :class (style cell)
              (textbox (name cell)
