@@ -21,21 +21,21 @@
 
 ;;; --- Autocomplete --------------------
 
-;; (define-dynamic-page autocomplete ((table symbol)
-;;                                 (column symbol)
-;;                                 (term string))
-;;     ("autocomplete" :content-type "text/plain")
-;;   (with-db ()
-;;     (with-parameter-rebinding #'val
-;;       (let ((results (query (:select column :from table
-;;                                   :where (:like column (concatenate 'string
-;;                                                                     "%" term "%")))
-;;                          :column)))
-;;      (if results
-;;          (with-html-output (*standard-output* nil :indent nil :prologue nil)
-;;            (write-json (map 'vector #'identity results)))
-;;          (with-html-output (*standard-output* nil :indent nil :prologue nil)
-;;            "[]"))))))
+(define-dynamic-page autocomplete ("autocomplete" :content-type "text/plain")
+    ((table symbol)
+     (column symbol)
+     (term string))
+  (with-db ()
+    (let ((results (query (:select (val column) :distinct
+                                   :from (val table)
+                                   :where (:ilike (val column)
+                                                  (ilike (string-upcase-gr (val term)))))
+                          :column)))
+      (if results
+          (with-html-output (*standard-output* nil :indent nil :prologue nil)
+            (write-json (coerce results 'vector) #|(map 'vector #'identity results)|#))
+          (with-html-output (*standard-output* nil :indent nil :prologue nil)
+            "[]")))))
 
 
 

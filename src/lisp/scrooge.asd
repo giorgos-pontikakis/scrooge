@@ -4,7 +4,7 @@
 
 (asdf:defsystem :scrooge
   :serial t
-  :depends-on (:veil :bricks)
+  :depends-on (:veil :bricks :json)
   :components ((:file "package")
                (:file "init")
                (:file "utils")

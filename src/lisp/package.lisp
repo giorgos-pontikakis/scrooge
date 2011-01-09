@@ -11,4 +11,5 @@
         :veil
         :simple-date
         :postmodern
-        :bricks))
+        :bricks
+        :json))

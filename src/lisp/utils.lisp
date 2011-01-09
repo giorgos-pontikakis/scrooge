@@ -67,12 +67,13 @@
 (defun parameters->plist (&rest params)
   (mapcan (lambda (param)
             (list (key param)
-                  (val param)))
+                  (val* param)))
           params))
 
 (defun parameters->styles (&rest params)
-  (mapcar (lambda (param)
-            (if (validp param)
-                ""
-                "attention"))
+  (mapcan (lambda (param)
+            (list (key param)
+                  (if (validp param)
+                      ""
+                      "attention")))
           params))

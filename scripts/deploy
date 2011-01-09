@@ -104,7 +104,7 @@ case $# in
         chk_repos_clean
         push_git_origin
         echo
-        scripts/dump_db
+        $HOME/$project_root/scripts/dump_db
         sync_static
         echo "End of deployment"
         exit 0

@@ -32,6 +32,11 @@
 (defun jquery ()
   (js (url 'lib "jquery-1.4.4/jquery-1.4.4.min.js")))
 
+(defun jquery-ui ()
+  (js (url 'lib "jquery-ui-1.8.7.custom/js/jquery-ui-1.8.7.custom.min.js")))
+
+(defun js-autocomplete ()
+  (js (url 'js "main.js")))
 
 (defun 960gs ()
   (css (url 'css "reset.css"))
@@ -40,6 +45,9 @@
 (defun error-headers ()
   (css (url 'css "global.css")))
 
+(defun css-autocomplete ()
+  (css (url 'lib "jquery-ui-1.8.7.custom/css/custom-theme/jquery-ui-1.8.7.custom.css")))
+
 (defun global-headers ()
   (960gs)
   (css (url 'css "global.css")))
@@ -47,6 +55,13 @@
 (defun config-headers ()
   (global-headers)
   (jquery))
+
+(defun company-headers ()
+  (global-headers)
+  (jquery)
+  (jquery-ui)
+  (js-autocomplete)
+  (css-autocomplete))
 
 (defun clear ()
   (with-html
