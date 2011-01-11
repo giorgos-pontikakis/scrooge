@@ -1,12 +1,11 @@
 (in-package :scrooge)
 
-(declaim (optimize (speed 0) (debug 3)))
-
 
 
 ;;; ----------------------------------------------------------------------
 ;;; Default table values (only for development)
 ;;; ----------------------------------------------------------------------
+
 (defun seed-banks ()
   (mapc (lambda (arg)
           (ignore-errors

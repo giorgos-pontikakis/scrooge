@@ -1,7 +1,6 @@
 (in-package :scrooge)
 
 
-(declaim (optimize (speed 0) (debug 3)))
 
 (defun manual-tx-p (tx-id)
   (if tx-id

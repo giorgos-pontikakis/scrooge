@@ -1,6 +1,6 @@
 (in-package :scrooge)
 
-(declaim (optimize (speed 0) (debug 3)))
+
 
 (define-existence-predicate company-id-exists-p company id)
 (define-existence-predicate tin-exists-p company tin)

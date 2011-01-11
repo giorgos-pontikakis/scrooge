@@ -22,5 +22,5 @@
                ;; main
                (:file "main/company")
                #|(:file "main/cheque")|#
-               #|(:file "main/project")|#
+               (:file "main/project")
                #|(:file "main/tx")|#))
