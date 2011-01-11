@@ -2,7 +2,12 @@
 
 
 
+;;; ----------------------------------------------------------------------
+;;; Validation
+;;; ----------------------------------------------------------------------
+
 (define-existence-predicate company-id-exists-p company id)
+(define-existence-predicate company-title-exists-p company title)
 (define-existence-predicate tin-exists-p company tin)
 (define-uniqueness-predicate company-title-unique-p company title id)
 (define-uniqueness-predicate tin-unique-p company tin id)
@@ -32,6 +37,11 @@
   (cond ((eql :null title) :company-title-null)
         ((not (company-title-unique-p title id)) :company-title-exists)
         (t nil)))
+
+(defun chk-company-title (title)
+  (or (company-title-exists-p title)
+      :company-title-invalid))
+
 
 (defun chk-tin (tin &optional id)
   (cond ((eql :null tin) nil)
@@ -72,19 +82,19 @@
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
-        (let ((tof-id (tof-id (val tof)))
-              (city-id (city-id (val city))))
-          (let ((new-company (make-instance 'company
-                                            :title (val title)
-                                            :occupation (val occupation)
-                                            :tof-id (or tof-id :null)
-                                            :tin (val tin)
-                                            :address (val address)
-                                            :city-id (or city-id :null)
-                                            :zipcode (val zipcode)
-                                            :pobox (val pobox))))
-            (insert-dao new-company)
-            (see-other (company :id (id new-company))))))
+        (let* ((tof-id (tof-id (val tof)))
+               (city-id (city-id (val city)))
+               (new-company (make-instance 'company
+                                           :title (val title)
+                                           :occupation (val occupation)
+                                           :tof-id (or tof-id :null)
+                                           :tin (val tin)
+                                           :address (val address)
+                                           :city-id (or city-id :null)
+                                           :zipcode (val zipcode)
+                                           :pobox (val pobox))))
+          (insert-dao new-company)
+          (see-other (company :id (id new-company)))))
       (see-other (company/create :filter (raw filter)
                                  :title (raw title)
                                  :occupation (raw occupation)
@@ -209,6 +219,7 @@
            :plist)))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; Company table
 ;;; ------------------------------------------------------------
@@ -227,14 +238,13 @@
 
 
 (defmethod read-items ((table company-table))
-  (flet ()
-    (iter (for rec in (get-company-plists (filter table)))
-          (for i from 0)
-          (collect (make-instance 'company-row
-                                  :key (getf rec :id)
-                                  :record rec
-                                  :collection table
-                                  :index i)))))
+  (iter (for rec in (get-company-plists (filter table)))
+        (for i from 0)
+        (collect (make-instance 'company-row
+                                :key (getf rec :id)
+                                :record rec
+                                :collection table
+                                :index i))))
 
 
 ;;; rows
@@ -468,7 +478,7 @@
                                           :filter (val* filter))))
         (with-document ()
           (:head
-           (:title "Διαγραφή τράπεζας")
+           (:title "Διαγραφή εταιρίας")
            (company-headers))
           (:body
            (:div :id "container" :class "container_12"

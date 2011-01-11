@@ -458,7 +458,7 @@
   (flet ((get-message (param messages)
            (or (second (assoc (error-type param)
                               (getf messages (name param))))
-               "Internal error: Unknown message in messenger widget.")))
+               (string-downcase (error-type param)))))
     (unless (every #'validp params)
       (with-html
         (:ul :id (id messenger)
