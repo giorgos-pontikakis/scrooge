@@ -21,3 +21,6 @@
                            :dbuser "gnp"
                            :dbpass "gnp!p0stgresql"
                            :adapter "postgres"))
+
+(when (debug-p (package-webapp))
+  (setf *catch-errors-p* nil))

@@ -39,8 +39,9 @@
         (t nil)))
 
 (defun chk-company-title (title)
-  (or (company-title-exists-p title)
-      :company-title-invalid))
+  (cond ((not (company-title-exists-p title)) :company-title-invalid)
+        ((eql :null title) :company-title-null)
+        (t nil)))
 
 
 (defun chk-tin (tin &optional id)
@@ -501,9 +502,9 @@
 (defun company-data-form (op &key filter id data styles)
   (let ((disabledp (eql op 'details)))
     (with-html
-      (:div :id "company-data-form"
+      (:div :id "company-data-form" :class "data-form"
             (:div :id "company-title" :class "grid_9 alpha"
-                  (label 'title "Επωνυμία" :style "strong")
+                  (label 'title "Επωνυμία")
                   (textbox 'title
                            :value (getf data :title)
                            :disabledp disabledp

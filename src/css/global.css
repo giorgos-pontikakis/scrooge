@@ -42,10 +42,24 @@ input[disabled], input[readonly] {
 }
 
 
-button {
+button, select {
     font-size: 12px;
     font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
 }
+
+button {
+    padding: 5px 5px 5px 0px;
+}
+
+button img {
+    padding: 0px 5px;
+    vertical-align: bottom;
+}
+
+select {
+    padding: 5px;
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +91,7 @@ button {
 }
 
 .msg-error {
-    background: transparent url(/scrooge/img/error.png) no-repeat left center;
+    background: transparent url(/scrooge/img/error.png) no-repeat left 2px;
 }
 
 .attention {
@@ -326,10 +340,15 @@ button {
     padding: 0px;
     background-color: transparent;
     border: none;
-    position: relative;
-    top: 4px;
 }
 
+.pushbutton button:hover {
+    cursor: pointer;
+}
+
+.pushbutton button img {
+    vertical-align: middle;
+}
 
 
 /* ---------------------------------------------------------------------- */
@@ -338,8 +357,8 @@ button {
 
 
 #notifications li {
-    padding-left: 22px;
-    line-height: 26px;
+    padding: 0px 0px 8px 22px;
+    line-height: 22px;
 }
 
 
@@ -379,30 +398,38 @@ button {
     vertical-align: bottom;
 }
 
+
+
 /* ---------------------------------------------------------------------- */
-/* company-data-form */
+/* data form */
 /* ---------------------------------------------------------------------- */
 
-#company-data-form fieldset {
+.data-form fieldset {
     border: 1px solid grey;
     padding: 10px 20px;
 }
 
-#company-data-form legend {
+.data-form legend {
     padding: 0px 10px;
     font-size: 11px;
 }
 
-#company-data-form label {
+.data-form label {
     display: block;
     font-weight: bold;
     font-size: 11px;
 }
 
-#company-data-form input {
+.data-form input {
     display: block;
     margin-bottom: 10px;
 }
+
+
+
+/* ---------------------------------------------------------------------- */
+/* company-data-form */
+/* ---------------------------------------------------------------------- */
 
 #company-title {
     margin-top: 20px;
@@ -421,16 +448,8 @@ button {
     width: 326px;
 }
 
-.ok-button, .cancel-button {
-    padding: 5px 8px 5px 0px;
-    margin: 0px 10px;
-}
-
-.ok-button img, .cancel-button img{
-    padding: 0px 5px;
-}
-
 .cancel-button {
+    margin-left: 10px;
     text-decoration: underline;
 }
 
