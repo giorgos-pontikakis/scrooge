@@ -231,7 +231,7 @@
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(company description location status))
+                           '(description company location status))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -468,6 +468,7 @@
              (with-html
                (label name label)
                (textbox name
+                        :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
                         :style (getf styles (make-keyword name))))))
@@ -486,7 +487,7 @@
                               (with-db ()
                                 (query (:select 'description 'id
                                                 :from 'project-status)))
-                              :selected (getf data :status))))
+                              :selected (or (getf data :status) *default-project-status*))))
         (unless disabledp
           (htm (:div :id "project-data-form-buttons" :class "grid_9"
                      (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))

@@ -24,3 +24,5 @@
 
 (when (debug-p (package-webapp))
   (setf *catch-errors-p* nil))
+
+(defparameter *default-project-status* "quoted")
