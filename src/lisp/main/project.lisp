@@ -45,7 +45,7 @@
 (define-dynamic-page actions/project/create ("actions/project/create" :request-type :post)
     ((filter string)
      (company     string chk-company-title t)
-     (description string (chk-new-project-description description))
+     (description string chk-new-project-description)
      (location    string)
      (price       integer chk-price)
      (vat         integer chk-vat)
@@ -78,9 +78,10 @@
                                  :status (raw status)))))
 
 (define-dynamic-page actions/project/update ("actions/project/update" :request-type :post)
-    ((id          integer chk-project-id)
+    ((filter      string)
+     (id          integer chk-project-id)
      (company     string  chk-company-title)
-     (description string)
+     (description string  (chk-new-project-description description id))
      (location    string)
      (price       integer chk-price)
      (vat         integer chk-vat)
@@ -90,9 +91,9 @@
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
-        (let ((company-id (company-id company)))
+        (let ((company-id (company-id (val company))))
           (execute (:update 'project :set
-                            'company-id (val company-id)
+                            'company-id company-id
                             'description (val description)
                             'location (val location)
                             'price (val price)
@@ -101,8 +102,10 @@
                             'end-date (val end-date)
                             'status (val status)
                             :where (:= 'id (val id))))
-          (see-other (project :id (val id)))))
-      (see-other (project/update :company (raw company)
+          (see-other (project :id (val id) :filter (val filter)))))
+      (see-other (project/update :filter (raw filter)
+                                 :id (raw id)
+                                 :company (raw company)
                                  :description (raw description)
                                  :location (raw location)
                                  :price (raw price)
@@ -149,11 +152,14 @@
 ;;; ------------------------------------------------------------
 
 (defun get-project-plists (filter)
-  (let* ((base-query `(:select project.id company.title
-                               description location status
+  (let* ((base-query `(:select project.id (:as company.title company)
+                               project.description location
+                               (:as project-status.description status)
                                :from project
                                :left-join 'company
-                               :on (:= project.company-id company.id)))
+                               :on (:= project.company-id company.id)
+                               :left-join project-status
+                               :on (:= project-status.id project.status)))
          (composite-query (if filter
                               (append base-query
                                       `(where (:or (:ilike project.description ,(ilike filter))
@@ -167,7 +173,7 @@
 
 (defun get-project-plist (id)
   (with-db ()
-    (query (:select 'project.id 'company.title
+    (query (:select 'project.id (:as 'company.title 'company)
                     'description 'location 'status
                     'start-date 'end-date 'price 'vat
                     :from 'project
@@ -225,7 +231,7 @@
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(title description location status))
+                           '(company description location status))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -479,7 +485,8 @@
                     (dropdown 'status
                               (with-db ()
                                 (query (:select 'description 'id
-                                                :from 'project-status))))))
+                                                :from 'project-status)))
+                              :selected (getf data :status))))
         (unless disabledp
           (htm (:div :id "project-data-form-buttons" :class "grid_9"
                      (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))

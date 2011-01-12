@@ -134,6 +134,7 @@
                             :where (:= 'id (val id))))
           (see-other (company :id (val id) :filter (val filter)))))
       (see-other (company/update :id (raw id)
+                                 :filter (raw filter)
                                  :title (raw title)
                                  :occupation (raw occupation)
                                  :tof (raw tof)

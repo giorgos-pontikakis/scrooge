@@ -102,6 +102,10 @@ select {
     margin-left: 25px;
 }
 
+.cancel-button {
+    margin-left: 10px;
+    text-decoration: underline;
+}
 
 
 
@@ -446,11 +450,6 @@ select {
 
 #company-address-data input {
     width: 326px;
-}
-
-.cancel-button {
-    margin-left: 10px;
-    text-decoration: underline;
 }
 
 .footer {
