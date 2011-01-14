@@ -19,11 +19,11 @@
       nil
       :invalid-vat))
 
-(defun chk-price (num)
+(defun chk-amount (num)
   (if (or (eql :null num)
           (positive-int-p num))
       nil
-      :invalid-price))
+      :invalid-amount))
 
 (defun chk-project-id (id)
   (if (project-id-exists-p id)
@@ -49,7 +49,7 @@
      (company     string chk-company-title t)
      (description string chk-new-project-description)
      (location    string)
-     (price       integer chk-price)
+     (price       integer chk-amount)
      (vat         integer chk-vat)
      (start-date  string chk-date)
      (end-date    string chk-date)
@@ -85,7 +85,7 @@
      (company     string  chk-company-title)
      (description string  (chk-new-project-description description id))
      (location    string)
-     (price       integer chk-price)
+     (price       integer chk-amount)
      (vat         integer chk-vat)
      (start-date  string chk-date)
      (end-date    string chk-date)
@@ -262,7 +262,7 @@
    '(description ((:project-description-null "Το όνομα του έργου είναι κενό")
                   (:project-description-exists "Υπάρχει ήδη έργο με αυτή την περιγραφή"))
      company     ((:company-title-invalid "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     price       ((:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
+     price       ((:invalid-amount  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
      vat         ((:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))
    params))
 
@@ -284,7 +284,7 @@
         (with-document ()
           (:head
            (:title "Έργα")
-           (company-headers))
+           (main-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'main)
@@ -309,7 +309,7 @@
      (company     string chk-company-title)
      (description string chk-new-project-description)
      (location    string)
-     (price       integer chk-price)
+     (price       integer chk-amount)
      (vat         integer chk-vat)
      (start-date  string  chk-date)
      (end-date    string  chk-date)
@@ -318,10 +318,10 @@
   (with-document ()
     (:head
      (:title "Δημιουργία εταιρίας")
-     (company-headers))
+     (main-headers))
     (:body
      (:div :id "container" :class "container_12"
-           (header 'config)
+           (header 'main)
            (main-menu 'project)
            (:div :id "project-window" :class "window grid_9"
                  (:div :class "title" "Δημιουργία έργου")
@@ -357,7 +357,7 @@
      (company     string  chk-company-title)
      (description string  (chk-new-project-description description id))
      (location    string)
-     (price       integer chk-price)
+     (price       integer chk-amount)
      (vat         integer chk-vat)
      (start-date  string chk-date)
      (end-date    string chk-date)
@@ -367,10 +367,10 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία έργου")
-         (company-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'config)
+               (header 'main)
                (main-menu 'project)
                (:div :id "project-window" :class "window grid_9"
                      (:div :class "title" "Επεξεργασία έργου")
@@ -413,10 +413,10 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία εταιρίας")
-         (company-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'config)
+               (header 'main)
                (main-menu 'project)
                (:div :id "project-window" :class "window grid_9"
                      (:div :class "title" "Λεπτομέρειες εταιρίας")
@@ -444,10 +444,10 @@
         (with-document ()
           (:head
            (:title "Διαγραφή έργου")
-           (company-headers))
+           (main-headers))
           (:body
            (:div :id "container" :class "container_12"
-                 (header 'config)
+                 (header 'main)
                  (main-menu 'project)
                  (:div :id "project-window" :class "window grid_9"
                        (:div :class "title" "Διαγραφή έργου")

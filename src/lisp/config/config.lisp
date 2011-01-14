@@ -21,7 +21,8 @@
                           :id "config-menu"
                           :style "hnavbar grid_12"
                           :spec '((company "Εταιρίες")
-                                  (project "Έργα")))
+                                  (project "Έργα")
+                                  (transaction "Συναλλαγές")))
            :active-page-name active-page-name))
 
 

@@ -323,7 +323,7 @@
         (with-document ()
           (:head
            (:title "Εταιρίες")
-           (company-headers))
+           (main-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'main)
@@ -357,7 +357,7 @@
   (with-document ()
     (:head
      (:title "Δημιουργία εταιρίας")
-     (company-headers))
+     (main-headers))
     (:body
      (:div :id "container" :class "container_12"
            (header 'config)
@@ -406,7 +406,7 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία εταιρίας")
-         (company-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
@@ -450,7 +450,7 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία εταιρίας")
-         (company-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
@@ -481,7 +481,7 @@
         (with-document ()
           (:head
            (:title "Διαγραφή εταιρίας")
-           (company-headers))
+           (main-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)

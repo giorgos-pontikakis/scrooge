@@ -54,7 +54,7 @@
   (global-headers)
   (jquery))
 
-(defun company-headers ()
+(defun main-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
@@ -117,9 +117,10 @@
                           :spec `((logout "" "Έξοδος")))))
 
 (defun notifications (messages params)
+  (unless (every #'validp params))
   (with-html
     (:div :id "notifications"
-          #|(:p :class "title" "Μηνύματα")|#
+          (:p :class "title" "Μηνύματα")
           (display (make-instance 'messenger
                                   :messages messages
                                   :style "msg-error")
