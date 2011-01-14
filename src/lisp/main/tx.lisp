@@ -8,39 +8,74 @@
         (eql :null (query (:select 'src-id :from 'tx :where (:= 'id tx-id)) :single)))
       nil))
 
-(define-dynamic-page actions/transaction/create ((tx-date date)
-                                                 (description string)
-                                                 (company string #'valid-company-p)
-                                                 (amount integer #'positive-p)
-                                                 (debit-acc string #'acc-exists-p)
-                                                 (credit-acc string #'acc-exists-p))
-    ("actions/transaction/create" :request-type :post)
-  (no-cache)
-  (with-parameter-list params
-    (if (every #'validp params)
-        (with-parameter-rebinding #'val
-          (let ((company-id (company-id company))
-                (debit-acc-id (account-id debit-acc))
-                (credit-acc-id (account-id credit-acc)))
-            (with-db ()
-              (insert-dao (make-instance 'tx
-                                         :tx-date tx-date
-                                         :description description
-                                         :company-id company-id
-                                         :amount amount
-                                         :credit-acc-id credit-acc-id
-                                         :debit-acc-id debit-acc-id))
-              (see-other (transactions)))))
-        (with-parameter-rebinding #'raw
-          (see-other (transaction/create :tx-date tx-date
-                                        :description description
-                                        :company company
-                                        :amount amount
-                                        :debit-acc debit-acc
-                                        :credit-acc credit-acc))))))
 
-(define-dynamic-page actions/transaction/delete ((tx-id integer #'valid-tx-id-p t))
-    ("actions/transaction/delete" :request-type :post)
+
+;;; ----------------------------------------------------------------------
+;;; Actions
+;;; ----------------------------------------------------------------------
+
+(define-dynamic-page actions/transaction/create ("actions/transaction/create" :request-type :post)
+    ((tx-date date)
+     (description string)
+     (company string #'valid-company-p)
+     (amount integer #'positive-p)
+     (debit-acc string #'acc-exists-p)
+     (credit-acc string #'acc-exists-p))
+  (no-cache)
+  (if (every #'validp (parameters *page*))
+      (let* ((company-id (company-id company))
+             (debit-acc-id (account-id debit-acc))
+             (credit-acc-id (account-id credit-acc))
+             (new-tx (make-instance 'tx
+                                    :tx-date (val tx-date)
+                                    :description (val description)
+                                    :company-id company-id
+                                    :amount (val amount)
+                                    :credit-acc-id credit-acc-id
+                                    :debit-acc-id debit-acc-id)))
+        (with-db ()
+          (insert-dao new-tx)
+          (see-other (transaction :id (id new-tx)))))
+      (see-other (transaction/create :tx-date (raw tx-date)
+                                     :description (raw description)
+                                     :company (raw company)
+                                     :amount (raw amount)
+                                     :debit-acc (raw debit-acc)
+                                     :credit-acc (raw credit-acc)))))
+
+(define-dynamic-page actions/transaction/update ("actions/transaction/update" :request-type :post)
+    ((tx-id integer #'valid-tx-id-p)
+     (tx-date date)
+     (description string)
+     (company string #'valid-company-p)
+     (amount integer #'positive-p)
+     (debit-acc string #'acc-exists-p)
+     (credit-acc string #'acc-exists-p))
+  (no-cache)
+  (if (every #'validp (parameters *page*))
+      (let ((company-id (company-id company))
+            (debit-acc-id (account-id debit-acc))
+            (credit-acc-id (account-id credit-acc)))
+        (with-db ()
+          (execute (:update 'tx :set
+                            'tx-date (val tx-date)
+                            'description (val description)
+                            'company-id company-id
+                            'amount (val amount)
+                            'debit-acc-id debit-acc-id
+                            'credit-acc-id credit-acc-id
+                            :where (:= 'id (val tx-id))))
+          (see-other (transactions :tx-id tx-id))))
+      (see-other (transaction/update :tx-id (raw tx-id)
+                                     :tx-date (raw tx-date)
+                                     :description (raw description)
+                                     :company (raw company)
+                                     :amount (raw amount)
+                                     :debit-acc (raw debit-acc)
+                                     :credit-acc (raw credit-acc)))))
+
+(define-dynamic-page actions/transaction/delete ("actions/transaction/delete" :request-type :post)
+    ((tx-id integer #'valid-tx-id-p t))
   (no-cache)
   (if (validp tx-id)
       (with-db ()
@@ -49,50 +84,42 @@
               ;; Ok, this tx is not autogenerated, delete it
               (progn
                 (delete-dao tx)
-                (see-other (transactions)))
+                (see-other (transaction)))
               ;; This /is/ auto-generated, redirect to the error page
               (see-other (error-page)))))
       (see-other (transaction/notfound))))
 
-(define-dynamic-page actions/transaction/update ((tx-id integer #'valid-tx-id-p)
-                                                 (tx-date date)
-                                                 (description string)
-                                                 (company string #'valid-company-p)
-                                                 (amount integer #'positive-p)
-                                                 (debit-acc string #'acc-exists-p)
-                                                 (credit-acc string #'acc-exists-p))
-    ("actions/transaction/update" :request-type :post)
-  (no-cache)
-  (with-parameter-list params
-    (if (every #'validp params)
-        (with-parameter-rebinding #'val
-          (let ((company-id (company-id company))
-                (debit-acc-id (account-id debit-acc))
-                (credit-acc-id (account-id credit-acc)))
-            (with-db ()
-              (execute (:update 'tx :set
-                                'tx-date tx-date
-                                'description description
-                                'company-id company-id
-                                'amount amount
-                                'debit-acc-id debit-acc-id
-                                'credit-acc-id credit-acc-id
-                                :where (:= 'id tx-id)))
-              (see-other (transactions :tx-id tx-id)))))
-        (with-parameter-rebinding #'raw
-          (see-other (transaction/update :tx-id tx-id
-                                        :tx-date tx-date
-                                        :description description
-                                        :company company
-                                        :amount amount
-                                        :debit-acc debit-acc
-                                        :credit-acc credit-acc))))))
 
 
 ;;; ------------------------------------------------------------
+;;; Project menu
+;;; ------------------------------------------------------------
 
-(define-dynamic-page transactions ((tx-id integer #'valid-tx-id-p))
-    ("transactions/")
+(defun transaction-menu (id filter &optional disabled-items)
+  (display (make-instance 'actions-menu
+                          :id "transaction-actions"
+                          :style "hnavbar actions grid_9 alpha"
+                          :spec (company-actions-spec (transaction :id id
+                                                                   :filter filter)
+                                                      (transaction/details :id id
+                                                                           :filter filter)
+                                                      (transaction/create :filter filter)
+                                                      (transaction/update :id id
+                                                                          :filter filter)
+                                                      (transaction/details :id id
+                                                                           :filter filter)
+                                                      (transaction/delete :id id
+                                                                          :filter filter)))
+           :disabled-items disabled-items))
+
+
+
+;;; ------------------------------------------------------------
+;;; Database interface
+;;; ------------------------------------------------------------
+
+(define-dynamic-page transactions ("transactions/")
+    ((tx-id integer #'valid-tx-id-p))
   (no-cache)
   (if (validp tx-id)
       (with-parameter-rebinding #'val
