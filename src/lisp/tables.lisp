@@ -36,6 +36,11 @@
     (query (:select 'id :from 'bank :where (:= 'title title))
            :single)))
 
+(defmethod bank-id ((title (eql :null)))
+  :null)
+
+
+
 (defclass tof ()
   ((id    :col-type integer :reader id)
    (title :col-type string :accessor title :initarg :title))
@@ -51,6 +56,8 @@
 (defmethod tof-id ((tof-title (eql :null)))
   :null)
 
+
+
 (defclass city ()
   ((id    :col-type integer :reader   id)
    (title :col-type string  :accessor title :initarg :title))
@@ -64,6 +71,8 @@
 
 (defmethod city-id ((city-title (eql :null)))
   :null)
+
+
 
 (defclass company ()
   ((id         :col-type integer :reader   id)
@@ -86,6 +95,11 @@
     (query (:select 'id :from 'company
                     :where (:= 'title title))
            :single)))
+
+(defmethod company-id ((title (eql :null)))
+  :null)
+
+
 
 (defclass cheque ()
   ((id         :col-type integer :reader   id)

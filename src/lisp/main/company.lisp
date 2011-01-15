@@ -39,8 +39,14 @@
         (t nil)))
 
 (defun chk-company-title (title)
-  (cond ((not (company-title-exists-p title)) :company-title-unknown)
-        ((eql :null title) :company-title-null)
+  (cond ((eql :null title) :company-title-null)
+        ((not (company-title-exists-p title)) :company-title-unknown)
+        (t nil)))
+
+(defun chk-company-title* (title)
+  "Like chk-company-title, but accepts null titles"
+  (cond ((eql :null title) nil)
+        ((not (company-title-exists-p title)) :company-title-unknown)
         (t nil)))
 
 
@@ -152,7 +158,7 @@
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'company (val id)))
-        (see-other (company) :filter (val filter)))
+        (see-other (company :filter (val filter))))
       (see-other (notfound))))
 
 
