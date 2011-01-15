@@ -75,3 +75,15 @@
                       ""
                       "attention")))
           params))
+
+(defmethod lisp->html ((value date))
+  (multiple-value-bind (year month day) (decode-date value)
+    (format nil "~A-~A-~A" day month year)))
+
+(defmethod html->lisp (value (type (eql 'date)))
+  (handler-case (apply #'encode-date
+                       (mapcar #'parse-integer (nreverse (split "-" value))))
+    (parse-error ()
+      (error 'http-parse-error
+             :http-type type
+             :raw-value value))))

@@ -24,28 +24,34 @@
       (ref-transactions id)))
 
 (define-existence-predicate acc-id-exists-p account id)
+(define-existence-predicate acc-title-exists-p account title)
 (define-uniqueness-predicate acc-title-unique-p account title id)
 
 
 (defun chk-parent-acc-id (val)
   (if (or (null val) (acc-id-exists-p val))
       nil
-      'parent-acc-id-unknown))
+      :parent-acc-id-unknown))
 
 (defun chk-acc-id (id)
   (if (acc-id-exists-p id)
       nil
-      'acc-id-unknown))
+      :acc-id-unknown))
 
 (defun chk-acc-id/ref (id)
   (if (and (null (chk-acc-id id))
            (null (acc-referenced-p id)))
       nil
-      'acc-referenced))
+      :acc-referenced))
 
-(defun chk-acc-title (title &optional id)
-  (cond ((eql :null title) 'acc-title-null)
-        ((not (acc-title-unique-p title id)) 'acc-title-exists)
+(defun chk-new-acc-title (title &optional id)
+  (cond ((eql :null title) :account-title-null)
+        ((not (acc-title-unique-p title id)) :account-title-exists)
+        (t nil)))
+
+(defun chk-acc-title (title)
+  (cond ((eql title :null) :account-title-null)
+        ((not (acc-title-exists-p title)) :account-title-unknown)
         (t nil)))
 
 (defun chk-debitp (debitp id)
@@ -53,7 +59,7 @@
     (if (or (null id)
             (eql debitp (debit-p (get-dao 'account id))))
         nil
-        'invalid-debitp-acc-id-combo)))
+        :invalid-debitp-acc-id-combo)))
 
 
 
@@ -63,7 +69,7 @@
 
 (define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
     ((parent-id integer chk-parent-acc-id)
-     (title     string  chk-acc-title t)
+     (title     string  chk-new-acc-title t)
      (debitp    boolean (chk-debitp debitp parent-id)))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -83,7 +89,7 @@
 
 (define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
     ((id    integer chk-acc-id t)
-     (title string (chk-acc-title title id) t))
+     (title string (chk-new-acc-title title id) t))
   (no-cache)
   (if (every #'validp (parameters *page*))
       (with-db ()
@@ -199,12 +205,12 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Other areas
+;;; Notifications
 ;;; ------------------------------------------------------------
 
 (defun account-notifications (&rest params)
-  (notifications '(title ((acc-title-null "Το όνομα λογαριασμού είναι κενό.")
-                          (acc-title-exists "Αυτό το όνομα λογαριασμού υπάρχει ήδη.")))
+  (notifications '((title (:account-title-null "Το όνομα λογαριασμού είναι κενό."
+                           :account-title-exists "Αυτό το όνομα λογαριασμού υπάρχει ήδη.")))
                  params))
 
 
@@ -247,7 +253,7 @@
 (define-dynamic-page account/create ("account/create")
     ((parent-id integer chk-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
-     (title     string  chk-acc-title))
+     (title     string  chk-new-acc-title))
   (no-cache)
   (if (and (validp parent-id) (validp debitp))
       (with-document ()
@@ -285,7 +291,7 @@
 
 (define-dynamic-page account/update ("account/update")
     ((id    integer chk-acc-id t)
-     (title string  chk-acc-title))
+     (title string  (chk-new-acc-title title id)))
   (no-cache)
   (if (validp id)
       (with-document ()

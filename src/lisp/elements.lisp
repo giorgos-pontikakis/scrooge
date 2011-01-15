@@ -145,3 +145,29 @@
     (update    ,update    "Επεξεργασία")
     (archive   ,archive   "Αρχειοθέτηση")
     (delete    ,delete    "Διαγραφή")))
+
+(defun tx-actions-spec (catalogue details create update delete)
+  `((catalogue ,catalogue "Κατάλογος")
+    (details   ,details   "Λεπτομέρειες")
+    (create    ,create    "Δημιουργία")
+    (update    ,update    "Επεξεργασία")
+    (delete    ,delete    "Διαγραφή")))
+
+
+
+;;; ------------------------------------------------------------
+;;; Filters
+;;; ------------------------------------------------------------
+
+(defun filters (submit-page filter)
+  (with-html
+    (:div :id "filters"
+          (:p :class "title" "Φίλτρα")
+          (display (make-instance 'form
+                                  :submit-page submit-page
+                                  :body (lambda ()
+                                          (with-html
+                                            (:p :class "search"
+                                                (textbox 'filter :value filter)
+                                                (submit (html ()
+                                                          (img "magnifier.png")))))))))))

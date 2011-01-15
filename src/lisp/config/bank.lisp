@@ -161,23 +161,12 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Other areas
+;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun bank-filters (filter)
-  (with-html
-    (:div :id "filters"
-          (:p :class "title" "Φίλτρα")
-          (with-form (bank)
-            (htm
-             (:p :class "search"
-                 (textbox 'filter :value filter)
-                 (submit (html ()
-                           (img "magnifier.png")))))))))
-
 (defun bank-notifications (&rest params)
-  (notifications '(title ((:bank-title-null "Το όνομα τράπεζας είναι κενό.")
-                          (:bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
+  (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
+                           :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
                  params))
 
 
@@ -204,7 +193,7 @@
                  (header 'config)
                  (config-menu 'bank)
                  (:div :id "controls" :class "controls grid_3"
-                       (bank-filters (val filter)))
+                       (filters 'bank (val filter)))
                  (:div :id "bank-window" :class "window grid_9"
                        (:div :class "title" "Κατάλογος τραπεζών")
                        (bank-menu (val id)
@@ -234,7 +223,7 @@
              (header 'config)
              (config-menu 'bank)
              (:div :id "controls" :class "controls grid_3"
-                   (bank-filters (val filter))
+                   (filters 'bank (val filter))
                    (bank-notifications title))
              (:div :id "bank-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία τράπεζας")
@@ -265,7 +254,7 @@
                  (header 'config)
                  (config-menu 'bank)
                  (:div :id "controls" :class "controls grid_3"
-                       (bank-filters (val filter))
+                       (filters 'bank (val filter))
                        (bank-notifications title))
                  (:div :id "bank-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία τράπεζας")
@@ -298,7 +287,7 @@
                  (header 'config)
                  (config-menu 'bank)
                  (:div :id "controls" :class "controls grid_3"
-                       (bank-filters (val filter)))
+                       (filters 'bank (val filter)))
                  (:div :id "bank-window" :class "window grid_9"
                        (:div :class "title" "Διαγραφή τράπεζας")
                        (bank-menu (val id)

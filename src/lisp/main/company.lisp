@@ -39,7 +39,7 @@
         (t nil)))
 
 (defun chk-company-title (title)
-  (cond ((not (company-title-exists-p title)) :company-title-invalid)
+  (cond ((not (company-title-exists-p title)) :company-title-unknown)
         ((eql :null title) :company-title-null)
         (t nil)))
 
@@ -86,6 +86,7 @@
         (let* ((tof-id (tof-id (val tof)))
                (city-id (city-id (val city)))
                (new-company (make-instance 'company
+                                           :filter (val filter)
                                            :title (val title)
                                            :occupation (val occupation)
                                            :tof-id (or tof-id :null)
@@ -95,7 +96,7 @@
                                            :zipcode (val zipcode)
                                            :pobox (val pobox))))
           (insert-dao new-company)
-          (see-other (company :id (id new-company)))))
+          (see-other (company :id (id new-company) :filter (val filter)))))
       (see-other (company/create :filter (raw filter)
                                  :title (raw title)
                                  :occupation (raw occupation)
@@ -133,8 +134,8 @@
                             'zipcode (val zipcode)
                             :where (:= 'id (val id))))
           (see-other (company :id (val id) :filter (val filter)))))
-      (see-other (company/update :id (raw id)
-                                 :filter (raw filter)
+      (see-other (company/update :filter (raw filter)
+                                 :id (raw id)
                                  :title (raw title)
                                  :occupation (raw occupation)
                                  :tof (raw tof)
@@ -145,12 +146,13 @@
                                  :pobox (raw pobox)))))
 
 (define-dynamic-page actions/company/delete ("actions/company/delete" :request-type :post)
-    ((id integer chk-company-id))
+    ((id     integer chk-company-id)
+     (filter string))
   (no-cache)
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'company (val id)))
-        (see-other (company)))
+        (see-other (company) :filter (val filter)))
       (see-other (notfound))))
 
 
@@ -278,31 +280,20 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Other areas
+;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun company-filters (filter)
-  (with-html
-    (:div :id "filters"
-          (:p :class "title" "Φίλτρα")
-          (with-form (company)
-            (htm
-             (:p :class "search"
-                 (textbox 'filter :value filter)
-                 (submit (html ()
-                           (img "magnifier.png")))))))))
-
 (defun company-notifications (&rest params)
-  (notifications '(title   ((:company-title-null "Το όνομα της εταιρίας είναι κενό")
-                            (:company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
-                   tof     ((:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
-                   city    ((:city-title-unknown "Η πόλη αυτή δεν έχει οριστεί."))
-                   tin     ((:tin-exists "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ.")
-                            (:tin-invalid "Άκυρος Α.Φ.Μ."))
-                   pobox   ((:parse-error "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας")
-                            (:pobox-invalid "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
-                   zipcode ((:parse-error "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό")
-                            (:zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός.")))
+  (notifications '((title   (:company-title-null "Το όνομα της εταιρίας είναι κενό"
+                             :company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
+                   (tof     (:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
+                   (city    (:city-title-unknown "Η πόλη αυτή δεν έχει οριστεί."))
+                   (tin     (:tin-exists "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ."
+                             :tin-invalid "Άκυρος Α.Φ.Μ."))
+                   (pobox   (:parse-error "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας"
+                             :pobox-invalid "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
+                   (zipcode (:parse-error "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
+                             :zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός.")))
                  params))
 
 
@@ -339,7 +330,7 @@
                                 :selected-id (val* id)
                                 :start (val* start)))
                  (:div :id "controls" :class "controls grid_3"
-                       (company-filters (val filter)))
+                       (filters 'company (val filter)))
                  (footer)))))
       (see-other (notfound))))
 
@@ -449,7 +440,7 @@
   (if (validp id)
       (with-document ()
         (:head
-         (:title "Επεξεργασία εταιρίας")
+         (:title "Λεπτομέρειες εταιρίας")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -471,7 +462,7 @@
       (see-other (notfound))))
 
 (define-dynamic-page company/delete ("company/delete")
-    ((id integer chk-company-id t)
+    ((id     integer chk-company-id t)
      (filter string))
   (no-cache)
   (if (validp id)
@@ -496,7 +487,7 @@
                          (display company-table
                                   :selected-id (val id))))
                  (:div :id "controls" :class "controls grid_3"
-                       (company-filters (val filter)))
+                       (filters 'company (val filter)))
                  (footer)))))
       (see-other (error-page))))
 

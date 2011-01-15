@@ -456,8 +456,8 @@
 
 (defmethod display ((messenger messenger) &key params)
   (flet ((get-message (param messages)
-           (or (second (assoc (error-type param)
-                              (getf messages (name param))))
+           (or (getf (second (assoc (name param) messages))
+                     (error-type param))
                (string-downcase (error-type param)))))
     (unless (every #'validp params)
       (with-html

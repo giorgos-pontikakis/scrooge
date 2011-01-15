@@ -19,11 +19,11 @@
       nil
       :invalid-vat))
 
-(defun chk-amount (num)
+(defun chk-price (num)
   (if (or (eql :null num)
           (positive-int-p num))
       nil
-      :invalid-amount))
+      :invalid-price))
 
 (defun chk-project-id (id)
   (if (project-id-exists-p id)
@@ -34,9 +34,6 @@
   (cond ((eql :null description) :project-description-null)
         ((not (project-description-unique-p description id)) :company-description-exists)
         (t nil)))
-
-(defun chk-date (string)
-  nil)
 
 
 
@@ -49,10 +46,10 @@
      (company     string chk-company-title t)
      (description string chk-new-project-description)
      (location    string)
-     (price       integer chk-amount)
+     (price       integer chk-price)
      (vat         integer chk-vat)
-     (start-date  string chk-date)
-     (end-date    string chk-date)
+     (start-date  string)
+     (end-date    string)
      (status      string))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -68,7 +65,7 @@
                                            :end-date (val end-date)
                                            :status (val status))))
           (insert-dao new-project)
-          (see-other (project :id (id new-project)))))
+          (see-other (project :id (id new-project) :filter (val filter)))))
       (see-other (project/create :filter (raw filter)
                                  :company (raw company)
                                  :description (raw description)
@@ -85,10 +82,10 @@
      (company     string  chk-company-title)
      (description string  (chk-new-project-description description id))
      (location    string)
-     (price       integer chk-amount)
+     (price       integer chk-price)
      (vat         integer chk-vat)
-     (start-date  string chk-date)
-     (end-date    string chk-date)
+     (start-date  string)
+     (end-date    string)
      (status      string))
   (no-cache)
   (if (every #'validp (parameters *page*))
@@ -117,12 +114,13 @@
                                  :status (raw status)))))
 
 (define-dynamic-page actions/project/delete ("actions/project/delete" :request-type :post)
-    ((id integer chk-project-id))
+    ((id     integer chk-project-id)
+     (filter string))
   (no-cache)
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'project (val id)))
-        (see-other (project)))
+        (see-other (project :filter (val filter))))
       (see-other (notfound))))
 
 
@@ -242,28 +240,17 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Other areas
+;;; Notifications
 ;;; ------------------------------------------------------------
-
-(defun project-filters (filter)
-  (with-html
-    (:div :id "filters"
-          (:p :class "title" "Φίλτρα")
-          (with-form (project)
-            (htm
-             (:p :class "search"
-                 (textbox 'filter :value filter)
-                 (submit (html ()
-                           (img "magnifier.png")))))))))
 
 (defun project-notifications (&rest params)
   ;; date errors missing, system is supposed to respond with the default (error-type param)
   (notifications
-   '(description ((:project-description-null "Το όνομα του έργου είναι κενό")
-                  (:project-description-exists "Υπάρχει ήδη έργο με αυτή την περιγραφή"))
-     company     ((:company-title-invalid "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     price       ((:invalid-amount  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
-     vat         ((:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))
+   '((description (:project-description-null "Το όνομα του έργου είναι κενό"
+                   :project-description-exists "Υπάρχει ήδη έργο με αυτή την περιγραφή"))
+     (company     (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+     (price       (:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
+     (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))
    params))
 
 
@@ -300,7 +287,7 @@
                                 :selected-id (val* id)
                                 :start (val* start)))
                  (:div :id "controls" :class "controls grid_3"
-                       (project-filters (val filter)))
+                       (filters 'project (val filter)))
                  (footer)))))
       (see-other (notfound))))
 
@@ -309,10 +296,10 @@
      (company     string chk-company-title)
      (description string chk-new-project-description)
      (location    string)
-     (price       integer chk-amount)
+     (price       integer chk-price)
      (vat         integer chk-vat)
-     (start-date  string  chk-date)
-     (end-date    string  chk-date)
+     (start-date  string)
+     (end-date    string)
      (status      string))
   (no-cache)
   (with-document ()
@@ -357,10 +344,10 @@
      (company     string  chk-company-title)
      (description string  (chk-new-project-description description id))
      (location    string)
-     (price       integer chk-amount)
+     (price       integer chk-price)
      (vat         integer chk-vat)
-     (start-date  string chk-date)
-     (end-date    string chk-date)
+     (start-date  string)
+     (end-date    string)
      (status      string))
   (no-cache)
   (if (validp id)
@@ -412,14 +399,14 @@
   (if (validp id)
       (with-document ()
         (:head
-         (:title "Επεξεργασία εταιρίας")
+         (:title "Λεπτομέρειες έργου")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'main)
                (main-menu 'project)
                (:div :id "project-window" :class "window grid_9"
-                     (:div :class "title" "Λεπτομέρειες εταιρίας")
+                     (:div :class "title" "Λεπτομέρειες έργου")
                      (project-menu (val id)
                                    (val filter)
                                    '(details create))
@@ -459,7 +446,7 @@
                          (display project-table
                                   :selected-id (val id))))
                  (:div :id "controls" :class "controls grid_3"
-                       (project-filters (val filter)))
+                       (filters 'project (val filter)))
                  (footer)))))
       (see-other (error-page))))
 

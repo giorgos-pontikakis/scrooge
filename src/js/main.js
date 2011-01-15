@@ -8,6 +8,8 @@ function loadAll () {
    makeAutocomplete("tof", "title", "#tof");
    makeAutocomplete("city", "title", "#city");
    makeAutocomplete("bank", "title", "#bank");
+   makeAutocomplete("account", "title", "#debit-account");
+   makeAutocomplete("account", "title", "#credit-account");
 }
 
 function makeAutocomplete (table, col, id) {

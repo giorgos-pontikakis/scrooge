@@ -164,23 +164,12 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Other areas
+;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun city-filters (filter)
-  (with-html
-    (:div :id "filters"
-          (:p :class "title" "Φίλτρα")
-          (with-form (city)
-            (htm
-             (:p :class "search"
-                 (textbox 'filter :value filter)
-                 (submit (html ()
-                           (img "magnifier.png")))))))))
-
 (defun city-notifications (&rest params)
-  (notifications '(title ((:city-title-null "Το όνομα πόλης είναι κενό.")
-                          (:city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
+  (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
+                           :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
                  params))
 
 ;;; ------------------------------------------------------------
@@ -205,7 +194,7 @@
                  (header 'config)
                  (config-menu 'city)
                  (:div :id "controls" :class "controls grid_3"
-                       (city-filters (val filter)))
+                       (filters 'city (val filter)))
                  (:div :id "city-window" :class "window grid_9"
                        (:div :class "title" "Κατάλογος πόλεων")
                        (city-menu (val id)
@@ -235,7 +224,7 @@
              (header 'config)
              (config-menu 'city)
              (:div :id "controls" :class "controls grid_3"
-                   (city-filters (val filter))
+                   (filters 'city (val filter))
                    (city-notifications title))
              (:div :id "city-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία πόλης")
@@ -266,7 +255,7 @@
                  (header 'config)
                  (config-menu 'city)
                  (:div :id "controls" :class "controls grid_3"
-                       (city-filters (val filter))
+                       (filters 'city (val filter))
                        (city-notifications title))
                  (:div :id "city-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία πόλης")
@@ -299,7 +288,7 @@
                  (header 'config)
                  (config-menu 'city)
                  (:div :id "controls" :class "controls grid_3"
-                       (city-filters (val filter)))
+                       (filters 'city (val filter)))
                  (:div :id "city-window" :class "window grid_9"
                        (:div :class "title" "Διαγραφή πόλης")
                        (city-menu (val id)

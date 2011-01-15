@@ -163,23 +163,12 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Other areas
+;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun tof-filters (filter)
-  (with-html
-    (:div :id "filters"
-          (:p :class "title" "Φίλτρα")
-          (with-form (tof)
-            (htm
-             (:p :class "search"
-                 (textbox 'filter :value filter)
-                 (submit (html ()
-                           (img "magnifier.png")))))))))
-
 (defun tof-notifications (&rest params)
-  (notifications '(title ((:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό.")
-                          (:tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
+  (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
+                           :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
                  params))
 
 
@@ -206,7 +195,7 @@
                  (header 'config)
                  (config-menu 'tof)
                  (:div :id "controls" :class "controls grid_3"
-                       (tof-filters (val filter)))
+                       (filters 'tof (val filter)))
                  (:div :id "tof-window" :class "window grid_9"
                        (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
                        (tof-menu (val id)
@@ -236,7 +225,7 @@
              (header 'config)
              (config-menu 'tof)
              (:div :id "controls" :class "controls grid_3"
-                   (tof-filters (val filter))
+                   (filters 'tof (val filter))
                    (tof-notifications title))
              (:div :id "tof-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
@@ -267,7 +256,7 @@
                  (header 'config)
                  (config-menu 'tof)
                  (:div :id "controls" :class "controls grid_3"
-                       (tof-filters (val filter))
+                       (filters 'tof (val filter))
                        (tof-notifications title))
                  (:div :id "tof-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
@@ -300,7 +289,7 @@
                  (header 'config)
                  (config-menu 'tof)
                  (:div :id "controls" :class "controls grid_3"
-                       (tof-filters (val filter)))
+                       (filters 'tof (val filter)))
                  (:div :id "tof-window" :class "window grid_9"
                        (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
                        (tof-menu (val id)
