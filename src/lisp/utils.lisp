@@ -18,7 +18,7 @@
                 (with-db ()
                   (let ((,user-dao (get-dao 'usr ,session-user)))
                     ; session user exists and belongs to group
-                    (and user-dao
+                    (and ,user-dao
                          (member (authgroup ,user-dao) ',groups :test #'string=))))))
          ,@body
          (see-other (login)))))

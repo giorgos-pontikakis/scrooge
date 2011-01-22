@@ -3,36 +3,63 @@
 
 ;;; --- login --------------------
 
-(define-dynamic-page login ("login") ()
+(defun chk-user (username)
+  (with-db ()
+    (if (and (not (eql username :null))
+             (get-dao 'usr username))
+        nil
+        'invalid-username)))
+
+(defun chk-pass (username password)
+  (if (with-db ()
+        (let ((user-dao (get-dao 'usr username)))
+          (and (not (eql password :null))
+               (string= (password user-dao)
+                        (md5sum-sequence->string password)))))
+      nil
+      'invalid-password))
+
+(define-dynamic-page login ("login") (user)
   (with-document ()
     (:head
      (global-headers)
      (:title "Είσοδος"))
     (:body
-     (with-form (verify-login)
-       (:p (label 'user "Όνομα χρήστη"))
-       (:p (textbox 'user))
-       (:p (label 'pass "Κωδικός πρόσβασης"))
-       (:p (textbox 'pass))
-       (submit)))))
+     (:div :id "container" :class "container_12"
+           (:div :class "window grid_6 prefix_3"
+                 (:div :id "header"
+                       (logo))
+                 (when (and (suppliedp user) (not (null user)))
+                   (htm (:div :id "login-error"
+                              (:p :class "attention"
+                                  "Λάθος όνομα χρήστη ή κωδικός πρόσβασης. Προσπαθείστε ξανά."))))
+                 (:div :id "login-form" :class "data-form"
+                       (with-form (verify-login)
+                         (htm
+                          (:p (label 'user "Όνομα χρήστη"))
+                          (:p (textbox 'user :value (val user)))
+                          (:p (label 'pass "Κωδικός πρόσβασης"))
+                          (:p (textbox 'pass :passwordp t)))
+                         (submit "Είσοδος"))))))))
 
 (define-dynamic-page verify-login ("verify-login" :request-type :post)
-    (user pass)
-  (let ((password (password (get-dao 'usr user))))
-    (if (string= password (md5sum-sequence->string pass))
-        (let ((login-time (get-universal-time)))
-          (start-session)
-          (setf (session-value 'user) user)
-          (setf (session-value 'login-time) login-time)
-          (see-other (home)))
-        (see-other (login)))))
+    ((user string chk-user t)
+     (pass string (chk-pass user pass) t))
+  (if (and (validp user)
+           (validp pass))
+      (let ((login-time (get-universal-time)))
+            (start-session)
+            (setf (session-value 'user) (val user))
+            (setf (session-value 'login-time) login-time)
+            (see-other (home)))
+      (see-other (login :user (raw user)))))
 
 
 
 ;;; --- home --------------------
 
 (define-dynamic-page home ("") ()
-  (with-auth ("popolo")
+  (with-auth ("admin")
     (with-document ()
       (:head
        (:title "Αρχική")

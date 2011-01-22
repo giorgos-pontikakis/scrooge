@@ -21,7 +21,7 @@ drop table usr;
 
 create table usr (
        username varchar(128) unique not null primary key,
-       password varchar(128) not null
+       password varchar(128) not null,
        authgroup varchar(128) not null
 );
 
