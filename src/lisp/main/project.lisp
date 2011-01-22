@@ -51,30 +51,31 @@
      (start-date  string)
      (end-date    string)
      (status      string))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (let* ((company-id (company-id (val company)))
-               (new-project (make-instance 'project
-                                           :company-id company-id
-                                           :description (val description)
-                                           :location (val location)
-                                           :price (val price)
-                                           :vat (val vat)
-                                           :start-date (val start-date)
-                                           :end-date (val end-date)
-                                           :status (val status))))
-          (insert-dao new-project)
-          (see-other (project :id (id new-project) :filter (val filter)))))
-      (see-other (project/create :filter (raw filter)
-                                 :company (raw company)
-                                 :description (raw description)
-                                 :location (raw location)
-                                 :price (raw price)
-                                 :vat (raw vat)
-                                 :start-date (raw start-date)
-                                 :end-date (raw end-date)
-                                 :status (raw status)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (let* ((company-id (company-id (val company)))
+                 (new-project (make-instance 'project
+                                             :company-id company-id
+                                             :description (val description)
+                                             :location (val location)
+                                             :price (val price)
+                                             :vat (val vat)
+                                             :start-date (val start-date)
+                                             :end-date (val end-date)
+                                             :status (val status))))
+            (insert-dao new-project)
+            (see-other (project :id (id new-project) :filter (val filter)))))
+        (see-other (project/create :filter (raw filter)
+                                   :company (raw company)
+                                   :description (raw description)
+                                   :location (raw location)
+                                   :price (raw price)
+                                   :vat (raw vat)
+                                   :start-date (raw start-date)
+                                   :end-date (raw end-date)
+                                   :status (raw status))))))
 
 (define-dynamic-page actions/project/update ("actions/project/update" :request-type :post)
     ((filter      string)
@@ -87,41 +88,43 @@
      (start-date  string)
      (end-date    string)
      (status      string))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (let ((company-id (company-id (val company))))
-          (execute (:update 'project :set
-                            'company-id company-id
-                            'description (val description)
-                            'location (val location)
-                            'price (val price)
-                            'vat (val vat)
-                            'start-date (val start-date)
-                            'end-date (val end-date)
-                            'status (val status)
-                            :where (:= 'id (val id))))
-          (see-other (project :id (val id) :filter (val filter)))))
-      (see-other (project/update :filter (raw filter)
-                                 :id (raw id)
-                                 :company (raw company)
-                                 :description (raw description)
-                                 :location (raw location)
-                                 :price (raw price)
-                                 :vat (raw vat)
-                                 :start-date (raw start-date)
-                                 :end-date (raw end-date)
-                                 :status (raw status)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (let ((company-id (company-id (val company))))
+            (execute (:update 'project :set
+                              'company-id company-id
+                              'description (val description)
+                              'location (val location)
+                              'price (val price)
+                              'vat (val vat)
+                              'start-date (val start-date)
+                              'end-date (val end-date)
+                              'status (val status)
+                              :where (:= 'id (val id))))
+            (see-other (project :id (val id) :filter (val filter)))))
+        (see-other (project/update :filter (raw filter)
+                                   :id (raw id)
+                                   :company (raw company)
+                                   :description (raw description)
+                                   :location (raw location)
+                                   :price (raw price)
+                                   :vat (raw vat)
+                                   :start-date (raw start-date)
+                                   :end-date (raw end-date)
+                                   :status (raw status))))))
 
 (define-dynamic-page actions/project/delete ("actions/project/delete" :request-type :post)
     ((id     integer chk-project-id)
      (filter string))
-  (no-cache)
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'project (val id)))
-        (see-other (project :filter (val filter))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'project (val id)))
+          (see-other (project :filter (val filter))))
+        (see-other (notfound)))))
 
 
 ;;; ------------------------------------------------------------
@@ -263,33 +266,34 @@
     ((id integer chk-project-id)
      (filter string)
      (start integer))
-  (no-cache)
-  (if (validp id)
-      (let ((project-table (make-instance 'project-table
-                                          :op 'catalogue
-                                          :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Έργα")
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (main-menu 'project)
-                 (:div :id "project-window" :class "window grid_9"
-                       (:div :class "title" "Κατάλογος έργων")
-                       (project-menu (val id)
-                                     (val filter)
-                                     (if (val id)
-                                         '(catalogue create)
-                                         '(catalogue details archive update delete)))
-                       (display project-table
-                                :selected-id (val* id)
-                                :start (val* start)))
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'project (val filter)))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((project-table (make-instance 'project-table
+                                            :op 'catalogue
+                                            :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Έργα")
+             (main-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'main)
+                   (main-menu 'project)
+                   (:div :id "project-window" :class "window grid_9"
+                         (:div :class "title" "Κατάλογος έργων")
+                         (project-menu (val id)
+                                       (val filter)
+                                       (if (val id)
+                                           '(catalogue create)
+                                           '(catalogue details archive update delete)))
+                         (display project-table
+                                  :selected-id (val* id)
+                                  :start (val* start)))
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'project (val filter)))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page project/create ("project/create")
     ((filter string)
@@ -301,42 +305,43 @@
      (start-date  string)
      (end-date    string)
      (status      string))
-  (no-cache)
-  (with-document ()
-    (:head
-     (:title "Δημιουργία εταιρίας")
-     (main-headers))
-    (:body
-     (:div :id "container" :class "container_12"
-           (header 'main)
-           (main-menu 'project)
-           (:div :id "project-window" :class "window grid_9"
-                 (:div :class "title" "Δημιουργία έργου")
-                 (project-menu nil
-                               (val filter)
-                               '(details create update archive delete))
-                 (with-form (actions/project/create)
-                   (project-data-form 'create
-                                      :filter (val filter)
-                                      :data (parameters->plist company
-                                                               description
-                                                               location
-                                                               price
-                                                               vat
-                                                               status
-                                                               start-date
-                                                               end-date)
-                                      :styles (parameters->styles company
-                                                                  description
-                                                                  location
-                                                                  price
-                                                                  vat
-                                                                  status
-                                                                  start-date
-                                                                  end-date))))
-           (:div :id "controls" :class "controls grid_3"
-                 (project-notifications description company price vat))
-           (footer)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (with-document ()
+      (:head
+       (:title "Δημιουργία εταιρίας")
+       (main-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'main)
+             (main-menu 'project)
+             (:div :id "project-window" :class "window grid_9"
+                   (:div :class "title" "Δημιουργία έργου")
+                   (project-menu nil
+                                 (val filter)
+                                 '(details create update archive delete))
+                   (with-form (actions/project/create)
+                     (project-data-form 'create
+                                        :filter (val filter)
+                                        :data (parameters->plist company
+                                                                 description
+                                                                 location
+                                                                 price
+                                                                 vat
+                                                                 status
+                                                                 start-date
+                                                                 end-date)
+                                        :styles (parameters->styles company
+                                                                    description
+                                                                    location
+                                                                    price
+                                                                    vat
+                                                                    status
+                                                                    start-date
+                                                                    end-date))))
+             (:div :id "controls" :class "controls grid_3"
+                   (project-notifications description company price vat))
+             (footer))))))
 
 (define-dynamic-page project/update ("project/update")
     ((filter      string)
@@ -349,106 +354,109 @@
      (start-date  string)
      (end-date    string)
      (status      string))
-  (no-cache)
-  (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Επεξεργασία έργου")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'main)
-               (main-menu 'project)
-               (:div :id "project-window" :class "window grid_9"
-                     (:div :class "title" "Επεξεργασία έργου")
-                     (project-menu (val id)
-                                   (val filter)
-                                   '(create update))
-                     (with-form (actions/project/update :id (val id))
-                       (project-data-form 'update
-                                          :id (val id)
-                                          :filter (val filter)
-                                          :data (plist-union (parameters->plist id
-                                                                                company
-                                                                                description
-                                                                                location
-                                                                                price
-                                                                                vat
-                                                                                status
-                                                                                start-date
-                                                                                end-date)
-                                                             (get-project-plist (val id)))
-                                          :styles (parameters->styles id
-                                                                      company
-                                                                      description
-                                                                      location
-                                                                      price
-                                                                      vat
-                                                                      status
-                                                                      start-date
-                                                                      end-date))))
-               (:div :id "controls" :class "controls grid_3"
-                     (project-notifications description company price vat))
-               (footer))))
-      (see-other (error-page))))
-
-(define-dynamic-page project/details ("project/details")
-    ((filter     string)
-     (id         integer chk-project-id t))
-  (no-cache)
-  (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Λεπτομέρειες έργου")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'main)
-               (main-menu 'project)
-               (:div :id "project-window" :class "window grid_9"
-                     (:div :class "title" "Λεπτομέρειες έργου")
-                     (project-menu (val id)
-                                   (val filter)
-                                   '(details create))
-                     (with-form (actions/project/update :id (val id))
-                       (project-data-form 'details
-                                          :filter (val filter)
-                                          :id (val id)
-                                          :data (get-project-plist (val id)))))
-               (:div :id "controls" :class "controls grid_3"
-                     "")
-               (error-page))))
-      (see-other (notfound))))
-
-(define-dynamic-page project/delete ("project/delete")
-    ((id integer chk-project-id t)
-     (filter string))
-  (no-cache)
-  (if (validp id)
-      (let ((project-table (make-instance 'project-table
-                                          :op 'delete
-                                          :filter (val* filter))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
         (with-document ()
           (:head
-           (:title "Διαγραφή έργου")
+           (:title "Επεξεργασία έργου")
            (main-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'main)
                  (main-menu 'project)
                  (:div :id "project-window" :class "window grid_9"
-                       (:div :class "title" "Διαγραφή έργου")
+                       (:div :class "title" "Επεξεργασία έργου")
                        (project-menu (val id)
                                      (val filter)
-                                     '(catalogue create delete))
-                       (with-form (actions/project/delete :id (val id)
-                                                          :filter (val* filter))
-                         (display project-table
-                                  :selected-id (val id))))
+                                     '(create update))
+                       (with-form (actions/project/update :id (val id))
+                         (project-data-form 'update
+                                            :id (val id)
+                                            :filter (val filter)
+                                            :data (plist-union (parameters->plist id
+                                                                                  company
+                                                                                  description
+                                                                                  location
+                                                                                  price
+                                                                                  vat
+                                                                                  status
+                                                                                  start-date
+                                                                                  end-date)
+                                                               (get-project-plist (val id)))
+                                            :styles (parameters->styles id
+                                                                        company
+                                                                        description
+                                                                        location
+                                                                        price
+                                                                        vat
+                                                                        status
+                                                                        start-date
+                                                                        end-date))))
                  (:div :id "controls" :class "controls grid_3"
-                       (filters 'project (val filter)))
-                 (footer)))))
-      (see-other (error-page))))
+                       (project-notifications description company price vat))
+                 (footer))))
+        (see-other (error-page)))))
+
+(define-dynamic-page project/details ("project/details")
+    ((filter     string)
+     (id         integer chk-project-id t))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (with-document ()
+          (:head
+           (:title "Λεπτομέρειες έργου")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (main-menu 'project)
+                 (:div :id "project-window" :class "window grid_9"
+                       (:div :class "title" "Λεπτομέρειες έργου")
+                       (project-menu (val id)
+                                     (val filter)
+                                     '(details create))
+                       (with-form (actions/project/update :id (val id))
+                         (project-data-form 'details
+                                            :filter (val filter)
+                                            :id (val id)
+                                            :data (get-project-plist (val id)))))
+                 (:div :id "controls" :class "controls grid_3"
+                       "")
+                 (error-page))))
+        (see-other (notfound)))))
+
+(define-dynamic-page project/delete ("project/delete")
+    ((id integer chk-project-id t)
+     (filter string))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((project-table (make-instance 'project-table
+                                            :op 'delete
+                                            :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Διαγραφή έργου")
+             (main-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'main)
+                   (main-menu 'project)
+                   (:div :id "project-window" :class "window grid_9"
+                         (:div :class "title" "Διαγραφή έργου")
+                         (project-menu (val id)
+                                       (val filter)
+                                       '(catalogue create delete))
+                         (with-form (actions/project/delete :id (val id)
+                                                            :filter (val* filter))
+                           (display project-table
+                                    :selected-id (val id))))
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'project (val filter)))
+                   (footer)))))
+        (see-other (error-page)))))
 
 
 (defun project-data-form (op &key filter id data styles)

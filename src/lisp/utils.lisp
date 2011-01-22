@@ -2,26 +2,12 @@
 
 
 ;;;----------------------------------------------------------------------
-;;; Authentication
+;;; MD5
 ;;;----------------------------------------------------------------------
 
 (defun md5sum-sequence->string (str)
   (format nil "~(~{~2,'0X~}~)"
                  (map 'list #'identity (md5:md5sum-sequence str))))
-
-
-
-(defmacro with-auth ((&rest groups) &body body)
-  (with-gensyms (session-user user-dao)
-    `(if (and *session* ; session is valid
-              (let ((,session-user (session-value 'user)))
-                (with-db ()
-                  (let ((,user-dao (get-dao 'usr ,session-user)))
-                    ; session user exists and belongs to group
-                    (and ,user-dao
-                         (member (authgroup ,user-dao) ',groups :test #'string=))))))
-         ,@body
-         (see-other (login)))))
 
 
 

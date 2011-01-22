@@ -3,22 +3,6 @@
 
 ;;; --- login --------------------
 
-(defun chk-user (username)
-  (with-db ()
-    (if (and (not (eql username :null))
-             (get-dao 'usr username))
-        nil
-        'invalid-username)))
-
-(defun chk-pass (username password)
-  (if (with-db ()
-        (let ((user-dao (get-dao 'usr username)))
-          (and (not (eql password :null))
-               (string= (password user-dao)
-                        (md5sum-sequence->string password)))))
-      nil
-      'invalid-password))
-
 (define-dynamic-page login ("login") (user)
   (with-document ()
     (:head
@@ -59,7 +43,7 @@
 ;;; --- home --------------------
 
 (define-dynamic-page home ("") ()
-  (with-auth ("admin")
+  (with-auth ("configuration")
     (with-document ()
       (:head
        (:title "Αρχική")
@@ -125,3 +109,16 @@
            (:div :id "content" :class "summary"
                  (:p "An internal error has occured.")
                  (:p "You are supposed to see this page because of illegal URL manipulation"))))))
+
+(define-dynamic-page access-denied ("access-denied") ()
+  (no-cache)
+  (with-document ()
+    (:head
+     (:title "Access denied")
+     (error-headers))
+    (:body
+     (:div :id "header"
+           (logo))
+     (:div :id "body"
+           (:div :id "content" :class "summary"
+                 (:p "Δεν έχετε επαρκή δικαιώματα. Δεν μπορείτε να δείτε αυτή τη σελίδα."))))))

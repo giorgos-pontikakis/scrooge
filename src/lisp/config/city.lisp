@@ -47,34 +47,38 @@
 
 (define-dynamic-page actions/city/create ("actions/city/create" :request-type :post)
     ((title string chk-new-city-title t))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (insert-dao (make-instance 'city :title (val title)))
-        (see-other (city :id (city-id (val title)))))
-      (see-other (city/create :title (raw title)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (insert-dao (make-instance 'city :title (val title)))
+          (see-other (city :id (city-id (val title)))))
+        (see-other (city/create :title (raw title))))))
 
 (define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
     ((id    integer chk-city-id t)
      (title string (chk-new-city-title title id) t)
      (filter string))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (execute (:update 'city :set
-                          'title (val title)
-                          :where (:= 'id (val id))))
-        (see-other (city :id (val id) :filter (val filter))))
-      (see-other (city/update :id (raw id) :title (raw title) :filter (raw filter)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (execute (:update 'city :set
+                            'title (val title)
+                            :where (:= 'id (val id))))
+          (see-other (city :id (val id) :filter (val filter))))
+        (see-other (city/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/city/delete ("actions/city/delete" :request-type :post)
     ((id integer chk-city-id/ref t)
      (filter string))
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'city (val id)))
-        (see-other (city :filter (val filter))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'city (val id)))
+          (see-other (city :filter (val filter))))
+        (see-other (notfound)))))
 
 
 
@@ -180,123 +184,127 @@
     ((id integer chk-city-id)
      (filter string)
      (start integer))
-  (no-cache)
-  (if (validp id)
-      (let ((city-table (make-instance 'city-table
-                                       :op 'catalogue
-                                       :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Πόλεις")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'city)
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'city (val filter)))
-                 (:div :id "city-window" :class "window grid_9"
-                       (:div :class "title" "Κατάλογος πόλεων")
-                       (city-menu (val id)
-                                  (val filter)
-                                  (if (val id)
-                                      '(catalogue)
-                                      '(catalogue update delete)))
-                       (display city-table
-                                :selected-id (val* id)
-                                :start (val* start)))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((city-table (make-instance 'city-table
+                                         :op 'catalogue
+                                         :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Πόλεις")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-menu 'city)
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'city (val filter)))
+                   (:div :id "city-window" :class "window grid_9"
+                         (:div :class "title" "Κατάλογος πόλεων")
+                         (city-menu (val id)
+                                    (val filter)
+                                    (if (val id)
+                                        '(catalogue)
+                                        '(catalogue update delete)))
+                         (display city-table
+                                  :selected-id (val* id)
+                                  :start (val* start)))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page city/create ("config/city/create")
     ((title string chk-new-city-title)
      (filter string))
-  (no-cache)
-  (let ((city-table (make-instance 'city-table
-                                   :op 'create
-                                   :filter (val* filter))))
-    (with-document ()
-      (:head
-       (:title "Δημιουργία πόλης")
-       (config-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'config)
-             (config-menu 'city)
-             (:div :id "controls" :class "controls grid_3"
-                   (filters 'city (val filter))
-                   (city-notifications title))
-             (:div :id "city-window" :class "window grid_9"
-                   (:div :class "title" "Δημιουργία πόλης")
-                   (city-menu nil
-                              (val filter)
-                              '(create update delete))
-                   (with-form (actions/city/create :title (val* title))
-                     (display city-table
-                              :selected-id nil
-                              :selected-data (list :title (val* title)))))
-             (footer))))))
+  (with-auth ("configuration")
+    (no-cache)
+    (let ((city-table (make-instance 'city-table
+                                     :op 'create
+                                     :filter (val* filter))))
+      (with-document ()
+        (:head
+         (:title "Δημιουργία πόλης")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-menu 'city)
+               (:div :id "controls" :class "controls grid_3"
+                     (filters 'city (val filter))
+                     (city-notifications title))
+               (:div :id "city-window" :class "window grid_9"
+                     (:div :class "title" "Δημιουργία πόλης")
+                     (city-menu nil
+                                (val filter)
+                                '(create update delete))
+                     (with-form (actions/city/create :title (val* title))
+                       (display city-table
+                                :selected-id nil
+                                :selected-data (list :title (val* title)))))
+               (footer)))))))
 
 (define-dynamic-page city/update ("config/city/update")
     ((id    integer chk-city-id t)
      (title string  (chk-new-city-title title id))
      (filter string))
-  (no-cache)
-  (if (validp id)
-      (let ((city-table (make-instance 'city-table
-                                       :op 'update
-                                       :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Επεξεργασία πόλης")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'city)
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'city (val filter))
-                       (city-notifications title))
-                 (:div :id "city-window" :class "window grid_9"
-                       (:div :class "title" "Επεξεργασία πόλης")
-                       (city-menu (val id)
-                                  (val filter)
-                                  '(create update))
-                       (with-form (actions/city/update :id (val* id)
-                                                       :title (val* title)
-                                                       :filter (val* filter))
-                         (display city-table
-                                  :selected-id (val id)
-                                  :selected-data (list :title (val* title)))))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((city-table (make-instance 'city-table
+                                         :op 'update
+                                         :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Επεξεργασία πόλης")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-menu 'city)
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'city (val filter))
+                         (city-notifications title))
+                   (:div :id "city-window" :class "window grid_9"
+                         (:div :class "title" "Επεξεργασία πόλης")
+                         (city-menu (val id)
+                                    (val filter)
+                                    '(create update))
+                         (with-form (actions/city/update :id (val* id)
+                                                         :title (val* title)
+                                                         :filter (val* filter))
+                           (display city-table
+                                    :selected-id (val id)
+                                    :selected-data (list :title (val* title)))))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page city/delete ("config/city/delete")
     ((id integer chk-city-id/ref t)
      (filter string))
-  (no-cache)
-  (if (validp id)
-      (let ((city-table (make-instance 'city-table
-                                       :op 'delete
-                                       :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Διαγραφή πόλης")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'city)
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'city (val filter)))
-                 (:div :id "city-window" :class "window grid_9"
-                       (:div :class "title" "Διαγραφή πόλης")
-                       (city-menu (val id)
-                                  (val filter)
-                                  '(create delete))
-                       (with-form (actions/city/delete :id (val id)
-                                                       :filter (val* filter))
-                         (display city-table
-                                  :selected-id (val id))))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((city-table (make-instance 'city-table
+                                         :op 'delete
+                                         :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Διαγραφή πόλης")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-menu 'city)
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'city (val filter)))
+                   (:div :id "city-window" :class "window grid_9"
+                         (:div :class "title" "Διαγραφή πόλης")
+                         (city-menu (val id)
+                                    (val filter)
+                                    '(create delete))
+                         (with-form (actions/city/delete :id (val id)
+                                                         :filter (val* filter))
+                           (display city-table
+                                    :selected-id (val id))))
+                   (footer)))))
+        (see-other (notfound)))))

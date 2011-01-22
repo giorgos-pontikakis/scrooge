@@ -47,34 +47,37 @@
 
 (define-dynamic-page actions/tof/create ("actions/tof/create" :request-type :post)
     ((title string chk-new-tof-title t))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (insert-dao (make-instance 'tof :title (val title)))
-        (see-other (tof :id (tof-id (val title)))))
-      (see-other (tof/create :title (raw title)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (insert-dao (make-instance 'tof :title (val title)))
+          (see-other (tof :id (tof-id (val title)))))
+        (see-other (tof/create :title (raw title))))))
 
 (define-dynamic-page actions/tof/update ("actions/tof/update" :request-type :post)
     ((id    integer chk-tof-id t)
      (title string (chk-new-tof-title title id) t)
      (filter string))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (execute (:update 'tof :set
-                          'title (val title)
-                          :where (:= 'id (val id))))
-        (see-other (tof :id (val id) :filter (val filter))))
-      (see-other (tof/update :id (raw id) :title (raw title) :filter (raw filter)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (execute (:update 'tof :set
+                            'title (val title)
+                            :where (:= 'id (val id))))
+          (see-other (tof :id (val id) :filter (val filter))))
+        (see-other (tof/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/tof/delete ("actions/tof/delete" :request-type :post)
     ((id integer chk-tof-id/ref t)
      (filter string))
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'tof (val id)))
-        (see-other (tof :filter (val filter))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'tof (val id)))
+          (see-other (tof :filter (val filter))))
+        (see-other (notfound)))))
 
 
 
@@ -181,123 +184,127 @@
     ((id integer chk-tof-id)
      (filter string)
      (start integer))
-  (no-cache)
-  (if (validp id)
-      (let ((tof-table (make-instance 'tof-table
-                                      :op 'catalogue
-                                      :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Τράπεζες")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'tof)
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'tof (val filter)))
-                 (:div :id "tof-window" :class "window grid_9"
-                       (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
-                       (tof-menu (val id)
-                                  (val filter)
-                                  (if (val id)
-                                      '(catalogue)
-                                      '(catalogue update delete)))
-                       (display tof-table
-                                :selected-id (val* id)
-                                :start (val* start)))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((tof-table (make-instance 'tof-table
+                                        :op 'catalogue
+                                        :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Τράπεζες")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-menu 'tof)
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'tof (val filter)))
+                   (:div :id "tof-window" :class "window grid_9"
+                         (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
+                         (tof-menu (val id)
+                                   (val filter)
+                                   (if (val id)
+                                       '(catalogue)
+                                       '(catalogue update delete)))
+                         (display tof-table
+                                  :selected-id (val* id)
+                                  :start (val* start)))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page tof/create ("config/tof/create")
     ((title string chk-new-tof-title)
      (filter string))
-  (no-cache)
-  (let ((tof-table (make-instance 'tof-table
-                                  :op 'create
-                                  :filter (val* filter))))
-    (with-document ()
-      (:head
-       (:title "Δημιουργία Δ.Ο.Υ.")
-       (config-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'config)
-             (config-menu 'tof)
-             (:div :id "controls" :class "controls grid_3"
-                   (filters 'tof (val filter))
-                   (tof-notifications title))
-             (:div :id "tof-window" :class "window grid_9"
-                   (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
-                   (tof-menu nil
-                              (val filter)
-                              '(create update delete))
-                   (with-form (actions/tof/create :title (val* title))
-                     (display tof-table
-                              :selected-id nil
-                              :selected-data (list :title (val* title)))))
-             (footer))))))
+  (with-auth ("configuration")
+    (no-cache)
+    (let ((tof-table (make-instance 'tof-table
+                                    :op 'create
+                                    :filter (val* filter))))
+      (with-document ()
+        (:head
+         (:title "Δημιουργία Δ.Ο.Υ.")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-menu 'tof)
+               (:div :id "controls" :class "controls grid_3"
+                     (filters 'tof (val filter))
+                     (tof-notifications title))
+               (:div :id "tof-window" :class "window grid_9"
+                     (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
+                     (tof-menu nil
+                               (val filter)
+                               '(create update delete))
+                     (with-form (actions/tof/create :title (val* title))
+                       (display tof-table
+                                :selected-id nil
+                                :selected-data (list :title (val* title)))))
+               (footer)))))))
 
 (define-dynamic-page tof/update ("config/tof/update")
     ((id    integer chk-tof-id t)
      (title string  (chk-new-tof-title title id))
      (filter string))
-  (no-cache)
-  (if (validp id)
-      (let ((tof-table (make-instance 'tof-table
-                                      :op 'update
-                                      :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Επεξεργασία Δ.Ο.Υ.")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'tof)
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'tof (val filter))
-                       (tof-notifications title))
-                 (:div :id "tof-window" :class "window grid_9"
-                       (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
-                       (tof-menu (val id)
-                                  (val filter)
-                                  '(create update))
-                       (with-form (actions/tof/update :id (val* id)
-                                                      :title (val* title)
-                                                      :filter (val* filter))
-                         (display tof-table
-                                  :selected-id (val id)
-                                  :selected-data (list :title (val* title)))))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((tof-table (make-instance 'tof-table
+                                        :op 'update
+                                        :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Επεξεργασία Δ.Ο.Υ.")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-menu 'tof)
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'tof (val filter))
+                         (tof-notifications title))
+                   (:div :id "tof-window" :class "window grid_9"
+                         (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
+                         (tof-menu (val id)
+                                   (val filter)
+                                   '(create update))
+                         (with-form (actions/tof/update :id (val* id)
+                                                        :title (val* title)
+                                                        :filter (val* filter))
+                           (display tof-table
+                                    :selected-id (val id)
+                                    :selected-data (list :title (val* title)))))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page tof/delete ("config/tof/delete")
     ((id integer chk-tof-id/ref t)
      (filter string))
-  (no-cache)
-  (if (validp id)
-      (let ((tof-table (make-instance 'tof-table
-                                      :op 'delete
-                                      :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Διαγραφή Δ.Ο.Υ.")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-menu 'tof)
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'tof (val filter)))
-                 (:div :id "tof-window" :class "window grid_9"
-                       (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
-                       (tof-menu (val id)
-                                  (val filter)
-                                  '(create delete))
-                       (with-form (actions/tof/delete :id (val id)
-                                                      :filter (val* filter))
-                         (display tof-table
-                                  :selected-id (val id))))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((tof-table (make-instance 'tof-table
+                                        :op 'delete
+                                        :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Διαγραφή Δ.Ο.Υ.")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-menu 'tof)
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'tof (val filter)))
+                   (:div :id "tof-window" :class "window grid_9"
+                         (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
+                         (tof-menu (val id)
+                                   (val filter)
+                                   '(create delete))
+                         (with-form (actions/tof/delete :id (val id)
+                                                        :filter (val* filter))
+                           (display tof-table
+                                    :selected-id (val id))))
+                   (footer)))))
+        (see-other (notfound)))))

@@ -86,32 +86,33 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (let* ((tof-id (tof-id (val tof)))
-               (city-id (city-id (val city)))
-               (new-company (make-instance 'company
-                                           :filter (val filter)
-                                           :title (val title)
-                                           :occupation (val occupation)
-                                           :tof-id (or tof-id :null)
-                                           :tin (val tin)
-                                           :address (val address)
-                                           :city-id (or city-id :null)
-                                           :zipcode (val zipcode)
-                                           :pobox (val pobox))))
-          (insert-dao new-company)
-          (see-other (company :id (id new-company) :filter (val filter)))))
-      (see-other (company/create :filter (raw filter)
-                                 :title (raw title)
-                                 :occupation (raw occupation)
-                                 :tof (raw tof)
-                                 :tin (raw tin)
-                                 :address (raw address)
-                                 :city (raw city)
-                                 :zipcode (raw zipcode)
-                                 :pobox (raw pobox)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (let* ((tof-id (tof-id (val tof)))
+                 (city-id (city-id (val city)))
+                 (new-company (make-instance 'company
+                                             :filter (val filter)
+                                             :title (val title)
+                                             :occupation (val occupation)
+                                             :tof-id (or tof-id :null)
+                                             :tin (val tin)
+                                             :address (val address)
+                                             :city-id (or city-id :null)
+                                             :zipcode (val zipcode)
+                                             :pobox (val pobox))))
+            (insert-dao new-company)
+            (see-other (company :id (id new-company) :filter (val filter)))))
+        (see-other (company/create :filter (raw filter)
+                                   :title (raw title)
+                                   :occupation (raw occupation)
+                                   :tof (raw tof)
+                                   :tin (raw tin)
+                                   :address (raw address)
+                                   :city (raw city)
+                                   :zipcode (raw zipcode)
+                                   :pobox (raw pobox))))))
 
 (define-dynamic-page actions/company/update ("actions/company/update" :request-type :post)
     ((filter     string)
@@ -124,42 +125,44 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode))
-  (no-cache)
-  (if (every #'validp (parameters *page*))
-      (with-db ()
-        (let ((tof-id (tof-id (val tof)))
-              (city-id (city-id (val city))))
-          (execute (:update 'company :set
-                            'title (val title)
-                            'occupation (val occupation)
-                            'tof-id tof-id
-                            'tin (val tin)
-                            'address (val address)
-                            'city-id city-id
-                            'pobox (val pobox)
-                            'zipcode (val zipcode)
-                            :where (:= 'id (val id))))
-          (see-other (company :id (val id) :filter (val filter)))))
-      (see-other (company/update :filter (raw filter)
-                                 :id (raw id)
-                                 :title (raw title)
-                                 :occupation (raw occupation)
-                                 :tof (raw tof)
-                                 :tin (raw tin)
-                                 :address (raw address)
-                                 :city (raw city)
-                                 :zipcode (raw zipcode)
-                                 :pobox (raw pobox)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (let ((tof-id (tof-id (val tof)))
+                (city-id (city-id (val city))))
+            (execute (:update 'company :set
+                              'title (val title)
+                              'occupation (val occupation)
+                              'tof-id tof-id
+                              'tin (val tin)
+                              'address (val address)
+                              'city-id city-id
+                              'pobox (val pobox)
+                              'zipcode (val zipcode)
+                              :where (:= 'id (val id))))
+            (see-other (company :id (val id) :filter (val filter)))))
+        (see-other (company/update :filter (raw filter)
+                                   :id (raw id)
+                                   :title (raw title)
+                                   :occupation (raw occupation)
+                                   :tof (raw tof)
+                                   :tin (raw tin)
+                                   :address (raw address)
+                                   :city (raw city)
+                                   :zipcode (raw zipcode)
+                                   :pobox (raw pobox))))))
 
 (define-dynamic-page actions/company/delete ("actions/company/delete" :request-type :post)
     ((id     integer chk-company-id)
      (filter string))
-  (no-cache)
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'company (val id)))
-        (see-other (company :filter (val filter))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'company (val id)))
+          (see-other (company :filter (val filter))))
+        (see-other (notfound)))))
 
 
 
@@ -312,33 +315,34 @@
     ((id integer chk-company-id)
      (filter string)
      (start integer))
-  (no-cache)
-  (if (validp id)
-      (let ((company-table (make-instance 'company-table
-                                          :op 'catalogue
-                                          :filter (val* filter))))
-        (with-document ()
-          (:head
-           (:title "Εταιρίες")
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (main-menu 'company)
-                 (:div :id "company-window" :class "window grid_9"
-                       (:div :class "title" "Κατάλογος εταιριών")
-                       (company-menu (val id)
-                                     (val filter)
-                                     (if (val id)
-                                         '(catalogue create)
-                                         '(catalogue details archive update delete)))
-                       (display company-table
-                                :selected-id (val* id)
-                                :start (val* start)))
-                 (:div :id "controls" :class "controls grid_3"
-                       (filters 'company (val filter)))
-                 (footer)))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((company-table (make-instance 'company-table
+                                            :op 'catalogue
+                                            :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Εταιρίες")
+             (main-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'main)
+                   (main-menu 'company)
+                   (:div :id "company-window" :class "window grid_9"
+                         (:div :class "title" "Κατάλογος εταιριών")
+                         (company-menu (val id)
+                                       (val filter)
+                                       (if (val id)
+                                           '(catalogue create)
+                                           '(catalogue details archive update delete)))
+                         (display company-table
+                                  :selected-id (val* id)
+                                  :start (val* start)))
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'company (val filter)))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page company/create ("company/create")
     ((filter     string)
@@ -350,42 +354,43 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode))
-  (no-cache)
-  (with-document ()
-    (:head
-     (:title "Δημιουργία εταιρίας")
-     (main-headers))
-    (:body
-     (:div :id "container" :class "container_12"
-           (header 'config)
-           (main-menu 'company)
-           (:div :id "company-window" :class "window grid_9"
-                 (:div :class "title" "Δημιουργία εταιρίας")
-                 (company-menu nil
-                               (val filter)
-                               '(details create update archive delete))
-                 (with-form (actions/company/create)
-                   (company-data-form 'create
-                                      :filter (val filter)
-                                      :data (parameters->plist title
-                                                               occupation
-                                                               tof
-                                                               tin
-                                                               address
-                                                               city
-                                                               pobox
-                                                               zipcode)
-                                      :styles (parameters->styles title
-                                                                  occupation
-                                                                  tof
-                                                                  tin
-                                                                  address
-                                                                  city
-                                                                  pobox
-                                                                  zipcode))))
-           (:div :id "controls" :class "controls grid_3"
-                 (company-notifications title tof tin city pobox zipcode))
-           (footer)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (with-document ()
+      (:head
+       (:title "Δημιουργία εταιρίας")
+       (main-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (main-menu 'company)
+             (:div :id "company-window" :class "window grid_9"
+                   (:div :class "title" "Δημιουργία εταιρίας")
+                   (company-menu nil
+                                 (val filter)
+                                 '(details create update archive delete))
+                   (with-form (actions/company/create)
+                     (company-data-form 'create
+                                        :filter (val filter)
+                                        :data (parameters->plist title
+                                                                 occupation
+                                                                 tof
+                                                                 tin
+                                                                 address
+                                                                 city
+                                                                 pobox
+                                                                 zipcode)
+                                        :styles (parameters->styles title
+                                                                    occupation
+                                                                    tof
+                                                                    tin
+                                                                    address
+                                                                    city
+                                                                    pobox
+                                                                    zipcode))))
+             (:div :id "controls" :class "controls grid_3"
+                   (company-notifications title tof tin city pobox zipcode))
+             (footer))))))
 
 (define-dynamic-page company/update ("company/update")
     ((filter     string)
@@ -398,104 +403,107 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode))
-  (no-cache)
-  (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Επεξεργασία εταιρίας")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (main-menu 'company)
-               (:div :id "company-window" :class "window grid_9"
-                     (:div :class "title" "Επεξεργασία εταιρίας")
-                     (company-menu (val id)
-                                   (val filter)
-                                   '(create update))
-                     (with-form (actions/company/update :id (val id))
-                       (company-data-form 'update
-                                          :id (val id)
-                                          :filter (val filter)
-                                          :data (plist-union (parameters->plist title
-                                                                                occupation
-                                                                                tof
-                                                                                tin
-                                                                                address
-                                                                                city
-                                                                                pobox
-                                                                                zipcode)
-                                                             (get-company-plist (val id)))
-                                          :styles (parameters->styles title
-                                                                      occupation
-                                                                      tof
-                                                                      tin
-                                                                      address
-                                                                      city
-                                                                      pobox
-                                                                      zipcode))))
-               (:div :id "controls" :class "controls grid_3"
-                     (company-notifications title tof tin city pobox zipcode))
-               (footer))))
-      (see-other (error-page))))
-
-(define-dynamic-page company/details ("company/details")
-    ((filter     string)
-     (id         integer chk-company-id t))
-  (no-cache)
-  (if (validp id)
-      (with-document ()
-        (:head
-         (:title "Λεπτομέρειες εταιρίας")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (main-menu 'company)
-               (:div :id "company-window" :class "window grid_9"
-                     (:div :class "title" "Λεπτομέρειες εταιρίας")
-                     (company-menu (val id)
-                                   (val filter)
-                                   '(details create))
-                     (with-form (actions/company/update :id (val id))
-                       (company-data-form 'details
-                                          :filter (val filter)
-                                          :id (val id)
-                                          :data (get-company-plist (val id)))))
-               (:div :id "controls" :class "controls grid_3"
-                     "")
-               (error-page))))
-      (see-other (notfound))))
-
-(define-dynamic-page company/delete ("company/delete")
-    ((id     integer chk-company-id t)
-     (filter string))
-  (no-cache)
-  (if (validp id)
-      (let ((company-table (make-instance 'company-table
-                                          :op 'delete
-                                          :filter (val* filter))))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
         (with-document ()
           (:head
-           (:title "Διαγραφή εταιρίας")
+           (:title "Επεξεργασία εταιρίας")
            (main-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
                  (main-menu 'company)
                  (:div :id "company-window" :class "window grid_9"
-                       (:div :class "title" "Διαγραφή εταιρίας")
+                       (:div :class "title" "Επεξεργασία εταιρίας")
                        (company-menu (val id)
                                      (val filter)
-                                     '(catalogue create delete))
-                       (with-form (actions/company/delete :id (val id)
-                                                          :filter (val* filter))
-                         (display company-table
-                                  :selected-id (val id))))
+                                     '(create update))
+                       (with-form (actions/company/update :id (val id))
+                         (company-data-form 'update
+                                            :id (val id)
+                                            :filter (val filter)
+                                            :data (plist-union (parameters->plist title
+                                                                                  occupation
+                                                                                  tof
+                                                                                  tin
+                                                                                  address
+                                                                                  city
+                                                                                  pobox
+                                                                                  zipcode)
+                                                               (get-company-plist (val id)))
+                                            :styles (parameters->styles title
+                                                                        occupation
+                                                                        tof
+                                                                        tin
+                                                                        address
+                                                                        city
+                                                                        pobox
+                                                                        zipcode))))
                  (:div :id "controls" :class "controls grid_3"
-                       (filters 'company (val filter)))
-                 (footer)))))
-      (see-other (error-page))))
+                       (company-notifications title tof tin city pobox zipcode))
+                 (footer))))
+        (see-other (error-page)))))
+
+(define-dynamic-page company/details ("company/details")
+    ((filter     string)
+     (id         integer chk-company-id t))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (with-document ()
+          (:head
+           (:title "Λεπτομέρειες εταιρίας")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (main-menu 'company)
+                 (:div :id "company-window" :class "window grid_9"
+                       (:div :class "title" "Λεπτομέρειες εταιρίας")
+                       (company-menu (val id)
+                                     (val filter)
+                                     '(details create))
+                       (with-form (actions/company/update :id (val id))
+                         (company-data-form 'details
+                                            :filter (val filter)
+                                            :id (val id)
+                                            :data (get-company-plist (val id)))))
+                 (:div :id "controls" :class "controls grid_3"
+                       "")
+                 (error-page))))
+        (see-other (notfound)))))
+
+(define-dynamic-page company/delete ("company/delete")
+    ((id     integer chk-company-id t)
+     (filter string))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((company-table (make-instance 'company-table
+                                            :op 'delete
+                                            :filter (val* filter))))
+          (with-document ()
+            (:head
+             (:title "Διαγραφή εταιρίας")
+             (main-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (main-menu 'company)
+                   (:div :id "company-window" :class "window grid_9"
+                         (:div :class "title" "Διαγραφή εταιρίας")
+                         (company-menu (val id)
+                                       (val filter)
+                                       '(catalogue create delete))
+                         (with-form (actions/company/delete :id (val id)
+                                                            :filter (val* filter))
+                           (display company-table
+                                    :selected-id (val id))))
+                   (:div :id "controls" :class "controls grid_3"
+                         (filters 'company (val filter)))
+                   (footer)))))
+        (see-other (error-page)))))
 
 (defun company-data-form (op &key filter id data styles)
   (let ((disabledp (eql op 'details)))

@@ -29,30 +29,32 @@
 ;;; Config main page
 
 (define-dynamic-page config ("config/") ()
-  (no-cache)
-  (with-document ()
-    (:head
-     (:title "Ρυθμίσεις")
-     (global-headers))
-    (:body
-     (:div :id "container" :class "container_12"
-           (header 'config)
-           (config-menu)
-           (:div :id "body"
-                 (:p "Config content not yet available"))))))
+  (with-auth ("configuration")
+    (no-cache)
+    (with-document ()
+      (:head
+       (:title "Ρυθμίσεις")
+       (global-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-menu)
+             (:div :id "body"
+                   (:p "Config content not yet available")))))))
 
 (define-dynamic-page main ("main/") ()
-  (no-cache)
-  (with-document ()
-    (:head
-     (:title "Οικονομικά")
-     (global-headers))
-    (:body
-     (:div :id "container" :class "container_12"
-           (header 'main)
-           (main-menu nil)
-           (:div :id "body"
-                 (:p "Main content not yet available"))))))
+  (with-auth ("configuration")
+    (no-cache)
+    (with-document ()
+      (:head
+       (:title "Οικονομικά")
+       (global-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'main)
+             (main-menu nil)
+             (:div :id "body"
+                   (:p "Main content not yet available")))))))
 
 
 

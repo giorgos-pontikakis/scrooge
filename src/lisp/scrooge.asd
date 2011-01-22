@@ -8,6 +8,7 @@
   :components ((:file "package")
                (:file "init")
                (:file "utils")
+               (:file "auth")
                (:file "tables")
                (:file "widgets")
                (:file "elements")
