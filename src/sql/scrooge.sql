@@ -1,12 +1,9 @@
 drop table project;
-drop table project_stran;
 drop table project_status;
 
 drop table cheque;
-drop table cheque_stran;
 drop table cheque_status;
 
-drop table stran;
 drop table temtx;
 drop table tx;
 
@@ -17,7 +14,16 @@ drop table account;
 drop table city;
 drop table bank;
 drop table tof;
+drop table usr;
 
+
+--- Users ------------------------------
+
+create table usr (
+       username varchar(128) unique not null primary key,
+       password varchar(128) not null
+       authgroup varchar(128) not null
+);
 
 
 --- Basic config ------------------------------

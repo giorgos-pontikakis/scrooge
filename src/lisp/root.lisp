@@ -1,20 +1,48 @@
 (in-package :scrooge)
 
 
+;;; --- login --------------------
 
-;;; --- Home --------------------
-
-(define-dynamic-page home ("") ()
+(define-dynamic-page login ("login") ()
   (with-document ()
     (:head
-     (:title "Αρχική")
-     (global-headers))
+     (global-headers)
+     (:title "Είσοδος"))
     (:body
-     (:div :id "container" :class "container_12"
-           (header 'home)
-           (:div :class "clear")
-           (:div :id "body"
-                 (:p "Home content not yet available"))))))
+     (with-form (verify-login)
+       (:p (label 'user "Όνομα χρήστη"))
+       (:p (textbox 'user))
+       (:p (label 'pass "Κωδικός πρόσβασης"))
+       (:p (textbox 'pass))
+       (submit)))))
+
+(define-dynamic-page verify-login ("verify-login" :request-type :post)
+    (user pass)
+  (let ((password (password (get-dao 'usr user))))
+    (if (string= password (md5sum-sequence->string pass))
+        (let ((login-time (get-universal-time)))
+          (start-session)
+          (setf (session-value 'user) user)
+          (setf (session-value 'login-time) login-time)
+          (see-other (home)))
+        (see-other (login)))))
+
+
+
+;;; --- home --------------------
+
+(define-dynamic-page home ("") ()
+  (with-auth ("popolo")
+    (with-document ()
+      (:head
+       (:title "Αρχική")
+       (global-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'home)
+             (:div :class "clear")
+             (:div :id "body"
+                   (:p "Home content not yet available")))))))
 
 
 
@@ -32,7 +60,7 @@
                           :column)))
       (if results
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
-            (write-json (coerce results 'vector) #|(map 'vector #'identity results)|#))
+            (write-json (coerce results 'vector)))
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
             "[]")))))
 

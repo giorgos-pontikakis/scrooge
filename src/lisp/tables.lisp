@@ -25,6 +25,14 @@
 
 ;;; Class definitions
 
+(defclass usr ()
+  ((username  :col-type (string 128) :accessor username  :initarg :username)
+   (password  :col-type (string 128) :accessor password  :initarg :password)
+   (authgroup :col-type (string 128) :accessor authgroup :initarg :authgroup))
+  (:metaclass dao-class)
+  (:keys username))
+
+
 (defclass bank ()
   ((id    :col-type integer :reader   id)
    (title :col-type string  :accessor title :initarg :title))
