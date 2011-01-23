@@ -46,18 +46,19 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/city/create ("actions/city/create" :request-type :post)
-    ((title string chk-new-city-title t))
+    ((title  string chk-new-city-title t)
+     (filter string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'city :title (val title)))
           (see-other (city :id (city-id (val title)))))
-        (see-other (city/create :title (raw title))))))
+        (see-other (city/create :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
-    ((id    integer chk-city-id t)
-     (title string (chk-new-city-title title id) t)
+    ((id     integer chk-city-id t)
+     (title  string (chk-new-city-title title id) t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -70,7 +71,7 @@
         (see-other (city/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/city/delete ("actions/city/delete" :request-type :post)
-    ((id integer chk-city-id/ref t)
+    ((id     integer chk-city-id/ref t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -181,9 +182,9 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page city ("config/city")
-    ((id integer chk-city-id)
+    ((id     integer chk-city-id)
      (filter string)
-     (start integer))
+     (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -214,7 +215,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page city/create ("config/city/create")
-    ((title string chk-new-city-title)
+    ((title  string chk-new-city-title)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -237,15 +238,15 @@
                      (city-menu nil
                                 (val filter)
                                 '(create update delete))
-                     (with-form (actions/city/create :title (val* title))
+                     (with-form (actions/city/create :filter (val* filter))
                        (display city-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
                (footer)))))))
 
 (define-dynamic-page city/update ("config/city/update")
-    ((id    integer chk-city-id t)
-     (title string  (chk-new-city-title title id))
+    ((id     integer chk-city-id                   t)
+     (title  string  (chk-new-city-title title id))
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -270,7 +271,6 @@
                                     (val filter)
                                     '(create update))
                          (with-form (actions/city/update :id (val* id)
-                                                         :title (val* title)
                                                          :filter (val* filter))
                            (display city-table
                                     :selected-id (val id)

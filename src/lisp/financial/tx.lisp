@@ -259,11 +259,11 @@
           (with-document ()
             (:head
              (:title "Συναλλαγές")
-             (main-headers))
+             (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
-                   (header 'main)
-                   (main-menu 'transaction)
+                   (header 'financial)
+                   (financial-menu 'transaction)
                    (:div :id "controls" :class "controls grid_3"
                          (filters 'transaction (val filter)))
                    (:div :id "transaction-window" :class "window grid_9"
@@ -291,17 +291,17 @@
     (no-cache)
     (with-document ()
       (:head
-       (:title "Δημιουργία τράπεζας")
-       (main-headers))
+       (:title "Δημιουργία συναλλαγής")
+       (admin-headers))
       (:body
        (:div :id "container" :class "container_12"
-             (header 'main)
-             (config-menu 'tx)
+             (header 'financial)
+             (financial-menu 'transaction)
              (:div :id "tx-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία συναλλαγής")
                    (transaction-menu nil
                                      (val filter)
-                                     '(create update delete))
+                                     '(details create update delete))
                    (with-form (actions/transaction/create)
                      (transaction-data-form 'create
                                             :filter (val filter)
@@ -337,11 +337,11 @@
         (with-document ()
           (:head
            (:title "Συναλλαγές > Επεξεργασία")
-           (main-headers))
+           (admin-headers))
           (:body
            (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (main-menu 'transactions)
+                 (header 'financial)
+                 (financial-menu 'transaction)
                  (:div :id "tx-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία συναλλαγής")
                        (transaction-menu (val id)
@@ -379,11 +379,11 @@
         (with-document ()
           (:head
            (:title "Λεπτομέρειες συναλλαγής")
-           (main-headers))
+           (admin-headers))
           (:body
            (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (main-menu 'transaction)
+                 (header 'financial)
+                 (financial-menu 'transaction)
                  (:div :id "tx-window" :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες συναλλαγής")
                        (transaction-menu (val id)
@@ -411,11 +411,11 @@
           (with-document ()
             (:head
              (:title "Διαγραφή συναλλαγής")
-             (main-headers))
+             (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
-                   (header 'main)
-                   (config-menu 'tx)
+                   (header 'financial)
+                   (financial-menu 'transaction)
                    (:div :id "controls" :class "controls grid_3"
                          (filters 'transaction (val filter)))
                    (:div :id "tx-window" :class "window grid_9"

@@ -311,7 +311,7 @@
 ;;; Company - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page company ("main/company")
+(define-dynamic-page company ("admin/company")
     ((id integer chk-company-id)
      (filter string)
      (start integer))
@@ -324,11 +324,11 @@
           (with-document ()
             (:head
              (:title "Εταιρίες")
-             (main-headers))
+             (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
-                   (header 'main)
-                   (main-menu 'company)
+                   (header 'admin)
+                   (admin-menu 'company)
                    (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος εταιριών")
                          (company-menu (val id)
@@ -344,7 +344,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page company/create ("company/create")
+(define-dynamic-page company/create ("admin/company/create")
     ((filter     string)
      (title      string  chk-new-company-title)
      (occupation string)
@@ -359,11 +359,11 @@
     (with-document ()
       (:head
        (:title "Δημιουργία εταιρίας")
-       (main-headers))
+       (admin-headers))
       (:body
        (:div :id "container" :class "container_12"
-             (header 'config)
-             (main-menu 'company)
+             (header 'admin)
+             (admin-menu 'company)
              (:div :id "company-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία εταιρίας")
                    (company-menu nil
@@ -392,7 +392,7 @@
                    (company-notifications title tof tin city pobox zipcode))
              (footer))))))
 
-(define-dynamic-page company/update ("company/update")
+(define-dynamic-page company/update ("admin/company/update")
     ((filter     string)
      (id         integer chk-company-id t)
      (title      string  (chk-new-company-title title id))
@@ -409,11 +409,11 @@
         (with-document ()
           (:head
            (:title "Επεξεργασία εταιρίας")
-           (main-headers))
+           (admin-headers))
           (:body
            (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (main-menu 'company)
+                 (header 'admin)
+                 (admin-menu 'company)
                  (:div :id "company-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία εταιρίας")
                        (company-menu (val id)
@@ -445,7 +445,7 @@
                  (footer))))
         (see-other (error-page)))))
 
-(define-dynamic-page company/details ("company/details")
+(define-dynamic-page company/details ("admin/company/details")
     ((filter     string)
      (id         integer chk-company-id t))
   (with-auth ("configuration")
@@ -454,11 +454,11 @@
         (with-document ()
           (:head
            (:title "Λεπτομέρειες εταιρίας")
-           (main-headers))
+           (admin-headers))
           (:body
            (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (main-menu 'company)
+                 (header 'admin)
+                 (admin-menu 'company)
                  (:div :id "company-window" :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες εταιρίας")
                        (company-menu (val id)
@@ -474,7 +474,7 @@
                  (error-page))))
         (see-other (notfound)))))
 
-(define-dynamic-page company/delete ("company/delete")
+(define-dynamic-page company/delete ("admin/company/delete")
     ((id     integer chk-company-id t)
      (filter string))
   (with-auth ("configuration")
@@ -486,11 +486,11 @@
           (with-document ()
             (:head
              (:title "Διαγραφή εταιρίας")
-             (main-headers))
+             (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
-                   (header 'config)
-                   (main-menu 'company)
+                   (header 'admin)
+                   (admin-menu 'company)
                    (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)

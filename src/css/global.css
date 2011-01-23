@@ -60,6 +60,9 @@ select {
     padding: 5px;
 }
 
+select[disabled] {
+    color: #000000;
+}
 
 
 /* ---------------------------------------------------------------------- */
@@ -190,23 +193,23 @@ select {
     display: block;
 }
 
-.hmenu ul li {
+.hmenu li {
     list-style: none;
     display: inline;
     line-height: 26px;
 }
 
-.hmenu ul li a {
+.hmenu li a {
     line-height: 26px;
     color: #fff;
     padding: 5px 8px;
 }
 
-.hmenu ul li a:hover {
+.hmenu li a:hover {
     background-color: #4F5C4E;
 }
 
-.hmenu ul li a img {
+.hmenu li a img {
     padding: 0px 4px;
     vertical-align: text-bottom;
 }
@@ -359,6 +362,9 @@ select {
 /* notifications */
 /* ---------------------------------------------------------------------- */
 
+#notifications p {
+    margin-bottom: 10px;
+}
 
 #notifications li {
     padding: 0px 0px 8px 22px;
@@ -459,6 +465,27 @@ select {
 
 
 /* ---------------------------------------------------------------------- */
+/* project data form */
+/* ---------------------------------------------------------------------- */
+
+.project-data-form-title {
+    margin: 20px 0px 0px 0px;
+}
+
+.project-data-form-title input {
+    width: 408px;
+}
+
+.project-data-form-subtitle {
+    margin: 0px 0px 20px 0px;
+}
+
+.project-data-form-subtitle input {
+    width: 408px;
+}
+
+
+/* ---------------------------------------------------------------------- */
 /* login form */
 /* ---------------------------------------------------------------------- */
 
@@ -469,4 +496,14 @@ select {
 
 #login-error p {
     padding: 10px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* filters form */
+/* ---------------------------------------------------------------------- */
+
+#filters {
+    margin-bottom: 20px;
 }

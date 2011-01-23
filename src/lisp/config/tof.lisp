@@ -46,18 +46,19 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/tof/create ("actions/tof/create" :request-type :post)
-    ((title string chk-new-tof-title t))
+    ((title  string chk-new-tof-title t)
+     (filter string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'tof :title (val title)))
           (see-other (tof :id (tof-id (val title)))))
-        (see-other (tof/create :title (raw title))))))
+        (see-other (tof/create :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/tof/update ("actions/tof/update" :request-type :post)
-    ((id    integer chk-tof-id t)
-     (title string (chk-new-tof-title title id) t)
+    ((id     integer chk-tof-id t)
+     (title  string (chk-new-tof-title title id) t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -70,7 +71,7 @@
         (see-other (tof/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/tof/delete ("actions/tof/delete" :request-type :post)
-    ((id integer chk-tof-id/ref t)
+    ((id     integer chk-tof-id/ref t)
      (filter string))
   (with-auth ("configuration")
     (if (validp id)
@@ -181,9 +182,9 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page tof ("config/tof")
-    ((id integer chk-tof-id)
+    ((id     integer chk-tof-id)
      (filter string)
-     (start integer))
+     (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -214,7 +215,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page tof/create ("config/tof/create")
-    ((title string chk-new-tof-title)
+    ((title  string chk-new-tof-title)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -237,15 +238,16 @@
                      (tof-menu nil
                                (val filter)
                                '(create update delete))
-                     (with-form (actions/tof/create :title (val* title))
+                     (with-form (actions/tof/create :title (val* title)
+                                                    :filter (val* filter))
                        (display tof-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
                (footer)))))))
 
 (define-dynamic-page tof/update ("config/tof/update")
-    ((id    integer chk-tof-id t)
-     (title string  (chk-new-tof-title title id))
+    ((id     integer chk-tof-id                   t)
+     (title  string  (chk-new-tof-title title id))
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -270,7 +272,6 @@
                                    (val filter)
                                    '(create update))
                          (with-form (actions/tof/update :id (val* id)
-                                                        :title (val* title)
                                                         :filter (val* filter))
                            (display tof-table
                                     :selected-id (val id)
@@ -279,7 +280,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page tof/delete ("config/tof/delete")
-    ((id integer chk-tof-id/ref t)
+    ((id     integer chk-tof-id/ref t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)

@@ -241,7 +241,7 @@
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-tree
-                                                      :op 'view
+                                                      :op 'catalogue
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -249,8 +249,8 @@
                           (account-menu (val id)
                                         flag
                                         (if (and (val id) (eql flag (debit-p (val id))))
-                                            '(view)
-                                            '(view update delete)))
+                                            '(catalogue)
+                                            '(catalogue update delete)))
                           (display account-tree :selected-id (val* id))))))))
         (see-other (notfound)))))
 
@@ -276,7 +276,7 @@
                    (for account-tree = (make-instance 'account-tree
                                                       :op (if (eql flag (val debitp))
                                                               'create
-                                                              'view)
+                                                              'catalogue)
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -315,7 +315,7 @@
                    (for account-tree = (make-instance 'account-tree
                                                       :op (if (eql flag (debit-p (val id)))
                                                               'update
-                                                              'view)
+                                                              'catalogue)
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -352,7 +352,7 @@
                    (for account-tree = (make-instance 'account-tree
                                                       :op (if (eql flag (debit-p (val id)))
                                                               'delete
-                                                              'view)
+                                                              'catalogue)
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"

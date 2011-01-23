@@ -16,15 +16,6 @@
            :active-page-name active-page-name))
 
 
-(defun main-menu (&optional active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :id "config-menu"
-                          :style "hnavbar grid_12"
-                          :spec '((company "Εταιρίες")
-                                  (project "Έργα")
-                                  (transaction "Συναλλαγές")))
-           :active-page-name active-page-name))
-
 
 ;;; Config main page
 
@@ -41,20 +32,6 @@
              (config-menu)
              (:div :id "body"
                    (:p "Config content not yet available")))))))
-
-(define-dynamic-page main ("main/") ()
-  (with-auth ("configuration")
-    (no-cache)
-    (with-document ()
-      (:head
-       (:title "Οικονομικά")
-       (global-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'main)
-             (main-menu nil)
-             (:div :id "body"
-                   (:p "Main content not yet available")))))))
 
 
 

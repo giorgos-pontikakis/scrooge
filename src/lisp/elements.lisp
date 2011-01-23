@@ -54,7 +54,7 @@
   (global-headers)
   (jquery))
 
-(defun main-headers ()
+(defun admin-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
@@ -104,9 +104,9 @@
   (display (make-instance 'horizontal-navbar
                           :id "navbar"
                           :style "hnavbar grid_8 prefix_1"
-                          :spec '((main   "Οικονομικά")
-                                  (admin  "Διαχείριση")
-                                  (config "Ρυθμίσεις")))
+                          :spec '((financial "Οικονομικά")
+                                  (admin     "Διαχείριση")
+                                  (config    "Ρυθμίσεις")))
            :active-page-name active-page-name))
 
 (defun logout-menu ()
@@ -116,14 +116,14 @@
                           :spec `((logout ,(logout) "Έξοδος")))))
 
 (defun notifications (messages params)
-  (unless (every #'validp params))
-  (with-html
-    (:div :id "notifications"
-          (:p :class "title" "Μηνύματα")
-          (display (make-instance 'messenger
-                                  :messages messages
-                                  :style "msg-error")
-                   :params params))))
+  (unless (every #'validp params)
+    (with-html
+      (:div :id "notifications"
+            (:p :class "title" "Μηνύματα")
+            (display (make-instance 'messenger
+                                    :messages messages
+                                    :style "msg-error")
+                     :params params)))))
 
 
 

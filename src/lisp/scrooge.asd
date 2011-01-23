@@ -20,8 +20,11 @@
                (:file "config/city")
                (:file "config/account")
                #|(:file "config/temtx")|#
-               ;; main
-               (:file "main/company")
-               #|(:file "main/cheque")|#
-               (:file "main/project")
-               (:file "main/tx")))
+               ;; admin
+               (:file "admin/admin")
+               (:file "admin/company")
+               (:file "admin/project")
+               ;; financial
+               (:file "financial/financial")
+               (:file "financial/tx")
+               #|(:file "financial/cheque")|#))

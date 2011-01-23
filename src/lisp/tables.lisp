@@ -182,6 +182,7 @@
    (description :col-type string  :accessor description :initarg :description)
    (location    :col-type string  :accessor location    :initarg :location)
    (price       :col-type integer :accessor price       :initarg :price)
+   (quote-date  :col-type date    :accessor quote-date  :initarg :quote-date)
    (start-date  :col-type date    :accessor start-date  :initarg :start-date)
    (end-date    :col-type date    :accessor end-date    :initarg :end-date)
    (status      :col-type string  :accessor status      :initarg :status)

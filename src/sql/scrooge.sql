@@ -87,7 +87,7 @@ create table tx (
        ,description varchar(256)
        ,debit_acc_id integer not null references account(id)
        ,credit_acc_id integer not null references account(id)
-       ,company_id integer not null references company(id)
+       ,company_id integer references company(id)
        ,amount integer check (amount > 0)
 
 );
@@ -144,6 +144,7 @@ create table project (
        ,description varchar(64) not null
        ,location varchar(64)
        ,price integer check (price > 0)
+       ,quote_date date
        ,start_date date
        ,end_date date
        ,status varchar(32) not null references project_status(id) default 'quoted'

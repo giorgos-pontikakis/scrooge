@@ -45,18 +45,19 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page actions/bank/create ("actions/bank/create" :request-type :post)
-    ((title string chk-new-bank-title t))
+    ((title  string chk-new-bank-title t)
+     (filter string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'bank :title (val title)))
           (see-other (bank :id (bank-id (val title)))))
-        (see-other (bank/create :title (raw title))))))
+        (see-other (bank/create :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/bank/update ("actions/bank/update" :request-type :post)
-    ((id    integer chk-bank-id t)
-     (title string  (chk-new-bank-title title id) t)
+    ((id     integer chk-bank-id t)
+     (title  string  (chk-new-bank-title title id) t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -69,7 +70,7 @@
         (see-other (bank/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
 (define-dynamic-page actions/bank/delete ("actions/bank/delete" :request-type :post)
-    ((id integer chk-bank-id/ref t)
+    ((id     integer chk-bank-id/ref t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -180,9 +181,9 @@
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page bank ("config/bank")
-    ((id integer chk-bank-id)
+    ((id     integer chk-bank-id)
      (filter string)
-     (start integer))
+     (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -213,7 +214,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page bank/create ("config/bank/create")
-    ((title string chk-new-bank-title)
+    ((title  string chk-new-bank-title)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -236,15 +237,15 @@
                      (bank-menu nil
                                 (val filter)
                                 '(create update delete))
-                     (with-form (actions/bank/create :title (val* title))
+                     (with-form (actions/bank/create :filter (val* filter))
                        (display bank-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
                (footer)))))))
 
 (define-dynamic-page bank/update ("config/bank/update")
-    ((id    integer chk-bank-id t)
-     (title string  (chk-new-bank-title title id))
+    ((id     integer chk-bank-id t)
+     (title  string  (chk-new-bank-title title id))
      (filter string))
   (with-auth ("configuration")
     (no-cache)
@@ -269,7 +270,6 @@
                                     (val filter)
                                     '(create update))
                          (with-form (actions/bank/update :id (val* id)
-                                                         :title (val* title)
                                                          :filter (val* filter))
                            (display bank-table
                                     :selected-id (val id)
@@ -278,7 +278,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page bank/delete ("config/bank/delete")
-    ((id integer chk-bank-id/ref t)
+    ((id     integer chk-bank-id/ref t)
      (filter string))
   (with-auth ("configuration")
     (no-cache)
