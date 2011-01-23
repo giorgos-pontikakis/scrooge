@@ -38,7 +38,9 @@
             (see-other (home)))
       (see-other (login :user (raw user)))))
 
-
+(define-dynamic-page logout ("logout") ()
+  (remove-session *session*)
+  (see-other (login)))
 
 ;;; --- home --------------------
 
@@ -121,4 +123,5 @@
            (logo))
      (:div :id "body"
            (:div :id "content" :class "summary"
-                 (:p "Δεν έχετε επαρκή δικαιώματα. Δεν μπορείτε να δείτε αυτή τη σελίδα."))))))
+                 (:p "Δεν έχετε επαρκή δικαιώματα ώστε να προσπελάσετε αυτή τη σελίδα.")
+                 (:p "Πρέπει πρώτα να κάνετε " (:a :href (login) "εισαγωγή") " στο σύστημα"))))))

@@ -85,7 +85,7 @@
   (with-html
     (:div :id "logo"
           :class "grid_2"
-          (:h1 "(scrooge) "))))
+          (:h1 "(scrooge)"))))
 
 (defun header (active-item)
   (with-html
@@ -104,8 +104,7 @@
   (display (make-instance 'horizontal-navbar
                           :id "navbar"
                           :style "hnavbar grid_8 prefix_1"
-                          :spec '((home   "Αρχική")
-                                  (main   "Οικονομικά")
+                          :spec '((main   "Οικονομικά")
                                   (admin  "Διαχείριση")
                                   (config "Ρυθμίσεις")))
            :active-page-name active-page-name))
@@ -114,7 +113,7 @@
   (display (make-instance 'menu
                           :id "logout"
                           :style "hnavbar grid_1"
-                          :spec `((logout "" "Έξοδος")))))
+                          :spec `((logout ,(logout) "Έξοδος")))))
 
 (defun notifications (messages params)
   (unless (every #'validp params))
