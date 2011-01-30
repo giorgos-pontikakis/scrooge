@@ -266,7 +266,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
-                   (financial-menu 'transaction)
+                   (financial-navbar 'transaction)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (transaction) (val filter)))
                    (:div :id "transaction-window" :class "window grid_9"
@@ -299,7 +299,7 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'financial)
-             (financial-menu 'transaction)
+             (financial-navbar 'transaction)
              (:div :class "window grid_9"
                    (:div :class "title" "Δημιουργία συναλλαγής")
                    (transaction-menu nil
@@ -344,7 +344,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
-                 (financial-menu 'transaction)
+                 (financial-navbar 'transaction)
                  (:div :class "window grid_9"
                        (:div :class "title" "Επεξεργασία συναλλαγής")
                        (transaction-menu (val id)
@@ -386,7 +386,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
-                 (financial-menu 'transaction)
+                 (financial-navbar 'transaction)
                  (:div :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες συναλλαγής")
                        (transaction-menu (val id)
@@ -417,7 +417,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
-                   (financial-menu 'transaction)
+                   (financial-navbar 'transaction)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (transaction) (val filter)))
                    (:div :class "window grid_9"

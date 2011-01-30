@@ -290,7 +290,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
-                   (admin-menu 'project)
+                   (admin-navbar 'project)
                    (:div :id "project-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος έργων")
                          (project-menu (val id)
@@ -326,7 +326,7 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'admin)
-             (admin-menu 'project)
+             (admin-navbar 'project)
              (:div :id "project-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία έργου")
                    (project-menu nil
@@ -379,7 +379,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'admin)
-                 (admin-menu 'project)
+                 (admin-navbar 'project)
                  (:div :id "project-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία έργου")
                        (project-menu (val id)
@@ -428,7 +428,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'admin)
-                 (admin-menu 'project)
+                 (admin-navbar 'project)
                  (:div :id "project-window" :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες έργου")
                        (project-menu (val id)
@@ -460,7 +460,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
-                   (admin-menu 'project)
+                   (admin-navbar 'project)
                    (:div :id "project-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή έργου")
                          (project-menu (val id)

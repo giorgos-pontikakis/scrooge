@@ -3,10 +3,9 @@
 
 ;;; UI elements
 
-(defun financial-menu (&optional active-page-name)
+(defun financial-navbar (&optional active-page-name)
   (display (make-instance 'horizontal-navbar
-                          :id "config-menu"
-                          :style "hnavbar grid_12"
+                          :style "section-navbar hnavbar grid_12"
                           :spec '((transaction "Συναλλαγές")
                                   ((cheque "receivable") "Επιταγές")))
            :active-page-name active-page-name))
@@ -25,6 +24,6 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'financial)
-             (financial-menu nil)
+             (financial-navbar nil)
              (:div :id "body"
                    (:p "Financial content not yet available")))))))

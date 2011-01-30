@@ -6,7 +6,7 @@
 (define-dynamic-page login ("login") (user)
   (with-document ()
     (:head
-     (global-headers)
+     (login-headers)
      (:title "Είσοδος"))
     (:body
      (:div :id "container" :class "container_12"

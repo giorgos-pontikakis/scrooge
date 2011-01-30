@@ -119,7 +119,8 @@
                                        :delta 10
                                        :urlfn (lambda (filter start)
                                                 (city :filter filter
-                                                      :start start))))))
+                                                      :start start)))))
+  (:default-initargs :id "config-table"))
 
 (defmethod read-items ((table city-table))
   (iter (for rec in (config-data 'city (filter table)))
@@ -198,7 +199,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'city)
+                   (config-navbar 'city)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
@@ -229,7 +230,7 @@
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-menu 'city)
+               (config-navbar 'city)
                (:div :id "controls" :class "controls grid_3"
                      (filters (city) (val filter))
                      (city-notifications title))
@@ -261,7 +262,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'city)
+                   (config-navbar 'city)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (city) (val filter))
                          (city-notifications title))
@@ -294,7 +295,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'city)
+                   (config-navbar 'city)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"

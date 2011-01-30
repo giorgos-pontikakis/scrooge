@@ -238,7 +238,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
-                 (config-menu 'account)
+                 (config-navbar 'account)
                  (iter
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
@@ -271,7 +271,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
-                 (config-menu 'account)
+                 (config-navbar 'account)
                  (iter
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
@@ -309,7 +309,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
-                 (config-menu 'account)
+                 (config-navbar 'account)
                  (iter
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
@@ -345,7 +345,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
-                 (config-menu 'account)
+                 (config-navbar 'account)
                  (iter
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))

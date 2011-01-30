@@ -92,7 +92,7 @@
 
 (defclass crud-tree (collection)
   ((root :accessor root :initarg :root))
-  (:default-initargs :id "crud-table" :style "crud-table"))
+  (:default-initargs :id "crud-tree" :style "crud-tree"))
 
 (defmethod initialize-instance :after ((tree crud-tree) &key)
   (setf (slot-value tree 'root)

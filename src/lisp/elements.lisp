@@ -33,40 +33,50 @@
 (defun jquery-ui ()
   (js (url 'lib "jquery-ui-1.8.7.custom/js/jquery-ui-1.8.7.custom.min.js")))
 
-(defun js-autocomplete ()
-  (js (url 'js "main.js")))
-
-(defun 960gs ()
-  (css (url 'css "reset.css"))
-  (css (url 'lib "960gs/code/css/960.css")))
+(defun autocomplete ()
+  (js (url 'js "main.js"))
+  (css (url 'lib "jquery-ui-1.8.7.custom/css/custom-theme/jquery-ui-1.8.7.custom.css")))
 
 (defun error-headers ()
   (css (url 'css "global.css")))
 
-(defun css-autocomplete ()
-  (css (url 'lib "jquery-ui-1.8.7.custom/css/custom-theme/jquery-ui-1.8.7.custom.css")))
+(defun 960gs ()
+  (css (url 'lib "960gs/code/css/960.css")))
+
+(defun login-headers ()
+  (css (url 'css "reset.css"))
+  (960gs)
+  (css (url 'css "common.css"))
+  (css (url 'css "login.css")))
 
 (defun global-headers ()
+  (css (url 'css "reset.css"))
   (960gs)
-  (css (url 'css "global.css")))
+  (css (url 'css "common.css"))
+  (css (url 'css "navbar.css"))
+  (css (url 'css "crud.css"))
+  (css (url 'css "controls.css")))
 
 (defun config-headers ()
   (global-headers)
-  (jquery))
+  (jquery)
+  (jquery-ui)
+  (autocomplete)
+  (css (url 'css "config.css")))
 
 (defun admin-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
-  (js-autocomplete)
-  (css-autocomplete))
+  (autocomplete)
+  (css (url 'css "admin.css")))
 
-;;; So far, financial-headers is an alias for admin-headers
-(setf (symbol-function 'financial-headers) #'admin-headers)
-
-(defun clear ()
-  (with-html
-    (:div :class "clear")))
+(defun financial-headers ()
+  (global-headers)
+  (jquery)
+  (jquery-ui)
+  (autocomplete)
+  (css (url 'css "financial.css")))
 
 
 
@@ -96,7 +106,7 @@
           (logo)
           (primary-navbar active-item)
           (logout-menu)
-          (clear))))
+          (:div :class "clear" ""))))
 
 (defun footer ()
   (with-html
@@ -105,7 +115,7 @@
 
 (defun primary-navbar (active-page-name)
   (display (make-instance 'horizontal-navbar
-                          :id "navbar"
+                          :id "primary-navbar"
                           :style "hnavbar grid_8 prefix_1"
                           :spec '((financial "Οικονομικά")
                                   (admin     "Διαχείριση")
@@ -119,14 +129,15 @@
                           :spec `((logout ,(logout) "Έξοδος")))))
 
 (defun notifications (messages params)
-  (unless (every #'validp params)
+  (declare (ignore params))
+  (unless (every #'validp (parameters *page*))
     (with-html
       (:div :id "notifications"
             (:p :class "title" "Μηνύματα")
             (display (make-instance 'messenger
                                     :messages messages
                                     :style "msg-error")
-                     :params params)))))
+                     :params (parameters *page*))))))
 
 
 

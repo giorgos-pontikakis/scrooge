@@ -118,7 +118,8 @@
                                            :delta 10
                                            :urlfn (lambda (filter start)
                                                     (tof :filter filter
-                                                         :start start))))))
+                                                         :start start)))))
+  (:default-initargs :id "config-table"))
 
 
 (defmethod read-items ((table tof-table))
@@ -198,7 +199,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'tof)
+                   (config-navbar 'tof)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
@@ -229,7 +230,7 @@
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-menu 'tof)
+               (config-navbar 'tof)
                (:div :id "controls" :class "controls grid_3"
                      (filters (tof) (val filter))
                      (tof-notifications title))
@@ -261,7 +262,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'tof)
+                   (config-navbar 'tof)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (tof) (val filter))
                          (tof-notifications title))
@@ -294,7 +295,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'tof)
+                   (config-navbar 'tof)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"

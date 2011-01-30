@@ -332,7 +332,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
-                   (admin-menu 'company)
+                   (admin-navbar 'company)
                    (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος εταιριών")
                          (company-menu (val id)
@@ -367,7 +367,7 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'admin)
-             (admin-menu 'company)
+             (admin-navbar 'company)
              (:div :id "company-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία εταιρίας")
                    (company-menu nil
@@ -417,7 +417,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'admin)
-                 (admin-menu 'company)
+                 (admin-navbar 'company)
                  (:div :id "company-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία εταιρίας")
                        (company-menu (val id)
@@ -462,7 +462,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'admin)
-                 (admin-menu 'company)
+                 (admin-navbar 'company)
                  (:div :id "company-window" :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες εταιρίας")
                        (company-menu (val id)
@@ -494,7 +494,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
-                   (admin-menu 'company)
+                   (admin-navbar 'company)
                    (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)

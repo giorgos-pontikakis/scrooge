@@ -280,7 +280,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
-                   (financial-menu 'cheque)
+                   (financial-navbar 'cheque)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (cheque cheque-kind) (val filter)))
                    (:div :class "window grid_9"
@@ -315,7 +315,7 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'financial)
-             (financial-menu 'cheque)
+             (financial-navbar 'cheque)
              (:div :id "controls" :class "controls grid_3"
                    (filters (cheque cheque-kind) (val filter))
                    (cheque-notifications bank due-date company amount status))
@@ -361,7 +361,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
-                 (financial-menu 'cheque)
+                 (financial-navbar 'cheque)
                  (:div :id "controls" :class "controls grid_3"
                        (filters (cheque cheque-kind) (val filter)))
                  (:div :class "window grid_9"
@@ -402,7 +402,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
-                 (financial-menu 'cheque)
+                 (financial-navbar 'cheque)
                  (:div :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες επιταγής")
                        (cheque-menu cheque-kind
@@ -437,7 +437,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
-                   (financial-menu 'cheque)
+                   (financial-navbar 'cheque)
                    (:div :class "window"
                          (:div :id "controls" :class "controls grid_3"
                                (filters (cheque cheque-kind) (val filter)))

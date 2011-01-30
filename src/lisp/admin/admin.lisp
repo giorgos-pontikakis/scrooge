@@ -3,10 +3,9 @@
 
 ;;; UI elements
 
-(defun admin-menu (&optional active-page-name)
+(defun admin-navbar (&optional active-page-name)
   (display (make-instance 'horizontal-navbar
-                          :id "config-menu"
-                          :style "hnavbar grid_12"
+                          :style "section-navbar hnavbar grid_12"
                           :spec '((company "Εταιρίες")
                                   (project "Έργα")))
            :active-page-name active-page-name))
@@ -25,6 +24,6 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'admin)
-             (admin-menu nil)
+             (admin-navbar nil)
              (:div :id "body"
                    (:p "Admin content not yet available")))))))

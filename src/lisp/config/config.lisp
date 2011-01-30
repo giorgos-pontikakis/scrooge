@@ -4,10 +4,9 @@
 
 ;;; UI elements
 
-(defun config-menu (&optional active-page-name)
+(defun config-navbar (&optional active-page-name)
   (display (make-instance 'horizontal-navbar
-                          :id "config-menu"
-                          :style "hnavbar grid_12"
+                          :style "section-navbar hnavbar grid_12"
                           :spec '((city "Πόλεις")
                                   (bank "Τράπεζες")
                                   (tof "Δ.Ο.Υ.")
@@ -29,7 +28,7 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'config)
-             (config-menu)
+             (config-navbar)
              (:div :id "body"
                    (:p "Config content not yet available")))))))
 

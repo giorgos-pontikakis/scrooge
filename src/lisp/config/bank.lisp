@@ -118,7 +118,8 @@
                                            :delta 10
                                            :urlfn (lambda (filter start)
                                                     (bank :filter filter
-                                                          :start start))))))
+                                                          :start start)))))
+  (:default-initargs :id "config-table"))
 
 (defmethod read-items ((table bank-table))
   (iter (for rec in (config-data 'bank (filter table)))
@@ -197,7 +198,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'bank)
+                   (config-navbar 'bank)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
@@ -228,7 +229,7 @@
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-menu 'bank)
+               (config-navbar 'bank)
                (:div :id "controls" :class "controls grid_3"
                      (filters (bank) (val filter))
                      (bank-notifications title))
@@ -260,7 +261,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'bank)
+                   (config-navbar 'bank)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (bank) (val filter))
                          (bank-notifications title))
@@ -293,7 +294,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
-                   (config-menu 'bank)
+                   (config-navbar 'bank)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
