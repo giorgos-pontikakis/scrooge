@@ -19,9 +19,10 @@
       nil
       :cheque-status-invalid))
 
-(defun chk-future-date (date)
-  (declare (ignore date))
-  nil)
+(defun chk-date (date)
+  (if (eql :null date)
+      :date-null
+      nil))
 
 ;;; --------------------------------------------------------------------------------
 ;;; Actions
@@ -31,12 +32,12 @@
     (("actions/financial/cheque/" cheque-kind "/create")
      :registers (cheque-kind "(receivable|payable)")
      :request-type :post)
-    ((filter    string)
-     (bank      string  chk-bank-title)
-     (company   string  chk-company-title t)
-     (due-date  date    chk-future-date   t)
-     (amount    string  chk-amount        t)
-     (status    string  chk-cheque-status t))
+    ((filter   string)
+     (bank     string chk-bank-title)
+     (company  string chk-company-title t)
+     (due-date date   chk-date          t)
+     (amount   string chk-amount        t)
+     (status   string chk-cheque-status t))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -67,7 +68,7 @@
      (id       integer chk-cheque-id     t)
      (bank     string  chk-bank-title)
      (company  string  chk-company-title t)
-     (due-date date    chk-future-date   t)
+     (due-date date    chk-date          t)
      (amount   string  chk-amount        t)
      (status   string  chk-cheque-status t))
   (with-auth ("configuration")
@@ -247,13 +248,15 @@
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun  cheque-notifications (&rest params)
+(defun  cheque-notifications ()
   (notifications
-   '((company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
+   '((due-date (:date-null "Η ημερομηνία είναι κενή"))
+     (bank (:bank-title-null "Το όνομα της τράπεζας είναι κενό."
+            :bank-title-unknown "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
+     (company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
                :company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))
-   params))
+              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))))
 
 
 
@@ -302,7 +305,7 @@
                                    :registers (cheque-kind "(receivable|payable)"))
     ((filter    string)
      (bank      string  chk-bank-title)
-     (due-date  date    chk-future-date)
+     (due-date  date    chk-date)
      (company   string  chk-company-title)
      (amount    string  chk-amount)
      (status    string  chk-cheque-status))
@@ -318,7 +321,7 @@
              (financial-navbar 'cheque)
              (:div :id "controls" :class "controls grid_3"
                    (filters (cheque cheque-kind) (val filter))
-                   (cheque-notifications bank due-date company amount status))
+                   (cheque-notifications))
              (:div :class "window grid_9"
                    (:div :class "title" "Δημιουργία επιταγής")
                    (cheque-menu cheque-kind
@@ -348,7 +351,7 @@
      (id       integer chk-cheque-id     t)
      (bank     string  chk-bank-title)
      (company  string  chk-company-title)
-     (due-date date    chk-future-date)
+     (due-date date    chk-date)
      (status   string  chk-cheque-status)
      (amount   string  chk-amount))
   (with-auth ("configuration")
@@ -363,7 +366,8 @@
                  (header 'financial)
                  (financial-navbar 'cheque)
                  (:div :id "controls" :class "controls grid_3"
-                       (filters (cheque cheque-kind) (val filter)))
+                       (filters (cheque cheque-kind) (val filter))
+                       (cheque-notifications))
                  (:div :class "window grid_9"
                        (:div :class "title" "Επεξεργασία επιταγής")
                        (cheque-menu cheque-kind

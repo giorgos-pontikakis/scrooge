@@ -232,7 +232,7 @@
 ;;; Notifications
 ;;; ----------------------------------------------------------------------
 
-(defun transaction-notifications (&rest params)
+(defun transaction-notifications ()
   (notifications
    '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
@@ -240,8 +240,7 @@
      (debit-account (:account-title-null "Ο λογαριασμός χρέωσης είναι κενός"
                      :account-title-unknown "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
      (credit-account (:account-title-null "Ο λογαριασμός πίστωσης είναι κενός"
-                      :account-title-unknown "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα")))
-   params))
+                      :account-title-unknown "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα")))))
 
 
 
@@ -322,7 +321,7 @@
                                                                         amount))))
              (:div :id "controls" :class "controls grid_3"
                    (filters (transaction) (val filter))
-                   (transaction-notifications date company amount debit-account credit-account))
+                   (transaction-notifications))
              (footer))))))
 
 (define-dynamic-page transaction/update ("financial/transaction/update")
@@ -369,7 +368,7 @@
                                                                             credit-account
                                                                             amount))))
                  (:div :id "controls" :class "controls grid_3"
-                       "")
+                       (transaction-notifications))
                  (footer))))
         (see-other (notfound)))))
 

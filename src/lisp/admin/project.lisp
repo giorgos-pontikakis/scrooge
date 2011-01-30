@@ -256,7 +256,7 @@
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun project-notifications (&rest params)
+(defun project-notifications ()
   ;; date errors missing, system is supposed to respond with the default (error-type param)
   (notifications
    '((description (:project-description-null "Το όνομα του έργου είναι κενό"
@@ -264,8 +264,7 @@
      (company     (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
                    :company-title-null "Το όνομα της εταιρίας δεν πρέπει να είναι κενό"))
      (price       (:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
-     (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))
-   params))
+     (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))))
 
 
 
@@ -354,7 +353,7 @@
                                                                     start-date
                                                                     end-date))))
              (:div :id "controls" :class "controls grid_3"
-                   (project-notifications description company price vat))
+                   (project-notifications))
              (footer))))))
 
 (define-dynamic-page project/update ("admin/project/update")
@@ -411,7 +410,7 @@
                                                                         start-date
                                                                         end-date))))
                  (:div :id "controls" :class "controls grid_3"
-                       (project-notifications description company price vat))
+                       (project-notifications))
                  (footer))))
         (see-other (error-page)))))
 

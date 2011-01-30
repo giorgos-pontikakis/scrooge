@@ -171,10 +171,9 @@
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun tof-notifications (&rest params)
+(defun tof-notifications ()
   (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
-                           :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))
-                 params))
+                           :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))))
 
 
 
@@ -233,7 +232,7 @@
                (config-navbar 'tof)
                (:div :id "controls" :class "controls grid_3"
                      (filters (tof) (val filter))
-                     (tof-notifications title))
+                     (tof-notifications))
                (:div :id "tof-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
                      (tof-menu nil
@@ -265,7 +264,7 @@
                    (config-navbar 'tof)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (tof) (val filter))
-                         (tof-notifications title))
+                         (tof-notifications))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
                          (tof-menu (val id)

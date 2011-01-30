@@ -33,7 +33,7 @@
 (defun jquery-ui ()
   (js (url 'lib "jquery-ui-1.8.7.custom/js/jquery-ui-1.8.7.custom.min.js")))
 
-(defun autocomplete ()
+(defun jquery-autocomplete ()
   (js (url 'js "main.js"))
   (css (url 'lib "jquery-ui-1.8.7.custom/css/custom-theme/jquery-ui-1.8.7.custom.css")))
 
@@ -61,21 +61,21 @@
   (global-headers)
   (jquery)
   (jquery-ui)
-  (autocomplete)
+  (jquery-autocomplete)
   (css (url 'css "config.css")))
 
 (defun admin-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
-  (autocomplete)
+  (jquery-autocomplete)
   (css (url 'css "admin.css")))
 
 (defun financial-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
-  (autocomplete)
+  (jquery-autocomplete)
   (css (url 'css "financial.css")))
 
 
@@ -128,8 +128,7 @@
                           :style "hnavbar grid_1"
                           :spec `((logout ,(logout) "Έξοδος")))))
 
-(defun notifications (messages params)
-  (declare (ignore params))
+(defun notifications (messages)
   (unless (every #'validp (parameters *page*))
     (with-html
       (:div :id "notifications"

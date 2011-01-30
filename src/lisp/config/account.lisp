@@ -209,16 +209,13 @@
 
 
 
-
 ;;; ------------------------------------------------------------
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun account-notifications (&rest params)
+(defun account-notifications ()
   (notifications '((title (:account-title-null "Το όνομα λογαριασμού είναι κενό."
-                           :account-title-exists "Αυτό το όνομα λογαριασμού υπάρχει ήδη.")))
-                 params))
-
+                           :account-title-exists "Αυτό το όνομα λογαριασμού υπάρχει ήδη.")))))
 
 
 

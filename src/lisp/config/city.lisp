@@ -173,10 +173,9 @@
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun city-notifications (&rest params)
+(defun city-notifications ()
   (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
-                           :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))
-                 params))
+                           :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))))
 
 ;;; ------------------------------------------------------------
 ;;; City - Pages
@@ -233,7 +232,7 @@
                (config-navbar 'city)
                (:div :id "controls" :class "controls grid_3"
                      (filters (city) (val filter))
-                     (city-notifications title))
+                     (city-notifications))
                (:div :id "city-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία πόλης")
                      (city-menu nil
@@ -265,7 +264,7 @@
                    (config-navbar 'city)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (city) (val filter))
-                         (city-notifications title))
+                         (city-notifications))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία πόλης")
                          (city-menu (val id)

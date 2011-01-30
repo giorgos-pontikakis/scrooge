@@ -296,7 +296,7 @@
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun company-notifications (&rest params)
+(defun company-notifications ()
   (notifications '((title   (:company-title-null "Το όνομα της εταιρίας είναι κενό"
                              :company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
                    (tof     (:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
@@ -306,8 +306,7 @@
                    (pobox   (:parse-error "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας"
                              :pobox-invalid "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
                    (zipcode (:parse-error "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
-                             :zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός.")))
-                 params))
+                             :zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός.")))))
 
 
 
@@ -393,7 +392,7 @@
                                                                     pobox
                                                                     zipcode))))
              (:div :id "controls" :class "controls grid_3"
-                   (company-notifications title tof tin city pobox zipcode))
+                   (company-notifications))
              (footer))))))
 
 (define-dynamic-page company/update ("admin/company/update")
@@ -445,7 +444,7 @@
                                                                         pobox
                                                                         zipcode))))
                  (:div :id "controls" :class "controls grid_3"
-                       (company-notifications title tof tin city pobox zipcode))
+                       (company-notifications))
                  (footer))))
         (see-other (error-page)))))
 

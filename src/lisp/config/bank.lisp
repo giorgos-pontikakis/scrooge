@@ -34,9 +34,9 @@
         (t nil)))
 
 (defun chk-bank-title (title)
-  (if (bank-title-exists-p title)
-      nil
-      :bank-title-unknown))
+  (cond ((eql :null title) :bank-title-null)
+        ((not (bank-title-exists-p title)) :bank-title-unknown)
+        (t nil)))
 
 
 
@@ -170,10 +170,9 @@
 ;;; Notifications
 ;;; ------------------------------------------------------------
 
-(defun bank-notifications (&rest params)
+(defun bank-notifications ()
   (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
-                           :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))
-                 params))
+                           :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
 
 
 
@@ -232,7 +231,7 @@
                (config-navbar 'bank)
                (:div :id "controls" :class "controls grid_3"
                      (filters (bank) (val filter))
-                     (bank-notifications title))
+                     (bank-notifications))
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία τράπεζας")
                      (bank-menu nil
@@ -264,7 +263,7 @@
                    (config-navbar 'bank)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (bank) (val filter))
-                         (bank-notifications title))
+                         (bank-notifications))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία τράπεζας")
                          (bank-menu (val id)
