@@ -132,10 +132,10 @@
 (defmethod insert-item ((table bank-table) &key record index)
   (let* ((rows (rows table))
          (new-row (make-instance 'bank-row
-                                  :key (getf record :id)
-                                  :record record
-                                  :collection table
-                                  :index index)))
+                                 :key (getf record :id)
+                                 :record record
+                                 :collection table
+                                 :index index)))
     (setf (rows table)
           (ninsert-list index new-row rows))))
 
@@ -270,7 +270,7 @@
                                     (val filter)
                                     '(create update))
                          (with-form (actions/config/bank/update :id (val* id)
-                                                         :filter (val* filter))
+                                                                :filter (val* filter))
                            (display bank-table
                                     :selected-id (val id)
                                     :selected-data (list :title (val* title)))))

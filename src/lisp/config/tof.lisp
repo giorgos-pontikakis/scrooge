@@ -238,8 +238,7 @@
                      (tof-menu nil
                                (val filter)
                                '(create update delete))
-                     (with-form (actions/config/tof/create :title (val* title)
-                                                           :filter (val* filter))
+                     (with-form (actions/config/tof/create :filter (val* filter))
                        (display tof-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))

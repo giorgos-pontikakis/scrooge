@@ -288,7 +288,6 @@
                                         flag
                                         '(create update delete))
                           (with-form (actions/config/account/create :parent-id (val parent-id)
-                                                                    :title (val* title)
                                                                     :debitp (val debitp))
                             (display account-tree
                                      :selected-id (val* parent-id)
@@ -326,8 +325,7 @@
                           (account-menu (val id)
                                         flag
                                         '(create update delete))
-                          (with-form (actions/config/account/update :id (val id)
-                                                                    :title (val* title))
+                          (with-form (actions/config/account/update :id (val id))
                             (display account-tree
                                      :selected-id (val* id)
                                      :selected-data (list :title (val* title))))))))))
