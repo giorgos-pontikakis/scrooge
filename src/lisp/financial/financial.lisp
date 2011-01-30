@@ -3,11 +3,12 @@
 
 ;;; UI elements
 
-(defun financial-navbar (&optional active-page-name)
+(defun financial-navbar (active-page-name)
   (display (make-instance 'horizontal-navbar
                           :style "section-navbar hnavbar grid_12"
                           :spec '((transaction "Συναλλαγές")
-                                  ((cheque "receivable") "Επιταγές")))
+                                  ((cheque "receivable") "Επιταγές")
+                                  (account/overview "Λογαριασμοί")))
            :active-page-name active-page-name))
 
 
