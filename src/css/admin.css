@@ -1,0 +1,46 @@
+/* ---------------------------------------------------------------------- */
+/* company-data-form */
+/* ---------------------------------------------------------------------- */
+
+#company-title {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#company-title input {
+    width: 460px
+}
+
+#company-tax-data input {
+    width: 246px;
+}
+
+#company-address-data input {
+    width: 326px;
+}
+
+.footer {
+    margin-top: 40px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* project data form */
+/* ---------------------------------------------------------------------- */
+
+.project-data-form-title {
+    margin: 20px 0px 0px 0px;
+}
+
+.project-data-form-title input {
+    width: 408px;
+}
+
+.project-data-form-subtitle {
+    margin: 0px 0px 20px 0px;
+}
+
+.project-data-form-subtitle input {
+    width: 408px;
+}

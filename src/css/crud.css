@@ -1,0 +1,103 @@
+/* ---------------------------------------------------------------------- */
+/* crud-tree */
+/* ---------------------------------------------------------------------- */
+
+.crud-tree {
+    clear: both;
+    padding-top: 10px;
+    line-height: 26px;
+}
+
+.crud-tree a img {
+    vertical-align: middle;
+    padding-right: 2px;
+}
+
+.crud-tree div {
+    display: inline;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* crud-table */
+/* ---------------------------------------------------------------------- */
+
+.crud-table {
+    background-color: #F5F5F5;
+    padding: 10px;
+    width: 100%;
+    clear: both;
+}
+
+.crud-table tr  {
+    border-top: solid 1px #bbb;
+    border-bottom: solid 1px #bbb;
+}
+
+.crud-table tr.selected, .crud-table ul.selected {
+    background-color: #FFFFDD;
+}
+
+.crud-table td, .crud-table th  {
+    /* line-height: 31px; */
+    line-height: 20px;
+    text-align: left;
+    padding: 6px 0px;
+}
+
+.crud-table td input {
+    margin: -2px 0px -2px 0px;
+}
+
+
+
+
+/* ---------------------------------------------------------------------- */
+/* crud-table paginator */
+/* ---------------------------------------------------------------------- */
+
+.paginator {
+    padding: 15px 0px 5px 0px;
+    text-align:right;
+    font-size: 11px;
+}
+
+.paginator img {
+    margin-left: 10px;
+    vertical-align: bottom;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* crud items */
+/* ---------------------------------------------------------------------- */
+
+.selector, .pushbutton {
+    width: 30px;
+    padding: 0px;
+    text-align: center;
+}
+
+.selector a img, .pushbutton a img {
+    vertical-align: middle;
+}
+
+.selector div, .pushbutton div {
+    text-align: center;
+}
+
+.pushbutton button {
+    padding: 0px;
+    background-color: transparent;
+    border: none;
+}
+
+.pushbutton button:hover {
+    cursor: pointer;
+}
+
+.pushbutton button img {
+    vertical-align: middle;
+}

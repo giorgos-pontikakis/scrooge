@@ -1,0 +1,107 @@
+/* ---------------------------------------------------------------------- */
+/* navbars */
+/* ---------------------------------------------------------------------- */
+
+.hnavbar ul li {
+    list-style: none;
+    float: left;
+}
+
+.hnavbar ul li a {
+    display: block;
+}
+
+#primary-navbar, #logout {
+    position: relative;
+    top: 3px;
+}
+
+#primary-navbar ul li, #logout ul li {
+    margin-right: 20px;
+}
+
+#primary-navbar a, #logout a {
+    text-decoration: underline;
+}
+
+#primary-navbar p, #logout p {
+    color: #000;
+    font-weight: bold;
+}
+
+.section-navbar {
+    background-color: #5E2510;
+}
+
+.section-navbar ul li {
+    background-color: #5E2510;
+    border-right: 1px solid #aaa;
+}
+
+.section-navbar ul li a {
+    padding: 8px 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.section-navbar ul li p {
+    padding: 8px 10px;
+    color: white;
+    font-weight: bold;
+    background-color: #843418;
+}
+
+.section-navbar ul li a:hover {
+    background-color: #843418;
+    color: white;
+}
+
+.section-navbar {
+    margin-top: 10px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* menus */
+/* ---------------------------------------------------------------------- */
+
+.hmenu li {
+    list-style: none;
+    display: inline;
+    line-height: 26px;
+}
+
+.hmenu li a {
+    line-height: 26px;
+    color: #fff;
+    padding: 5px 8px;
+}
+
+.hmenu li a:hover {
+    background-color: #4F5C4E;
+}
+
+.hmenu li a img {
+    padding: 0px 4px;
+    vertical-align: text-bottom;
+}
+
+
+.actions {
+    background-color: #7B8D78;
+}
+
+.actions ul {
+    margin-left: 10px;
+}
+
+.actions a {
+    padding: 0px 19px;
+    line-height: 26px;
+    color: #ffffff;
+}
+
+.actions a:hover {
+    text-decoration: underline;
+}
