@@ -386,6 +386,7 @@
       (with-html
         (:div :class (style cell)
              (textbox (name cell)
+                      :id (string-downcase (name cell))
                       :readonlyp readonlyp
                       :value (value cell))))))
 
@@ -451,12 +452,13 @@
     (:div :id (id navbar) :class (style navbar)
           (:ul
            (iter (for (page-id label) in (spec navbar))
-                 (htm (:li (if (eql page-id active-page-name)
-                               (htm (:p (str label)))
-                               (htm (:a :href (if (fboundp page-id)
-                                                  (funcall page-id)
-                                                  (error-page))
-                                        (str label)))))))))))
+                 (let ((page-name (first (ensure-list page-id))))
+                   (htm (:li (if (eql page-name active-page-name)
+                                 (htm (:p (str label)))
+                                 (htm (:a :href (if (fboundp page-name)
+                                                    (apply page-name (rest (ensure-list page-id)))
+                                                    (error-page))
+                                          (str label))))))))))))
 
 (defclass horizontal-navbar (navbar)
   ((active-style   :initform "active")

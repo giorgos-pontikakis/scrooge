@@ -41,7 +41,8 @@
 ;;; Actions
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page actions/project/create ("actions/project/create" :request-type :post)
+(define-dynamic-page actions/admin/project/create ("actions/admin/project/create"
+                                                   :request-type :post)
     ((filter string)
      (company     string chk-company-title t)
      (description string chk-new-project-description)
@@ -80,7 +81,8 @@
                                    :end-date (raw end-date)
                                    :status (raw status))))))
 
-(define-dynamic-page actions/project/update ("actions/project/update" :request-type :post)
+(define-dynamic-page actions/admin/project/update ("actions/admin/project/update"
+                                                   :request-type :post)
     ((filter      string)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
@@ -121,7 +123,8 @@
                                    :end-date (raw end-date)
                                    :status (raw status))))))
 
-(define-dynamic-page actions/project/delete ("actions/project/delete" :request-type :post)
+(define-dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
+                                                   :request-type :post)
     ((id     integer chk-project-id)
      (filter string))
   (with-auth ("configuration")
@@ -142,17 +145,17 @@
   (display (make-instance 'actions-menu
                           :id "project-actions"
                           :style "hnavbar actions grid_9 alpha"
-                          :spec (company-actions-spec (project :id id
-                                                               :filter filter)
-                                                      (project/details :id id
-                                                                       :filter filter)
-                                                      (project/create :filter filter)
-                                                      (project/update :id id
-                                                                      :filter filter)
-                                                      (project/details :id id
-                                                                       :filter filter)
-                                                      (project/delete :id id
-                                                                      :filter filter)))
+                          :spec (crud+details+archive-actions-spec (project :id id
+                                                                            :filter filter)
+                                                                   (project/details :id id
+                                                                                    :filter filter)
+                                                                   (project/create :filter filter)
+                                                                   (project/update :id id
+                                                                                   :filter filter)
+                                                                   (project/details :id id
+                                                                                    :filter filter)
+                                                                   (project/delete :id id
+                                                                                   :filter filter)))
            :disabled-items disabled-items))
 
 
@@ -299,7 +302,7 @@
                                   :selected-id (val* id)
                                   :start (val* start)))
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'project (val filter)))
+                         (filters (project) (val filter)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -329,7 +332,7 @@
                    (project-menu nil
                                  (val filter)
                                  '(details create update archive delete))
-                   (with-form (actions/project/create)
+                   (with-form (actions/admin/project/create)
                      (project-data-form 'create
                                         :filter (val filter)
                                         :data (parameters->plist company
@@ -382,7 +385,7 @@
                        (project-menu (val id)
                                      (val filter)
                                      '(create update))
-                       (with-form (actions/project/update :id (val id))
+                       (with-form (actions/admin/project/update :id (val id))
                          (project-data-form 'update
                                             :id (val id)
                                             :filter (val filter)
@@ -431,7 +434,7 @@
                        (project-menu (val id)
                                      (val filter)
                                      '(details create))
-                       (with-form (actions/project/update :id (val id))
+                       (with-form (actions/admin/project/update :id (val id))
                          (project-data-form 'details
                                             :filter (val filter)
                                             :id (val id)
@@ -463,12 +466,12 @@
                          (project-menu (val id)
                                        (val filter)
                                        '(catalogue create delete))
-                         (with-form (actions/project/delete :id (val id)
-                                                            :filter (val* filter))
+                         (with-form (actions/admin/project/delete :id (val id)
+                                                                  :filter (val* filter))
                            (display project-table
                                     :selected-id (val id))))
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'project (val filter)))
+                         (filters (project) (val filter)))
                    (footer)))))
         (see-other (error-page)))))
 

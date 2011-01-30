@@ -61,6 +61,9 @@
   (js-autocomplete)
   (css-autocomplete))
 
+;;; So far, financial-headers is an alias for admin-headers
+(setf (symbol-function 'financial-headers) #'admin-headers)
+
 (defun clear ()
   (with-html
     (:div :class "clear")))
@@ -131,25 +134,25 @@
 ;;; CRUD actions menu
 ;;; ------------------------------------------------------------
 
-(defun standard-actions-spec (catalogue create update delete)
+(defun crud-actions-spec (catalogue create update delete)
   `((catalogue ,catalogue "Κατάλογος")
     (create    ,create    "Δημιουργία")
     (update    ,update    "Επεξεργασία")
     (delete    ,delete    "Διαγραφή")))
 
-(defun company-actions-spec (catalogue details create update archive delete)
+(defun crud+details-actions-spec (catalogue details create update delete)
+  `((catalogue ,catalogue "Κατάλογος")
+    (details   ,details   "Λεπτομέρειες")
+    (create    ,create    "Δημιουργία")
+    (update    ,update    "Επεξεργασία")
+    (delete    ,delete    "Διαγραφή")))
+
+(defun crud+details+archive-actions-spec (catalogue details create update archive delete)
   `((catalogue ,catalogue "Κατάλογος")
     (details   ,details   "Λεπτομέρειες")
     (create    ,create    "Δημιουργία")
     (update    ,update    "Επεξεργασία")
     (archive   ,archive   "Αρχειοθέτηση")
-    (delete    ,delete    "Διαγραφή")))
-
-(defun tx-actions-spec (catalogue details create update delete)
-  `((catalogue ,catalogue "Κατάλογος")
-    (details   ,details   "Λεπτομέρειες")
-    (create    ,create    "Δημιουργία")
-    (update    ,update    "Επεξεργασία")
     (delete    ,delete    "Διαγραφή")))
 
 
@@ -158,15 +161,13 @@
 ;;; Filters
 ;;; ------------------------------------------------------------
 
-(defun filters (submit-page filter)
+(defun filters (submit-url filter)
   (with-html
     (:div :id "filters"
           (:p :class "title" "Φίλτρα")
-          (display (make-instance 'form
-                                  :submit-page submit-page
-                                  :body (lambda ()
-                                          (with-html
-                                            (:p :class "search"
-                                                (textbox 'filter :value filter)
-                                                (submit (html ()
-                                                          (img "magnifier.png")))))))))))
+          (:form :method :get
+                 :action submit-url
+                 (:p :class "search"
+                     (textbox 'filter :value filter)
+                     (submit (html ()
+                               (img "magnifier.png"))))))))

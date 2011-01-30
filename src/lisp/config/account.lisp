@@ -67,7 +67,8 @@
 ;;; Accounts - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/account/create ("actions/account/create" :request-type :post)
+(define-dynamic-page actions/config/account/create ("actions/config/account/create"
+                                                    :request-type :post)
     ((parent-id integer chk-parent-acc-id)
      (title     string  chk-new-acc-title t)
      (debitp    boolean (chk-debitp debitp parent-id)))
@@ -88,7 +89,8 @@
             ;; tampered URL - abort
             (see-other (notfound))))))
 
-(define-dynamic-page actions/account/update ("actions/account/update" :request-type :post)
+(define-dynamic-page actions/config/account/update ("actions/config/account/update"
+                                                    :request-type :post)
     ((id    integer chk-acc-id t)
      (title string (chk-new-acc-title title id) t))
   (with-auth ("configuration")
@@ -105,7 +107,8 @@
             ;; tampered URL - abort
             (see-other (notfound))))))
 
-(define-dynamic-page actions/account/delete ("actions/account/delete" :request-type :post)
+(define-dynamic-page actions/config/account/delete ("actions/config/account/delete"
+                                                    :request-type :post)
     ((id integer chk-acc-id/ref t))
   (with-auth ("configuration")
     (no-cache)
@@ -126,14 +129,14 @@
     (display (make-instance 'actions-menu
                             :id (conc prefix "-account-actions")
                             :style "hnavbar actions grid_6 alpha"
-                            :spec (standard-actions-spec (account :id id)
-                                                         (account/create :debitp debitp
-                                                                         :parent-id id)
-                                                         (account/update :id id)
-                                                         (if (or (null id)
-                                                                 (acc-referenced-p id))
-                                                             nil
-                                                             (account/delete :id id))))
+                            :spec (crud-actions-spec (account :id id)
+                                                     (account/create :debitp debitp
+                                                                     :parent-id id)
+                                                     (account/update :id id)
+                                                     (if (or (null id)
+                                                             (acc-referenced-p id))
+                                                         nil
+                                                         (account/delete :id id))))
              :disabled-items disabled-items)))
 
 
@@ -157,12 +160,12 @@
       (labels ((make-nodes (parent-key)
                  (mapcar (lambda (rec)
                            (let ((key (getf rec :id)))
-                            (make-instance 'account-node
-                                           :collection tree
-                                           :key key
-                                           :record rec
-                                           :parent-key parent-key
-                                           :children (make-nodes key))))
+                             (make-instance 'account-node
+                                            :collection tree
+                                            :key key
+                                            :record rec
+                                            :parent-key parent-key
+                                            :children (make-nodes key))))
                          (remove-if-not (lambda (rec)
                                           (equal parent-key (getf rec :parent-id)))
                                         records))))
@@ -254,7 +257,7 @@
                           (display account-tree :selected-id (val* id))))))))
         (see-other (notfound)))))
 
-(define-dynamic-page account/create ("account/create")
+(define-dynamic-page account/create ("config/account/create")
     ((parent-id integer chk-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-new-acc-title))
@@ -284,9 +287,9 @@
                           (account-menu (val parent-id)
                                         flag
                                         '(create update delete))
-                          (with-form (actions/account/create :parent-id (val parent-id)
-                                                             :title (val* title)
-                                                             :debitp (val debitp))
+                          (with-form (actions/config/account/create :parent-id (val parent-id)
+                                                                    :title (val* title)
+                                                                    :debitp (val debitp))
                             (display account-tree
                                      :selected-id (val* parent-id)
                                      :selected-data (list :title (val* title))))))))))
@@ -294,7 +297,7 @@
 
 
 
-(define-dynamic-page account/update ("account/update")
+(define-dynamic-page account/update ("config/account/update")
     ((id    integer chk-acc-id t)
      (title string  (chk-new-acc-title title id)))
   (with-auth ("configuration")
@@ -323,8 +326,8 @@
                           (account-menu (val id)
                                         flag
                                         '(create update delete))
-                          (with-form (actions/account/update :id (val id)
-                                                             :title (val* title))
+                          (with-form (actions/config/account/update :id (val id)
+                                                                    :title (val* title))
                             (display account-tree
                                      :selected-id (val* id)
                                      :selected-data (list :title (val* title))))))))))
@@ -332,7 +335,7 @@
 
 
 
-(define-dynamic-page account/delete ("account/delete")
+(define-dynamic-page account/delete ("config/account/delete")
     ((id integer chk-acc-id/ref t))
   (with-auth ("configuration")
     (no-cache)
@@ -362,6 +365,6 @@
                                         (if flag
                                             '()
                                             '(create update delete)))
-                          (with-form (actions/account/delete :id (val id))
+                          (with-form (actions/config/account/delete :id (val id))
                             (display account-tree :selected-id (val* id)))))))))
         (see-other (notfound)))))

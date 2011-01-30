@@ -26,3 +26,4 @@
   (setf *catch-errors-p* nil))
 
 (defparameter *default-project-status* "quoted")
+(defparameter *default-cheque-status* "pending")

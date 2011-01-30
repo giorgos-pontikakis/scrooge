@@ -27,7 +27,7 @@ h3 {
 
 input {
     border: 1px solid #ddd;
-    padding: 5px 5px 3px 5px;
+    padding: 3px 5px 3px 5px;
     font-size: 12px;
     font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
 }
@@ -283,7 +283,6 @@ select[disabled] {
 .crud-table tr  {
     border-top: solid 1px #bbb;
     border-bottom: solid 1px #bbb;
-    line-height: 32px;
 }
 
 .crud-table tr.selected, .crud-table ul.selected {
@@ -291,12 +290,38 @@ select[disabled] {
 }
 
 .crud-table td, .crud-table th  {
-    line-height: 31px;
+    /* line-height: 31px; */
+    line-height: 20px;
     text-align: left;
+    padding: 6px 0px;
+}
+
+.crud-table td input {
+    margin: -2px 0px -2px 0px;
 }
 
 .crud-table input {
     width: 590px;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* cheque-table */
+/* ---------------------------------------------------------------------- */
+#cheque-table td:nth-child(2) input {
+    width: 150px;
+}
+
+#cheque-table td:nth-child(3) input {
+    width: 100px;
+}
+
+#cheque-table td:nth-child(4) input {
+    width: 200px;
+}
+
+#cheque-table td:nth-child(5) input {
+    width: 50px;
 }
 
 

@@ -8,7 +8,7 @@
                           :id "config-menu"
                           :style "hnavbar grid_12"
                           :spec '((transaction "Συναλλαγές")
-                                  (cheque "Επιταγές")))
+                                  ((cheque "receivable") "Επιταγές")))
            :active-page-name active-page-name))
 
 

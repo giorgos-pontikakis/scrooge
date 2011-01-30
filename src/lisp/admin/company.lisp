@@ -76,7 +76,8 @@
 ;;; Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/company/create ("actions/company/create" :request-type :post)
+(define-dynamic-page actions/admin/company/create ("actions/admin/company/create"
+                                                   :request-type :post)
     ((filter     string)
      (title      string  chk-new-company-title)
      (occupation string)
@@ -114,7 +115,8 @@
                                    :zipcode (raw zipcode)
                                    :pobox (raw pobox))))))
 
-(define-dynamic-page actions/company/update ("actions/company/update" :request-type :post)
+(define-dynamic-page actions/admin/company/update ("actions/admin/company/update"
+                                                   :request-type :post)
     ((filter     string)
      (id         integer)
      (title      string  (chk-new-company-title title id))
@@ -153,7 +155,8 @@
                                    :zipcode (raw zipcode)
                                    :pobox (raw pobox))))))
 
-(define-dynamic-page actions/company/delete ("actions/company/delete" :request-type :post)
+(define-dynamic-page actions/admin/company/delete ("actions/admin/company/delete"
+                                                   :request-type :post)
     ((id     integer chk-company-id)
      (filter string))
   (with-auth ("configuration")
@@ -171,23 +174,24 @@
 ;;; ------------------------------------------------------------
 
 (defun company-menu (id filter &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "company-actions"
-                          :style "hnavbar actions grid_9 alpha"
-                          :spec (company-actions-spec (company :id id
-                                                               :filter filter)
-                                                      (company/details :id id
-                                                                       :filter filter)
-                                                      (company/create :filter filter)
-                                                      (company/update :id id
-                                                                      :filter filter)
-                                                      (company/details :id id
-                                                                       :filter filter)
-                                                      (if (chk-company-id/ref id)
-                                                          nil
-                                                          (company/delete :id id
-                                                                          :filter filter))))
-           :disabled-items disabled-items))
+  (display
+   (make-instance 'actions-menu
+                  :id "company-actions"
+                  :style "hnavbar actions grid_9 alpha"
+                  :spec (crud+details+archive-actions-spec (company :id id
+                                                                    :filter filter)
+                                                           (company/details :id id
+                                                                            :filter filter)
+                                                           (company/create :filter filter)
+                                                           (company/update :id id
+                                                                           :filter filter)
+                                                           (company/details :id id
+                                                                            :filter filter)
+                                                           (if (chk-company-id/ref id)
+                                                               nil
+                                                               (company/delete :id id
+                                                                               :filter filter))))
+   :disabled-items disabled-items))
 
 
 
@@ -340,7 +344,7 @@
                                   :selected-id (val* id)
                                   :start (val* start)))
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'company (val filter)))
+                         (filters (company) (val filter)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -369,7 +373,7 @@
                    (company-menu nil
                                  (val filter)
                                  '(details create update archive delete))
-                   (with-form (actions/company/create)
+                   (with-form (actions/admin/company/create)
                      (company-data-form 'create
                                         :filter (val filter)
                                         :data (parameters->plist title
@@ -419,7 +423,7 @@
                        (company-menu (val id)
                                      (val filter)
                                      '(create update))
-                       (with-form (actions/company/update :id (val id))
+                       (with-form (actions/admin/company/update :id (val id))
                          (company-data-form 'update
                                             :id (val id)
                                             :filter (val filter)
@@ -464,7 +468,7 @@
                        (company-menu (val id)
                                      (val filter)
                                      '(details create))
-                       (with-form (actions/company/update :id (val id))
+                       (with-form (actions/admin/company/update :id (val id))
                          (company-data-form 'details
                                             :filter (val filter)
                                             :id (val id)
@@ -496,12 +500,12 @@
                          (company-menu (val id)
                                        (val filter)
                                        '(catalogue create delete))
-                         (with-form (actions/company/delete :id (val id)
-                                                            :filter (val* filter))
+                         (with-form (actions/admin/company/delete :id (val id)
+                                                                  :filter (val* filter))
                            (display company-table
                                     :selected-id (val id))))
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'company (val filter)))
+                         (filters (company) (val filter)))
                    (footer)))))
         (see-other (error-page)))))
 

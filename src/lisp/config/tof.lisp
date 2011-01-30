@@ -45,7 +45,7 @@
 ;;; TOF - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/tof/create ("actions/tof/create" :request-type :post)
+(define-dynamic-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
     ((title  string chk-new-tof-title t)
      (filter string))
   (with-auth ("configuration")
@@ -56,7 +56,7 @@
           (see-other (tof :id (tof-id (val title)))))
         (see-other (tof/create :title (raw title) :filter (raw filter))))))
 
-(define-dynamic-page actions/tof/update ("actions/tof/update" :request-type :post)
+(define-dynamic-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
     ((id     integer chk-tof-id t)
      (title  string (chk-new-tof-title title id) t)
      (filter string))
@@ -70,7 +70,7 @@
           (see-other (tof :id (val id) :filter (val filter))))
         (see-other (tof/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
-(define-dynamic-page actions/tof/delete ("actions/tof/delete" :request-type :post)
+(define-dynamic-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
     ((id     integer chk-tof-id/ref t)
      (filter string))
   (with-auth ("configuration")
@@ -90,16 +90,16 @@
   (display (make-instance 'actions-menu
                           :id "tof-actions"
                           :style "hnavbar actions grid_9 alpha"
-                          :spec (standard-actions-spec (tof :id id
-                                                            :filter filter)
-                                                       (tof/create :filter filter)
-                                                       (tof/update :id id
-                                                                   :filter filter)
-                                                       (if (or (null id)
-                                                               (tof-referenced-p id))
-                                                           nil
-                                                           (tof/delete :id id
-                                                                       :filter filter))))
+                          :spec (crud-actions-spec (tof :id id
+                                                        :filter filter)
+                                                   (tof/create :filter filter)
+                                                   (tof/update :id id
+                                                               :filter filter)
+                                                   (if (or (null id)
+                                                           (tof-referenced-p id))
+                                                       nil
+                                                       (tof/delete :id id
+                                                                   :filter filter))))
            :disabled-items disabled-items))
 
 
@@ -200,7 +200,7 @@
                    (header 'config)
                    (config-menu 'tof)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'tof (val filter)))
+                         (filters (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
                          (tof-menu (val id)
@@ -231,15 +231,15 @@
                (header 'config)
                (config-menu 'tof)
                (:div :id "controls" :class "controls grid_3"
-                     (filters 'tof (val filter))
+                     (filters (tof) (val filter))
                      (tof-notifications title))
                (:div :id "tof-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
                      (tof-menu nil
                                (val filter)
                                '(create update delete))
-                     (with-form (actions/tof/create :title (val* title)
-                                                    :filter (val* filter))
+                     (with-form (actions/config/tof/create :title (val* title)
+                                                           :filter (val* filter))
                        (display tof-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
@@ -264,15 +264,15 @@
                    (header 'config)
                    (config-menu 'tof)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'tof (val filter))
+                         (filters (tof) (val filter))
                          (tof-notifications title))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
                          (tof-menu (val id)
                                    (val filter)
                                    '(create update))
-                         (with-form (actions/tof/update :id (val* id)
-                                                        :filter (val* filter))
+                         (with-form (actions/config/tof/update :id (val* id)
+                                                               :filter (val* filter))
                            (display tof-table
                                     :selected-id (val id)
                                     :selected-data (list :title (val* title)))))
@@ -297,14 +297,14 @@
                    (header 'config)
                    (config-menu 'tof)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'tof (val filter)))
+                         (filters (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
                          (tof-menu (val id)
                                    (val filter)
                                    '(create delete))
-                         (with-form (actions/tof/delete :id (val id)
-                                                        :filter (val* filter))
+                         (with-form (actions/config/tof/delete :id (val id)
+                                                               :filter (val* filter))
                            (display tof-table
                                     :selected-id (val id))))
                    (footer)))))

@@ -29,7 +29,8 @@
 ;;; Actions
 ;;; --------------------------------------------------------------------------------
 
-(define-dynamic-page actions/transaction/create ("actions/transaction/create" :request-type :post)
+(define-dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
+                                                           :request-type :post)
     ((filter         string)
      (date           date)
      (description    string)
@@ -60,7 +61,8 @@
                                        :debit-account (raw debit-account)
                                        :credit-account (raw credit-account))))))
 
-(define-dynamic-page actions/transaction/update ("actions/transaction/update" :request-type :post)
+(define-dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
+                                                           :request-type :post)
     ((filter         string)
      (id             integer chk-tx-id t)
      (date           date)
@@ -94,7 +96,8 @@
                                        :debit-account (raw debit-account)
                                        :credit-account (raw credit-account))))))
 
-(define-dynamic-page actions/transaction/delete ("actions/transaction/delete" :request-type :post)
+(define-dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
+                                                           :request-type :post)
     ((id     integer chk-tx-id t)
      (filter string))
   (if (validp id)
@@ -113,15 +116,15 @@
   (display (make-instance 'actions-menu
                           :id "transaction-actions"
                           :style "hnavbar actions grid_9 alpha"
-                          :spec (tx-actions-spec (transaction :id id
-                                                              :filter filter)
-                                                 (transaction/details :id id
-                                                                      :filter filter)
-                                                 (transaction/create :filter filter)
-                                                 (transaction/update :id id
-                                                                     :filter filter)
-                                                 (transaction/delete :id id
-                                                                     :filter filter)))
+                          :spec (crud+details-actions-spec (transaction :id id
+                                                                        :filter filter)
+                                                           (transaction/details :id id
+                                                                                :filter filter)
+                                                           (transaction/create :filter filter)
+                                                           (transaction/update :id id
+                                                                               :filter filter)
+                                                           (transaction/delete :id id
+                                                                               :filter filter)))
            :disabled-items disabled-items))
 
 
@@ -246,7 +249,7 @@
 ;;; Pages
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page transaction ("transaction")
+(define-dynamic-page transaction ("financial/transaction")
     ((id     integer chk-tx-id)
      (filter string)
      (start  integer))
@@ -259,13 +262,13 @@
           (with-document ()
             (:head
              (:title "Συναλλαγές")
-             (admin-headers))
+             (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-menu 'transaction)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'transaction (val filter)))
+                         (filters (transaction) (val filter)))
                    (:div :id "transaction-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος συναλλαγών")
                          (transaction-menu (val id)
@@ -279,7 +282,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page transaction/create ("transaction/create")
+(define-dynamic-page transaction/create ("financial/transaction/create")
     ((filter         string)
      (date           date)
      (description    string)
@@ -292,17 +295,17 @@
     (with-document ()
       (:head
        (:title "Δημιουργία συναλλαγής")
-       (admin-headers))
+       (financial-headers))
       (:body
        (:div :id "container" :class "container_12"
              (header 'financial)
              (financial-menu 'transaction)
-             (:div :id "tx-window" :class "window grid_9"
+             (:div :class "window grid_9"
                    (:div :class "title" "Δημιουργία συναλλαγής")
                    (transaction-menu nil
                                      (val filter)
                                      '(details create update delete))
-                   (with-form (actions/transaction/create)
+                   (with-form (actions/financial/transaction/create)
                      (transaction-data-form 'create
                                             :filter (val filter)
                                             :data (parameters->plist date
@@ -318,11 +321,11 @@
                                                                         credit-account
                                                                         amount))))
              (:div :id "controls" :class "controls grid_3"
-                   (filters 'transaction (val filter))
+                   (filters (transaction) (val filter))
                    (transaction-notifications date company amount debit-account credit-account))
              (footer))))))
 
-(define-dynamic-page transaction/update ("transaction/update")
+(define-dynamic-page transaction/update ("financial/transaction/update")
     ((filter         string)
      (id             integer chk-tx-id t)
      (date           date)
@@ -337,18 +340,18 @@
         (with-document ()
           (:head
            (:title "Συναλλαγές > Επεξεργασία")
-           (admin-headers))
+           (financial-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
                  (financial-menu 'transaction)
-                 (:div :id "tx-window" :class "window grid_9"
+                 (:div :class "window grid_9"
                        (:div :class "title" "Επεξεργασία συναλλαγής")
                        (transaction-menu (val id)
                                          (val filter)
                                          '(create update))
-                       (with-form (actions/transaction/update :id (val* id)
-                                                              :filter (val* filter))
+                       (with-form (actions/financial/transaction/update :id (val* id)
+                                                                        :filter (val* filter))
                          (transaction-data-form 'update
                                                 :id (val id)
                                                 :filter (val filter)
@@ -370,7 +373,7 @@
                  (footer))))
         (see-other (notfound)))))
 
-(define-dynamic-page transaction/details ("transaction/details")
+(define-dynamic-page transaction/details ("financial/transaction/details")
     ((filter     string)
      (id         integer chk-tx-id t))
   (with-auth ("configuration")
@@ -379,27 +382,26 @@
         (with-document ()
           (:head
            (:title "Λεπτομέρειες συναλλαγής")
-           (admin-headers))
+           (financial-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
                  (financial-menu 'transaction)
-                 (:div :id "tx-window" :class "window grid_9"
+                 (:div :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες συναλλαγής")
                        (transaction-menu (val id)
                                          (val filter)
                                          '(details create))
-                       (with-form (actions/transaction/update :id (val id))
-                         (transaction-data-form 'details
-                                                :filter (val filter)
-                                                :id (val id)
-                                                :data (get-tx-plist (val id)))))
+                       (transaction-data-form 'details
+                                              :filter (val filter)
+                                              :id (val id)
+                                              :data (get-tx-plist (val id))))
                  (:div :id "controls" :class "controls grid_3"
                        "")
                  (error-page))))
         (see-other (notfound)))))
 
-(define-dynamic-page transaction/delete ("transaction/delete")
+(define-dynamic-page transaction/delete ("financial/transaction/delete")
     ((id     integer chk-tx-id t)
      (filter string))
   (with-auth ("configuration")
@@ -411,20 +413,20 @@
           (with-document ()
             (:head
              (:title "Διαγραφή συναλλαγής")
-             (admin-headers))
+             (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-menu 'transaction)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'transaction (val filter)))
-                   (:div :id "tx-window" :class "window grid_9"
+                         (filters (transaction) (val filter)))
+                   (:div :class "window grid_9"
                          (:div :class "title" "Διαγραφή συναλλαγής")
                          (transaction-menu (val id)
                                            (val filter)
                                            '(create delete))
-                         (with-form (actions/transaction/delete :id (val id)
-                                                                :filter (val* filter))
+                         (with-form (actions/financial/transaction/delete :id (val id)
+                                                                          :filter (val* filter))
                            (display tx-table
                                     :selected-id (val id))))
                    (footer)))))

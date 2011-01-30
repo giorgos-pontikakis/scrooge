@@ -44,7 +44,7 @@
 ;;; Bank - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/bank/create ("actions/bank/create" :request-type :post)
+(define-dynamic-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
     ((title  string chk-new-bank-title t)
      (filter string))
   (with-auth ("configuration")
@@ -55,7 +55,7 @@
           (see-other (bank :id (bank-id (val title)))))
         (see-other (bank/create :title (raw title) :filter (raw filter))))))
 
-(define-dynamic-page actions/bank/update ("actions/bank/update" :request-type :post)
+(define-dynamic-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
     ((id     integer chk-bank-id t)
      (title  string  (chk-new-bank-title title id) t)
      (filter string))
@@ -69,7 +69,7 @@
           (see-other (bank :id (val id) :filter (val filter))))
         (see-other (bank/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
-(define-dynamic-page actions/bank/delete ("actions/bank/delete" :request-type :post)
+(define-dynamic-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
     ((id     integer chk-bank-id/ref t)
      (filter string))
   (with-auth ("configuration")
@@ -90,16 +90,16 @@
   (display (make-instance 'actions-menu
                           :id "bank-actions"
                           :style "hnavbar actions grid_9 alpha"
-                          :spec (standard-actions-spec (bank :id id
-                                                             :filter filter)
-                                                       (bank/create :filter filter)
-                                                       (bank/update :id id
-                                                                    :filter filter)
-                                                       (if (or (null id)
-                                                               (chk-bank-id/ref id))
-                                                           nil
-                                                           (bank/delete :id id
-                                                                        :filter filter))))
+                          :spec (crud-actions-spec (bank :id id
+                                                         :filter filter)
+                                                   (bank/create :filter filter)
+                                                   (bank/update :id id
+                                                                :filter filter)
+                                                   (if (or (null id)
+                                                           (chk-bank-id/ref id))
+                                                       nil
+                                                       (bank/delete :id id
+                                                                    :filter filter))))
            :disabled-items disabled-items))
 
 
@@ -199,7 +199,7 @@
                    (header 'config)
                    (config-menu 'bank)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'bank (val filter)))
+                         (filters (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος τραπεζών")
                          (bank-menu (val id)
@@ -230,14 +230,14 @@
                (header 'config)
                (config-menu 'bank)
                (:div :id "controls" :class "controls grid_3"
-                     (filters 'bank (val filter))
+                     (filters (bank) (val filter))
                      (bank-notifications title))
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία τράπεζας")
                      (bank-menu nil
                                 (val filter)
                                 '(create update delete))
-                     (with-form (actions/bank/create :filter (val* filter))
+                     (with-form (actions/config/bank/create :filter (val* filter))
                        (display bank-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
@@ -262,14 +262,14 @@
                    (header 'config)
                    (config-menu 'bank)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'bank (val filter))
+                         (filters (bank) (val filter))
                          (bank-notifications title))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία τράπεζας")
                          (bank-menu (val id)
                                     (val filter)
                                     '(create update))
-                         (with-form (actions/bank/update :id (val* id)
+                         (with-form (actions/config/bank/update :id (val* id)
                                                          :filter (val* filter))
                            (display bank-table
                                     :selected-id (val id)
@@ -295,14 +295,14 @@
                    (header 'config)
                    (config-menu 'bank)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'bank (val filter)))
+                         (filters (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή τράπεζας")
                          (bank-menu (val id)
                                     (val filter)
                                     '(create delete))
-                         (with-form (actions/bank/delete :id (val id)
-                                                         :filter (val* filter))
+                         (with-form (actions/config/bank/delete :id (val id)
+                                                                :filter (val* filter))
                            (display bank-table
                                     :selected-id (val id))))
                    (footer)))))

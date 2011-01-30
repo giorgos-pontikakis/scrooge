@@ -10,8 +10,8 @@
   (with-db ()
     (and id
          nil #|(query (:select 'id
-                         :from 'company
-                         :where (:= 'city-id id)))|#)))
+         :from 'company
+         :where (:= 'city-id id)))|#)))
 
 (define-existence-predicate city-id-exists-p city id)
 (define-existence-predicate city-title-exists-p city title)
@@ -45,7 +45,7 @@
 ;;; City - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/city/create ("actions/city/create" :request-type :post)
+(define-dynamic-page actions/config/city/create ("actions/config/city/create" :request-type :post)
     ((title  string chk-new-city-title t)
      (filter string))
   (with-auth ("configuration")
@@ -56,7 +56,7 @@
           (see-other (city :id (city-id (val title)))))
         (see-other (city/create :title (raw title) :filter (raw filter))))))
 
-(define-dynamic-page actions/city/update ("actions/city/update" :request-type :post)
+(define-dynamic-page actions/config/city/update ("actions/config/city/update" :request-type :post)
     ((id     integer chk-city-id t)
      (title  string (chk-new-city-title title id) t)
      (filter string))
@@ -70,7 +70,7 @@
           (see-other (city :id (val id) :filter (val filter))))
         (see-other (city/update :id (raw id) :title (raw title) :filter (raw filter))))))
 
-(define-dynamic-page actions/city/delete ("actions/city/delete" :request-type :post)
+(define-dynamic-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
     ((id     integer chk-city-id/ref t)
      (filter string))
   (with-auth ("configuration")
@@ -91,16 +91,16 @@
   (display (make-instance 'actions-menu
                           :id "city-actions"
                           :style "hnavbar actions grid_9 alpha"
-                          :spec (standard-actions-spec (city :id id
-                                                             :filter filter)
-                                                       (city/create :filter filter)
-                                                       (city/update :id id
-                                                                    :filter filter)
-                                                       (if (or (null id)
-                                                               (city-referenced-p id))
-                                                           nil
-                                                           (city/delete :id id
-                                                                        :filter filter))))
+                          :spec (crud-actions-spec (city :id id
+                                                         :filter filter)
+                                                   (city/create :filter filter)
+                                                   (city/update :id id
+                                                                :filter filter)
+                                                   (if (or (null id)
+                                                           (city-referenced-p id))
+                                                       nil
+                                                       (city/delete :id id
+                                                                    :filter filter))))
            :disabled-items disabled-items))
 
 
@@ -133,10 +133,10 @@
 (defmethod insert-item ((table city-table) &key record index)
   (let* ((rows (rows table))
          (new-row (make-instance 'city-row
-                                  :key (getf record :id)
-                                  :record record
-                                  :collection table
-                                  :index index)))
+                                 :key (getf record :id)
+                                 :record record
+                                 :collection table
+                                 :index index)))
     (setf (rows table)
           (ninsert-list index new-row rows))))
 
@@ -200,7 +200,7 @@
                    (header 'config)
                    (config-menu 'city)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'city (val filter)))
+                         (filters (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος πόλεων")
                          (city-menu (val id)
@@ -231,14 +231,14 @@
                (header 'config)
                (config-menu 'city)
                (:div :id "controls" :class "controls grid_3"
-                     (filters 'city (val filter))
+                     (filters (city) (val filter))
                      (city-notifications title))
                (:div :id "city-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία πόλης")
                      (city-menu nil
                                 (val filter)
                                 '(create update delete))
-                     (with-form (actions/city/create :filter (val* filter))
+                     (with-form (actions/config/city/create :filter (val* filter))
                        (display city-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
@@ -263,15 +263,15 @@
                    (header 'config)
                    (config-menu 'city)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'city (val filter))
+                         (filters (city) (val filter))
                          (city-notifications title))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία πόλης")
                          (city-menu (val id)
                                     (val filter)
                                     '(create update))
-                         (with-form (actions/city/update :id (val* id)
-                                                         :filter (val* filter))
+                         (with-form (actions/config/city/update :id (val* id)
+                                                                :filter (val* filter))
                            (display city-table
                                     :selected-id (val id)
                                     :selected-data (list :title (val* title)))))
@@ -296,14 +296,14 @@
                    (header 'config)
                    (config-menu 'city)
                    (:div :id "controls" :class "controls grid_3"
-                         (filters 'city (val filter)))
+                         (filters (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή πόλης")
                          (city-menu (val id)
                                     (val filter)
                                     '(create delete))
-                         (with-form (actions/city/delete :id (val id)
-                                                         :filter (val* filter))
+                         (with-form (actions/config/city/delete :id (val id)
+                                                                :filter (val* filter))
                            (display city-table
                                     :selected-id (val id))))
                    (footer)))))

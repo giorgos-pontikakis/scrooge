@@ -27,4 +27,4 @@
                ;; financial
                (:file "financial/financial")
                (:file "financial/tx")
-               #|(:file "financial/cheque")|#))
+               (:file "financial/cheque")))
