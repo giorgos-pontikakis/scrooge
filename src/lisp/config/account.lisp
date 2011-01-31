@@ -149,7 +149,8 @@
 ;;; tree
 
 (defclass account-tree (crud-tree)
-  ())
+  ()
+  (:default-initargs :node-class 'account-node))
 
 (defmethod read-items ((tree account-tree))
   (with-db ()
@@ -160,7 +161,7 @@
       (labels ((make-nodes (parent-key)
                  (mapcar (lambda (rec)
                            (let ((key (getf rec :id)))
-                             (make-instance 'account-node
+                             (make-instance (node-class tree)
                                             :collection tree
                                             :key key
                                             :record rec
@@ -169,22 +170,12 @@
                          (remove-if-not (lambda (rec)
                                           (equal parent-key (getf rec :parent-id)))
                                         records))))
-        (make-instance 'account-node
+        (make-instance (node-class tree)
                        :collection tree
                        :key nil
                        :record nil
                        :parent-key nil
                        :children (make-nodes :null))))))
-
-(defmethod insert-item ((tree account-tree) &key record parent-key)
-  (let ((parent-node (find-node (root tree) parent-key))
-        (new-node (make-instance 'account-node
-                                 :key parent-key
-                                 :record record
-                                 :collection tree
-                                 :parent-key parent-key
-                                 :children ())))
-    (push new-node (children parent-node))))
 
 
 ;;; nodes
@@ -194,8 +185,7 @@
 
 (defmethod cells ((node account-node) &key)
   (let* ((id (key node))
-         (record (record node))
-         #|(filter (filter (collection node)))|#)
+         (record (record node)))
     (list :selector (make-instance 'selector-cell
                                    :states (list :on (account)
                                                  :off (account :id id)))
@@ -206,7 +196,6 @@
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
                                     :href (account :id id))))))
-
 
 
 

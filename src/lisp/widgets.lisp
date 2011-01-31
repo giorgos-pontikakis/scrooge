@@ -91,8 +91,9 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-tree (collection)
-  ((root :accessor root :initarg :root))
-  (:default-initargs :id "crud-tree" :style "crud-tree"))
+  ((root       :accessor root       :initarg :root)
+   (node-class :accessor node-class :initarg :node-class))
+  (:default-initargs :id "crud-tree" :style "crud-tree" :node-class 'crud-node))
 
 (defmethod initialize-instance :after ((tree crud-tree) &key)
   (setf (slot-value tree 'root)
@@ -136,6 +137,16 @@
      ;; create
      (and (eql (key item) (parent-key item)) ;; this implies create
           (selected-p parent-item selected-id)))))
+
+(defmethod insert-item ((tree crud-tree) &key record parent-key)
+  (let ((parent-node (find-node (root tree) parent-key))
+        (new-node (make-instance (node-class tree)
+                                 :key parent-key
+                                 :record record
+                                 :collection tree
+                                 :parent-key parent-key
+                                 :children ())))
+    (push new-node (children parent-node))))
 
 (defmethod display ((node crud-node) &key selected-id selected-data)
   (let ((selected-p (selected-p node selected-id))
@@ -235,6 +246,7 @@
 
 (defclass crud-table (collection)
   ((header-labels :accessor header-labels :initarg :header-labels)
+   (row-class     :accessor row-class     :initarg :row-class)
    (paginator     :reader   paginator)
    (rows          :accessor rows))
   (:default-initargs :id "crud-table" :style "crud-table"))
@@ -282,6 +294,15 @@
                                 :selected-id selected-id
                                 :start start))))))))
 
+(defmethod insert-item ((table crud-table) &key record index)
+  (let* ((rows (rows table))
+         (new-row (make-instance (row-class table)
+                                 :key (getf record :id)
+                                 :record record
+                                 :collection table
+                                 :index index)))
+    (setf (rows table)
+          (ninsert-list index new-row rows))))
 
 
 ;;; ------------------------------------------------------------
