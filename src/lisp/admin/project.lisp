@@ -138,7 +138,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Project menu
+;;; UI elements
 ;;; ------------------------------------------------------------
 
 (defun project-menu (id filter &optional disabled-items)
@@ -159,30 +159,20 @@
            :disabled-items disabled-items))
 
 
+(defun project-notifications ()
+  ;; date errors missing, system is supposed to respond with the default (error-type param)
+  (notifications
+   '((description (:project-description-null "Το όνομα του έργου είναι κενό"
+                   :project-description-exists "Υπάρχει ήδη έργο με αυτή την περιγραφή"))
+     (company     (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
+                   :company-title-null "Το όνομα της εταιρίας δεν πρέπει να είναι κενό"))
+     (price       (:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
+     (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))))
+
 
 ;;; ------------------------------------------------------------
 ;;; Database interface
 ;;; ------------------------------------------------------------
-
-(defun get-project-plists (filter)
-  (let* ((base-query `(:select project.id (:as company.title company)
-                               project.description location
-                               (:as project-status.description status)
-                               :from project
-                               :left-join 'company
-                               :on (:= project.company-id company.id)
-                               :left-join project-status
-                               :on (:= project-status.id project.status)))
-         (composite-query (if filter
-                              (append base-query
-                                      `(where (:or (:ilike project.description ,(ilike filter))
-                                                   (:ilike company.title ,(ilike filter))
-                                                   (:ilike project.location ,(ilike filter)))))
-                              base-query))
-         (final-query `(:order-by ,composite-query project.id start-date)))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
 
 (defun get-project-plist (id)
   (with-db ()
@@ -211,17 +201,29 @@
                                            :delta 10
                                            :urlfn (lambda (filter start)
                                                     (project :filter filter
-                                                             :start start))))))
+                                                             :start start)))))
+  (:default-initargs :item-class 'project-row))
 
-
-(defmethod read-items ((table project-table))
-  (iter (for rec in (get-project-plists (filter table)))
-        (for i from 0)
-        (collect (make-instance 'project-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
+(defmethod read-records ((table project-table))
+  (let* ((filter (filter table))
+         (base-query `(:select project.id (:as company.title company)
+                               project.description location
+                               (:as project-status.description status)
+                               :from project
+                               :left-join 'company
+                               :on (:= project.company-id company.id)
+                               :left-join project-status
+                               :on (:= project-status.id project.status)))
+         (composite-query (if filter
+                              (append base-query
+                                      `(where (:or (:ilike project.description ,(ilike filter))
+                                                   (:ilike company.title ,(ilike filter))
+                                                   (:ilike project.location ,(ilike filter)))))
+                              base-query))
+         (final-query `(:order-by ,composite-query project.id start-date)))
+    (with-db ()
+      (query (sql-compile final-query)
+             :plists))))
 
 
 ;;; rows
@@ -249,22 +251,6 @@
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
                                     :href (project :id id :filter filter))))))
-
-
-
-;;; ------------------------------------------------------------
-;;; Notifications
-;;; ------------------------------------------------------------
-
-(defun project-notifications ()
-  ;; date errors missing, system is supposed to respond with the default (error-type param)
-  (notifications
-   '((description (:project-description-null "Το όνομα του έργου είναι κενό"
-                   :project-description-exists "Υπάρχει ήδη έργο με αυτή την περιγραφή"))
-     (company     (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
-                   :company-title-null "Το όνομα της εταιρίας δεν πρέπει να είναι κενό"))
-     (price       (:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
-     (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))))
 
 
 

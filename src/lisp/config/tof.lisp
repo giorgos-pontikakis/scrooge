@@ -83,7 +83,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; TOF menu
+;;; UI elements
 ;;; ------------------------------------------------------------
 
 (defun tof-menu (id filter &optional disabled-items)
@@ -102,6 +102,10 @@
                                                                    :filter filter))))
            :disabled-items disabled-items))
 
+(defun tof-notifications ()
+  (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
+                           :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))))
+
 
 
 ;;; ------------------------------------------------------------
@@ -119,17 +123,11 @@
                                            :urlfn (lambda (filter start)
                                                     (tof :filter filter
                                                          :start start)))))
-  (:default-initargs :id "config-table" :row-class 'tof-row))
+  (:default-initargs :id "config-table" :item-class 'tof-row))
 
 
-(defmethod read-items ((table tof-table))
-  (iter (for rec in (config-data 'tof (filter table)))
-        (for i from 0)
-        (collect (make-instance 'tof-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
+(defmethod read-records ((table tof-table))
+  (config-data 'tof (filter table)))
 
 
 ;; rows
@@ -154,16 +152,6 @@
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
                                     :href (tof :id id :filter filter))))))
-
-
-
-;;; ------------------------------------------------------------
-;;; Notifications
-;;; ------------------------------------------------------------
-
-(defun tof-notifications ()
-  (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
-                           :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))))
 
 
 

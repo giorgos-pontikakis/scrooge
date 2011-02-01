@@ -83,7 +83,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Bank menu
+;;; UI elements
 ;;; ------------------------------------------------------------
 
 (defun bank-menu (id filter &optional disabled-items)
@@ -102,6 +102,10 @@
                                                                     :filter filter))))
            :disabled-items disabled-items))
 
+(defun bank-notifications ()
+  (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
+                           :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
+
 
 
 ;;; ------------------------------------------------------------
@@ -119,16 +123,10 @@
                                            :urlfn (lambda (filter start)
                                                     (bank :filter filter
                                                           :start start)))))
-  (:default-initargs :id "config-table" :row-class 'bank-row))
+  (:default-initargs :id "config-table" :item-class 'bank-row))
 
-(defmethod read-items ((table bank-table))
-  (iter (for rec in (config-data 'bank (filter table)))
-        (for i from 0)
-        (collect (make-instance 'bank-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
+(defmethod read-records ((table bank-table))
+  (config-data 'bank (filter table)))
 
 
 ;;; rows
@@ -153,16 +151,6 @@
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
                                     :href (bank :id id :filter filter))))))
-
-
-
-;;; ------------------------------------------------------------
-;;; Notifications
-;;; ------------------------------------------------------------
-
-(defun bank-notifications ()
-  (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
-                           :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
 
 
 

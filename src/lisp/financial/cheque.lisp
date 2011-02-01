@@ -111,7 +111,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Cheque menu
+;;; UI elements
 ;;; ----------------------------------------------------------------------
 
 (defun cheque-menu (cheque-kind id filter &optional disabled-items)
@@ -134,29 +134,21 @@
                                                                           :filter filter)))
            :disabled-items disabled-items))
 
+(defun  cheque-notifications ()
+  (notifications
+   '((due-date (:date-null "Η ημερομηνία είναι κενή"))
+     (bank (:bank-title-null "Το όνομα της τράπεζας είναι κενό."
+            :bank-title-unknown "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
+     (company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
+               :company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
+              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))))
+
 
 
 ;;; ----------------------------------------------------------------------
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
-
-(defun get-cheque-plists (filter)
-  (let* ((base-query `(:select cheque.id (:as bank.title bank)
-                               due-date (:as company.title company) amount payable-p
-                               :from cheque
-                               :inner-join bank
-                               :on (:= bank.id cheque.bank-id)
-                               :inner-join company
-                               :on (:= company.id cheque.company-id)))
-         (composite-query (if filter
-                              (append base-query
-                                      `(:where (:or (:ilike company.title ,(ilike filter))
-                                                    (:ilike bank.title ,(ilike filter)))))
-                              base-query))
-         (final-query `(:order-by ,composite-query (:desc due-date))))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
 
 (defun get-cheque-plist (id)
   (with-db ()
@@ -189,16 +181,27 @@
                                            :urlfn (lambda (cheque-kind filter start)
                                                     (cheque cheque-kind
                                                             :filter filter
-                                                            :start start))))))
+                                                            :start start)))))
+  (:default-initargs :item-class 'cheque-row))
 
-(defmethod read-items ((table cheque-table))
-  (iter (for rec in (get-cheque-plists (filter table)))
-        (for i from 0)
-        (collect (make-instance 'cheque-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
+(defmethod read-records ((table cheque-table))
+  (let* ((filter (filter table))
+         (base-query `(:select cheque.id (:as bank.title bank)
+                               due-date (:as company.title company) amount payable-p
+                               :from cheque
+                               :inner-join bank
+                               :on (:= bank.id cheque.bank-id)
+                               :inner-join company
+                               :on (:= company.id cheque.company-id)))
+         (composite-query (if (filter table)
+                              (append base-query
+                                      `(:where (:or (:ilike company.title ,(ilike filter))
+                                                    (:ilike bank.title ,(ilike filter)))))
+                              base-query))
+         (final-query `(:order-by ,composite-query (:desc due-date))))
+    (with-db ()
+      (query (sql-compile final-query)
+             :plists))))
 
 
 ;;; rows
@@ -231,22 +234,6 @@
            (make-instance 'ok-cell)
            (make-instance 'cancel-cell
                           :href (cheque cheque-kind :id id :filter filter))))))
-
-
-
-;;; ------------------------------------------------------------
-;;; Notifications
-;;; ------------------------------------------------------------
-
-(defun  cheque-notifications ()
-  (notifications
-   '((due-date (:date-null "Η ημερομηνία είναι κενή"))
-     (bank (:bank-title-null "Το όνομα της τράπεζας είναι κενό."
-            :bank-title-unknown "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
-     (company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
-               :company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))))
 
 
 

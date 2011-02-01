@@ -1,10 +1,13 @@
 (in-package :scrooge)
 
+(defclass account-ro-tree (account-crud-tree)
+  ()
+  (:default-initargs :item-class 'account-ro-node))
 
-(defclass account-overview-node (account-node)
+(defclass account-ro-node (account-crud-node)
   ())
 
-(defmethod cells ((node account-overview-node) &key)
+(defmethod cells ((node account-ro-node) &key)
   (let* ((id (key node))
          (record (record node)))
     (list :selector (make-instance 'selector-cell
@@ -20,7 +23,7 @@
 ;;; account-overview menu
 ;;; ----------------------------------------------------------------------
 
-(defun account-overview-menu (id &optional disabled-items)
+(defun account/overview-menu (id &optional disabled-items)
   (display (make-instance 'actions-menu
                           :style "hnavbar actions grid_6 alpha"
                           :spec `((overview ,(account/overview :id id) "Σύνοψη")
@@ -51,13 +54,12 @@
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-tree
-                                                  :node-class 'account-overview-node
                                                   :op 'catalogue
                                                   :filter flag))
                (htm
                 (:div :id div-id :class "window grid_6"
                       (:div :class "title" (str window-title))
-                      (account-overview-menu (val id)
+                      (account/overview-menu (val id)
                                              (if (and (val id) (eql flag (debit-p (val id))))
                                                  '(overview)
                                                  '(overview details print)))

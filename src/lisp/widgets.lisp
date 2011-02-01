@@ -15,10 +15,15 @@
 ;;; ------------------------------------------------------------
 
 (defclass collection (widget)
-  ((op     :accessor op     :initarg :op)
-   (filter :accessor filter :initarg :filter)))
+  ((op         :accessor op         :initarg :op)
+   (filter     :accessor filter     :initarg :filter)
+   (item-class :accessor item-class :initarg :item-class)))
 
-(defgeneric read-items (collection))
+(defgeneric read-records (collection)
+  (:documentation "Retrieve the raw records for the collection"))
+
+(defgeneric read-items (collection)
+  (:documentation "User read-records to return the items of the collection"))
 
 (defgeneric insert-item (collection &key)
   (:documentation "Insert an new item to the collection"))
@@ -91,19 +96,48 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-tree (collection)
-  ((root       :accessor root       :initarg :root)
-   (node-class :accessor node-class :initarg :node-class))
-  (:default-initargs :id "crud-tree" :style "crud-tree" :node-class 'crud-node))
+  ((root       :accessor root       :initarg :root))
+  (:default-initargs :id "crud-tree" :style "crud-tree" :item-class 'crud-node))
 
 (defmethod initialize-instance :after ((tree crud-tree) &key)
   (setf (slot-value tree 'root)
         (read-items tree)))
+
+(defmethod read-items ((tree crud-tree))
+  (let ((records (read-records tree)))
+    (labels ((make-nodes (parent-key)
+               (mapcar (lambda (rec)
+                         (let ((key (getf rec :id)))
+                           (make-instance (item-class tree)
+                                          :collection tree
+                                          :key key
+                                          :record rec
+                                          :parent-key parent-key
+                                          :children (make-nodes key))))
+                       (remove-if-not (lambda (rec)
+                                        (equal parent-key (getf rec :parent-id)))
+                                      records))))
+      (make-instance (item-class tree)
+                     :collection tree
+                     :key nil
+                     :record nil
+                     :parent-key nil
+                     :children (make-nodes :null)))))
 
 (defmethod update-item ((tree crud-tree) &key record key)
   (let ((node (find-node (root tree) key)))
     (setf (record node)
           (plist-union record (record node)))))
 
+(defmethod insert-item ((tree crud-tree) &key record parent-key)
+  (let ((parent-node (find-node (root tree) parent-key))
+        (new-node (make-instance (item-class tree)
+                                 :key parent-key
+                                 :record record
+                                 :collection tree
+                                 :parent-key parent-key
+                                 :children ())))
+    (push new-node (children parent-node))))
 
 (defmethod display ((tree crud-tree) &key selected-id selected-data)
   (when (and (eq (op tree) 'create)
@@ -137,16 +171,6 @@
      ;; create
      (and (eql (key item) (parent-key item)) ;; this implies create
           (selected-p parent-item selected-id)))))
-
-(defmethod insert-item ((tree crud-tree) &key record parent-key)
-  (let ((parent-node (find-node (root tree) parent-key))
-        (new-node (make-instance (node-class tree)
-                                 :key parent-key
-                                 :record record
-                                 :collection tree
-                                 :parent-key parent-key
-                                 :children ())))
-    (push new-node (children parent-node))))
 
 (defmethod display ((node crud-node) &key selected-id selected-data)
   (let ((selected-p (selected-p node selected-id))
@@ -246,7 +270,6 @@
 
 (defclass crud-table (collection)
   ((header-labels :accessor header-labels :initarg :header-labels)
-   (row-class     :accessor row-class     :initarg :row-class)
    (paginator     :reader   paginator)
    (rows          :accessor rows))
   (:default-initargs :id "crud-table" :style "crud-table"))
@@ -258,10 +281,29 @@
     (setf (slot-value pg 'table)
           table)))
 
+(defmethod read-items ((table crud-table))
+  (iter (for rec in (read-records table))
+        (for i from 0)
+        (collect (make-instance (item-class table)
+                                :key (getf rec :id)
+                                :record rec
+                                :collection table
+                                :index i))))
+
 (defmethod update-item ((table crud-table) &key record index)
   (let ((row (nth index (rows table))))
     (setf (record row)
           (plist-union record (record row)))))
+
+(defmethod insert-item ((table crud-table) &key record index)
+  (let* ((rows (rows table))
+         (new-row (make-instance (item-class table)
+                                 :key (getf record :id)
+                                 :record record
+                                 :collection table
+                                 :index index)))
+    (setf (rows table)
+          (ninsert-list index new-row rows))))
 
 (defmethod display ((table crud-table) &key selected-id selected-data start)
   (let ((selected-row (find selected-id (rows table) :key #'key :test #'equal)))
@@ -293,16 +335,6 @@
                        (display row
                                 :selected-id selected-id
                                 :start start))))))))
-
-(defmethod insert-item ((table crud-table) &key record index)
-  (let* ((rows (rows table))
-         (new-row (make-instance (row-class table)
-                                 :key (getf record :id)
-                                 :record record
-                                 :collection table
-                                 :index index)))
-    (setf (rows table)
-          (ninsert-list index new-row rows))))
 
 
 ;;; ------------------------------------------------------------

@@ -170,7 +170,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Company menu
+;;; UI elements
 ;;; ------------------------------------------------------------
 
 (defun company-menu (id filter &optional disabled-items)
@@ -193,33 +193,23 @@
                                                                                :filter filter))))
    :disabled-items disabled-items))
 
+(defun company-notifications ()
+  (notifications '((title   (:company-title-null "Το όνομα της εταιρίας είναι κενό"
+                             :company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
+                   (tof     (:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
+                   (city    (:city-title-unknown "Η πόλη αυτή δεν έχει οριστεί."))
+                   (tin     (:tin-exists "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ."
+                             :tin-invalid "Άκυρος Α.Φ.Μ."))
+                   (pobox   (:parse-error "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας"
+                             :pobox-invalid "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
+                   (zipcode (:parse-error "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
+                             :zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός.")))))
+
 
 
 ;;; ------------------------------------------------------------
 ;;; Database interface
 ;;; ------------------------------------------------------------
-
-(defun get-company-plists (filter)
-  (let* ((base-query `(:select company.id company.title tin
-                               (:as tof.title tof)
-                               address
-                               (:as city.title city-name)
-                               :from company
-                               :left-join city
-                               :on (:= city.id company.city-id)
-                               :left-join tof
-                               :on (:= tof.id company.tof-id)))
-         (composite-query (if filter
-                              (append base-query
-                                      `(:where (:or (:ilike company.title ,(ilike filter))
-                                                    (:ilike tin ,(ilike filter))
-                                                    (:ilike address ,(ilike filter))
-                                                    (:ilike city.title ,(ilike filter)))))
-                              base-query))
-         (final-query `(:order-by ,composite-query company.title)))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
 
 (defun get-company-plist (id)
   (with-db ()
@@ -251,18 +241,32 @@
                                            :delta 10
                                            :urlfn (lambda (filter start)
                                                     (company :filter filter
-                                                             :start start))))))
+                                                             :start start)))))
+  (:default-initargs :item-class 'company-row))
 
 
-(defmethod read-items ((table company-table))
-  (iter (for rec in (get-company-plists (filter table)))
-        (for i from 0)
-        (collect (make-instance 'company-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
-
+(defmethod read-records ((table company-table))
+  (let* ((filter (filter table))
+         (base-query `(:select company.id company.title tin
+                               (:as tof.title tof)
+                               address
+                               (:as city.title city-name)
+                               :from company
+                               :left-join city
+                               :on (:= city.id company.city-id)
+                               :left-join tof
+                               :on (:= tof.id company.tof-id)))
+         (composite-query (if filter
+                              (append base-query
+                                      `(:where (:or (:ilike company.title ,(ilike filter))
+                                                    (:ilike tin ,(ilike filter))
+                                                    (:ilike address ,(ilike filter))
+                                                    (:ilike city.title ,(ilike filter)))))
+                              base-query))
+         (final-query `(:order-by ,composite-query company.title)))
+    (with-db ()
+      (query (sql-compile final-query)
+             :plists))))
 
 ;;; rows
 
@@ -289,24 +293,6 @@
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
                                     :href (company :id id :filter filter))))))
-
-
-
-;;; ------------------------------------------------------------
-;;; Notifications
-;;; ------------------------------------------------------------
-
-(defun company-notifications ()
-  (notifications '((title   (:company-title-null "Το όνομα της εταιρίας είναι κενό"
-                             :company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
-                   (tof     (:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
-                   (city    (:city-title-unknown "Η πόλη αυτή δεν έχει οριστεί."))
-                   (tin     (:tin-exists "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ."
-                             :tin-invalid "Άκυρος Α.Φ.Μ."))
-                   (pobox   (:parse-error "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας"
-                             :pobox-invalid "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
-                   (zipcode (:parse-error "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
-                             :zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός.")))))
 
 
 

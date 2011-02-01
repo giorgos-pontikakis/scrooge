@@ -84,7 +84,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; City menu
+;;; UI elements
 ;;; ------------------------------------------------------------
 
 (defun city-menu (id filter &optional disabled-items)
@@ -104,6 +104,10 @@
            :disabled-items disabled-items))
 
 
+(defun city-notifications ()
+  (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
+                           :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))))
+
 
 ;;; ------------------------------------------------------------
 ;;; City table
@@ -120,16 +124,10 @@
                                        :urlfn (lambda (filter start)
                                                 (city :filter filter
                                                       :start start)))))
-  (:default-initargs :id "config-table" :row-class 'city-row))
+  (:default-initargs :id "config-table" :item-class 'city-row))
 
-(defmethod read-items ((table city-table))
-  (iter (for rec in (config-data 'city (filter table)))
-        (for i from 0)
-        (collect (make-instance 'city-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
+(defmethod read-records ((table city-table))
+  (config-data 'city (filter table)))
 
 
 ;;; rows
@@ -156,16 +154,6 @@
                                     :href (city :id id :filter filter))))))
 
 
-
-
-
-;;; ------------------------------------------------------------
-;;; Notifications
-;;; ------------------------------------------------------------
-
-(defun city-notifications ()
-  (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
-                           :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))))
 
 ;;; ------------------------------------------------------------
 ;;; City - Pages

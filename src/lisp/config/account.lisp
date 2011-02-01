@@ -148,42 +148,24 @@
 
 ;;; tree
 
-(defclass account-tree (crud-tree)
+(defclass account-crud-tree (crud-tree)
   ()
-  (:default-initargs :node-class 'account-node))
+  (:default-initargs :item-class 'account-crud-node))
 
-(defmethod read-items ((tree account-tree))
+(defmethod read-records ((tree account-crud-tree))
   (with-db ()
-    (let ((records (query (:select 'id 'title 'parent-id
-                                   :from 'account
-                                   :where (:= 'debit-p (filter tree)))
-                          :plists)))
-      (labels ((make-nodes (parent-key)
-                 (mapcar (lambda (rec)
-                           (let ((key (getf rec :id)))
-                             (make-instance (node-class tree)
-                                            :collection tree
-                                            :key key
-                                            :record rec
-                                            :parent-key parent-key
-                                            :children (make-nodes key))))
-                         (remove-if-not (lambda (rec)
-                                          (equal parent-key (getf rec :parent-id)))
-                                        records))))
-        (make-instance (node-class tree)
-                       :collection tree
-                       :key nil
-                       :record nil
-                       :parent-key nil
-                       :children (make-nodes :null))))))
+    (query (:select 'id 'title 'parent-id
+                    :from 'account
+                    :where (:= 'debit-p (filter tree)))
+           :plists)))
 
 
 ;;; nodes
 
-(defclass account-node (crud-node)
+(defclass account-crud-node (crud-node)
   ())
 
-(defmethod cells ((node account-node) &key)
+(defmethod cells ((node account-crud-node) &key)
   (let* ((id (key node))
          (record (record node)))
     (list :selector (make-instance 'selector-cell
@@ -230,7 +212,7 @@
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-tree
+                   (for account-tree = (make-instance 'account-crud-tree
                                                       :op 'catalogue
                                                       :filter flag))
                    (htm
@@ -263,7 +245,7 @@
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-tree
+                   (for account-tree = (make-instance 'account-crud-tree
                                                       :op (if (eql flag (val debitp))
                                                               'create
                                                               'catalogue)
@@ -301,7 +283,7 @@
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-tree
+                   (for account-tree = (make-instance 'account-crud-tree
                                                       :op (if (eql flag (debit-p (val id)))
                                                               'update
                                                               'catalogue)
@@ -337,7 +319,7 @@
                    (for flag in (list t nil))
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-tree
+                   (for account-tree = (make-instance 'account-crud-tree
                                                       :op (if (eql flag (debit-p (val id)))
                                                               'delete
                                                               'catalogue)

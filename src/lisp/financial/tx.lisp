@@ -109,7 +109,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Transaction menu
+;;; UI elements
 ;;; ----------------------------------------------------------------------
 
 (defun transaction-menu (id filter &optional disabled-items)
@@ -127,29 +127,21 @@
                                                                                :filter filter)))
            :disabled-items disabled-items))
 
+(defun transaction-notifications ()
+  (notifications
+   '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
+              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+     (debit-account (:account-title-null "Ο λογαριασμός χρέωσης είναι κενός"
+                     :account-title-unknown "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
+     (credit-account (:account-title-null "Ο λογαριασμός πίστωσης είναι κενός"
+                      :account-title-unknown "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα")))))
+
 
 
 ;;; ----------------------------------------------------------------------
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
-
-(defun get-tx-plists (filter)
-  (let* ((base-query `(:select tx.id
-                               (:as tx-date date)
-                               (:as company.title company)
-                               description amount
-                               :from tx
-                               :left-join company
-                               :on (:= tx.company-id company.id)))
-         (composite-query (if filter
-                              (append base-query
-                                      `(:where (:or (:ilike description ,(ilike filter))
-                                                    (:ilike company.title ,(ilike filter)))))
-                              base-query))
-         (final-query `(:order-by ,composite-query date)))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
 
 (defun get-tx-plist (id)
   (with-db ()
@@ -186,16 +178,27 @@
                                            :delta 10
                                            :urlfn (lambda (filter start)
                                                     (transaction :filter filter
-                                                                 :start start))))))
+                                                                 :start start)))))
+  (:default-initargs :item-class 'tx-row))
 
-(defmethod read-items ((table tx-table))
-  (iter (for rec in (get-tx-plists (filter table)))
-        (for i from 0)
-        (collect (make-instance 'tx-row
-                                :key (getf rec :id)
-                                :record rec
-                                :collection table
-                                :index i))))
+(defmethod read-records ((table tx-table))
+  (let* ((filter (filter table))
+         (base-query `(:select tx.id
+                               (:as tx-date date)
+                               (:as company.title company)
+                               description amount
+                               :from tx
+                               :left-join company
+                               :on (:= tx.company-id company.id)))
+         (composite-query (if filter
+                              (append base-query
+                                      `(:where (:or (:ilike description ,(ilike filter))
+                                                    (:ilike company.title ,(ilike filter)))))
+                              base-query))
+         (final-query `(:order-by ,composite-query date)))
+    (with-db ()
+      (query (sql-compile final-query)
+             :plists))))
 
 
 ;;; rows
@@ -225,22 +228,6 @@
            (make-instance 'ok-cell)
            (make-instance 'cancel-cell
                           :href (transaction :id id :filter filter))))))
-
-
-
-;;; ----------------------------------------------------------------------
-;;; Notifications
-;;; ----------------------------------------------------------------------
-
-(defun transaction-notifications ()
-  (notifications
-   '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-     (debit-account (:account-title-null "Ο λογαριασμός χρέωσης είναι κενός"
-                     :account-title-unknown "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
-     (credit-account (:account-title-null "Ο λογαριασμός πίστωσης είναι κενός"
-                      :account-title-unknown "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα")))))
 
 
 
