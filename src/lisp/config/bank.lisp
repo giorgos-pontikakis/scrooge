@@ -177,7 +177,8 @@
                    (header 'config)
                    (config-navbar 'bank)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (bank) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος τραπεζών")
                          (bank-menu (val id)
@@ -208,7 +209,8 @@
                (header 'config)
                (config-navbar 'bank)
                (:div :id "sidebar" :class "sidebar grid_3"
-                     (filters (bank) (val filter))
+                     (:p :class "title" "Φίλτρα")
+                     (searchbox (bank) (val filter))
                      (bank-notifications))
                (:div :id "bank-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία τράπεζας")
@@ -240,7 +242,8 @@
                    (header 'config)
                    (config-navbar 'bank)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (bank) (val filter))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (bank) (val filter))
                          (bank-notifications))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία τράπεζας")
@@ -273,7 +276,8 @@
                    (header 'config)
                    (config-navbar 'bank)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (bank) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή τράπεζας")
                          (bank-menu (val id)

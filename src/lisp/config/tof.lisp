@@ -178,7 +178,8 @@
                    (header 'config)
                    (config-navbar 'tof)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (tof) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
                          (tof-menu (val id)
@@ -209,7 +210,8 @@
                (header 'config)
                (config-navbar 'tof)
                (:div :id "sidebar" :class "sidebar grid_3"
-                     (filters (tof) (val filter))
+                     (:p :class "title" "Φίλτρα")
+                     (searchbox (tof) (val filter))
                      (tof-notifications))
                (:div :id "tof-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
@@ -241,7 +243,8 @@
                    (header 'config)
                    (config-navbar 'tof)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (tof) (val filter))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (tof) (val filter))
                          (tof-notifications))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
@@ -274,7 +277,8 @@
                    (header 'config)
                    (config-navbar 'tof)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (tof) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
                          (tof-menu (val id)

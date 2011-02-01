@@ -287,7 +287,8 @@
                                   :selected-id (val* id)
                                   :start (val* start)))
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (project) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (project) (val filter)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -456,7 +457,8 @@
                            (display project-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (project) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (project) (val filter)))
                    (footer)))))
         (see-other (error-page)))))
 

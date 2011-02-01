@@ -329,7 +329,8 @@
                                   :selected-id (val* id)
                                   :start (val* start)))
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (company) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (company) (val filter)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -490,7 +491,8 @@
                            (display company-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (company) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (company) (val filter)))
                    (footer)))))
         (see-other (error-page)))))
 

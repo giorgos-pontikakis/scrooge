@@ -55,7 +55,7 @@
   (css (url 'css "common.css"))
   (css (url 'css "navbar.css"))
   (css (url 'css "crud.css"))
-  (css (url 'css "controls.css")))
+  (css (url 'css "sidebar.css")))
 
 (defun config-headers ()
   (global-headers)
@@ -168,16 +168,16 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Filters
+;;; Searchbox
 ;;; ------------------------------------------------------------
 
-(defun filters (submit-url filter)
+(defun searchbox (submit-url filter)
   (with-html
-    (:div :id "filters"
-          (:p :class "title" "Φίλτρα")
+    (:div :id "searchbox"
           (:form :method :get
                  :action submit-url
                  (:p :class "search"
                      (textbox 'filter :value filter)
                      (submit (html ()
-                               (img "magnifier.png"))))))))
+                               (img "magnifier.png")))
+                     (cancel-button submit-url))))))

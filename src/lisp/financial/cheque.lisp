@@ -262,7 +262,8 @@
                    (header 'financial)
                    (financial-navbar 'cheque)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (cheque cheque-kind) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (cheque cheque-kind) (val filter)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Κατάλογος επιταγών")
                          (cheque-menu cheque-kind
@@ -297,7 +298,8 @@
              (header 'financial)
              (financial-navbar 'cheque)
              (:div :id "sidebar" :class "sidebar grid_3"
-                   (filters (cheque cheque-kind) (val filter))
+                   (:p :class "title" "Φίλτρα")
+                   (searchbox (cheque cheque-kind) (val filter))
                    (cheque-notifications))
              (:div :class "window grid_9"
                    (:div :class "title" "Δημιουργία επιταγής")
@@ -343,7 +345,8 @@
                  (header 'financial)
                  (financial-navbar 'cheque)
                  (:div :id "sidebar" :class "sidebar grid_3"
-                       (filters (cheque cheque-kind) (val filter))
+                       (:p :class "title" "Φίλτρα")
+                       (searchbox (cheque cheque-kind) (val filter))
                        (cheque-notifications))
                  (:div :class "window grid_9"
                        (:div :class "title" "Επεξεργασία επιταγής")
@@ -421,7 +424,8 @@
                    (financial-navbar 'cheque)
                    (:div :class "window"
                          (:div :id "sidebar" :class "sidebar grid_3"
-                               (filters (cheque cheque-kind) (val filter)))
+                               (:p :class "title" "Φίλτρα")
+                               (searchbox (cheque cheque-kind) (val filter)))
                          (:div :class "window grid_9"
                                (:div :class "title" "Διαγραφή επιταγής")
                                (cheque-menu cheque-kind

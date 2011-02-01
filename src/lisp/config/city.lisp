@@ -178,7 +178,8 @@
                    (header 'config)
                    (config-navbar 'city)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (city) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος πόλεων")
                          (city-menu (val id)
@@ -209,7 +210,8 @@
                (header 'config)
                (config-navbar 'city)
                (:div :id "sidebar" :class "sidebar grid_3"
-                     (filters (city) (val filter))
+                     (:p :class "title" "Φίλτρα")
+                     (searchbox (city) (val filter))
                      (city-notifications))
                (:div :id "city-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία πόλης")
@@ -241,7 +243,8 @@
                    (header 'config)
                    (config-navbar 'city)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (city) (val filter))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (city) (val filter))
                          (city-notifications))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία πόλης")
@@ -274,7 +277,8 @@
                    (header 'config)
                    (config-navbar 'city)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (filters (city) (val filter)))
+                         (:p :class "title" "Φίλτρα")
+                         (searchbox (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή πόλης")
                          (city-menu (val id)
