@@ -42,33 +42,34 @@
 (defmethod read-records ((table account-tx-table))
   (let ((account-id (filter table)))
     (with-db ()
-      (query (:select 'tx.id 'tx-date 'description 'company.title
+      (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)
                       'debit-acc-id 'credit-acc-id 'amount
                       :from 'tx
-                      :inner-join 'company
+                      :left-join 'company
                       :on (:= 'company.id 'tx.company-id)
-                      :where (:or (:= account-id 'debit-account.id)
-                                  (:= account-id 'credit-account.id)))
+                      :where (:or (:= account-id 'tx.debit-acc-id)
+                                  (:= account-id 'tx.credit-acc-id)))
              :plists))))
 
 
 (defclass account-tx-row (crud-row)
   ())
 
-(defmethod cells ((row account-tx-row) &key)
+(defmethod cells ((row account-tx-row) &key start)
+  (declare (ignore start))
   (let* ((record (record row))
-         (account-id (filter (table row)))
-         (amounts (if (eql account-id (getf record :debit-acc-id))
-                      (list (getf record :amount)
-                            nil)
-                      (list nil
-                            (getf record :amount)))))
+         (account-id (filter (collection row)))
+         (record-plus (append record
+                              (if (eql account-id (getf record :debit-acc-id))
+                                  (list :debit-amount (getf record :amount)
+                                        :credit-amount :null)
+                                  (list :debit-amount :null
+                                        :credit-amount (getf record :amount))))))
     (list :payload (mapcar (lambda (name)
                              (make-instance 'textbox-cell
                                             :name name
-                                            :value (getf record (make-keyword name))))
-                           (append '(date description company)
-                                   amounts)))))
+                                            :value (getf record-plus (make-keyword name))))
+                           '(tx-date description company debit-amount credit-amount)))))
 
 
 
@@ -107,7 +108,7 @@
                (for flag in (list t nil))
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-               (for account-tree = (make-instance 'account-tree
+               (for account-tree = (make-instance 'account-ro-tree
                                                   :filter flag))
                (htm
                 (:div :id div-id :class "window grid_6"
@@ -127,7 +128,7 @@
     (if (validp id)
         (let ((account-title (with-db ()
                                (title (get-dao 'account (val id)))))
-              (tx-table (make-instance 'tx-accounts-table
+              (tx-table (make-instance 'account-tx-table
                                        :filter (val id))))
           (with-document ()
             (:head
