@@ -119,7 +119,7 @@
                                            :urlfn (lambda (filter start)
                                                     (bank :filter filter
                                                           :start start)))))
-  (:default-initargs :id "config-table"))
+  (:default-initargs :id "config-table" :row-class 'bank-row))
 
 (defmethod read-items ((table bank-table))
   (iter (for rec in (config-data 'bank (filter table)))
@@ -129,16 +129,6 @@
                                 :record rec
                                 :collection table
                                 :index i))))
-
-(defmethod insert-item ((table bank-table) &key record index)
-  (let* ((rows (rows table))
-         (new-row (make-instance 'bank-row
-                                 :key (getf record :id)
-                                 :record record
-                                 :collection table
-                                 :index index)))
-    (setf (rows table)
-          (ninsert-list index new-row rows))))
 
 
 ;;; rows

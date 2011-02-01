@@ -200,16 +200,6 @@
                                 :collection table
                                 :index i))))
 
-(defmethod insert-item ((table cheque-table) &key record index)
-  (let* ((rows (rows table))
-         (new-row (make-instance 'cheque-row
-                                 :key (getf record :id)
-                                 :record record
-                                 :collection table
-                                 :index index)))
-    (setf (rows table)
-          (ninsert-list index new-row rows))))
-
 
 ;;; rows
 

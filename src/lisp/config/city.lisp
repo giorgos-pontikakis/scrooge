@@ -120,7 +120,7 @@
                                        :urlfn (lambda (filter start)
                                                 (city :filter filter
                                                       :start start)))))
-  (:default-initargs :id "config-table"))
+  (:default-initargs :id "config-table" :row-class 'city-row))
 
 (defmethod read-items ((table city-table))
   (iter (for rec in (config-data 'city (filter table)))
@@ -130,16 +130,6 @@
                                 :record rec
                                 :collection table
                                 :index i))))
-
-(defmethod insert-item ((table city-table) &key record index)
-  (let* ((rows (rows table))
-         (new-row (make-instance 'city-row
-                                 :key (getf record :id)
-                                 :record record
-                                 :collection table
-                                 :index index)))
-    (setf (rows table)
-          (ninsert-list index new-row rows))))
 
 
 ;;; rows
