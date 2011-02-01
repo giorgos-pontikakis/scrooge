@@ -124,7 +124,7 @@
 ;;; Account menu
 ;;; ------------------------------------------------------------
 
-(defun account-menu (id debitp &optional disabled-items)
+(defun account-crud-menu (id debitp &optional disabled-items)
   (let ((prefix (if debitp "debit" "credit")))
     (display (make-instance 'actions-menu
                             :id (conc prefix "-account-actions")
@@ -218,11 +218,11 @@
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))
-                          (account-menu (val id)
-                                        flag
-                                        (if (and (val id) (eql flag (debit-p (val id))))
-                                            '(catalogue)
-                                            '(catalogue update delete)))
+                          (account-crud-menu (val id)
+                                             flag
+                                             (if (and (val id) (eql flag (debit-p (val id))))
+                                                 '(catalogue)
+                                                 '(catalogue update delete)))
                           (display account-tree :selected-id (val* id))))))))
         (see-other (notfound)))))
 
@@ -253,9 +253,9 @@
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))
-                          (account-menu (val parent-id)
-                                        flag
-                                        '(create update delete))
+                          (account-crud-menu (val parent-id)
+                                             flag
+                                             '(create update delete))
                           (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                     :debitp (val debitp))
                             (display account-tree
@@ -291,9 +291,9 @@
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))
-                          (account-menu (val id)
-                                        flag
-                                        '(create update delete))
+                          (account-crud-menu (val id)
+                                             flag
+                                             '(create update delete))
                           (with-form (actions/config/account/update :id (val id))
                             (display account-tree
                                      :selected-id (val* id)
@@ -327,11 +327,11 @@
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))
-                          (account-menu (val id)
-                                        flag
-                                        (if flag
-                                            '()
-                                            '(create update delete)))
+                          (account-crud-menu (val id)
+                                             flag
+                                             (if flag
+                                                 '()
+                                                 '(create update delete)))
                           (with-form (actions/config/account/delete :id (val id))
                             (display account-tree :selected-id (val* id)))))))))
         (see-other (notfound)))))

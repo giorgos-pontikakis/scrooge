@@ -170,7 +170,7 @@
 
 ;;; table
 
-(defclass tx-table (crud-table)
+(defclass tx-crud-table (crud-table)
   ((header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
    (paginator     :initform (make-instance 'paginator
                                            :id "tx-paginator"
@@ -181,7 +181,7 @@
                                                                  :start start)))))
   (:default-initargs :item-class 'tx-row))
 
-(defmethod read-records ((table tx-table))
+(defmethod read-records ((table tx-crud-table))
   (let* ((filter (filter table))
          (base-query `(:select tx.id
                                (:as tx-date date)
@@ -242,9 +242,9 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tx-table (make-instance 'tx-table
-                                       :op 'catalogue
-                                       :filter (val* filter))))
+        (let ((tx-crud-table (make-instance 'tx-crud-table
+                                            :op 'catalogue
+                                            :filter (val* filter))))
           (with-document ()
             (:head
              (:title "Συναλλαγές")
@@ -255,14 +255,14 @@
                    (financial-navbar 'transaction)
                    (:div :id "controls" :class "controls grid_3"
                          (filters (transaction) (val filter)))
-                   (:div :id "transaction-window" :class "window grid_9"
+                   (:div :class "window grid_9"
                          (:div :class "title" "Κατάλογος συναλλαγών")
                          (transaction-menu (val id)
                                            (val filter)
                                            (if (val id)
                                                '(catalogue create)
                                                '(catalogue details update delete)))
-                         (display tx-table
+                         (display tx-crud-table
                                   :selected-id (val* id)
                                   :start (val* start)))
                    (footer)))))
@@ -393,9 +393,9 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tx-table (make-instance 'tx-table
-                                       :op 'delete
-                                       :filter (val* filter))))
+        (let ((tx-crud-table (make-instance 'tx-crud-table
+                                            :op 'delete
+                                            :filter (val* filter))))
           (with-document ()
             (:head
              (:title "Διαγραφή συναλλαγής")
@@ -413,7 +413,7 @@
                                            '(create delete))
                          (with-form (actions/financial/transaction/delete :id (val id)
                                                                           :filter (val* filter))
-                           (display tx-table
+                           (display tx-crud-table
                                     :selected-id (val id))))
                    (footer)))))
         (see-other (notfound)))))
