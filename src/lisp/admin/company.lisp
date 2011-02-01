@@ -328,7 +328,7 @@
                          (display company-table
                                   :selected-id (val* id)
                                   :start (val* start)))
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (company) (val filter)))
                    (footer)))))
         (see-other (notfound)))))
@@ -377,7 +377,7 @@
                                                                     city
                                                                     pobox
                                                                     zipcode))))
-             (:div :id "controls" :class "controls grid_3"
+             (:div :id "sidebar" :class "sidebar grid_3"
                    (company-notifications))
              (footer))))))
 
@@ -429,7 +429,7 @@
                                                                         city
                                                                         pobox
                                                                         zipcode))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        (company-notifications))
                  (footer))))
         (see-other (error-page)))))
@@ -458,7 +458,7 @@
                                             :filter (val filter)
                                             :id (val id)
                                             :data (get-company-plist (val id)))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        "")
                  (error-page))))
         (see-other (notfound)))))
@@ -489,7 +489,7 @@
                                                                   :filter (val* filter))
                            (display company-table
                                     :selected-id (val id))))
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (company) (val filter)))
                    (footer)))))
         (see-other (error-page)))))

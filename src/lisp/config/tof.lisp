@@ -177,7 +177,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'tof)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
@@ -208,7 +208,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (:div :id "controls" :class "controls grid_3"
+               (:div :id "sidebar" :class "sidebar grid_3"
                      (filters (tof) (val filter))
                      (tof-notifications))
                (:div :id "tof-window" :class "window grid_9"
@@ -240,7 +240,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'tof)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (tof) (val filter))
                          (tof-notifications))
                    (:div :id "tof-window" :class "window grid_9"
@@ -273,7 +273,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'tof)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (tof) (val filter)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή Δ.Ο.Υ.")

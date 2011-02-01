@@ -177,7 +177,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'city)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος πόλεων")
@@ -208,7 +208,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (:div :id "controls" :class "controls grid_3"
+               (:div :id "sidebar" :class "sidebar grid_3"
                      (filters (city) (val filter))
                      (city-notifications))
                (:div :id "city-window" :class "window grid_9"
@@ -240,7 +240,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'city)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (city) (val filter))
                          (city-notifications))
                    (:div :id "city-window" :class "window grid_9"
@@ -273,7 +273,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'city)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (city) (val filter)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή πόλης")

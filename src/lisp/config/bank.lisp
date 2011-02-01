@@ -176,7 +176,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'bank)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος τραπεζών")
@@ -207,7 +207,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (:div :id "controls" :class "controls grid_3"
+               (:div :id "sidebar" :class "sidebar grid_3"
                      (filters (bank) (val filter))
                      (bank-notifications))
                (:div :id "bank-window" :class "window grid_9"
@@ -239,7 +239,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'bank)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (bank) (val filter))
                          (bank-notifications))
                    (:div :id "bank-window" :class "window grid_9"
@@ -272,7 +272,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'bank)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (bank) (val filter)))
                    (:div :id "bank-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή τράπεζας")

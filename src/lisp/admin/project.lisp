@@ -286,7 +286,7 @@
                          (display project-table
                                   :selected-id (val* id)
                                   :start (val* start)))
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (project) (val filter)))
                    (footer)))))
         (see-other (notfound)))))
@@ -338,7 +338,7 @@
                                                                     quote-date
                                                                     start-date
                                                                     end-date))))
-             (:div :id "controls" :class "controls grid_3"
+             (:div :id "sidebar" :class "sidebar grid_3"
                    (project-notifications))
              (footer))))))
 
@@ -395,7 +395,7 @@
                                                                         quote-date
                                                                         start-date
                                                                         end-date))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        (project-notifications))
                  (footer))))
         (see-other (error-page)))))
@@ -424,7 +424,7 @@
                                             :filter (val filter)
                                             :id (val id)
                                             :data (get-project-plist (val id)))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        "")
                  (error-page))))
         (see-other (notfound)))))
@@ -455,7 +455,7 @@
                                                                   :filter (val* filter))
                            (display project-table
                                     :selected-id (val id))))
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (project) (val filter)))
                    (footer)))))
         (see-other (error-page)))))

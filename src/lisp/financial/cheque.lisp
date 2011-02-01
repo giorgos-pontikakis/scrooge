@@ -261,7 +261,7 @@
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'cheque)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (cheque cheque-kind) (val filter)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Κατάλογος επιταγών")
@@ -296,7 +296,7 @@
        (:div :id "container" :class "container_12"
              (header 'financial)
              (financial-navbar 'cheque)
-             (:div :id "controls" :class "controls grid_3"
+             (:div :id "sidebar" :class "sidebar grid_3"
                    (filters (cheque cheque-kind) (val filter))
                    (cheque-notifications))
              (:div :class "window grid_9"
@@ -342,7 +342,7 @@
            (:div :id "container" :class "container_12"
                  (header 'financial)
                  (financial-navbar 'cheque)
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        (filters (cheque cheque-kind) (val filter))
                        (cheque-notifications))
                  (:div :class "window grid_9"
@@ -395,7 +395,7 @@
                                          :filter (val filter)
                                          :id (val id)
                                          :data (get-cheque-plist (val id))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        "")
                  (error-page))))
         (see-other (notfound)))))
@@ -420,7 +420,7 @@
                    (header 'financial)
                    (financial-navbar 'cheque)
                    (:div :class "window"
-                         (:div :id "controls" :class "controls grid_3"
+                         (:div :id "sidebar" :class "sidebar grid_3"
                                (filters (cheque cheque-kind) (val filter)))
                          (:div :class "window grid_9"
                                (:div :class "title" "Διαγραφή επιταγής")

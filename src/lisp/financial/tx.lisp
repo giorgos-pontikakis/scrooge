@@ -253,7 +253,7 @@
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'transaction)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (transaction) (val filter)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Κατάλογος συναλλαγών")
@@ -306,7 +306,7 @@
                                                                         debit-account
                                                                         credit-account
                                                                         amount))))
-             (:div :id "controls" :class "controls grid_3"
+             (:div :id "sidebar" :class "sidebar grid_3"
                    (filters (transaction) (val filter))
                    (transaction-notifications))
              (footer))))))
@@ -354,7 +354,7 @@
                                                                             debit-account
                                                                             credit-account
                                                                             amount))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        (transaction-notifications))
                  (footer))))
         (see-other (notfound)))))
@@ -382,7 +382,7 @@
                                               :filter (val filter)
                                               :id (val id)
                                               :data (get-tx-plist (val id))))
-                 (:div :id "controls" :class "controls grid_3"
+                 (:div :id "sidebar" :class "sidebar grid_3"
                        "")
                  (error-page))))
         (see-other (notfound)))))
@@ -404,7 +404,7 @@
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'transaction)
-                   (:div :id "controls" :class "controls grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_3"
                          (filters (transaction) (val filter)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Διαγραφή συναλλαγής")
