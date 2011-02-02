@@ -43,7 +43,7 @@
 
 (define-dynamic-page actions/admin/project/create ("actions/admin/project/create"
                                                    :request-type :post)
-    ((filter string)
+    ((search      string)
      (company     string chk-company-title t)
      (description string chk-new-project-description)
      (location    string)
@@ -69,8 +69,8 @@
                                              :end-date (val end-date)
                                              :status (val status))))
             (insert-dao new-project)
-            (see-other (project :id (id new-project) :filter (val filter)))))
-        (see-other (project/create :filter (raw filter)
+            (see-other (project :id (id new-project) :search (val search)))))
+        (see-other (project/create :search (raw search)
                                    :company (raw company)
                                    :description (raw description)
                                    :location (raw location)
@@ -83,7 +83,7 @@
 
 (define-dynamic-page actions/admin/project/update ("actions/admin/project/update"
                                                    :request-type :post)
-    ((filter      string)
+    ((search      string)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-new-project-description description id))
@@ -110,8 +110,8 @@
                               'end-date (val end-date)
                               'status (val status)
                               :where (:= 'id (val id))))
-            (see-other (project :id (val id) :filter (val filter)))))
-        (see-other (project/update :filter (raw filter)
+            (see-other (project :id (val id) :search (val search)))))
+        (see-other (project/update :search (raw search)
                                    :id (raw id)
                                    :company (raw company)
                                    :description (raw description)
@@ -126,13 +126,13 @@
 (define-dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
                                                    :request-type :post)
     ((id     integer chk-project-id)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'project (val id)))
-          (see-other (project :filter (val filter))))
+          (see-other (project :search (val search))))
         (see-other (notfound)))))
 
 
@@ -141,21 +141,21 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-menu (id filter &optional disabled-items)
+(defun project-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "project-actions"
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud+details+archive-actions-spec (project :id id
-                                                                            :filter filter)
+                                                                            :search search)
                                                                    (project/details :id id
-                                                                                    :filter filter)
-                                                                   (project/create :filter filter)
+                                                                                    :search search)
+                                                                   (project/create :search search)
                                                                    (project/update :id id
-                                                                                   :filter filter)
+                                                                                   :search search)
                                                                    (project/details :id id
-                                                                                    :filter filter)
+                                                                                    :search search)
                                                                    (project/delete :id id
-                                                                                   :filter filter)))
+                                                                                   :search search)))
            :disabled-items disabled-items))
 
 
@@ -199,13 +199,13 @@
                                            :id "project-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
-                                           :urlfn (lambda (filter start)
-                                                    (project :filter filter
+                                           :urlfn (lambda (search start)
+                                                    (project :search search
                                                              :start start)))))
   (:default-initargs :item-class 'project-row))
 
 (defmethod read-records ((table project-table))
-  (let* ((filter (filter table))
+  (let* ((search (filter table))
          (base-query `(:select project.id (:as company.title company)
                                project.description location
                                (:as project-status.description status)
@@ -214,11 +214,11 @@
                                :on (:= project.company-id company.id)
                                :left-join project-status
                                :on (:= project-status.id project.status)))
-         (composite-query (if filter
+         (composite-query (if search
                               (append base-query
-                                      `(where (:or (:ilike project.description ,(ilike filter))
-                                                   (:ilike company.title ,(ilike filter))
-                                                   (:ilike project.location ,(ilike filter)))))
+                                      `(where (:or (:ilike project.description ,(ilike search))
+                                                   (:ilike company.title ,(ilike search))
+                                                   (:ilike project.location ,(ilike search)))))
                               base-query))
          (final-query `(:order-by ,composite-query project.id start-date)))
     (with-db ()
@@ -235,12 +235,12 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (filter (filter (collection row))))
+         (search (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :states (list
-                                            :on (project :filter filter
+                                            :on (project :search search
                                                          :start (page-start pg (index row) start))
-                                            :off (project :filter filter
+                                            :off (project :search search
                                                           :id id)))
           :payload (mapcar (lambda (name)
                              (make-instance 'textbox-cell
@@ -250,7 +250,7 @@
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (project :id id :filter filter))))))
+                                    :href (project :id id :search search))))))
 
 
 
@@ -260,14 +260,14 @@
 
 (define-dynamic-page project ("admin/project")
     ((id integer chk-project-id)
-     (filter string)
+     (search string)
      (start integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((project-table (make-instance 'project-table
                                             :op 'catalogue
-                                            :filter (val* filter))))
+                                            :filter (val* search))))
           (with-document ()
             (:head
              (:title "Έργα")
@@ -279,7 +279,7 @@
                    (:div :id "project-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος έργων")
                          (project-menu (val id)
-                                       (val filter)
+                                       (val search)
                                        (if (val id)
                                            '(catalogue create)
                                            '(catalogue details archive update delete)))
@@ -288,12 +288,12 @@
                                   :start (val* start)))
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (project) (val filter)))
+                         (searchbox (project) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
 (define-dynamic-page project/create ("admin/project/create")
-    ((filter string)
+    ((search string)
      (company     string chk-company-title)
      (description string chk-new-project-description)
      (location    string)
@@ -316,11 +316,11 @@
              (:div :id "project-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία έργου")
                    (project-menu nil
-                                 (val filter)
+                                 (val search)
                                  '(details create update archive delete))
                    (with-form (actions/admin/project/create)
                      (project-data-form 'create
-                                        :filter (val filter)
+                                        :search (val search)
                                         :data (parameters->plist company
                                                                  description
                                                                  location
@@ -344,7 +344,7 @@
              (footer))))))
 
 (define-dynamic-page project/update ("admin/project/update")
-    ((filter      string)
+    ((search      string)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-new-project-description description id))
@@ -369,12 +369,12 @@
                  (:div :id "project-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία έργου")
                        (project-menu (val id)
-                                     (val filter)
+                                     (val search)
                                      '(create update))
                        (with-form (actions/admin/project/update :id (val id))
                          (project-data-form 'update
                                             :id (val id)
-                                            :filter (val filter)
+                                            :search (val search)
                                             :data (plist-union (parameters->plist id
                                                                                   company
                                                                                   description
@@ -402,7 +402,7 @@
         (see-other (error-page)))))
 
 (define-dynamic-page project/details ("admin/project/details")
-    ((filter     string)
+    ((search     string)
      (id         integer chk-project-id t))
   (with-auth ("configuration")
     (no-cache)
@@ -418,11 +418,11 @@
                  (:div :id "project-window" :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες έργου")
                        (project-menu (val id)
-                                     (val filter)
+                                     (val search)
                                      '(details create))
                        (with-form (actions/admin/project/update :id (val id))
                          (project-data-form 'details
-                                            :filter (val filter)
+                                            :search (val search)
                                             :id (val id)
                                             :data (get-project-plist (val id)))))
                  (:div :id "sidebar" :class "sidebar grid_3"
@@ -432,13 +432,13 @@
 
 (define-dynamic-page project/delete ("admin/project/delete")
     ((id integer chk-project-id t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((project-table (make-instance 'project-table
                                             :op 'delete
-                                            :filter (val* filter))))
+                                            :filter (val* search))))
           (with-document ()
             (:head
              (:title "Διαγραφή έργου")
@@ -450,20 +450,20 @@
                    (:div :id "project-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή έργου")
                          (project-menu (val id)
-                                       (val filter)
+                                       (val search)
                                        '(catalogue create delete))
                          (with-form (actions/admin/project/delete :id (val id)
-                                                                  :filter (val* filter))
+                                                                  :search (val* search))
                            (display project-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (project) (val filter)))
+                         (searchbox (project) (val search)))
                    (footer)))))
         (see-other (error-page)))))
 
 
-(defun project-data-form (op &key filter id data styles)
+(defun project-data-form (op &key search id data styles)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
              (with-html
@@ -502,4 +502,4 @@
         (unless disabledp
           (htm (:div :id "project-data-form-buttons" :class "grid_9"
                      (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                     (cancel-button (project :id id :filter filter) "Άκυρο"))))))))
+                     (cancel-button (project :id id :search search) "Άκυρο"))))))))

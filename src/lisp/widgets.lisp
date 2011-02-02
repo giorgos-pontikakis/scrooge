@@ -504,24 +504,19 @@
   (with-html
     (:div :id (id navbar) :class (style navbar)
           (:ul
-           (iter (for (page-id label) in (spec navbar))
-                 (let ((page-name (first (ensure-list page-id))))
-                   (htm (:li (if (eql page-name active-page-name)
-                                 (htm (:p (str label)))
-                                 (htm (:a :href (if (fboundp page-name)
-                                                    (apply page-name (rest (ensure-list page-id)))
-                                                    (error-page))
-                                          (str label))))))))))))
+           (iter (for (page-name href label) in (spec navbar))
+                 (htm (:li (if (eql page-name active-page-name)
+                               (htm (:p (str label)))
+                               (htm (:a :href href
+                                        (str label)))))))))))
 
 (defclass horizontal-navbar (navbar)
-  ((active-style   :initform "active")
-   (inactive-style :initform nil)
-   (style          :initform "hnavbar")))
+  ()
+  (:default-initargs :style "hnavbar"))
 
 (defclass vertical-navbar (navbar)
-  ((active-style   :initform "active")
-   (inactive-style :initform nil)
-   (style          :initform "vnavbar")))
+  ()
+  (:default-initargs :style "hnavbar"))
 
 
 

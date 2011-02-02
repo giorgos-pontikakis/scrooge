@@ -117,9 +117,9 @@
   (display (make-instance 'horizontal-navbar
                           :id "primary-navbar"
                           :style "hnavbar grid_8 prefix_1"
-                          :spec '((financial "Οικονομικά")
-                                  (admin     "Διαχείριση")
-                                  (config    "Ρυθμίσεις")))
+                          :spec `((financial ,(financial) "Οικονομικά")
+                                  (admin     ,(admin)     "Διαχείριση")
+                                  (config    ,(config)    "Ρυθμίσεις")))
            :active-page-name active-page-name))
 
 (defun logout-menu ()
@@ -171,13 +171,13 @@
 ;;; Searchbox
 ;;; ------------------------------------------------------------
 
-(defun searchbox (submit-url filter)
+(defun searchbox (submit-url search)
   (with-html
     (:div :id "searchbox"
           (:form :method :get
                  :action submit-url
                  (:p :class "search"
-                     (textbox 'filter :value filter)
+                     (textbox 'search :value search)
                      (submit (html ()
                                (img "magnifier.png")))
                      (cancel-button submit-url))))))

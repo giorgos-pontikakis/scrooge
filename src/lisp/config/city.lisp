@@ -47,19 +47,19 @@
 
 (define-dynamic-page actions/config/city/create ("actions/config/city/create" :request-type :post)
     ((title  string chk-new-city-title t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'city :title (val title)))
           (see-other (city :id (city-id (val title)))))
-        (see-other (city/create :title (raw title) :filter (raw filter))))))
+        (see-other (city/create :title (raw title) :search (raw search))))))
 
 (define-dynamic-page actions/config/city/update ("actions/config/city/update" :request-type :post)
     ((id     integer chk-city-id t)
      (title  string (chk-new-city-title title id) t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -67,18 +67,18 @@
           (execute (:update 'city :set
                             'title (val title)
                             :where (:= 'id (val id))))
-          (see-other (city :id (val id) :filter (val filter))))
-        (see-other (city/update :id (raw id) :title (raw title) :filter (raw filter))))))
+          (see-other (city :id (val id) :search (val search))))
+        (see-other (city/update :id (raw id) :title (raw title) :search (raw search))))))
 
 (define-dynamic-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
     ((id     integer chk-city-id/ref t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'city (val id)))
-          (see-other (city :filter (val filter))))
+          (see-other (city :search (val search))))
         (see-other (notfound)))))
 
 
@@ -87,20 +87,20 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun city-menu (id filter &optional disabled-items)
+(defun city-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "city-actions"
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud-actions-spec (city :id id
-                                                         :filter filter)
-                                                   (city/create :filter filter)
+                                                         :search search)
+                                                   (city/create :search search)
                                                    (city/update :id id
-                                                                :filter filter)
+                                                                :search search)
                                                    (if (or (null id)
                                                            (city-referenced-p id))
                                                        nil
                                                        (city/delete :id id
-                                                                    :filter filter))))
+                                                                    :search search))))
            :disabled-items disabled-items))
 
 
@@ -121,8 +121,8 @@
                                        :id "city-paginator"
                                        :style "paginator grid_9 alpha"
                                        :delta 10
-                                       :urlfn (lambda (filter start)
-                                                (city :filter filter
+                                       :urlfn (lambda (search start)
+                                                (city :search search
                                                       :start start)))))
   (:default-initargs :id "config-table" :item-class 'city-row))
 
@@ -139,11 +139,11 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (filter (filter (collection row))))
+         (search (filter (collection row))))
     (list :selector (make-instance 'selector-cell
-                                   :states (list :on (city :filter filter
+                                   :states (list :on (city :search search
                                                            :start (page-start pg (index row) start))
-                                                 :off (city :filter filter
+                                                 :off (city :search search
                                                             :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
@@ -151,7 +151,7 @@
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (city :id id :filter filter))))))
+                                    :href (city :id id :search search))))))
 
 
 
@@ -161,14 +161,14 @@
 
 (define-dynamic-page city ("config/city")
     ((id     integer chk-city-id)
-     (filter string)
+     (search string)
      (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((city-table (make-instance 'city-table
                                          :op 'catalogue
-                                         :filter (val* filter))))
+                                         :filter (val* search))))
           (with-document ()
             (:head
              (:title "Πόλεις")
@@ -179,11 +179,11 @@
                    (config-navbar 'city)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (city) (val filter)))
+                         (searchbox (city) (val search)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος πόλεων")
                          (city-menu (val id)
-                                    (val filter)
+                                    (val search)
                                     (if (val id)
                                         '(catalogue)
                                         '(catalogue update delete)))
@@ -195,12 +195,12 @@
 
 (define-dynamic-page city/create ("config/city/create")
     ((title  string chk-new-city-title)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (let ((city-table (make-instance 'city-table
                                      :op 'create
-                                     :filter (val* filter))))
+                                     :filter (val* search))))
       (with-document ()
         (:head
          (:title "Δημιουργία πόλης")
@@ -211,14 +211,14 @@
                (config-navbar 'city)
                (:div :id "sidebar" :class "sidebar grid_3"
                      (:p :class "title" "Φίλτρα")
-                     (searchbox (city) (val filter))
+                     (searchbox (city) (val search))
                      (city-notifications))
                (:div :id "city-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία πόλης")
                      (city-menu nil
-                                (val filter)
+                                (val search)
                                 '(create update delete))
-                     (with-form (actions/config/city/create :filter (val* filter))
+                     (with-form (actions/config/city/create :search (val* search))
                        (display city-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
@@ -227,13 +227,13 @@
 (define-dynamic-page city/update ("config/city/update")
     ((id     integer chk-city-id                   t)
      (title  string  (chk-new-city-title title id))
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((city-table (make-instance 'city-table
                                          :op 'update
-                                         :filter (val* filter))))
+                                         :filter (val* search))))
           (with-document ()
             (:head
              (:title "Επεξεργασία πόλης")
@@ -244,15 +244,15 @@
                    (config-navbar 'city)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (city) (val filter))
+                         (searchbox (city) (val search))
                          (city-notifications))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία πόλης")
                          (city-menu (val id)
-                                    (val filter)
+                                    (val search)
                                     '(create update))
                          (with-form (actions/config/city/update :id (val* id)
-                                                                :filter (val* filter))
+                                                                :search (val* search))
                            (display city-table
                                     :selected-id (val id)
                                     :selected-data (list :title (val* title)))))
@@ -261,13 +261,13 @@
 
 (define-dynamic-page city/delete ("config/city/delete")
     ((id integer chk-city-id/ref t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((city-table (make-instance 'city-table
                                          :op 'delete
-                                         :filter (val* filter))))
+                                         :filter (val* search))))
           (with-document ()
             (:head
              (:title "Διαγραφή πόλης")
@@ -278,14 +278,14 @@
                    (config-navbar 'city)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (city) (val filter)))
+                         (searchbox (city) (val search)))
                    (:div :id "city-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή πόλης")
                          (city-menu (val id)
-                                    (val filter)
+                                    (val search)
                                     '(create delete))
                          (with-form (actions/config/city/delete :id (val id)
-                                                                :filter (val* filter))
+                                                                :search (val* search))
                            (display city-table
                                     :selected-id (val id))))
                    (footer)))))

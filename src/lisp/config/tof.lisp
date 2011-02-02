@@ -47,19 +47,19 @@
 
 (define-dynamic-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
     ((title  string chk-new-tof-title t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'tof :title (val title)))
           (see-other (tof :id (tof-id (val title)))))
-        (see-other (tof/create :title (raw title) :filter (raw filter))))))
+        (see-other (tof/create :title (raw title) :search (raw search))))))
 
 (define-dynamic-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
     ((id     integer chk-tof-id t)
      (title  string (chk-new-tof-title title id) t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -67,17 +67,17 @@
           (execute (:update 'tof :set
                             'title (val title)
                             :where (:= 'id (val id))))
-          (see-other (tof :id (val id) :filter (val filter))))
-        (see-other (tof/update :id (raw id) :title (raw title) :filter (raw filter))))))
+          (see-other (tof :id (val id) :search (val search))))
+        (see-other (tof/update :id (raw id) :title (raw title) :search (raw search))))))
 
 (define-dynamic-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
     ((id     integer chk-tof-id/ref t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'tof (val id)))
-          (see-other (tof :filter (val filter))))
+          (see-other (tof :search (val search))))
         (see-other (notfound)))))
 
 
@@ -86,20 +86,20 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun tof-menu (id filter &optional disabled-items)
+(defun tof-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "tof-actions"
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud-actions-spec (tof :id id
-                                                        :filter filter)
-                                                   (tof/create :filter filter)
+                                                        :search search)
+                                                   (tof/create :search search)
                                                    (tof/update :id id
-                                                               :filter filter)
+                                                               :search search)
                                                    (if (or (null id)
                                                            (tof-referenced-p id))
                                                        nil
                                                        (tof/delete :id id
-                                                                   :filter filter))))
+                                                                   :search search))))
            :disabled-items disabled-items))
 
 (defun tof-notifications ()
@@ -120,8 +120,8 @@
                                            :id "tof-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
-                                           :urlfn (lambda (filter start)
-                                                    (tof :filter filter
+                                           :urlfn (lambda (search start)
+                                                    (tof :search search
                                                          :start start)))))
   (:default-initargs :id "config-table" :item-class 'tof-row))
 
@@ -139,11 +139,11 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (filter (filter (collection row))))
+         (search (filter (collection row))))
     (list :selector (make-instance 'selector-cell
-                                   :states (list :on (tof :filter filter
+                                   :states (list :on (tof :search search
                                                           :start (page-start pg (index row) start))
-                                                 :off (tof :filter filter
+                                                 :off (tof :search search
                                                            :id id)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
@@ -151,7 +151,7 @@
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (tof :id id :filter filter))))))
+                                    :href (tof :id id :search search))))))
 
 
 
@@ -161,14 +161,14 @@
 
 (define-dynamic-page tof ("config/tof")
     ((id     integer chk-tof-id)
-     (filter string)
+     (search string)
      (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((tof-table (make-instance 'tof-table
                                         :op 'catalogue
-                                        :filter (val* filter))))
+                                        :filter (val* search))))
           (with-document ()
             (:head
              (:title "Τράπεζες")
@@ -179,11 +179,11 @@
                    (config-navbar 'tof)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (tof) (val filter)))
+                         (searchbox (tof) (val search)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
                          (tof-menu (val id)
-                                   (val filter)
+                                   (val search)
                                    (if (val id)
                                        '(catalogue)
                                        '(catalogue update delete)))
@@ -195,12 +195,12 @@
 
 (define-dynamic-page tof/create ("config/tof/create")
     ((title  string chk-new-tof-title)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (let ((tof-table (make-instance 'tof-table
                                     :op 'create
-                                    :filter (val* filter))))
+                                    :filter (val* search))))
       (with-document ()
         (:head
          (:title "Δημιουργία Δ.Ο.Υ.")
@@ -211,14 +211,14 @@
                (config-navbar 'tof)
                (:div :id "sidebar" :class "sidebar grid_3"
                      (:p :class "title" "Φίλτρα")
-                     (searchbox (tof) (val filter))
+                     (searchbox (tof) (val search))
                      (tof-notifications))
                (:div :id "tof-window" :class "window grid_9"
                      (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
                      (tof-menu nil
-                               (val filter)
+                               (val search)
                                '(create update delete))
-                     (with-form (actions/config/tof/create :filter (val* filter))
+                     (with-form (actions/config/tof/create :search (val* search))
                        (display tof-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
@@ -227,13 +227,13 @@
 (define-dynamic-page tof/update ("config/tof/update")
     ((id     integer chk-tof-id                   t)
      (title  string  (chk-new-tof-title title id))
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((tof-table (make-instance 'tof-table
                                         :op 'update
-                                        :filter (val* filter))))
+                                        :filter (val* search))))
           (with-document ()
             (:head
              (:title "Επεξεργασία Δ.Ο.Υ.")
@@ -244,15 +244,15 @@
                    (config-navbar 'tof)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (tof) (val filter))
+                         (searchbox (tof) (val search))
                          (tof-notifications))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
                          (tof-menu (val id)
-                                   (val filter)
+                                   (val search)
                                    '(create update))
                          (with-form (actions/config/tof/update :id (val* id)
-                                                               :filter (val* filter))
+                                                               :filter (val* search))
                            (display tof-table
                                     :selected-id (val id)
                                     :selected-data (list :title (val* title)))))
@@ -261,13 +261,13 @@
 
 (define-dynamic-page tof/delete ("config/tof/delete")
     ((id     integer chk-tof-id/ref t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((tof-table (make-instance 'tof-table
                                         :op 'delete
-                                        :filter (val* filter))))
+                                        :filter (val* search))))
           (with-document ()
             (:head
              (:title "Διαγραφή Δ.Ο.Υ.")
@@ -278,14 +278,14 @@
                    (config-navbar 'tof)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (tof) (val filter)))
+                         (searchbox (tof) (val search)))
                    (:div :id "tof-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
                          (tof-menu (val id)
-                                   (val filter)
+                                   (val search)
                                    '(create delete))
                          (with-form (actions/config/tof/delete :id (val id)
-                                                               :filter (val* filter))
+                                                               :search (val* search))
                            (display tof-table
                                     :selected-id (val id))))
                    (footer)))))

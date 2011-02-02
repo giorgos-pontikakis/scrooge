@@ -6,8 +6,8 @@
 (defun admin-navbar (&optional active-page-name)
   (display (make-instance 'horizontal-navbar
                           :style "section-navbar hnavbar grid_12"
-                          :spec '((company "Εταιρίες")
-                                  (project "Έργα")))
+                          :spec `((company ,(company) "Εταιρίες")
+                                  (project ,(project) "Έργα")))
            :active-page-name active-page-name))
 
 

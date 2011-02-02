@@ -24,6 +24,8 @@
       :date-null
       nil))
 
+
+
 ;;; --------------------------------------------------------------------------------
 ;;; Actions
 ;;; --------------------------------------------------------------------------------
@@ -32,7 +34,7 @@
     (("actions/financial/cheque/" cheque-kind "/create")
      :registers (cheque-kind "(receivable|payable)")
      :request-type :post)
-    ((filter   string)
+    ((search   string)
      (bank     string chk-bank-title)
      (company  string chk-company-title t)
      (due-date date   chk-date          t)
@@ -52,9 +54,9 @@
                                           :payable-p (string= cheque-kind "payable"))))
           (with-db ()
             (insert-dao new-cheque)
-            (see-other (cheque cheque-kind :id (id new-cheque) :filter (val filter)))))
+            (see-other (cheque cheque-kind :id (id new-cheque) :search (val search)))))
         (see-other (cheque/create cheque-kind
-                                  :filter (raw filter)
+                                  :search (raw search)
                                   :bank (raw bank)
                                   :company (raw company)
                                   :due-date (raw due-date)
@@ -64,7 +66,7 @@
     (("actions/financial/cheque/" cheque-kind "/update")
      :registers (cheque-kind "(receivable|payable)")
      :request-type :post)
-    ((filter   string)
+    ((search   string)
      (id       integer chk-cheque-id     t)
      (bank     string  chk-bank-title)
      (company  string  chk-company-title t)
@@ -86,7 +88,7 @@
                               :where (:= 'id (val id)))))
           (see-other (cheque cheque-kind :id (val id))))
         (see-other (cheque/update cheque-kind
-                                  :filter (raw filter)
+                                  :search (raw search)
                                   :id (raw id)
                                   :bank (raw bank)
                                   :company (raw company)
@@ -98,14 +100,14 @@
     (("actions/financial/cheque/" cheque-kind "/delete")
      :registers (cheque-kind "(receivable|payable)")
      :request-type :post)
-    ((filter string)
+    ((search string)
      (id     integer chk-cheque-id t))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'cheque (val id)))
-          (see-other (cheque cheque-kind :filter (val filter))))
+          (see-other (cheque cheque-kind :search (val search))))
         (see-other (notfound)))))
 
 
@@ -114,24 +116,24 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun cheque-menu (cheque-kind id filter &optional disabled-items)
+(defun cheque-menu (cheque-kind id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "cheque-actions"
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud+details-actions-spec (cheque cheque-kind
                                                                    :id id
-                                                                   :filter filter)
+                                                                   :search search)
                                                            (cheque/details cheque-kind
                                                                            :id id
-                                                                           :filter filter)
+                                                                           :search search)
                                                            (cheque/create cheque-kind
-                                                                          :filter filter)
+                                                                          :search search)
                                                            (cheque/update cheque-kind
                                                                           :id id
-                                                                          :filter filter)
+                                                                          :search search)
                                                            (cheque/delete cheque-kind
                                                                           :id id
-                                                                          :filter filter)))
+                                                                          :search search)))
            :disabled-items disabled-items))
 
 (defun  cheque-notifications ()
@@ -144,6 +146,15 @@
      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
               :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))))
 
+(defun cheque-filters (cheque-kind)
+  (with-html
+    (:div :id "filters"
+          (display (make-instance 'vertical-navbar
+                                  :id "cheque-kind-filter"
+                                  :style "vnavbar"
+                                  :spec `((receivable ,(cheque "receivable") "Εισπρακτέες")
+                                          (payable    ,(cheque "payable")    "Πληρωτέες")))
+                   :active-page-name (intern (string-upcase cheque-kind))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -178,14 +189,16 @@
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
-                                           :urlfn (lambda (cheque-kind filter start)
+                                           :urlfn (lambda (cheque-kind search start)
                                                     (cheque cheque-kind
-                                                            :filter filter
+                                                            :search search
                                                             :start start)))))
   (:default-initargs :item-class 'cheque-row))
 
 (defmethod read-records ((table cheque-table))
   (let* ((filter (filter table))
+         (search (getf filter :search))
+         (payable-p (string= (getf filter :cheque-kind) "payable"))
          (base-query `(:select cheque.id (:as bank.title bank)
                                due-date (:as company.title company) amount payable-p
                                :from cheque
@@ -193,10 +206,11 @@
                                :on (:= bank.id cheque.bank-id)
                                :inner-join company
                                :on (:= company.id cheque.company-id)))
-         (composite-query (if (filter table)
+         (composite-query (if filter
                               (append base-query
-                                      `(:where (:or (:ilike company.title ,(ilike filter))
-                                                    (:ilike bank.title ,(ilike filter)))))
+                                      `(:where (:and (:or (:ilike company.title ,(ilike search))
+                                                          (:ilike bank.title ,(ilike search)))
+                                                     (:= cheque.payable-p ,payable-p))))
                               base-query))
          (final-query `(:order-by ,composite-query (:desc due-date))))
     (with-db ()
@@ -213,15 +227,15 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (filter (filter (collection row)))
+         (search (getf (filter (collection row)) :search))
          (cheque-kind (if (getf record :payable-p) "payable" "receivable")))
     (list :selector
           (make-instance 'selector-cell
                          :states (list :on (cheque cheque-kind
-                                                   :filter filter
+                                                   :search search
                                                    :start (page-start pg (index row) start))
                                        :off (cheque cheque-kind
-                                                    :filter filter
+                                                    :search search
                                                     :id id)))
           :payload
           (mapcar (lambda (name)
@@ -233,7 +247,7 @@
           (list
            (make-instance 'ok-cell)
            (make-instance 'cancel-cell
-                          :href (cheque cheque-kind :id id :filter filter))))))
+                          :href (cheque cheque-kind :id id :search search))))))
 
 
 
@@ -242,8 +256,8 @@
 ;;; ------------------------------------------------------------
 
 (define-regex-page cheque (("financial/cheque/" cheque-kind)
-                            :registers (cheque-kind "(receivable|payable)"))
-    ((filter    string)
+                           :registers (cheque-kind "(receivable|payable)"))
+    ((search    string)
      (start     integer)
      (id        integer chk-cheque-id))
   (with-auth ("configuration")
@@ -252,7 +266,8 @@
         (let ((cheque-table (make-instance 'cheque-table
                                            :id "cheque-table"
                                            :op 'catalogue
-                                           :filter (val* filter))))
+                                           :filter (list :search (val* search)
+                                                         :cheque-kind cheque-kind))))
           (with-document ()
             (:head
              (:title "Επιταγές")
@@ -263,12 +278,13 @@
                    (financial-navbar 'cheque)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (cheque cheque-kind) (val filter)))
+                         (searchbox (cheque cheque-kind) (val search))
+                         (cheque-filters cheque-kind))
                    (:div :class "window grid_9"
                          (:div :class "title" "Κατάλογος επιταγών")
                          (cheque-menu cheque-kind
                                       (val id)
-                                      (val filter)
+                                      (val search)
                                       (if (val id)
                                           '(catalogue create)
                                           '(catalogue details update delete)))
@@ -280,8 +296,8 @@
         (see-other (notfound)))))
 
 (define-regex-page cheque/create (("financial/cheque/" cheque-kind "/create")
-                                   :registers (cheque-kind "(receivable|payable)"))
-    ((filter    string)
+                                  :registers (cheque-kind "(receivable|payable)"))
+    ((search    string)
      (bank      string  chk-bank-title)
      (due-date  date    chk-date)
      (company   string  chk-company-title)
@@ -299,19 +315,19 @@
              (financial-navbar 'cheque)
              (:div :id "sidebar" :class "sidebar grid_3"
                    (:p :class "title" "Φίλτρα")
-                   (searchbox (cheque cheque-kind) (val filter))
+                   (searchbox (cheque cheque-kind) (val search))
                    (cheque-notifications))
              (:div :class "window grid_9"
                    (:div :class "title" "Δημιουργία επιταγής")
                    (cheque-menu cheque-kind
                                 nil
-                                (val filter)
+                                (val search)
                                 '(create update delete))
-                   (:form :action (actions/financial/cheque/create cheque-kind :filter (val* filter))
+                   (:form :action (actions/financial/cheque/create cheque-kind :search (val* search))
                           :method :post
                           (cheque-data-form cheque-kind
                                             'create
-                                            :filter (val filter)
+                                            :search (val search)
                                             :data (parameters->plist bank
                                                                      company
                                                                      due-date
@@ -325,8 +341,8 @@
        (footer)))))
 
 (define-regex-page cheque/update (("financial/cheque/" cheque-kind "/update")
-                                   :registers (cheque-kind "(receivable|payable)"))
-    ((filter   string)
+                                  :registers (cheque-kind "(receivable|payable)"))
+    ((search   string)
      (id       integer chk-cheque-id     t)
      (bank     string  chk-bank-title)
      (company  string  chk-company-title)
@@ -346,18 +362,18 @@
                  (financial-navbar 'cheque)
                  (:div :id "sidebar" :class "sidebar grid_3"
                        (:p :class "title" "Φίλτρα")
-                       (searchbox (cheque cheque-kind) (val filter))
+                       (searchbox (cheque cheque-kind) (val search))
                        (cheque-notifications))
                  (:div :class "window grid_9"
                        (:div :class "title" "Επεξεργασία επιταγής")
                        (cheque-menu cheque-kind
                                     (val id)
-                                    (val filter)
+                                    (val search)
                                     '(create update))
                        (with-form (actions/financial/cheque/update cheque-kind :id (val id))
                          (cheque-data-form cheque-kind
                                            'update
-                                           :filter (val filter)
+                                           :search (val search)
                                            :data (plist-union (parameters->plist bank
                                                                                  company
                                                                                  due-date
@@ -373,8 +389,8 @@
         (see-other (notfound)))))
 
 (define-regex-page cheque/details (("financial/cheque/" cheque-kind "/details")
-                                    :registers (cheque-kind "(receivable|payable)"))
-    ((filter     string)
+                                   :registers (cheque-kind "(receivable|payable)"))
+    ((search     string)
      (id         integer chk-cheque-id t))
   (with-auth ("configuration")
     (no-cache)
@@ -391,11 +407,11 @@
                        (:div :class "title" "Λεπτομέρειες επιταγής")
                        (cheque-menu cheque-kind
                                     (val id)
-                                    (val filter)
+                                    (val search)
                                     '(details create))
                        (cheque-data-form cheque-kind
                                          'details
-                                         :filter (val filter)
+                                         :search (val search)
                                          :id (val id)
                                          :data (get-cheque-plist (val id))))
                  (:div :id "sidebar" :class "sidebar grid_3"
@@ -404,16 +420,17 @@
         (see-other (notfound)))))
 
 (define-regex-page cheque/delete (("financial/cheque/" cheque-kind "/delete")
-                                   :registers (cheque-kind "(receivable|payable)"))
-    ((filter string)
-     (id integer chk-cheque-id t))
+                                  :registers (cheque-kind "(receivable|payable)"))
+    ((search string)
+     (id     integer chk-cheque-id t))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((cheque-table (make-instance 'cheque-table
                                            :op 'delete
                                            :id "cheque-table"
-                                           :filter (val* filter))))
+                                           :filter (list :search (val* search)
+                                                         :cheque-kind cheque-kind))))
           (with-document ()
             (:head
              (:title "Επιταγές > Διαγραφή")
@@ -425,23 +442,23 @@
                    (:div :class "window"
                          (:div :id "sidebar" :class "sidebar grid_3"
                                (:p :class "title" "Φίλτρα")
-                               (searchbox (cheque cheque-kind) (val filter)))
+                               (searchbox (cheque cheque-kind) (val search)))
                          (:div :class "window grid_9"
                                (:div :class "title" "Διαγραφή επιταγής")
                                (cheque-menu cheque-kind
                                             (val id)
-                                            (val filter)
+                                            (val search)
                                             '(catalogue create delete))
                                (with-form (actions/financial/cheque/delete cheque-kind
                                                                            :id (val id)
-                                                                           :filter (val* filter))
+                                                                           :search (val* search))
                                  (display cheque-table
                                           :selected-id (val id)))))
                    (footer)))))
         (see-other (notfound)))))
 
 
-(defun cheque-data-form (cheque-kind op &key filter id data styles)
+(defun cheque-data-form (cheque-kind op &key search id data styles)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
              (with-html
@@ -468,4 +485,4 @@
         (unless disabledp
           (htm (:div :id "cheque-data-form-buttons" :class "grid_9"
                      (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                     (cancel-button (cheque cheque-kind :id id :filter filter) "Άκυρο"))))))))
+                     (cancel-button (cheque cheque-kind :id id :search search) "Άκυρο"))))))))

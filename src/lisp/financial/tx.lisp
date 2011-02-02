@@ -31,7 +31,7 @@
 
 (define-dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
                                                            :request-type :post)
-    ((filter         string)
+    ((search         string)
      (date           date)
      (description    string)
      (company        string  chk-company-title*)
@@ -53,7 +53,7 @@
                                       :debit-acc-id debit-acc-id)))
           (with-db ()
             (insert-dao new-tx)
-            (see-other (transaction :id (id new-tx) :filter (val filter)))))
+            (see-other (transaction :id (id new-tx) :search (val search)))))
         (see-other (transaction/create :date (raw date)
                                        :description (raw description)
                                        :company (raw company)
@@ -63,7 +63,7 @@
 
 (define-dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
                                                            :request-type :post)
-    ((filter         string)
+    ((search         string)
      (id             integer chk-tx-id t)
      (date           date)
      (description    string)
@@ -87,7 +87,7 @@
                               'credit-acc-id credit-acc-id
                               :where (:= 'id (val id))))
             (see-other (transaction :id (val id)))))
-        (see-other (transaction/update :filter (raw filter)
+        (see-other (transaction/update :search (raw search)
                                        :id (raw id)
                                        :date (raw date)
                                        :description (raw description)
@@ -99,11 +99,11 @@
 (define-dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
                                                            :request-type :post)
     ((id     integer chk-tx-id t)
-     (filter string))
+     (search string))
   (if (validp id)
       (with-db ()
         (delete-dao (get-dao 'tx (val id)))
-        (see-other (transaction :filter (val filter))))
+        (see-other (transaction :search (val search))))
       (see-other (notfound))))
 
 
@@ -112,19 +112,19 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun transaction-menu (id filter &optional disabled-items)
+(defun transaction-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "transaction-actions"
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud+details-actions-spec (transaction :id id
-                                                                        :filter filter)
+                                                                        :search search)
                                                            (transaction/details :id id
-                                                                                :filter filter)
-                                                           (transaction/create :filter filter)
+                                                                                :search search)
+                                                           (transaction/create :search search)
                                                            (transaction/update :id id
-                                                                               :filter filter)
+                                                                               :search search)
                                                            (transaction/delete :id id
-                                                                               :filter filter)))
+                                                                               :search search)))
            :disabled-items disabled-items))
 
 (defun transaction-notifications ()
@@ -176,13 +176,13 @@
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
-                                           :urlfn (lambda (filter start)
-                                                    (transaction :filter filter
+                                           :urlfn (lambda (search start)
+                                                    (transaction :search search
                                                                  :start start)))))
   (:default-initargs :item-class 'tx-row))
 
 (defmethod read-records ((table tx-crud-table))
-  (let* ((filter (filter table))
+  (let* ((search (filter table))
          (base-query `(:select tx.id
                                (:as tx-date date)
                                (:as company.title company)
@@ -190,10 +190,10 @@
                                :from tx
                                :left-join company
                                :on (:= tx.company-id company.id)))
-         (composite-query (if filter
+         (composite-query (if search
                               (append base-query
-                                      `(:where (:or (:ilike description ,(ilike filter))
-                                                    (:ilike company.title ,(ilike filter)))))
+                                      `(:where (:or (:ilike description ,(ilike search))
+                                                    (:ilike company.title ,(ilike search)))))
                               base-query))
          (final-query `(:order-by ,composite-query date)))
     (with-db ()
@@ -210,12 +210,12 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (filter (filter (collection row))))
+         (search (filter (collection row))))
     (list :selector
           (make-instance 'selector-cell
-                         :states (list :on (transaction :filter filter
+                         :states (list :on (transaction :search search
                                                         :start (page-start pg (index row) start))
-                                       :off (transaction :filter filter
+                                       :off (transaction :search search
                                                          :id id)))
           :payload
           (mapcar (lambda (name)
@@ -227,7 +227,7 @@
           (list
            (make-instance 'ok-cell)
            (make-instance 'cancel-cell
-                          :href (transaction :id id :filter filter))))))
+                          :href (transaction :id id :search search))))))
 
 
 
@@ -237,14 +237,14 @@
 
 (define-dynamic-page transaction ("financial/transaction")
     ((id     integer chk-tx-id)
-     (filter string)
+     (search string)
      (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((tx-crud-table (make-instance 'tx-crud-table
                                             :op 'catalogue
-                                            :filter (val* filter))))
+                                            :filter (val* search))))
           (with-document ()
             (:head
              (:title "Συναλλαγές")
@@ -255,11 +255,11 @@
                    (financial-navbar 'transaction)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (transaction) (val filter)))
+                         (searchbox (transaction) (val search)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Κατάλογος συναλλαγών")
                          (transaction-menu (val id)
-                                           (val filter)
+                                           (val search)
                                            (if (val id)
                                                '(catalogue create)
                                                '(catalogue details update delete)))
@@ -270,7 +270,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page transaction/create ("financial/transaction/create")
-    ((filter         string)
+    ((search         string)
      (date           date)
      (description    string)
      (company        string  chk-company-title*)
@@ -290,11 +290,11 @@
              (:div :class "window grid_9"
                    (:div :class "title" "Δημιουργία συναλλαγής")
                    (transaction-menu nil
-                                     (val filter)
+                                     (val search)
                                      '(details create update delete))
                    (with-form (actions/financial/transaction/create)
                      (transaction-data-form 'create
-                                            :filter (val filter)
+                                            :search (val search)
                                             :data (parameters->plist date
                                                                      company
                                                                      description
@@ -309,12 +309,12 @@
                                                                         amount))))
              (:div :id "sidebar" :class "sidebar grid_3"
                    (:p :class "title" "Φίλτρα")
-                   (searchbox (transaction) (val filter))
+                   (searchbox (transaction) (val search))
                    (transaction-notifications))
              (footer))))))
 
 (define-dynamic-page transaction/update ("financial/transaction/update")
-    ((filter         string)
+    ((search         string)
      (id             integer chk-tx-id t)
      (date           date)
      (description    string)
@@ -336,13 +336,13 @@
                  (:div :class "window grid_9"
                        (:div :class "title" "Επεξεργασία συναλλαγής")
                        (transaction-menu (val id)
-                                         (val filter)
+                                         (val search)
                                          '(create update))
                        (with-form (actions/financial/transaction/update :id (val* id)
-                                                                        :filter (val* filter))
+                                                                        :search (val* search))
                          (transaction-data-form 'update
                                                 :id (val id)
-                                                :filter (val filter)
+                                                :search (val search)
                                                 :data (plist-union (parameters->plist date
                                                                                       company
                                                                                       description
@@ -362,7 +362,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page transaction/details ("financial/transaction/details")
-    ((filter     string)
+    ((search     string)
      (id         integer chk-tx-id t))
   (with-auth ("configuration")
     (no-cache)
@@ -378,10 +378,10 @@
                  (:div :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες συναλλαγής")
                        (transaction-menu (val id)
-                                         (val filter)
+                                         (val search)
                                          '(details create))
                        (transaction-data-form 'details
-                                              :filter (val filter)
+                                              :search (val search)
                                               :id (val id)
                                               :data (get-tx-plist (val id))))
                  (:div :id "sidebar" :class "sidebar grid_3"
@@ -391,13 +391,13 @@
 
 (define-dynamic-page transaction/delete ("financial/transaction/delete")
     ((id     integer chk-tx-id t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((tx-crud-table (make-instance 'tx-crud-table
                                             :op 'delete
-                                            :filter (val* filter))))
+                                            :filter (val* search))))
           (with-document ()
             (:head
              (:title "Διαγραφή συναλλαγής")
@@ -408,20 +408,20 @@
                    (financial-navbar 'transaction)
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (transaction) (val filter)))
+                         (searchbox (transaction) (val search)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Διαγραφή συναλλαγής")
                          (transaction-menu (val id)
-                                           (val filter)
+                                           (val search)
                                            '(create delete))
                          (with-form (actions/financial/transaction/delete :id (val id)
-                                                                          :filter (val* filter))
+                                                                          :search (val* search))
                            (display tx-crud-table
                                     :selected-id (val id))))
                    (footer)))))
         (see-other (notfound)))))
 
-(defun transaction-data-form (op &key filter id data styles)
+(defun transaction-data-form (op &key search id data styles)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
              (with-html
@@ -443,4 +443,4 @@
         (unless disabledp
           (htm (:div :id "transaction-data-form-buttons" :class "grid_9"
                      (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                     (cancel-button (transaction :id id :filter filter) "Άκυρο"))))))))
+                     (cancel-button (transaction :id id :search search) "Άκυρο"))))))))

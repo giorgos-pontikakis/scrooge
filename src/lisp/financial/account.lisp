@@ -33,8 +33,8 @@
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
-                                           :urlfn (lambda (filter start)
-                                                    (declare (ignore filter))
+                                           :urlfn (lambda (search start)
+                                                    (declare (ignore search))
                                                     (account/details :start start))))
    (op :initform 'catalogue))
   (:default-initargs :item-class 'account-tx-row))
@@ -103,7 +103,7 @@
       (:body
        (:div :id "container" :class "container_12"
              (header 'financial)
-             (financial-navbar 'financial/account)
+             (financial-navbar 'account)
              (iter
                (for flag in (list t nil))
                (for div-id in '("debit-accounts" "credit-accounts"))
@@ -137,7 +137,7 @@
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
-                   (financial-navbar 'financial/account)
+                   (financial-navbar 'account)
                    (:div :class "window grid_9"
                          (:div :class "title"
                                (str (conc "Ανάλυση Λογαριασμού: "
@@ -171,7 +171,7 @@
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
-                 (financial-navbar 'financial/account)
+                 (financial-navbar 'account)
                  (:div :class "window grid_9"
                        (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
                                                   account-title)

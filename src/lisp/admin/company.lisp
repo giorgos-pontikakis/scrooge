@@ -78,7 +78,7 @@
 
 (define-dynamic-page actions/admin/company/create ("actions/admin/company/create"
                                                    :request-type :post)
-    ((filter     string)
+    ((search     string)
      (title      string  chk-new-company-title)
      (occupation string)
      (tof        string  chk-tof-title)
@@ -94,7 +94,7 @@
           (let* ((tof-id (tof-id (val tof)))
                  (city-id (city-id (val city)))
                  (new-company (make-instance 'company
-                                             :filter (val filter)
+                                             :search (val search)
                                              :title (val title)
                                              :occupation (val occupation)
                                              :tof-id (or tof-id :null)
@@ -104,8 +104,8 @@
                                              :zipcode (val zipcode)
                                              :pobox (val pobox))))
             (insert-dao new-company)
-            (see-other (company :id (id new-company) :filter (val filter)))))
-        (see-other (company/create :filter (raw filter)
+            (see-other (company :id (id new-company) :search (val search)))))
+        (see-other (company/create :search (raw search)
                                    :title (raw title)
                                    :occupation (raw occupation)
                                    :tof (raw tof)
@@ -117,7 +117,7 @@
 
 (define-dynamic-page actions/admin/company/update ("actions/admin/company/update"
                                                    :request-type :post)
-    ((filter     string)
+    ((search     string)
      (id         integer)
      (title      string  (chk-new-company-title title id))
      (occupation string)
@@ -143,8 +143,8 @@
                               'pobox (val pobox)
                               'zipcode (val zipcode)
                               :where (:= 'id (val id))))
-            (see-other (company :id (val id) :filter (val filter)))))
-        (see-other (company/update :filter (raw filter)
+            (see-other (company :id (val id) :search (val search)))))
+        (see-other (company/update :search (raw search)
                                    :id (raw id)
                                    :title (raw title)
                                    :occupation (raw occupation)
@@ -158,13 +158,13 @@
 (define-dynamic-page actions/admin/company/delete ("actions/admin/company/delete"
                                                    :request-type :post)
     ((id     integer chk-company-id)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'company (val id)))
-          (see-other (company :filter (val filter))))
+          (see-other (company :search (val search))))
         (see-other (notfound)))))
 
 
@@ -173,24 +173,24 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-menu (id filter &optional disabled-items)
+(defun company-menu (id search &optional disabled-items)
   (display
    (make-instance 'actions-menu
                   :id "company-actions"
                   :style "hnavbar actions grid_9 alpha"
                   :spec (crud+details+archive-actions-spec (company :id id
-                                                                    :filter filter)
+                                                                    :search search)
                                                            (company/details :id id
-                                                                            :filter filter)
-                                                           (company/create :filter filter)
+                                                                            :search search)
+                                                           (company/create :search search)
                                                            (company/update :id id
-                                                                           :filter filter)
+                                                                           :search search)
                                                            (company/details :id id
-                                                                            :filter filter)
+                                                                            :search search)
                                                            (if (chk-company-id/ref id)
                                                                nil
                                                                (company/delete :id id
-                                                                               :filter filter))))
+                                                                               :search search))))
    :disabled-items disabled-items))
 
 (defun company-notifications ()
@@ -239,14 +239,14 @@
                                            :id "company-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
-                                           :urlfn (lambda (filter start)
-                                                    (company :filter filter
+                                           :urlfn (lambda (search start)
+                                                    (company :search search
                                                              :start start)))))
   (:default-initargs :item-class 'company-row))
 
 
 (defmethod read-records ((table company-table))
-  (let* ((filter (filter table))
+  (let* ((search (filter table))
          (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
                                address
@@ -256,12 +256,12 @@
                                :on (:= city.id company.city-id)
                                :left-join tof
                                :on (:= tof.id company.tof-id)))
-         (composite-query (if filter
+         (composite-query (if search
                               (append base-query
-                                      `(:where (:or (:ilike company.title ,(ilike filter))
-                                                    (:ilike tin ,(ilike filter))
-                                                    (:ilike address ,(ilike filter))
-                                                    (:ilike city.title ,(ilike filter)))))
+                                      `(:where (:or (:ilike company.title ,(ilike search))
+                                                    (:ilike tin ,(ilike search))
+                                                    (:ilike address ,(ilike search))
+                                                    (:ilike city.title ,(ilike search)))))
                               base-query))
          (final-query `(:order-by ,composite-query company.title)))
     (with-db ()
@@ -277,12 +277,12 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (filter (filter (collection row))))
+         (search (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :states (list
-                                            :on (company :filter filter
+                                            :on (company :search search
                                                          :start (page-start pg (index row) start))
-                                            :off (company :filter filter
+                                            :off (company :search search
                                                           :id id)))
           :payload (mapcar (lambda (name)
                              (make-instance 'textbox-cell
@@ -292,7 +292,7 @@
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (company :id id :filter filter))))))
+                                    :href (company :id id :search search))))))
 
 
 
@@ -302,14 +302,14 @@
 
 (define-dynamic-page company ("admin/company")
     ((id integer chk-company-id)
-     (filter string)
+     (search string)
      (start integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((company-table (make-instance 'company-table
                                             :op 'catalogue
-                                            :filter (val* filter))))
+                                            :filter (val* search))))
           (with-document ()
             (:head
              (:title "Εταιρίες")
@@ -321,7 +321,7 @@
                    (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Κατάλογος εταιριών")
                          (company-menu (val id)
-                                       (val filter)
+                                       (val search)
                                        (if (val id)
                                            '(catalogue create)
                                            '(catalogue details archive update delete)))
@@ -330,12 +330,12 @@
                                   :start (val* start)))
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (company) (val filter)))
+                         (searchbox (company) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
 (define-dynamic-page company/create ("admin/company/create")
-    ((filter     string)
+    ((search     string)
      (title      string  chk-new-company-title)
      (occupation string)
      (tof        string  chk-tof-title)
@@ -357,11 +357,11 @@
              (:div :id "company-window" :class "window grid_9"
                    (:div :class "title" "Δημιουργία εταιρίας")
                    (company-menu nil
-                                 (val filter)
+                                 (val search)
                                  '(details create update archive delete))
                    (with-form (actions/admin/company/create)
                      (company-data-form 'create
-                                        :filter (val filter)
+                                        :search (val search)
                                         :data (parameters->plist title
                                                                  occupation
                                                                  tof
@@ -383,7 +383,7 @@
              (footer))))))
 
 (define-dynamic-page company/update ("admin/company/update")
-    ((filter     string)
+    ((search     string)
      (id         integer chk-company-id t)
      (title      string  (chk-new-company-title title id))
      (occupation string)
@@ -407,12 +407,12 @@
                  (:div :id "company-window" :class "window grid_9"
                        (:div :class "title" "Επεξεργασία εταιρίας")
                        (company-menu (val id)
-                                     (val filter)
+                                     (val search)
                                      '(create update))
                        (with-form (actions/admin/company/update :id (val id))
                          (company-data-form 'update
                                             :id (val id)
-                                            :filter (val filter)
+                                            :search (val search)
                                             :data (plist-union (parameters->plist title
                                                                                   occupation
                                                                                   tof
@@ -436,7 +436,7 @@
         (see-other (error-page)))))
 
 (define-dynamic-page company/details ("admin/company/details")
-    ((filter     string)
+    ((search     string)
      (id         integer chk-company-id t))
   (with-auth ("configuration")
     (no-cache)
@@ -452,11 +452,11 @@
                  (:div :id "company-window" :class "window grid_9"
                        (:div :class "title" "Λεπτομέρειες εταιρίας")
                        (company-menu (val id)
-                                     (val filter)
+                                     (val search)
                                      '(details create))
                        (with-form (actions/admin/company/update :id (val id))
                          (company-data-form 'details
-                                            :filter (val filter)
+                                            :search (val search)
                                             :id (val id)
                                             :data (get-company-plist (val id)))))
                  (:div :id "sidebar" :class "sidebar grid_3"
@@ -466,13 +466,13 @@
 
 (define-dynamic-page company/delete ("admin/company/delete")
     ((id     integer chk-company-id t)
-     (filter string))
+     (search string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((company-table (make-instance 'company-table
                                             :op 'delete
-                                            :filter (val* filter))))
+                                            :filter (val* search))))
           (with-document ()
             (:head
              (:title "Διαγραφή εταιρίας")
@@ -484,19 +484,19 @@
                    (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
-                                       (val filter)
+                                       (val search)
                                        '(catalogue create delete))
                          (with-form (actions/admin/company/delete :id (val id)
-                                                                  :filter (val* filter))
+                                                                  :search (val* search))
                            (display company-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (searchbox (company) (val filter)))
+                         (searchbox (company) (val search)))
                    (footer)))))
         (see-other (error-page)))))
 
-(defun company-data-form (op &key filter id data styles)
+(defun company-data-form (op &key search id data styles)
   (let ((disabledp (eql op 'details)))
     (with-html
       (:div :id "company-data-form" :class "data-form"
@@ -554,4 +554,4 @@
             (unless disabledp
               (htm (:div :id "company-data-form-buttons" :class "grid_9"
                          (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                         (cancel-button (company :id id :filter filter) "Άκυρο"))))))))
+                         (cancel-button (company :id id :search search) "Άκυρο"))))))))

@@ -1,5 +1,24 @@
 /* ---------------------------------------------------------------------- */
-/* navbars */
+/* vertical navbars */
+/* ---------------------------------------------------------------------- */
+.vnavbar ul li {
+    list-style: none;
+}
+
+#cheque-kind-filter ul li a {
+    padding: 5px 10px;
+}
+
+#cheque-kind-filter ul li p {
+    padding: 5px 10px;
+    color: white;
+    background: coral;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* horizontal navbars */
 /* ---------------------------------------------------------------------- */
 
 .hnavbar ul li {
