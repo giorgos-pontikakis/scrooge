@@ -6,7 +6,7 @@ case $# in
         project_name=scrooge
         project_root="www/scrooge"
         deps="src/lisputils src/veil src/bricks"
-        static="public db_dumps lib"
+        static="public db_dumps"
 
         remote=$1
         user=`whoami`
