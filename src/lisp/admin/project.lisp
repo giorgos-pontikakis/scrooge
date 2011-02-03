@@ -216,9 +216,9 @@
                                :on (:= project-status.id project.status)))
          (composite-query (if search
                               (append base-query
-                                      `(where (:or (:ilike project.description ,(ilike search))
-                                                   (:ilike company.title ,(ilike search))
-                                                   (:ilike project.location ,(ilike search)))))
+                                      `(:where (:or (:ilike project.description ,(ilike search))
+                                                    (:ilike company.title ,(ilike search))
+                                                    (:ilike project.location ,(ilike search)))))
                               base-query))
          (final-query `(:order-by ,composite-query project.id start-date)))
     (with-db ()
