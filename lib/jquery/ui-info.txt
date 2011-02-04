@@ -1,0 +1,6 @@
+Go to JQuery-UI site and download a custom theme with the following
+customizations:
+
+- ui smoothness
+- select everything except effects
+- pixel size 13px

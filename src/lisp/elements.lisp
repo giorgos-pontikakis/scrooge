@@ -28,14 +28,14 @@
 ;;; ------------------------------------------------------------
 
 (defun jquery ()
-  (js (url 'lib "jquery-1.4.4/jquery-1.4.4.min.js")))
+  (js (url 'lib "jquery/jquery-1.5.min.js")))
 
 (defun jquery-ui ()
-  (js (url 'lib "jquery-ui-1.8.7.custom/js/jquery-ui-1.8.7.custom.min.js")))
+  (js (url 'lib "jquery/jquery-ui-1.8.9.custom/js/jquery-ui-1.8.9.custom.min.js")))
 
 (defun jquery-autocomplete ()
   (js (url 'js "main.js"))
-  (css (url 'lib "jquery-ui-1.8.7.custom/css/custom-theme/jquery-ui-1.8.7.custom.css")))
+  (css (url 'lib "jquery/jquery-ui-1.8.9.custom/css/custom-theme/jquery-ui-1.8.9.custom.css")))
 
 (defun error-headers ()
   (css (url 'css "global.css")))
