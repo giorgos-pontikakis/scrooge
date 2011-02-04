@@ -12,11 +12,6 @@
 (define-uniqueness-predicate company-title-unique-p company title id)
 (define-uniqueness-predicate tin-unique-p company tin id)
 
-(defun int-5digits-p (num)
-  (and (integerp num)
-       (> num 9999)
-       (<= num 99999)))
-
 (defun company-referenced-p (id)
   (declare (ignore id))
   nil)
@@ -60,7 +55,7 @@
 
 (defun chk-pobox (pobox)
   (if (or (eql :null pobox)
-          (int-5digits-p pobox))
+          (positive-int-p pobox))
       nil
       :pobox-invalid))
 

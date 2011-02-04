@@ -9,10 +9,6 @@
 (define-existence-predicate project-id-exists-p project id)
 (define-uniqueness-predicate project-description-unique-p project description id)
 
-(defun positive-int-p (num)
-  (and (integerp num)
-       (>= num 0)))
-
 (defun chk-vat (num)
   (if (or (eql :null num)
           (positive-int-p num))

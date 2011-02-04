@@ -1,5 +1,35 @@
 (in-package :scrooge)
 
+;;;----------------------------------------------------------------------
+;;; Generic predicate for chk- functions
+;;;----------------------------------------------------------------------
+
+(defun positive-int-p (num)
+  (and (integerp num)
+       (>= num 0)))
+
+(defun int-5digits-p (num)
+  (and (integerp num)
+       (> num 9999)
+       (<= num 99999)))
+
+(defun valid-tin-p (tin)
+  "Check the taxation identification number (ΑΦΜ)"
+  (flet ((char-parse-integer (d)
+           (- (char-int d) (char-int #\0))))
+    (let* ((len (length tin))
+           (digits (map 'vector #'char-parse-integer
+                        (nreverse (subseq tin 0 (1- len)))))
+           (control-digit (char-parse-integer (elt tin (1- len)))))
+      (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
+                       (for i from 1)
+                       (reducing (* d (expt 2 i))
+                                 by #'+))))
+        (= (mod (mod sum 11)
+                10)
+           control-digit)))))
+
+
 
 ;;;----------------------------------------------------------------------
 ;;; MD5
@@ -55,21 +85,6 @@
           (error "There is no position ~D in ~S." n list))
         (push thing (cdr tail))
         list)))
-
-(defun valid-tin-p (tin)
-  (flet ((char-parse-integer (d)
-           (- (char-int d) (char-int #\0))))
-    (let* ((len (length tin))
-           (digits (map 'vector #'char-parse-integer
-                        (nreverse (subseq tin 0 (1- len)))))
-           (control-digit (char-parse-integer (elt tin (1- len)))))
-      (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
-                       (for i from 1)
-                       (reducing (* d (expt 2 i))
-                                 by #'+))))
-        (= (mod (mod sum 11)
-                10)
-           control-digit)))))
 
 (defun parameters->plist (&rest params)
   (mapcan (lambda (param)
