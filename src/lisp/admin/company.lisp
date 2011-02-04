@@ -175,9 +175,9 @@
                   :style "hnavbar actions grid_9 alpha"
                   :spec (crud+details+archive-actions-spec (company :id id
                                                                     :search search)
+                                                           (company/create :search search)
                                                            (company/details :id id
                                                                             :search search)
-                                                           (company/create :search search)
                                                            (company/update :id id
                                                                            :search search)
                                                            (company/details :id id
@@ -229,7 +229,7 @@
 ;;; table
 
 (defclass company-table (crud-table)
-  ((header-labels :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Διεύθυνση" "Πόλη"))
+  ((header-labels :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Διεύθυνση"))
    (paginator     :initform (make-instance 'paginator
                                            :id "company-paginator"
                                            :style "paginator grid_9 alpha"
@@ -283,7 +283,7 @@
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(title tin tof address city-name))
+                           '(title tin tof address))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -318,7 +318,7 @@
                          (company-menu (val id)
                                        (val search)
                                        (if (val id)
-                                           '(catalogue create)
+                                           '(catalogue)
                                            '(catalogue details archive update delete)))
                          (display company-table
                                   :selected-id (val* id)
@@ -480,7 +480,7 @@
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
                                        (val search)
-                                       '(catalogue create delete))
+                                       '(catalogue delete))
                          (with-form (actions/admin/company/delete :id (val id)
                                                                   :search (val* search))
                            (display company-table
@@ -546,7 +546,10 @@
                                       :value (getf data :pobox)
                                       :disabledp disabledp
                                       :style (getf styles :pobox))))))
-            (unless disabledp
-              (htm (:div :id "company-data-form-buttons" :class "grid_9"
-                         (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                         (cancel-button (company :id id :search search) "Άκυρο"))))))))
+            (:div :id "company-data-form-buttons" :class "grid_9"
+                  (if disabledp
+                      (cancel-button (company :id id :search search)
+                                     "Επιστροφή στον Κατάλογο Εταιριών")
+                      (progn
+                        (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                        (cancel-button (company :id id :search search) "Άκυρο"))))))))

@@ -123,11 +123,11 @@
                           :spec (crud+details-actions-spec (cheque cheque-kind
                                                                    :id id
                                                                    :search search)
+                                                           (cheque/create cheque-kind
+                                                                          :search search)
                                                            (cheque/details cheque-kind
                                                                            :id id
                                                                            :search search)
-                                                           (cheque/create cheque-kind
-                                                                          :search search)
                                                            (cheque/update cheque-kind
                                                                           :id id
                                                                           :search search)

@@ -118,9 +118,9 @@
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud+details-actions-spec (transaction :id id
                                                                         :search search)
+                                                           (transaction/create :search search)
                                                            (transaction/details :id id
                                                                                 :search search)
-                                                           (transaction/create :search search)
                                                            (transaction/update :id id
                                                                                :search search)
                                                            (transaction/delete :id id

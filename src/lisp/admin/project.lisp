@@ -143,9 +143,9 @@
                           :style "hnavbar actions grid_9 alpha"
                           :spec (crud+details+archive-actions-spec (project :id id
                                                                             :search search)
+                                                                   (project/create :search search)
                                                                    (project/details :id id
                                                                                     :search search)
-                                                                   (project/create :search search)
                                                                    (project/update :id id
                                                                                    :search search)
                                                                    (project/details :id id
@@ -277,7 +277,7 @@
                          (project-menu (val id)
                                        (val search)
                                        (if (val id)
-                                           '(catalogue create)
+                                           '(catalogue)
                                            '(catalogue details archive update delete)))
                          (display project-table
                                   :selected-id (val* id)
@@ -447,7 +447,7 @@
                          (:div :class "title" "Διαγραφή έργου")
                          (project-menu (val id)
                                        (val search)
-                                       '(catalogue create delete))
+                                       '(catalogue delete))
                          (with-form (actions/admin/project/delete :id (val id)
                                                                   :search (val* search))
                            (display project-table
@@ -495,7 +495,10 @@
                      (:ul (:li (label+textbox 'quote-date "Ημερομηνία προσφοράς"))
                           (:li (label+textbox 'start-date "Ημερομηνία έναρξης"))
                           (:li (label+textbox 'end-date "Ημερομηνία ολοκλήρωσης"))))))
-        (unless disabledp
-          (htm (:div :id "project-data-form-buttons" :class "grid_9"
-                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                     (cancel-button (project :id id :search search) "Άκυρο"))))))))
+        (:div :id "project-data-form-buttons" :class "grid_9"
+              (if disabledp
+                  (cancel-button (project :id id :search search)
+                                 "Επιστροφή στον Κατάλογο Έργων")
+                  (progn
+                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (project :id id :search search) "Άκυρο"))))))))
