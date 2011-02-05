@@ -5,19 +5,31 @@ $(document).ready(function () {
 
 
 function applyAutocomplete () {
-    var table, source;
-    var col = "title";
-    var autocompleteIDs = ["company", "tof", "city", "bank", "debit-account", "credit-account"];
+    var id, table, col, source;
+    var options = {minLength: 2};
+    var autocompleteIDs = ["company", "tof", "city", "bank", 
+                           ["debit-account", "nonchequing-account"], 
+                           ["credit-account", "nonchequing-account"]];
     for ( var i = 0; i < autocompleteIDs.length; i++) {
-        table = autocompleteIDs[i];
-        source = "/scrooge/autocomplete?table=" + table + "&column=" + col;
-        $("#" + table).autocomplete({source: source, minLength: 2});
+        if ((typeof autocompleteIDs[i]) === "string") {
+            table = autocompleteIDs[i];
+            col = "title";
+            options.source = "/scrooge/autocomplete?table=" + table + "&column=" + col;
+            id = table;
+        } else {
+            table = autocompleteIDs[i][1];
+            col = autocompleteIDs[i][2] || "title";
+            options.source = "/scrooge/autocomplete?table=" + table + "&column=" + col;
+            id = autocompleteIDs[i][0];
+        }
+        $("#" + id).autocomplete(options); 
     }
 }
 
 function applyCheckUnsaved () {
 
-    var message = "Έχετε κάνει αλλαγές στη φόρμα. Αν φύγετε από αυτή τη σελίδα οι αλλαγές αυτές θα χαθούν.";
+    var message = "Έχετε κάνει αλλαγές στη φόρμα. "
+                  + "Αν φύγετε από αυτή τη σελίδα οι αλλαγές αυτές θα χαθούν.";
 
     window.onbeforeunload = function () {
 

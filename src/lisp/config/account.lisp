@@ -23,10 +23,17 @@
   (or (ref-subaccounts id)
       (ref-transactions id)))
 
+(defun chequing-account-p (title)
+  (with-db ()
+    (query (:select 'id
+                    :from 'account
+                    :where (:and (:= 'title title)
+                                 (:= 'chequing-p t)))
+           :plists)))
+
 (define-existence-predicate acc-id-exists-p account id)
 (define-existence-predicate acc-title-exists-p account title)
 (define-uniqueness-predicate acc-title-unique-p account title id)
-
 
 (defun chk-parent-acc-id (val)
   (if (or (null val) (acc-id-exists-p val))
@@ -52,6 +59,7 @@
 (defun chk-acc-title (title)
   (cond ((eql title :null) :account-title-null)
         ((not (acc-title-exists-p title)) :account-title-unknown)
+        ((chequing-account-p title) :chequing-account)
         (t nil)))
 
 (defun chk-debitp (debitp id)
@@ -61,14 +69,16 @@
         nil
         :invalid-debitp-acc-id-combo)))
 
-(defun chk-chequep (chequep id)
+(defun chk-chequing-p (chequing-p id)
   (with-db ()
     (let ((dependent-tx (ref-transactions id))
-          (chequep-changed-p (not (eql chequep
-                                       (cheque-p (get-dao 'account id))))))
-      (if (and dependent-tx chequep-changed-p)
-          :chequep-cannot-change
+          (chequing-p-changed-p (not (eql chequing-p
+                                          (chequing-p (get-dao 'account id))))))
+      (if (and dependent-tx chequing-p-changed-p)
+          :chequing-p-cannot-change
           nil))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Accounts - Actions
@@ -79,7 +89,7 @@
     ((parent-id integer chk-parent-acc-id)
      (title     string  chk-new-acc-title t)
      (debitp    boolean (chk-debitp debitp parent-id))
-     (chequep   boolean))
+     (chequing-p   boolean))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -88,7 +98,7 @@
                                         :parent-id (or (val parent-id) :null)
                                         :title (val title)
                                         :debit-p (val debitp)
-                                        :cheque-p (val chequep))))
+                                        :chequing-p (val chequing-p))))
             (insert-dao new-dao)
             (see-other (account :id (id new-dao)))))
         (if (and (validp parent-id) (validp debitp))
@@ -96,7 +106,7 @@
             (see-other (account/create :parent-id (raw parent-id)
                                        :title (raw title)
                                        :debitp (raw debitp)
-                                       :chequep (raw chequep)))
+                                       :chequing-p (raw chequing-p)))
             ;; tampered URL - abort
             (see-other (notfound))))))
 
@@ -104,14 +114,14 @@
                                                     :request-type :post)
     ((id        integer chk-acc-id t)
      (title     string  (chk-new-acc-title title id) t)
-     (chequep   boolean (chk-chequep chequep id)))
+     (chequing-p   boolean (chk-chequing-p chequing-p id)))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (execute (:update 'account :set
                             :title (val title)
-                            :cheque-p (val chequep)
+                            :chequing-p (val chequing-p)
                             :where (:= 'id (val id))))
           (see-other (account :id (val id))))
         (if (validp id)
@@ -243,7 +253,7 @@
     ((parent-id integer chk-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-new-acc-title)
-     (chequep   boolean))
+     (chequing-p   boolean))
   (with-auth ("configuration")
     (no-cache)
     (if (and (validp parent-id) (validp debitp))
@@ -266,14 +276,14 @@
                          (config-account-data-form 'create
                                                    :data (parameters->plist parent-id
                                                                             title
-                                                                            chequep)
+                                                                            chequing-p)
                                                    :styles (parameters->styles title)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page account/update ("config/account/update")
     ((id      integer chk-acc-id t)
      (title   string  (chk-new-acc-title title id))
-     (chequep boolean (chk-chequep chequep id)))
+     (chequing-p boolean (chk-chequing-p chequing-p id)))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -296,14 +306,14 @@
                                                    :id (val id)
                                                    :data (plist-union
                                                           (parameters->plist title
-                                                                             chequep)
+                                                                             chequing-p)
                                                           (get-account-plist (val id)))
                                                    :styles (parameters->styles title)))))))
         (see-other (notfound)))))
 
 (defun get-account-plist (id)
   (with-db ()
-    (query (:select 'id 'title 'cheque-p
+    (query (:select 'id 'title 'chequing-p
                     :from 'account
                     :where (:= id 'id))
            :plist)))
@@ -353,10 +363,10 @@
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (checkbox 'chequep "Λογαριασμός επιταγών"
+            (checkbox 'chequing-p "Λογαριασμός επιταγών"
                       :style "inline"
                       :value t
-                      :checked (getf data :cheque-p)
+                      :checked (getf data :chequing-p)
                       :disabledp  dependent-tx-p)
             (:div :class "grid_6 data-form-buttons"
                   (if disabledp
