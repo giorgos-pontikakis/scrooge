@@ -495,7 +495,7 @@
                      (:ul (:li (label+textbox 'quote-date "Ημερομηνία προσφοράς"))
                           (:li (label+textbox 'start-date "Ημερομηνία έναρξης"))
                           (:li (label+textbox 'end-date "Ημερομηνία ολοκλήρωσης"))))))
-        (:div :id "project-data-form-buttons" :class "grid_9"
+        (:div :class "grid_9 data-form-buttons"
               (if disabledp
                   (cancel-button (project :id id :search search)
                                  "Επιστροφή στον Κατάλογο Έργων")

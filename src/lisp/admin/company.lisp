@@ -495,13 +495,13 @@
   (let ((disabledp (eql op 'details)))
     (with-html
       (:div :id "company-data-form" :class "data-form"
-            (:div :id "company-title" :class "grid_9 alpha"
+            (:div :class "grid_9 alpha company-data-form-title"
                   (label 'title "Επωνυμία")
                   (textbox 'title
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (:div :id "company-tax-data" :class "grid_4 alpha"
+            (:div :class "grid_4 alpha company-data-form-tax-data"
                   (:fieldset
                    (:legend "Φορολογικά στοιχεία")
                    (:ul (:li (label 'occupation "Επάγγελμα")
@@ -522,7 +522,7 @@
                                       :value (getf data :tof)
                                       :disabledp disabledp
                                       :style (getf styles :tof))))))
-            (:div :id "company-address-data" :class "grid_5 omega"
+            (:div :class "grid_5 omega company-data-form-address-data"
                   (:fieldset
                    (:legend "Διεύθυνση")
                    (:ul (:li (label 'address "Οδός")
@@ -546,7 +546,7 @@
                                       :value (getf data :pobox)
                                       :disabledp disabledp
                                       :style (getf styles :pobox))))))
-            (:div :id "company-data-form-buttons" :class "grid_9"
+            (:div :class "data-form-buttons grid_9"
                   (if disabledp
                       (cancel-button (company :id id :search search)
                                      "Επιστροφή στον Κατάλογο Εταιριών")

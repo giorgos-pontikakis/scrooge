@@ -130,7 +130,8 @@
   ((id        :col-type string  :accessor id        :initarg :id)
    (title     :col-type string  :accessor title     :initarg :title)
    (debit-p   :col-type boolean :accessor debit-p   :initarg :debit-p)
-   (parent-id :col-type string  :accessor parent-id :initarg :parent-id))
+   (parent-id :col-type string  :accessor parent-id :initarg :parent-id)
+   (cheque-p  :col-type boolean :accessor cheque-p  :initarg :cheque-p))
   (:metaclass dao-class)
   (:keys id))
 

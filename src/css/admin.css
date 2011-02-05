@@ -2,25 +2,21 @@
 /* company-data-form */
 /* ---------------------------------------------------------------------- */
 
-#company-title {
+.company-data-form-title {
     margin-top: 20px;
     margin-bottom: 10px;
 }
 
-#company-title input {
+.company-data-form-title input {
     width: 460px
 }
 
-#company-tax-data input {
+.company-data-form-tax-data input {
     width: 246px;
 }
 
-#company-address-data input {
+.company-data-form-address-data input {
     width: 326px;
-}
-
-.footer {
-    margin-top: 40px;
 }
 
 

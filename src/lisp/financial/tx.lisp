@@ -440,7 +440,7 @@
                     (label+textbox 'debit-account "Λογαριασμός χρέωσης")
                     (label+textbox 'credit-account "Λογαριασμός πίστωσης")
                     (label+textbox 'amount "Ποσόν")))
-        (:div :id "transaction-data-form-buttons" :class "grid_9"
+        (:div :class "grid_9 data-form-buttons"
               (if disabledp
                   (cancel-button (transaction :id id :search search)
                                  "Επιστροφή στον Κατάλογο Συναλλαγών")

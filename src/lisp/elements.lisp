@@ -110,7 +110,7 @@
 
 (defun footer ()
   (with-html
-    (:div :id "footer" :class "grid_12 footer"
+    (:div :id "footer" :class "grid_12"
           (:p "Powered by lisp"))))
 
 (defun primary-navbar (active-page-name)

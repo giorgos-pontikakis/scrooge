@@ -61,7 +61,14 @@
         nil
         :invalid-debitp-acc-id-combo)))
 
-
+(defun chk-chequep (chequep id)
+  (with-db ()
+    (let ((dependent-tx (ref-transactions id))
+          (chequep-changed-p (not (eql chequep
+                                       (cheque-p (get-dao 'account id))))))
+      (if (and dependent-tx chequep-changed-p)
+          :chequep-cannot-change
+          nil))))
 
 ;;; ------------------------------------------------------------
 ;;; Accounts - Actions
@@ -71,34 +78,40 @@
                                                     :request-type :post)
     ((parent-id integer chk-parent-acc-id)
      (title     string  chk-new-acc-title t)
-     (debitp    boolean (chk-debitp debitp parent-id)))
+     (debitp    boolean (chk-debitp debitp parent-id))
+     (chequep   boolean))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
-          (insert-dao (make-instance 'account
-                                     :parent-id (or (val parent-id) :null)
-                                     :title (val title)
-                                     :debit-p (val debitp)))
-          (see-other (account)))
+          (let ((new-dao (make-instance 'account
+                                        :parent-id (or (val parent-id) :null)
+                                        :title (val title)
+                                        :debit-p (val debitp)
+                                        :cheque-p (val chequep))))
+            (insert-dao new-dao)
+            (see-other (account :id (id new-dao)))))
         (if (and (validp parent-id) (validp debitp))
             ;; input error - go back to create page
             (see-other (account/create :parent-id (raw parent-id)
                                        :title (raw title)
-                                       :debitp (raw debitp)))
+                                       :debitp (raw debitp)
+                                       :chequep (raw chequep)))
             ;; tampered URL - abort
             (see-other (notfound))))))
 
 (define-dynamic-page actions/config/account/update ("actions/config/account/update"
                                                     :request-type :post)
-    ((id    integer chk-acc-id t)
-     (title string (chk-new-acc-title title id) t))
+    ((id        integer chk-acc-id t)
+     (title     string  (chk-new-acc-title title id) t)
+     (chequep   boolean (chk-chequep chequep id)))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (execute (:update 'account :set
                             :title (val title)
+                            :cheque-p (val chequep)
                             :where (:= 'id (val id))))
           (see-other (account :id (val id))))
         (if (validp id)
@@ -229,7 +242,8 @@
 (define-dynamic-page account/create ("config/account/create")
     ((parent-id integer chk-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
-     (title     string  chk-new-acc-title))
+     (title     string  chk-new-acc-title)
+     (chequep   boolean))
   (with-auth ("configuration")
     (no-cache)
     (if (and (validp parent-id) (validp debitp))
@@ -241,33 +255,25 @@
            (:div :id "container" :class "container_12"
                  (header 'config)
                  (config-navbar 'account)
-                 (iter
-                   (for flag in (list t nil))
-                   (for div-id in '("debit-accounts" "credit-accounts"))
-                   (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-crud-tree
-                                                      :op (if (eql flag (val debitp))
-                                                              'create
-                                                              'catalogue)
-                                                      :filter flag))
-                   (htm
-                    (:div :id div-id :class "window grid_6"
-                          (:div :class "title" (str window-title))
-                          (account-crud-menu (val parent-id)
-                                             flag
-                                             '(create update delete))
-                          (with-form (actions/config/account/create :parent-id (val parent-id)
-                                                                    :debitp (val debitp))
-                            (display account-tree
-                                     :selected-id (val* parent-id)
-                                     :selected-data (list :title (val* title))))))))))
+                 (:div :class "window grid_6"
+                       (:div :class "title" "Δημιουργία Λογαριασμού")
+                       (account-crud-menu (val parent-id)
+                                          (debit-p (with-db ()
+                                                     (get-dao 'account (val parent-id))))
+                                          '(create update delete))
+                       (with-form (actions/config/account/create :parent-id (val parent-id)
+                                                                 :debitp (val debitp))
+                         (config-account-data-form 'create
+                                                   :data (parameters->plist parent-id
+                                                                            title
+                                                                            chequep)
+                                                   :styles (parameters->styles title)))))))
         (see-other (notfound)))))
 
-
-
 (define-dynamic-page account/update ("config/account/update")
-    ((id    integer chk-acc-id t)
-     (title string  (chk-new-acc-title title id)))
+    ((id      integer chk-acc-id t)
+     (title   string  (chk-new-acc-title title id))
+     (chequep boolean (chk-chequep chequep id)))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -279,28 +285,28 @@
            (:div :id "container" :class "container_12"
                  (header 'config)
                  (config-navbar 'account)
-                 (iter
-                   (for flag in (list t nil))
-                   (for div-id in '("debit-accounts" "credit-accounts"))
-                   (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-crud-tree
-                                                      :op (if (eql flag (debit-p (val id)))
-                                                              'update
-                                                              'catalogue)
-                                                      :filter flag))
-                   (htm
-                    (:div :id div-id :class "window grid_6"
-                          (:div :class "title" (str window-title))
-                          (account-crud-menu (val id)
-                                             flag
-                                             '(create update delete))
-                          (with-form (actions/config/account/update :id (val id))
-                            (display account-tree
-                                     :selected-id (val* id)
-                                     :selected-data (list :title (val* title))))))))))
+                 (:div :class "window grid_6"
+                       (:div :class "title" "Επεξεργασία Λογαριασμού")
+                       (account-crud-menu (val id)
+                                          (debit-p (with-db ()
+                                                     (get-dao 'account (val id))))
+                                          '(create update delete))
+                       (with-form (actions/config/account/update :id (val id))
+                         (config-account-data-form 'update
+                                                   :id (val id)
+                                                   :data (plist-union
+                                                          (parameters->plist title
+                                                                             chequep)
+                                                          (get-account-plist (val id)))
+                                                   :styles (parameters->styles title)))))))
         (see-other (notfound)))))
 
-
+(defun get-account-plist (id)
+  (with-db ()
+    (query (:select 'id 'title 'cheque-p
+                    :from 'account
+                    :where (:= id 'id))
+           :plist)))
 
 (define-dynamic-page account/delete ("config/account/delete")
     ((id integer chk-acc-id/ref t))
@@ -335,3 +341,27 @@
                           (with-form (actions/config/account/delete :id (val id))
                             (display account-tree :selected-id (val* id)))))))))
         (see-other (notfound)))))
+
+(defun config-account-data-form (op &key id data styles)
+  (let ((disabledp (eql op 'details))
+        (dependent-tx-p (if id (ref-transactions id) nil)))
+    (with-html
+      (:div :id "config-account-data-form" :class "data-form"
+            (:div :class "grid_6 data-form-first"
+                  (label 'title "Τίτλος")
+                  (textbox 'title
+                           :value (getf data :title)
+                           :disabledp disabledp
+                           :style (getf styles :title)))
+            (checkbox 'chequep "Λογαριασμός επιταγών"
+                      :style "inline"
+                      :value t
+                      :checked (getf data :cheque-p)
+                      :disabledp  dependent-tx-p)
+            (:div :class "grid_6 data-form-buttons"
+                  (if disabledp
+                      (cancel-button (account :id id)
+                                     "Επιστροφή στον Κατάλογο Λογαριασμών")
+                      (progn
+                        (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                        (cancel-button (account :id id) "Άκυρο"))))))))

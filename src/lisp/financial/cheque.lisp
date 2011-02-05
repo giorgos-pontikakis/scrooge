@@ -481,7 +481,7 @@
                                                 :from 'cheque-status)))
                               :selected (or (getf data :status) *default-cheque-status*)
                               :disabledp disabledp)))
-        (:div :id "cheque-data-form-buttons" :class "grid_9"
+        (:div :class "data-form-buttons grid_9"
               (if disabledp
                   (cancel-button (cheque cheque-kind :id id :search search)
                                  "Επιστροφή στον Κατάλογο Επιταγών")

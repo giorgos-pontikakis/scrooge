@@ -101,8 +101,22 @@ select[disabled] {
     background-color: #fdd;
 }
 
+
+
+/* ---------------------------------------------------------------------- */
+/* miscellaneous */
+/* ---------------------------------------------------------------------- */
+
 .indent {
     margin-left: 25px;
+}
+
+.invisible {
+    display: none;
+}
+
+.inline {
+    display: inline;
 }
 
 .cancel-button {
@@ -110,9 +124,6 @@ select[disabled] {
     text-decoration: underline;
 }
 
-.invisible {
-    display: none;
-}
 
 
 /* ---------------------------------------------------------------------- */
@@ -125,6 +136,10 @@ select[disabled] {
 
 #container {
     background-color: #FFFFFF;
+}
+
+#footer {
+    margin-top: 40px;
 }
 
 
@@ -182,4 +197,12 @@ select[disabled] {
 .data-form input {
     display: block;
     margin-bottom: 10px;
+}
+
+.data-form input.inline {
+    display: inline;
+}
+
+.data-form-first, .data-form-buttons {
+    margin-top: 20px;
 }
