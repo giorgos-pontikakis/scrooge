@@ -457,7 +457,6 @@
                    (footer)))))
         (see-other (notfound)))))
 
-
 (defun cheque-data-form (cheque-kind op &key search id data styles)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
@@ -482,7 +481,10 @@
                                                 :from 'cheque-status)))
                               :selected (or (getf data :status) *default-cheque-status*)
                               :disabledp disabledp)))
-        (unless disabledp
-          (htm (:div :id "cheque-data-form-buttons" :class "grid_9"
-                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                     (cancel-button (cheque cheque-kind :id id :search search) "Άκυρο"))))))))
+        (:div :id "cheque-data-form-buttons" :class "grid_9"
+              (if disabledp
+                  (cancel-button (cheque cheque-kind :id id :search search)
+                                 "Επιστροφή στον Κατάλογο Επιταγών")
+                  (progn
+                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (cheque cheque-kind :id id :search search) "Άκυρο"))))))))
