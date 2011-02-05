@@ -110,6 +110,9 @@ select[disabled] {
     text-decoration: underline;
 }
 
+.invisible {
+    display: none;
+}
 
 
 /* ---------------------------------------------------------------------- */

@@ -38,7 +38,7 @@
   (css (url 'lib "jquery/jquery-ui-1.8.9.custom/css/custom-theme/jquery-ui-1.8.9.custom.css")))
 
 (defun error-headers ()
-  (css (url 'css "global.css")))
+  (css (url 'css "common.css")))
 
 (defun 960gs ()
   (css (url 'lib "960gs/code/css/960.css")))
