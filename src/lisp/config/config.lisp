@@ -7,10 +7,11 @@
 (defun config-navbar (&optional active-page-name)
   (display (make-instance 'horizontal-navbar
                           :style "section-navbar hnavbar grid_12"
-                          :spec `((city    ,(city)    "Πόλεις")
-                                  (bank    ,(bank)    "Τράπεζες")
-                                  (tof     ,(tof)     "Δ.Ο.Υ.")
-                                  (account ,(account) "Λογαριασμοί")
+                          :spec `((city         ,(city)         "Πόλεις")
+                                  (bank         ,(bank)         "Τράπεζες")
+                                  (tof          ,(tof)          "Δ.Ο.Υ.")
+                                  (account      ,(account)      "Λογαριασμοί")
+                                  (cheque-stran ,(cheque-stran) "Επιταγές")
                                   #|(temtx   ,(temtx)   "Πρότυπες Συναλλαγές")|#))
            :active-page-name active-page-name))
 

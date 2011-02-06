@@ -323,21 +323,20 @@
                                 nil
                                 (val search)
                                 '(create update delete))
-                   (:form :action (actions/financial/cheque/create cheque-kind :search (val* search))
-                          :method :post
-                          (cheque-data-form cheque-kind
-                                            'create
-                                            :search (val search)
-                                            :data (parameters->plist bank
-                                                                     company
-                                                                     due-date
-                                                                     amount
-                                                                     status)
-                                            :styles (parameters->styles bank
-                                                                        company
-                                                                        due-date
-                                                                        amount
-                                                                        status)))))
+                   (with-form (actions/financial/cheque/create cheque-kind :search (val* search))
+                     (cheque-data-form cheque-kind
+                                       'create
+                                       :search (val search)
+                                       :data (parameters->plist bank
+                                                                company
+                                                                due-date
+                                                                amount
+                                                                status)
+                                       :styles (parameters->styles bank
+                                                                   company
+                                                                   due-date
+                                                                   amount
+                                                                   status)))))
        (footer)))))
 
 (define-regex-page cheque/update (("financial/cheque/" cheque-kind "/update")
