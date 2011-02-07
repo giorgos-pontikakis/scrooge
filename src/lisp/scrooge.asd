@@ -19,6 +19,7 @@
                (:file "config/tof")
                (:file "config/city")
                (:file "config/account")
+               (:file "config/cheque-stran")
                #|(:file "config/temtx")|#
                ;; admin
                (:file "admin/admin")
