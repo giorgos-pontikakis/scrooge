@@ -31,6 +31,7 @@
      (to-status      string chk-cheque-status))
   (with-auth ("configuration")
     (no-cache)
+    (break)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (let* ((debit-acc-id (account-id (val debit-account)))
@@ -105,7 +106,7 @@
 (defun cheque-stran-menu (id cheque-kind &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "cheque-stran-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions grid_12 alpha"
                           :spec (crud-actions-spec (config/cheque-stran cheque-kind :id id)
                                                    (config/cheque-stran/create cheque-kind)
                                                    (config/cheque-stran/update cheque-kind :id id)
@@ -126,7 +127,7 @@
 ;;; table
 
 (defclass cheque-stran-table (crud-table)
-  ((header-labels :initform '("<br />Περιγραφή"
+  ((header-labels :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
                               "Λογαριασμός<br /> Χρέωσης" "Λογαριασμός<br /> Πίστωσης"))
    (paginator :initform nil))
@@ -135,14 +136,14 @@
 (defmethod read-records ((table cheque-stran-table))
   (with-db ()
     (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
-                               (:as 'debit-account.title 'debit-account-title)
-                               (:as 'credit-account.title 'credit-account-title)
+                               (:as 'debit-account-tbl.title 'debit-account)
+                               (:as 'credit-account-tbl.title 'credit-account)
                                'from-status 'to-status
                                :from 'cheque-stran
-                               :inner-join (:as 'account 'debit-account)
-                               :on (:= 'debit-acc-id 'debit-account.id)
-                               :inner-join (:as 'account 'credit-account)
-                               :on (:= 'credit-acc-id 'credit-account.id))
+                               :inner-join (:as 'account 'debit-account-tbl)
+                               :on (:= 'debit-acc-id 'debit-account-tbl.id)
+                               :inner-join (:as 'account 'credit-account-tbl)
+                               :on (:= 'credit-acc-id 'credit-account-tbl.id))
                       'cheque-stran.title)
            :plists)))
 
@@ -163,20 +164,20 @@
           :payload (list (make-instance 'textbox-cell
                                         :name 'title
                                         :value (getf record :title))
-                         (make-instance 'dropdown
+                         (make-instance 'dropdown-cell
                                         :name 'from-status
                                         :selected (getf record :from-status)
                                         :alist *cheque-statuses*)
-                         (make-instance 'dropdown
+                         (make-instance 'dropdown-cell
                                         :name 'to-status
                                         :selected (getf record :to-status)
                                         :alist *cheque-statuses*)
                          (make-instance 'textbox-cell
-                                        :name 'debit-account-title
-                                        :value (getf record :debit-account-title))
+                                        :name 'debit-account
+                                        :value (getf record :debit-account))
                          (make-instance 'textbox-cell
-                                        :name 'credit-account-title
-                                        :value (getf record :credit-account-title)))
+                                        :name 'credit-account
+                                        :value (getf record :credit-account)))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -196,6 +197,7 @@
     (if (validp id)
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                                  :op 'catalogue
+                                                 :id "cheque-stran-table"
                                                  :filter cheque-kind)))
           (with-document ()
             (:head
@@ -205,9 +207,9 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         "")
-                   (:div :id "cheque-stran-window" :class "window grid_9"
+                   #|(:div :id "sidebar" :class "sidebar grid_3"
+                         "")|#
+                   (:div :id "cheque-stran-window" :class "window grid_12"
                          (:div :class "title" "Κατάλογος Καταστατικών Μεταβολών Επιταγών")
                          (cheque-stran-menu (val id)
                                             cheque-kind
@@ -230,6 +232,7 @@
     (no-cache)
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :op 'create
+                                             :id "cheque-stran-table"
                                              :filter cheque-kind)))
       (with-document ()
         (:head
@@ -239,9 +242,9 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque)
-               (:div :id "sidebar" :class "sidebar grid_3"
-                     (cheque-stran-notifications))
-               (:div :class "window grid_9"
+               #|(:div :id "sidebar" :class "sidebar grid_3"
+                     (cheque-stran-notifications))|#
+               (:div :class "window grid_12"
                      (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Δημιουργία")
                      (cheque-stran-menu nil
                                         cheque-kind
@@ -268,6 +271,7 @@
     (if (validp id)
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                                  :op 'update
+                                                 :id "cheque-stran-table"
                                                  :filter cheque-kind)))
           (with-document ()
             (:head
@@ -277,10 +281,10 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
-                   (:div :id "sidebar" :class "sidebar grid_3"
+                   #|(:div :id "sidebar" :class "sidebar grid_3"
                          (:p :class "title" "Φίλτρα")
-                         (cheque-stran-notifications))
-                   (:div :id "cheque-stran-window" :class "window grid_9"
+                         (cheque-stran-notifications))|#
+                   (:div :id "cheque-stran-window" :class "window grid_12"
                          (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Επεξεργασία")
                          (cheque-stran-menu (val id)
                                             cheque-kind
@@ -304,6 +308,8 @@
     (no-cache)
     (if (validp id)
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                                 :id "cheque-stran-table"
+                                                 :filter cheque-kind
                                                  :op 'delete)))
           (with-document ()
             (:head
@@ -313,7 +319,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
-                   (:div :id "cheque-stran-window" :class "window grid_9"
+                   (:div :id "cheque-stran-window" :class "window grid_12"
                          (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Διαγραφή")
                          (cheque-stran-menu (val id)
                                             cheque-kind

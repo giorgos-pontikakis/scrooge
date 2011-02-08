@@ -126,16 +126,19 @@
   (:metaclass dao-class)
   (:keys status))
 
-(defclass account ()
-  ((id         :col-type string  :accessor id         :initarg :id)
-   (title      :col-type string  :accessor title      :initarg :title)
-   (debit-p    :col-type boolean :accessor debit-p    :initarg :debit-p)
-   (parent-id  :col-type string  :accessor parent-id  :initarg :parent-id)
-   (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p))
+(defclass cheque-stran ()
+  ((id            :col-type integer :accessor id            :initarg :id)
+   (title         :col-type string  :accessor title         :initarg :title)
+   (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
+   (from-status   :col-type string  :accessor from-status   :initarg :from-status)
+   (to-status     :col-type string  :accessor to-status     :initarg :to-status))
   (:metaclass dao-class)
   (:keys id))
 
-(defclass nonchequing-account ()
+
+
+(defclass account ()
   ((id         :col-type string  :accessor id         :initarg :id)
    (title      :col-type string  :accessor title      :initarg :title)
    (debit-p    :col-type boolean :accessor debit-p    :initarg :debit-p)

@@ -5,3 +5,23 @@
 #account-tree input {
     width: 50%;
 }
+
+
+#cheque-stran-table td:nth-child(1) {
+    width: 30px;
+}
+#cheque-stran-table td:nth-child(2) input {
+    width: 180px;
+}
+#cheque-stran-table td:nth-child(3) select {
+    width: 120px;
+}
+#cheque-stran-table td:nth-child(4) select {
+    width: 120px;
+}
+#cheque-stran-table td:nth-child(5) input {
+    width: 180px;
+}
+#cheque-stran-table td:nth-child(6) input {
+    width: 180px;
+}

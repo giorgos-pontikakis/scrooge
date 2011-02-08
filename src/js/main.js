@@ -8,8 +8,10 @@ function applyAutocomplete () {
     var id, table, col, source;
     var options = {minLength: 2};
     var autocompleteIDs = ["company", "tof", "city", "bank", 
-                           ["debit-account", "nonchequing-account"], 
-                           ["credit-account", "nonchequing-account"]];
+                           ["debit-account", "account"], 
+                           ["credit-account", "account"],
+                           ["debit-account-nonchequing", "nonchequing-account"], 
+                           ["credit-account-nonchequing", "nonchequing-account"]];
     for ( var i = 0; i < autocompleteIDs.length; i++) {
         if ((typeof autocompleteIDs[i]) === "string") {
             table = autocompleteIDs[i];
