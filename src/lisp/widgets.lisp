@@ -307,9 +307,8 @@
 
 (defmethod display ((table crud-table) &key selected-id selected-data start)
   (let ((selected-row (find selected-id (rows table) :key #'key :test #'equal)))
-    (let* ((index (if selected-row (index selected-row) nil))
-           (pg (paginator table))
-           (page-start (page-start pg index start)))
+    (let ((index (if selected-row (index selected-row) nil))
+          (pg (paginator table)))
       ;; Create
       (when (eq (op table) 'create)
         (insert-item table
@@ -321,20 +320,25 @@
                      :record selected-data
                      :index index))
       ;; Finally display paginator and table
-      (with-html
-        (display pg :start page-start)
-        (:table :id (id table) :class (style table)
-                (:thead (:tr (mapc (lambda (i)
-                                     (htm (:th (str i))))
-                                   (header-labels table))))
-                (:tbody
-                 (iter (for row in (subseq (rows table)
-                                           page-start
-                                           (min (+ page-start (delta pg))
-                                                (length (rows table)))))
-                       (display row
-                                :selected-id selected-id
-                                :start start))))))))
+      (let* ((page-start (page-start pg index start))
+             (page-end (if pg
+                           (min (+ page-start (delta pg))
+                                (length (rows table)))
+                           (length (rows table)))))
+        (with-html
+          (when pg
+            (display pg :start page-start))
+          (:table :id (id table) :class (style table)
+                  (:thead (:tr (mapc (lambda (i)
+                                       (htm (:th (str i))))
+                                     (header-labels table))))
+                  (:tbody
+                   (iter (for row in (subseq (rows table)
+                                             page-start
+                                             page-end))
+                         (display row
+                                  :selected-id selected-id
+                                  :start start)))))))))
 
 
 ;;; ------------------------------------------------------------
@@ -383,6 +387,11 @@
 
 (defgeneric page-start (paginator index start))
 
+(defmethod page-start ((pg (eql nil)) index start)
+  "If there is no paginator, we start displaying table rows from row zero"
+  (declare (ignore index start))
+  0)
+
 (defmethod page-start ((pg paginator) index start)
   (if (null index)
       (if (or (null start)
@@ -426,6 +435,27 @@
 ;;; ------------------------------------------------------------
 ;;; CELLS
 ;;; ------------------------------------------------------------
+
+(defclass dropdown-cell (widget)
+  ((name     :accessor name     :initarg :name)
+   (selected :accessor selected :initarg :selected)
+   (alist    :accessor alist    :initarg :alist)))
+
+(defmethod display ((cell dropdown-cell) &key readonlyp)
+  (if readonlyp
+      (with-html
+        (:div :class (style cell)
+              (str (lisp->html (selected cell)))))
+      (with-html
+        (:div :class (style cell)
+              (dropdown (name cell)
+                        (alist cell)
+                        :id (string-downcase (name cell))
+                        :readonlyp readonlyp
+                        :selected (selected cell))))))
+
+
+
 
 (defclass textbox-cell (widget)
   ((name  :accessor name  :initarg :name)

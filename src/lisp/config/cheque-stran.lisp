@@ -126,13 +126,15 @@
 ;;; table
 
 (defclass cheque-stran-table (crud-table)
-  ((header-labels :initform '("Περιγραφή"
+  ((header-labels :initform '("<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                              "Λογαριασμός Χρέωσης" "Λογαριασμός Πίστωσης"))))
+                              "Λογαριασμός<br /> Χρέωσης" "Λογαριασμός<br /> Πίστωσης"))
+   (paginator :initform nil))
+  (:default-initargs :item-class 'cheque-stran-row))
 
 (defmethod read-records ((table cheque-stran-table))
   (with-db ()
-    (query (:order-by (:select 'id 'cheque-stran.title
+    (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
                                (:as 'debit-account.title 'debit-account-title)
                                (:as 'credit-account.title 'credit-account-title)
                                'from-status 'to-status
@@ -149,19 +151,32 @@
 (defclass cheque-stran-row (crud-row)
   ())
 
-(defmethod cells ((row cheque-stran-row) &key)
+(defmethod cells ((row cheque-stran-row) &key start)
+  (declare (ignore start))
   (let* ((id (key row))
          (record (record row))
-         (cheque-kind (filter (table row))))
+         (cheque-kind (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :states (list
                                             :on (config/cheque-stran cheque-kind)
                                             :off (config/cheque-stran cheque-kind :id id)))
-          :payload (mapcar (lambda (name)
-                             (make-instance 'textbox-cell
-                                            :name name
-                                            :value (getf record (make-keyword name))))
-                           '(title from-status to-status debit-account-title credit-account-title))
+          :payload (list (make-instance 'textbox-cell
+                                        :name 'title
+                                        :value (getf record :title))
+                         (make-instance 'dropdown
+                                        :name 'from-status
+                                        :selected (getf record :from-status)
+                                        :alist *cheque-statuses*)
+                         (make-instance 'dropdown
+                                        :name 'to-status
+                                        :selected (getf record :to-status)
+                                        :alist *cheque-statuses*)
+                         (make-instance 'textbox-cell
+                                        :name 'debit-account-title
+                                        :value (getf record :debit-account-title))
+                         (make-instance 'textbox-cell
+                                        :name 'credit-account-title
+                                        :value (getf record :credit-account-title)))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -225,7 +240,6 @@
                (header 'config)
                (config-navbar 'cheque)
                (:div :id "sidebar" :class "sidebar grid_3"
-                     (:p :class "title" "Φίλτρα")
                      (cheque-stran-notifications))
                (:div :class "window grid_9"
                      (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Δημιουργία")

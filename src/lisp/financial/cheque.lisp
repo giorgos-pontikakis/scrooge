@@ -469,9 +469,7 @@
               (:div :class "grid_3 alpha cheque-data-form-title"
                     (label 'status "Κατάσταση")
                     (dropdown 'status
-                              (with-db ()
-                                (query (:select 'description 'id
-                                                :from 'cheque-status)))
+                              *cheque-statuses*
                               :selected (or (getf data :status) *default-cheque-status*)
                               :disabledp disabledp)))
         (:div :class "data-form-buttons grid_9"

@@ -14,7 +14,7 @@
                (js   . "js/")
                (lib  . "lib/")
                (img  . "img/"))
-  :debug-p (not (string-equal (machine-instance) "www"))
+  :debug-p (not (member (machine-instance) (list "www" "pulsar") :test #'string-equal))
   :database (make-instance 'database
                            :dbname "scrooge"
                            :dbhost "localhost"
@@ -27,3 +27,8 @@
 
 (defparameter *default-project-status* "quoted")
 (defparameter *default-cheque-status* "pending")
+(defparameter *cheque-statuses*
+  (with-db ()
+    (query (:select 'description 'id
+                    :from 'cheque-status)))
+  "Label-value alist for use with dropdown lists")
