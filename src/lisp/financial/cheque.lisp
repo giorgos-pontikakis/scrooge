@@ -7,17 +7,11 @@
 ;;; --------------------------------------------------------------------------------
 
 (define-existence-predicate cheque-id-exists-p cheque id)
-(define-existence-predicate cheque-status-exists-p cheque-status id)
 
 (defun chk-cheque-id (id)
   (if (cheque-id-exists-p id)
       nil
       :cheque-id-unknown))
-
-(defun chk-cheque-status (status)
-  (if (cheque-status-exists-p status)
-      nil
-      :cheque-status-invalid))
 
 (defun chk-date (date)
   (if (eql :null date)
