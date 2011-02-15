@@ -131,12 +131,11 @@
    (title         :col-type string  :accessor title         :initarg :title)
    (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
+   (payable-p     :col-type boolean :accessor payable-p     :initarg :payable-p)
    (from-status   :col-type string  :accessor from-status   :initarg :from-status)
    (to-status     :col-type string  :accessor to-status     :initarg :to-status))
   (:metaclass dao-class)
   (:keys id))
-
-
 
 (defclass account ()
   ((id         :col-type string  :accessor id         :initarg :id)
@@ -156,6 +155,8 @@
   (with-db ()
     (query (:select 'debit-p :from 'account :where (:= 'id acc-id))
            :single)))
+
+
 
 (defclass tx ()
   ((id            :col-type integer :reader   id)
