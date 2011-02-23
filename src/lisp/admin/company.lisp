@@ -9,6 +9,8 @@
 (define-existence-predicate company-id-exists-p company id)
 (define-existence-predicate company-title-exists-p company title)
 (define-existence-predicate tin-exists-p company tin)
+(define-existence-predicate contact-id-exists-p contact id)
+
 (define-uniqueness-predicate company-title-unique-p company title id)
 (define-uniqueness-predicate tin-unique-p company tin id)
 
@@ -44,6 +46,11 @@
         ((not (company-title-exists-p title)) :company-title-unknown)
         (t nil)))
 
+(defun chk-contact-id (company-id contact-id)
+  (if (and (company-id-exists-p company-id)
+           (contact-id-exists-p contact-id))
+      nil
+      :contact-id-invalid))
 
 (defun chk-tin (tin &optional id)
   (cond ((eql :null tin) nil)
@@ -113,7 +120,7 @@
 (define-dynamic-page actions/admin/company/update ("actions/admin/company/update"
                                                    :request-type :post)
     ((search     string)
-     (id         integer)
+     (id         integer chk-company-id)
      (title      string  (chk-new-company-title title id))
      (occupation string)
      (tof        string  chk-tof-title)
@@ -380,6 +387,7 @@
 (define-dynamic-page company/update ("admin/company/update")
     ((search     string)
      (id         integer chk-company-id t)
+     (contact-id integer (chk-contact-id id contact-id))
      (title      string  (chk-new-company-title title id))
      (occupation string)
      (tof        string  chk-tof-title)
@@ -407,6 +415,7 @@
                        (with-form (actions/admin/company/update :id (val id))
                          (company-data-form 'update
                                             :id (val id)
+                                            :contact-id (val contact-id)
                                             :search (val search)
                                             :data (plist-union (parameters->plist title
                                                                                   occupation
@@ -491,7 +500,7 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(defun company-data-form (op &key search id data styles)
+(defun company-data-form (op &key contact-op id contact-id data  styles search)
   (let ((disabledp (eql op 'details)))
     (with-html
       (:div :id "company-data-form" :class "data-form"
@@ -501,51 +510,8 @@
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (:div :class "grid_4 alpha company-data-form-tax-data"
-                  (:fieldset
-                   (:legend "Φορολογικά στοιχεία")
-                   (:ul (:li (label 'occupation "Επάγγελμα")
-                             (textbox 'occupation
-                                      :id "occupation"
-                                      :value (getf data :occupation)
-                                      :disabledp disabledp
-                                      :style (getf styles :occupation)))
-                        (:li (label 'tin "Α.Φ.Μ.")
-                             (textbox 'tin
-                                      :id "tin"
-                                      :value (getf data :tin)
-                                      :disabledp disabledp
-                                      :style (getf styles :tin)))
-                        (:li (label 'tof "Δ.Ο.Υ.")
-                             (textbox 'tof
-                                      :id "tof"
-                                      :value (getf data :tof)
-                                      :disabledp disabledp
-                                      :style (getf styles :tof))))))
-            (:div :class "grid_5 omega company-data-form-address-data"
-                  (:fieldset
-                   (:legend "Διεύθυνση")
-                   (:ul (:li (label 'address "Οδός")
-                             (textbox 'address
-                                      :value (getf data :address)
-                                      :disabledp disabledp
-                                      :style (getf styles :address)))
-                        (:li (label 'city "Πόλη")
-                             (textbox 'city
-                                      :id "city"
-                                      :value (getf data :city)
-                                      :disabledp disabledp
-                                      :style (getf styles :city)))
-                        (:li (label 'zipcode "Ταχυδρομικός κώδικας")
-                             (textbox 'zipcode
-                                      :value (getf data :zipcode)
-                                      :disabledp disabledp
-                                      :style (getf styles :zipcode))
-                             (label 'pobox "Ταχυδρομική θυρίδα")
-                             (textbox 'pobox
-                                      :value (getf data :pobox)
-                                      :disabledp disabledp
-                                      :style (getf styles :pobox))))))
+            (company-core-form data styles disabledp)
+            (company-contact-form contact-op id contact-id)
             (:div :class "data-form-buttons grid_9"
                   (if disabledp
                       (cancel-button (company :id id :search search)
@@ -553,3 +519,53 @@
                       (progn
                         (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
                         (cancel-button (company :id id :search search) "Άκυρο"))))))))
+
+
+
+
+(defun company-core-form (data styles disabledp)
+  (with-html
+    (:div :class "grid_4 alpha company-data-form-core-data"
+          (:fieldset
+           (:legend "Φορολογικά στοιχεία")
+           (:ul (:li (label 'occupation "Επάγγελμα")
+                     (textbox 'occupation
+                              :id "occupation"
+                              :value (getf data :occupation)
+                              :disabledp disabledp
+                              :style (getf styles :occupation)))
+                (:li (label 'tin "Α.Φ.Μ.")
+                     (textbox 'tin
+                              :id "tin"
+                              :value (getf data :tin)
+                              :disabledp disabledp
+                              :style (getf styles :tin)))
+                (:li (label 'tof "Δ.Ο.Υ.")
+                     (textbox 'tof
+                              :id "tof"
+                              :value (getf data :tof)
+                              :disabledp disabledp
+                              :style (getf styles :tof)))))
+          (:fieldset
+           (:legend "Διεύθυνση")
+           (:ul (:li (label 'address "Οδός")
+                     (textbox 'address
+                              :value (getf data :address)
+                              :disabledp disabledp
+                              :style (getf styles :address)))
+                (:li (label 'city "Πόλη")
+                     (textbox 'city
+                              :id "city"
+                              :value (getf data :city)
+                              :disabledp disabledp
+                              :style (getf styles :city)))
+                (:li (label 'zipcode "Ταχυδρομικός κώδικας")
+                     (textbox 'zipcode
+                              :value (getf data :zipcode)
+                              :disabledp disabledp
+                              :style (getf styles :zipcode))
+                     (label 'pobox "Ταχυδρομική θυρίδα")
+                     (textbox 'pobox
+                              :value (getf data :pobox)
+                              :disabledp disabledp
+                              :style (getf styles :pobox))))))))

@@ -4,21 +4,19 @@
 
 .company-data-form-title {
     margin-top: 20px;
-    margin-bottom: 10px;
 }
 
 .company-data-form-title input {
-    width: 460px
+    width: 300px
 }
 
-.company-data-form-tax-data input {
+.company-data-form-core-data input {
     width: 246px;
 }
 
-.company-data-form-address-data input {
-    width: 326px;
+.company-data-form-core-data fieldset {
+    margin-top: 20px;
 }
-
 
 
 /* ---------------------------------------------------------------------- */
