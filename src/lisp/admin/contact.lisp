@@ -100,63 +100,124 @@
 
 
 ;;; ----------------------------------------------------------------------
+;;; Database interface
+;;; ----------------------------------------------------------------------
+
+(defun get-contact-plist (contact-id)
+  (with-db ()
+    (query (:select (:as 'id 'contact-id) 'tag 'phone
+                    :from 'contact
+                    :where (:= 'id contact-id))
+           :plists)))
+
+
+;;; ------------------------------------------------------------
+;;; UI elements
+;;; ------------------------------------------------------------
+
+(defun contact-menu (id contact-id search &optional disabled-items)
+  (display
+   (make-instance 'actions-menu
+                  :id "contact-actions"
+                  :style "hnavbar actions grid_8 alpha"
+                  :spec (crud-actions-spec (company/update :id id
+                                                           :contact-id contact-id
+                                                           :search search)
+                                           (company/update/contact/create :id id
+                                                                          :search search)
+                                           (company/update/contact/update :id id
+                                                                          :contact-id contact-id
+                                                                          :search search)
+                                           (company/update/contact/delete :id id
+                                                                          :contact-id contact-id
+                                                                          :search search)))
+   :disabled-items disabled-items))
+
+
+
+;;; ----------------------------------------------------------------------
 ;;; Contact pages
 ;;; ----------------------------------------------------------------------
 
 (define-dynamic-page company/update/contact/create ("admin/company/update/contact/create")
     ((search     string)
-     (id         integer chk-company-id t)
-     (tag        string)
-     (phone      string))
+     (id         integer chk-company-id t))
   (with-auth ("configuration")
     (no-cache)
-    (with-document ()
-      (:head
-       (:title "Επεξεργασία Εταιρίας > Δημιουργία Επαφής")
-       (admin-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'admin)
-             (admin-navbar 'company)
-             (:div :id "company-window" :class "window grid_9"
-                   (:div :class "title" "Επεξεργασία Εταιρίας > Δημιουργία Επαφής")
-                   (company-menu (val id)
-                                     (val search)
-                                     '(details create))
-                   (company-data-form 'details
-                                      :search (val search)
-                                      :data (get-company-plist (val id))))
-             (:div :id "sidebar" :class "sidebar grid_3"
-                   (company-notifications))
-             (footer))))))
+    (if (every #'validp (parameters *page*))
+        (let ((contact-table (make-instance 'contact-table
+                                            :op 'create
+                                            :company-id (val id))))
+          (with-document ()
+            (:head
+             (:title "Επεξεργασία Εταιρίας > Δημιουργία Επαφής")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'company)
+                   (:div :id "company-window" :class "window grid_9"
+                         (:div :class "title" "Επεξεργασία Εταιρίας > Δημιουργία Επαφής")
+                         (company-menu (val id)
+                                       (val search)
+                                       '(details create))
+                         (company-data-form 'details
+                                            :search (val search)
+                                            :data (get-company-plist (val id))))
+                   (:div :id "contact-window" :class "window grid_6"
+                         (:div :class "title" "Επαφές > Δημιουργία")
+                         (contact-menu (val id)
+                                       nil
+                                       (val search)
+                                       '(details create update delete))
+                         (:div :class "grid_4 omega company-data-form-contact-data"
+                               (with-form (actions/admin/contact/create :id (val id))
+                                 (display contact-table))))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page company/update/contact/update ("admin/company/update/contact/update")
     ((search     string)
      (id         integer chk-company-id t)
-     (contact-id integer)
-     (tag        string)
-     (phone      string))
+     (contact-id integer))
   (with-auth ("configuration")
     (no-cache)
-    (with-document ()
-      (:head
-       (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
-       (admin-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'admin)
-             (admin-navbar 'company)
-             (:div :id "company-window" :class "window grid_9"
-                   (:div :class "title" "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
-                   (company-menu (val id)
-                                     (val search)
-                                     '(details create))
-                   (company-data-form 'details
-                                      :search (val search)
-                                      :data (get-company-plist (val id))))
-             (:div :id "sidebar" :class "sidebar grid_3"
-                   (company-notifications))
-             (footer))))))
+    (if (every #'validp (parameters *page*))
+        (let ((contact-table (make-instance 'contact-table
+                                            :op 'update
+                                            :company-id (val id))))
+          (with-document ()
+            (:head
+             (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'company)
+                   (:div :id "company-window" :class "window grid_9"
+                         (:div :class "title" "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+                         (company-menu (val id)
+                                       (val search)
+                                       '(details create))
+                         (company-data-form 'details
+                                            :search (val search)
+                                            :data (get-company-plist (val id))))
+                   (:div :id "contact-window" :class "window grid_6"
+                         (:div :class "title" "Επαφές > Επεξεργασία")
+                         (contact-menu (val id)
+                                       (val contact-id)
+                                       (val search)
+                                       (if (val contact-id)
+                                           '(details)
+                                           '(details update delete)))
+                         (:div :class "grid_4 omega company-data-form-contact-data"
+                               (with-form (actions/admin/contact/update :id (val id)
+                                                                        :contact-id (val contact-id))
+                                 (display contact-table :selected-id (val contact-id)))))
+                   (:div :id "sidebar" :class "sidebar grid_3"
+                         (company-notifications))
+                   (footer)))))
+        (see-other (notfound)))))
 
 (define-dynamic-page company/update/contact/delete ("admin/company/update/contact/delete")
     ((search     string)
@@ -164,33 +225,37 @@
      (contact-id integer))
   (with-auth ("configuration")
     (no-cache)
-    (with-document ()
-      (:head
-       (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
-       (admin-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'admin)
-             (admin-navbar 'company)
-             (:div :id "company-window" :class "window grid_9"
-                   (:div :class "title" "Επεξεργασία Εταιρίας > Διαγραφή Επαφής")
-                   (company-menu (val id)
-                                     (val search)
-                                     '(details create))
-                   (company-data-form 'details
-                                      :search (val search)
-                                      :data (get-company-plist (val id))))
-             (:div :id "sidebar" :class "sidebar grid_3"
-                   (company-notifications))
-             (footer))))))
-
-(defun company-contact-form (op company-id contact-id)
-  (let ((contact-table (make-instance 'contact-table
-                                      :op op
-                                      :id contact-id
-                                      :company-id company-id)))
-    (with-html
-      (:div :class "grid_5 omega company-data-form-contact-data"
-            (display contact-table
-                     :selected-id contact-id
-                     :selected-data (get-contact-plist contact-id))))))
+    (if (every #'validp (parameters *page*))
+        (let ((contact-table (make-instance 'contact-table
+                                            :op 'delete
+                                            :company-id (val id))))
+          (with-document ()
+            (:head
+             (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'company)
+                   (:div :id "company-window" :class "window grid_9"
+                         (:div :class "title" "Επεξεργασία Εταιρίας > Διαγραφή Επαφής")
+                         (company-menu (val id)
+                                       (val search)
+                                       '(details create))
+                         (company-data-form 'details
+                                            :search (val search)
+                                            :data (get-company-plist (val id))))
+                   (:div :id "contact-window" :class "window grid_6"
+                         (:div :class "title" "Επαφές > Διαγραφή")
+                         (contact-menu (val id)
+                                       (val contact-id)
+                                       (val search)
+                                       (if (val contact-id)
+                                           '(details)
+                                           '(details update delete)))
+                         (:div :class "grid_4 omega company-data-form-contact-data"
+                               (with-form (actions/admin/contact/delete :id (val id)
+                                                                        :contact-id (val contact-id))
+                                 (display contact-table :selected-id (val contact-id)))))
+                   (footer)))))
+        (see-other (notfound)))))

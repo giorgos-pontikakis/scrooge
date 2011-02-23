@@ -179,7 +179,7 @@
   (display
    (make-instance 'actions-menu
                   :id "company-actions"
-                  :style "hnavbar actions grid_9 alpha"
+                  :style "hnavbar actions grid_8 alpha"
                   :spec (crud+details+archive-actions-spec (company :id id
                                                                     :search search)
                                                            (company/create :search search)
@@ -239,7 +239,7 @@
   ((header-labels :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Διεύθυνση"))
    (paginator     :initform (make-instance 'paginator
                                            :id "company-paginator"
-                                           :style "paginator grid_9 alpha"
+                                           :style "paginator grid_8 alpha"
                                            :delta 10
                                            :urlfn (lambda (search start)
                                                     (company :search search
@@ -320,7 +320,7 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
-                   (:div :id "company-window" :class "window grid_9"
+                   (:div :id "company-window" :class "window grid_8"
                          (:div :class "title" "Κατάλογος εταιριών")
                          (company-menu (val id)
                                        (val search)
@@ -356,11 +356,13 @@
        (:div :id "container" :class "container_12"
              (header 'admin)
              (admin-navbar 'company)
-             (:div :id "company-window" :class "window grid_9"
+             (:div :id "company-window" :class "window grid_8"
                    (:div :class "title" "Δημιουργία εταιρίας")
                    (company-menu nil
                                  (val search)
                                  '(details create update archive delete))
+                   (:div :id "notifications grid_12"
+                         (company-notifications))
                    (with-form (actions/admin/company/create)
                      (company-data-form 'create
                                         :search (val search)
@@ -380,8 +382,6 @@
                                                                     city
                                                                     pobox
                                                                     zipcode))))
-             (:div :id "sidebar" :class "sidebar grid_3"
-                   (company-notifications))
              (footer))))))
 
 (define-dynamic-page company/update ("admin/company/update")
@@ -407,15 +407,16 @@
            (:div :id "container" :class "container_12"
                  (header 'admin)
                  (admin-navbar 'company)
-                 (:div :id "company-window" :class "window grid_9"
+                 (:div :id "company-window" :class "window grid_8"
                        (:div :class "title" "Επεξεργασία εταιρίας")
                        (company-menu (val id)
                                      (val search)
                                      '(create update))
+                       (:div :id "notifications grid_12"
+                             (company-notifications))
                        (with-form (actions/admin/company/update :id (val id))
                          (company-data-form 'update
                                             :id (val id)
-                                            :contact-id (val contact-id)
                                             :search (val search)
                                             :data (plist-union (parameters->plist title
                                                                                   occupation
@@ -434,8 +435,14 @@
                                                                         city
                                                                         pobox
                                                                         zipcode))))
-                 (:div :id "sidebar" :class "sidebar grid_3"
-                       (company-notifications))
+                 (:div :id "contact-window" :class "window grid_6"
+                       (:div :class "title" "Επαφές")
+                       (contact-menu (val id)
+                                     (val contact-id)
+                                     (val search)
+                                     (if (val contact-id)
+                                         '(details)
+                                         '(details update delete))))
                  (footer))))
         (see-other (error-page)))))
 
@@ -445,27 +452,35 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Λεπτομέρειες εταιρίας")
-           (admin-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'admin)
-                 (admin-navbar 'company)
-                 (:div :id "company-window" :class "window grid_9"
-                       (:div :class "title" "Λεπτομέρειες εταιρίας")
-                       (company-menu (val id)
-                                     (val search)
-                                     '(details create))
-                       (with-form (actions/admin/company/update :id (val id))
+        (let ((contact-table (make-instance 'contact-table
+                                            :op 'update
+                                            :company-id (val id))))
+          (with-document ()
+            (:head
+             (:title "Λεπτομέρειες εταιρίας")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'company)
+                   (:div :id "company-window" :class "window grid_6"
+                         (:div :class "title" "Λεπτομέρειες εταιρίας")
+                         (company-menu (val id)
+                                       (val search)
+                                       '(details create))
                          (company-data-form 'details
                                             :search (val search)
                                             :id (val id)
-                                            :data (get-company-plist (val id)))))
-                 (:div :id "sidebar" :class "sidebar grid_3"
-                       "")
-                 (error-page))))
+                                            :data (get-company-plist (val id))))
+                   (:div :id "contact-window" :class "window grid_6"
+                         (:div :class "title" "Επαφές > Δημιουργία")
+                         (contact-menu (val id)
+                                       nil
+                                       (val search)
+                                       '(details create update delete))
+                         (:div :class "grid_6 alpha company-data-form-contact-data"
+                               (display contact-table)))
+                   (error-page)))))
         (see-other (notfound)))))
 
 (define-dynamic-page company/delete ("admin/company/delete")
@@ -485,7 +500,7 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
-                   (:div :id "company-window" :class "window grid_9"
+                   (:div :id "company-window" :class "window grid_8"
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
                                        (val search)
@@ -500,72 +515,64 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(defun company-data-form (op &key contact-op id contact-id data  styles search)
+(defun company-data-form (op &key id data styles search)
   (let ((disabledp (eql op 'details)))
     (with-html
       (:div :id "company-data-form" :class "data-form"
-            (:div :class "grid_9 alpha company-data-form-title"
+            (:div :class "grid_8 alpha company-data-form-title"
                   (label 'title "Επωνυμία")
                   (textbox 'title
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (company-core-form data styles disabledp)
-            (company-contact-form contact-op id contact-id)
-            (:div :class "data-form-buttons grid_9"
+            (:div :class "grid_4 alpha company-data-form-core-data"
+                  (:fieldset
+                   (:legend "Φορολογικά στοιχεία")
+                   (:ul (:li (label 'occupation "Επάγγελμα")
+                             (textbox 'occupation
+                                      :id "occupation"
+                                      :value (getf data :occupation)
+                                      :disabledp disabledp
+                                      :style (getf styles :occupation)))
+                        (:li (label 'tin "Α.Φ.Μ.")
+                             (textbox 'tin
+                                      :id "tin"
+                                      :value (getf data :tin)
+                                      :disabledp disabledp
+                                      :style (getf styles :tin)))
+                        (:li (label 'tof "Δ.Ο.Υ.")
+                             (textbox 'tof
+                                      :id "tof"
+                                      :value (getf data :tof)
+                                      :disabledp disabledp
+                                      :style (getf styles :tof)))))
+                  (:fieldset
+                   (:legend "Διεύθυνση")
+                   (:ul (:li (label 'address "Οδός")
+                             (textbox 'address
+                                      :value (getf data :address)
+                                      :disabledp disabledp
+                                      :style (getf styles :address)))
+                        (:li (label 'city "Πόλη")
+                             (textbox 'city
+                                      :id "city"
+                                      :value (getf data :city)
+                                      :disabledp disabledp
+                                      :style (getf styles :city)))
+                        (:li (label 'zipcode "Ταχυδρομικός κώδικας")
+                             (textbox 'zipcode
+                                      :value (getf data :zipcode)
+                                      :disabledp disabledp
+                                      :style (getf styles :zipcode))
+                             (label 'pobox "Ταχυδρομική θυρίδα")
+                             (textbox 'pobox
+                                      :value (getf data :pobox)
+                                      :disabledp disabledp
+                                      :style (getf styles :pobox))))))
+            (:div :class "data-form-buttons grid_8"
                   (if disabledp
                       (cancel-button (company :id id :search search)
                                      "Επιστροφή στον Κατάλογο Εταιριών")
                       (progn
                         (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
                         (cancel-button (company :id id :search search) "Άκυρο"))))))))
-
-
-
-
-(defun company-core-form (data styles disabledp)
-  (with-html
-    (:div :class "grid_4 alpha company-data-form-core-data"
-          (:fieldset
-           (:legend "Φορολογικά στοιχεία")
-           (:ul (:li (label 'occupation "Επάγγελμα")
-                     (textbox 'occupation
-                              :id "occupation"
-                              :value (getf data :occupation)
-                              :disabledp disabledp
-                              :style (getf styles :occupation)))
-                (:li (label 'tin "Α.Φ.Μ.")
-                     (textbox 'tin
-                              :id "tin"
-                              :value (getf data :tin)
-                              :disabledp disabledp
-                              :style (getf styles :tin)))
-                (:li (label 'tof "Δ.Ο.Υ.")
-                     (textbox 'tof
-                              :id "tof"
-                              :value (getf data :tof)
-                              :disabledp disabledp
-                              :style (getf styles :tof)))))
-          (:fieldset
-           (:legend "Διεύθυνση")
-           (:ul (:li (label 'address "Οδός")
-                     (textbox 'address
-                              :value (getf data :address)
-                              :disabledp disabledp
-                              :style (getf styles :address)))
-                (:li (label 'city "Πόλη")
-                     (textbox 'city
-                              :id "city"
-                              :value (getf data :city)
-                              :disabledp disabledp
-                              :style (getf styles :city)))
-                (:li (label 'zipcode "Ταχυδρομικός κώδικας")
-                     (textbox 'zipcode
-                              :value (getf data :zipcode)
-                              :disabledp disabledp
-                              :style (getf styles :zipcode))
-                     (label 'pobox "Ταχυδρομική θυρίδα")
-                     (textbox 'pobox
-                              :value (getf data :pobox)
-                              :disabledp disabledp
-                              :style (getf styles :pobox))))))))
