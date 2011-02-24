@@ -132,7 +132,6 @@
   (unless (every #'validp (parameters *page*))
     (with-html
       (:div :id "notifications"
-            (:p :class "title" "Μηνύματα")
             (display (make-instance 'messenger
                                     :messages messages
                                     :style "msg-error")

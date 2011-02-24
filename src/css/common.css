@@ -94,7 +94,7 @@ select[disabled] {
 }
 
 .msg-error {
-    background: transparent url(/scrooge/img/error.png) no-repeat left 2px;
+    background: transparent url(/scrooge/img/error.png) no-repeat 7px center;
 }
 
 .attention {

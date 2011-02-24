@@ -175,11 +175,11 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-menu (id search &optional disabled-items)
+(defun company-menu (id search &optional grid-style disabled-items)
   (display
    (make-instance 'actions-menu
                   :id "company-actions"
-                  :style "hnavbar actions grid_8 alpha"
+                  :style (conc "hnavbar actions alpha " grid-style)
                   :spec (crud+details+archive-actions-spec (company :id id
                                                                     :search search)
                                                            (company/create :search search)
@@ -236,16 +236,16 @@
 ;;; table
 
 (defclass company-table (crud-table)
-  ((header-labels :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Διεύθυνση"))
-   (paginator     :initform (make-instance 'paginator
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
+   (paginator      :initform (make-instance 'paginator
                                            :id "company-paginator"
-                                           :style "paginator grid_8 alpha"
+                                           :style "paginator grid_9 alpha"
                                            :delta 10
                                            :urlfn (lambda (search start)
                                                     (company :search search
                                                              :start start)))))
   (:default-initargs :item-class 'company-row))
-
 
 (defmethod read-records ((table company-table))
   (let* ((search (filter table))
@@ -290,7 +290,7 @@
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(title tin tof address))
+                           '(title tin tof))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -314,16 +314,17 @@
                                             :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Εταιρίες")
+             (:title "Εταιρίες » Κατάλογος")
              (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
-                   (:div :id "company-window" :class "window grid_8"
-                         (:div :class "title" "Κατάλογος εταιριών")
+                   (:div :id "company-window" :class "window grid_9"
+                         (:div :class "title" "Εταιρίες » Κατάλογος")
                          (company-menu (val id)
                                        (val search)
+                                       "grid_9"
                                        (if (val id)
                                            '(catalogue)
                                            '(catalogue details archive update delete)))
@@ -350,18 +351,19 @@
     (no-cache)
     (with-document ()
       (:head
-       (:title "Δημιουργία εταιρίας")
+       (:title "Εταιρία » Δημιουργία")
        (admin-headers))
       (:body
        (:div :id "container" :class "container_12"
              (header 'admin)
              (admin-navbar 'company)
-             (:div :id "company-window" :class "window grid_8"
-                   (:div :class "title" "Δημιουργία εταιρίας")
+             (:div :id "company-window" :class "window grid_6"
+                   (:div :class "title" "Εταιρία » Δημιουργία")
                    (company-menu nil
                                  (val search)
+                                 "grid_6"
                                  '(details create update archive delete))
-                   (:div :id "notifications grid_12"
+                   (:div :class "grid_6 alpha"
                          (company-notifications))
                    (with-form (actions/admin/company/create)
                      (company-data-form 'create
@@ -382,6 +384,10 @@
                                                                     city
                                                                     pobox
                                                                     zipcode))))
+             (:div :id "contact-window" :class "window grid_6"
+                   (:div :class "title" "Επαφές")
+                   (:div :class "hnavbar actions"
+                         (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))
              (footer))))))
 
 (define-dynamic-page company/update ("admin/company/update")
@@ -399,89 +405,98 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Επεξεργασία εταιρίας")
-           (admin-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'admin)
-                 (admin-navbar 'company)
-                 (:div :id "company-window" :class "window grid_8"
-                       (:div :class "title" "Επεξεργασία εταιρίας")
-                       (company-menu (val id)
-                                     (val search)
-                                     '(create update))
-                       (:div :id "notifications grid_12"
-                             (company-notifications))
-                       (with-form (actions/admin/company/update :id (val id))
-                         (company-data-form 'update
-                                            :id (val id)
-                                            :search (val search)
-                                            :data (plist-union (parameters->plist title
-                                                                                  occupation
-                                                                                  tof
-                                                                                  tin
-                                                                                  address
-                                                                                  city
-                                                                                  pobox
-                                                                                  zipcode)
-                                                               (get-company-plist (val id)))
-                                            :styles (parameters->styles title
-                                                                        occupation
-                                                                        tof
-                                                                        tin
-                                                                        address
-                                                                        city
-                                                                        pobox
-                                                                        zipcode))))
-                 (:div :id "contact-window" :class "window grid_6"
-                       (:div :class "title" "Επαφές")
-                       (contact-menu (val id)
-                                     (val contact-id)
-                                     (val search)
-                                     (if (val contact-id)
-                                         '(details)
-                                         '(details update delete))))
-                 (footer))))
-        (see-other (error-page)))))
-
-(define-dynamic-page company/details ("admin/company/details")
-    ((search     string)
-     (id         integer chk-company-id t))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
         (let ((contact-table (make-instance 'contact-table
-                                            :op 'update
+                                            :op 'details
                                             :company-id (val id))))
           (with-document ()
             (:head
-             (:title "Λεπτομέρειες εταιρίας")
+             (:title "Εταιρία » Επεξεργασία")
              (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
                    (:div :id "company-window" :class "window grid_6"
-                         (:div :class "title" "Λεπτομέρειες εταιρίας")
+                         (:div :class "title" "Εταιρία » Επεξεργασία")
                          (company-menu (val id)
                                        (val search)
+                                       "grid_6"
+                                       '(create update))
+                         (:div :class "grid_6 alpha"
+                               (company-notifications))
+                         (with-form (actions/admin/company/update :id (val id))
+                           (company-data-form 'update
+                                              :id (val id)
+                                              :search (val search)
+                                              :data (plist-union (parameters->plist title
+                                                                                    occupation
+                                                                                    tof
+                                                                                    tin
+                                                                                    address
+                                                                                    city
+                                                                                    pobox
+                                                                                    zipcode)
+                                                                 (get-company-plist (val id)))
+                                              :styles (parameters->styles title
+                                                                          occupation
+                                                                          tof
+                                                                          tin
+                                                                          address
+                                                                          city
+                                                                          pobox
+                                                                          zipcode))))
+                   (:div :id "contact-window" :class "window grid_6"
+                         (:div :class "title" "Επαφές")
+                         (contact-menu (val id)
+                                       (val contact-id)
+                                       (val search)
+                                       (if (val contact-id)
+                                           '(catalogue)
+                                           '(catalogue update delete)))
+                         (display contact-table
+                                  :selected-id (val contact-id)))
+                   (footer)))))
+        (see-other (error-page)))))
+
+(define-dynamic-page company/details ("admin/company/details")
+    ((search     string)
+     (id         integer chk-company-id t)
+     (contact-id integer (chk-contact-id id contact-id)))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (let ((contact-table (make-instance 'contact-table
+                                            :op 'details
+                                            :company-id (val id))))
+          (with-document ()
+            (:head
+             (:title "Εταιρία » Λεπτομέρειες")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'company)
+                   (:div :id "company-window" :class "window grid_6"
+                         (:div :class "title" "Εταιρία » Λεπτομέρειες")
+                         (company-menu (val id)
+                                       (val search)
+                                       "grid_6"
                                        '(details create))
                          (company-data-form 'details
                                             :search (val search)
                                             :id (val id)
                                             :data (get-company-plist (val id))))
                    (:div :id "contact-window" :class "window grid_6"
-                         (:div :class "title" "Επαφές > Δημιουργία")
+                         (:div :class "title" "Επαφές » Κατάλογος")
                          (contact-menu (val id)
-                                       nil
+                                       (val contact-id)
                                        (val search)
-                                       '(details create update delete))
-                         (:div :class "grid_6 alpha company-data-form-contact-data"
-                               (display contact-table)))
-                   (error-page)))))
-        (see-other (notfound)))))
+                                       (if (val contact-id)
+                                           '(catalogue)
+                                           '(catalogue update delete)))
+                         (display contact-table
+                                  :selected-id (val contact-id)))))))
+        (see-other (error-page)))))
 
 (define-dynamic-page company/delete ("admin/company/delete")
     ((id     integer chk-company-id t)
@@ -500,10 +515,11 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
-                   (:div :id "company-window" :class "window grid_8"
+                   (:div :id "company-window" :class "window grid_9"
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
                                        (val search)
+                                       "grid_9"
                                        '(catalogue delete))
                          (with-form (actions/admin/company/delete :id (val id)
                                                                   :search (val* search))
@@ -518,14 +534,14 @@
 (defun company-data-form (op &key id data styles search)
   (let ((disabledp (eql op 'details)))
     (with-html
-      (:div :id "company-data-form" :class "data-form"
-            (:div :class "grid_8 alpha company-data-form-title"
+      (:div :id "company-data-form" :class "data-form grid_6 alpha"
+            (:div :class "company-data-form-title"
                   (label 'title "Επωνυμία")
                   (textbox 'title
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (:div :class "grid_4 alpha company-data-form-core-data"
+            (:div :class "company-data-form-core-data"
                   (:fieldset
                    (:legend "Φορολογικά στοιχεία")
                    (:ul (:li (label 'occupation "Επάγγελμα")
@@ -569,7 +585,7 @@
                                       :value (getf data :pobox)
                                       :disabledp disabledp
                                       :style (getf styles :pobox))))))
-            (:div :class "data-form-buttons grid_8"
+            (:div :class "data-form-buttons grid_6"
                   (if disabledp
                       (cancel-button (company :id id :search search)
                                      "Επιστροφή στον Κατάλογο Εταιριών")

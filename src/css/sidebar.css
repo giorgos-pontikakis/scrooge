@@ -15,13 +15,14 @@
 /* notifications */
 /* ---------------------------------------------------------------------- */
 
-#notifications p {
-    margin-bottom: 10px;
+#notifications {
+    background-color: #ffdddd;
+    margin-top: 10px;
 }
 
 #notifications li {
-    padding: 0px 0px 8px 22px;
-    line-height: 22px;
+    padding: 0px 0px 0px 30px;
+    line-height: 26px;
 }
 
 /* ---------------------------------------------------------------------- */

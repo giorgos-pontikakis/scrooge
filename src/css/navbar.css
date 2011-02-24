@@ -109,6 +109,11 @@
 
 .actions {
     background-color: #7B8D78;
+    color: #ffffff;
+}
+
+.actions p {
+    padding: 5px 10px;
 }
 
 .actions ul {

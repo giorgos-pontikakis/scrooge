@@ -15,9 +15,10 @@
 ;;; ------------------------------------------------------------
 
 (defclass collection (widget)
-  ((op         :accessor op         :initarg :op)
-   (filter     :accessor filter     :initarg :filter)
-   (item-class :accessor item-class :initarg :item-class)))
+  ((op              :accessor op              :initarg :op)
+   (filter          :accessor filter          :initarg :filter)
+   (item-class      :accessor item-class      :initarg :item-class)
+   (item-key-field :accessor item-key-field :initarg :item-key-field)))
 
 (defgeneric read-records (collection)
   (:documentation "Retrieve the raw records for the collection"))
@@ -39,8 +40,8 @@
 
 (defclass item ()
   ((collection :accessor collection :initarg :collection)
-   (key        :accessor key        :initarg :key)
-   (record     :accessor record     :initarg :record)))
+   (record     :accessor record     :initarg :record)
+   (key        :accessor key        :initarg :key)))
 
 (defclass node (item)
   ((parent-key :accessor parent-key :initarg :parent-key)
@@ -96,7 +97,8 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-tree (collection)
-  ((root       :accessor root       :initarg :root))
+  ((root           :accessor root           :initarg :root)
+   (item-parent-field :accessor item-parent-field :initarg :item-parent-field))
   (:default-initargs :id "crud-tree" :style "crud-tree" :item-class 'crud-node))
 
 (defmethod initialize-instance :after ((tree crud-tree) &key)
@@ -107,7 +109,7 @@
   (let ((records (read-records tree)))
     (labels ((make-nodes (parent-key)
                (mapcar (lambda (rec)
-                         (let ((key (getf rec :id)))
+                         (let ((key (getf rec (item-key-field tree))))
                            (make-instance (item-class tree)
                                           :collection tree
                                           :key key
@@ -115,7 +117,7 @@
                                           :parent-key parent-key
                                           :children (make-nodes key))))
                        (remove-if-not (lambda (rec)
-                                        (equal parent-key (getf rec :parent-id)))
+                                        (equal parent-key (getf rec (item-parent-field tree))))
                                       records))))
       (make-instance (item-class tree)
                      :collection tree
@@ -285,7 +287,7 @@
   (iter (for rec in (read-records table))
         (for i from 0)
         (collect (make-instance (item-class table)
-                                :key (getf rec :id)
+                                :key (getf rec (item-key-field table))
                                 :record rec
                                 :collection table
                                 :index i))))
@@ -339,6 +341,7 @@
                          (display row
                                   :selected-id selected-id
                                   :start start)))))))))
+
 
 
 ;;; ------------------------------------------------------------

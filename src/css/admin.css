@@ -3,19 +3,20 @@
 /* ---------------------------------------------------------------------- */
 
 .company-data-form-title {
-    margin-top: 20px;
+    margin-top: 10px;
+    padding-left: 20px;
 }
 
 .company-data-form-title input {
-    width: 300px
+    width: 406px
 }
 
 .company-data-form-core-data input {
-    width: 246px;
+    width: 406px;
 }
 
 .company-data-form-core-data fieldset {
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 

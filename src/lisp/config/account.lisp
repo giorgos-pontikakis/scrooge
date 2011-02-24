@@ -177,7 +177,8 @@
 ;;; tree
 
 (defclass account-crud-tree (crud-tree)
-  ()
+  ((item-key-field    :initform :id)
+   (item-parent-field :initform :parent-id))
   (:default-initargs :item-class 'account-crud-node))
 
 (defmethod read-records ((tree account-crud-tree))
