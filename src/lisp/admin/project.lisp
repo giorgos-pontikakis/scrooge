@@ -190,14 +190,15 @@
 ;;; table
 
 (defclass project-table (crud-table)
-  ((header-labels :initform '("" "Περιγραφή" "Εταιρία" "Τοποθεσία" "Κατάσταση"))
-   (paginator     :initform (make-instance 'paginator
-                                           :id "project-paginator"
-                                           :style "paginator grid_9 alpha"
-                                           :delta 10
-                                           :urlfn (lambda (search start)
-                                                    (project :search search
-                                                             :start start)))))
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "Περιγραφή" "Εταιρία" "Τοποθεσία" "Κατάσταση"))
+   (paginator      :initform (make-instance 'paginator
+                                            :id "project-paginator"
+                                            :style "paginator grid_9 alpha"
+                                            :delta 10
+                                            :urlfn (lambda (search start)
+                                                     (project :search search
+                                                              :start start)))))
   (:default-initargs :item-class 'project-row))
 
 (defmethod read-records ((table project-table))

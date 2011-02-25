@@ -116,8 +116,9 @@
 ;;; table
 
 (defclass city-table (crud-table)
-  ((header-labels :initform '("" "Ονομασία πόλης" "" ""))
-   (paginator :initform (make-instance 'paginator
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
+   (paginator      :initform (make-instance 'paginator
                                        :id "city-paginator"
                                        :style "paginator grid_9 alpha"
                                        :delta 10

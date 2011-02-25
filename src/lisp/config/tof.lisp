@@ -115,8 +115,9 @@
 ;;; table
 
 (defclass tof-table (crud-table)
-  ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
-   (paginator     :initform (make-instance 'paginator
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
+   (paginator      :initform (make-instance 'paginator
                                            :id "tof-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
