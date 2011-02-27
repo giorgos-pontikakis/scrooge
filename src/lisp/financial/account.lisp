@@ -28,8 +28,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass account-tx-table (crud-table)
-  ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
-   (paginator     :initform (make-instance 'paginator
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
+   (paginator      :initform (make-instance 'paginator
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
@@ -98,7 +99,7 @@
     (no-cache)
     (with-document ()
       (:head
-       (:title "Λογαριασμοί > Σύνοψη")
+       (:title "Λογαριασμοί » Σύνοψη")
        (financial-headers))
       (:body
        (:div :id "container" :class "container_12"
@@ -132,7 +133,7 @@
                                        :filter (val id))))
           (with-document ()
             (:head
-             (:title "Λογαριασμοί > Λεπτομέρειες")
+             (:title "Λογαριασμοί » Λεπτομέρειες")
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -166,7 +167,7 @@
                                :plists)))
         (with-document ()
           (:head
-           (:title "Λογαριασμοί > Λεπτομέρειες")
+           (:title "Λογαριασμοί » Λεπτομέρειες")
            (financial-headers))
           (:body
            (:div :id "container" :class "container_12"

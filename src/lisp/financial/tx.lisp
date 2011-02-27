@@ -171,8 +171,9 @@
 ;;; table
 
 (defclass tx-crud-table (crud-table)
-  ((header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
-   (paginator     :initform (make-instance 'paginator
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
+   (paginator      :initform (make-instance 'paginator
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
@@ -257,7 +258,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (transaction) (val search)))
                    (:div :class "window grid_9"
-                         (:div :class "title" "Κατάλογος συναλλαγών")
+                         (:div :class "title" "Συναλλαγές » Κατάλογος")
                          (transaction-menu (val id)
                                            (val search)
                                            (if (val id)
@@ -281,14 +282,14 @@
     (no-cache)
     (with-document ()
       (:head
-       (:title "Δημιουργία συναλλαγής")
+       (:title "Συναλλαγές » Δημιουργία")
        (financial-headers))
       (:body
        (:div :id "container" :class "container_12"
              (header 'financial)
              (financial-navbar 'transaction)
              (:div :class "window grid_9"
-                   (:div :class "title" "Δημιουργία συναλλαγής")
+                   (:div :class "title" "Συναλλαγή » Δημιουργία")
                    (transaction-menu nil
                                      (val search)
                                      '(details create update delete))
@@ -327,14 +328,14 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Συναλλαγές > Επεξεργασία")
+           (:title "Συναλλαγή » Επεξεργασία")
            (financial-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
                  (financial-navbar 'transaction)
                  (:div :class "window grid_9"
-                       (:div :class "title" "Επεξεργασία συναλλαγής")
+                       (:div :class "title" "Συναλλαγή » Επεξεργασία")
                        (transaction-menu (val id)
                                          (val search)
                                          '(create update))
@@ -369,14 +370,14 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Λεπτομέρειες συναλλαγής")
+           (:title "Συναλλαγή » Λεπτομέρειες")
            (financial-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
                  (financial-navbar 'transaction)
                  (:div :class "window grid_9"
-                       (:div :class "title" "Λεπτομέρειες συναλλαγής")
+                       (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
                        (transaction-menu (val id)
                                          (val search)
                                          '(details create))
@@ -400,7 +401,7 @@
                                             :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Διαγραφή συναλλαγής")
+             (:title "Συναλλαγή » Διαγραφή")
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -410,7 +411,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (transaction) (val search)))
                    (:div :class "window grid_9"
-                         (:div :class "title" "Διαγραφή συναλλαγής")
+                         (:div :class "title" "Συναλλαγή » Διαγραφή")
                          (transaction-menu (val id)
                                            (val search)
                                            '(create delete))

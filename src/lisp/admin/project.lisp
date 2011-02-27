@@ -48,7 +48,8 @@
      (quote-date  string)
      (start-date  string)
      (end-date    string)
-     (status      string))
+     (status      string)
+     (notes       string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -63,7 +64,8 @@
                                              :quote-date (val quote-date)
                                              :start-date (val start-date)
                                              :end-date (val end-date)
-                                             :status (val status))))
+                                             :status (val status)
+                                             :notes (val notes))))
             (insert-dao new-project)
             (see-other (project :id (id new-project) :search (val search)))))
         (see-other (project/create :search (raw search)
@@ -75,7 +77,8 @@
                                    :quote-date (raw quote-date)
                                    :start-date (raw start-date)
                                    :end-date (raw end-date)
-                                   :status (raw status))))))
+                                   :status (raw status)
+                                   :notes (raw notes))))))
 
 (define-dynamic-page actions/admin/project/update ("actions/admin/project/update"
                                                    :request-type :post)
@@ -89,7 +92,8 @@
      (quote-date  string)
      (start-date  string)
      (end-date    string)
-     (status      string))
+     (status      string)
+     (notes       string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -105,6 +109,7 @@
                               'start-date (val start-date)
                               'end-date (val end-date)
                               'status (val status)
+                              'notes (val notes)
                               :where (:= 'id (val id))))
             (see-other (project :id (val id) :search (val search)))))
         (see-other (project/update :search (raw search)
@@ -117,7 +122,8 @@
                                    :quote-date (raw quote-date)
                                    :start-date (raw start-date)
                                    :end-date (raw end-date)
-                                   :status (raw status))))))
+                                   :status (raw status)
+                                   :notes (raw notes))))))
 
 (define-dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
                                                    :request-type :post)
@@ -140,7 +146,7 @@
 (defun project-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "project-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions"
                           :spec (crud+details+archive-actions-spec (project :id id
                                                                             :search search)
                                                                    (project/create :search search)
@@ -174,7 +180,7 @@
   (with-db ()
     (query (:select 'project.id (:as 'company.title 'company)
                     'description 'location 'status
-                    'start-date 'end-date 'price 'vat
+                    'start-date 'end-date 'price 'vat 'notes
                     :from 'project
                     :left-join 'company
                     :on (:= 'project.company-id 'company.id)
@@ -191,21 +197,22 @@
 
 (defclass project-table (crud-table)
   ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Περιγραφή" "Εταιρία" "Τοποθεσία" "Κατάσταση"))
+   (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία" "Κατάσταση"))
    (paginator      :initform (make-instance 'paginator
                                             :id "project-paginator"
-                                            :style "paginator grid_9 alpha"
+                                            :style "paginator"
                                             :delta 10
                                             :urlfn (lambda (search start)
                                                      (project :search search
                                                               :start start)))))
-  (:default-initargs :item-class 'project-row))
+  (:default-initargs :item-class 'project-row :id "project-table"))
 
 (defmethod read-records ((table project-table))
   (let* ((search (filter table))
          (base-query `(:select project.id (:as company.title company)
                                project.description location
                                (:as project-status.description status)
+                               project.notes
                                :from project
                                :left-join 'company
                                :on (:= project.company-id company.id)
@@ -215,7 +222,8 @@
                               (append base-query
                                       `(:where (:or (:ilike project.description ,(ilike search))
                                                     (:ilike company.title ,(ilike search))
-                                                    (:ilike project.location ,(ilike search)))))
+                                                    (:ilike project.location ,(ilike search))
+                                                    (:ilike project.notes ,(ilike search)))))
                               base-query))
          (final-query `(:order-by ,composite-query project.id start-date)))
     (with-db ()
@@ -243,7 +251,7 @@
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(description company location status))
+                           '(description location company status))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -267,14 +275,14 @@
                                             :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Έργα")
+             (:title "Έργα » Κατάλογος")
              (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'project)
                    (:div :id "project-window" :class "window grid_9"
-                         (:div :class "title" "Κατάλογος έργων")
+                         (:div :class "title" "Έργα » Κατάλογος")
                          (project-menu (val id)
                                        (val search)
                                        (if (val id)
@@ -299,45 +307,47 @@
      (quote-date  string)
      (start-date  string)
      (end-date    string)
-     (status      string))
+     (status      string)
+     (notes       string))
   (with-auth ("configuration")
     (no-cache)
     (with-document ()
       (:head
-       (:title "Δημιουργία εταιρίας")
+       (:title "Έργο » Δημιουργία")
        (admin-headers))
       (:body
        (:div :id "container" :class "container_12"
              (header 'admin)
              (admin-navbar 'project)
-             (:div :id "project-window" :class "window grid_9"
-                   (:div :class "title" "Δημιουργία έργου")
+             (:div :id "project-window" :class "window grid_12"
+                   (:div :class "title" "Έργο » Δημιουργία")
                    (project-menu nil
                                  (val search)
                                  '(details create update archive delete))
-                   (with-form (actions/admin/project/create)
-                     (project-data-form 'create
-                                        :search (val search)
-                                        :data (parameters->plist company
-                                                                 description
-                                                                 location
-                                                                 price
-                                                                 vat
-                                                                 status
-                                                                 quote-date
-                                                                 start-date
-                                                                 end-date)
-                                        :styles (parameters->styles company
-                                                                    description
-                                                                    location
-                                                                    price
-                                                                    vat
-                                                                    status
-                                                                    quote-date
-                                                                    start-date
-                                                                    end-date))))
-             (:div :id "sidebar" :class "sidebar grid_3"
                    (project-notifications))
+             (with-form (actions/admin/project/create)
+               (project-data-form 'create
+                                  :search (val search)
+                                  :data (parameters->plist company
+                                                           description
+                                                           location
+                                                           price
+                                                           vat
+                                                           status
+                                                           quote-date
+                                                           start-date
+                                                           end-date
+                                                           notes)
+                                  :styles (parameters->styles company
+                                                              description
+                                                              location
+                                                              price
+                                                              vat
+                                                              status
+                                                              quote-date
+                                                              start-date
+                                                              end-date
+                                                              notes)))
              (footer))))))
 
 (define-dynamic-page project/update ("admin/project/update")
@@ -351,50 +361,52 @@
      (quote-date  string)
      (start-date  string)
      (end-date    string)
-     (status      string))
+     (status      string)
+     (notes       string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Επεξεργασία έργου")
+           (:title "Έργο » Επεξεργασία")
            (admin-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'admin)
                  (admin-navbar 'project)
-                 (:div :id "project-window" :class "window grid_9"
-                       (:div :class "title" "Επεξεργασία έργου")
+                 (:div :id "project-window" :class "window grid_12"
+                       (:p :class "title" "Έργο » Επεξεργασία")
                        (project-menu (val id)
                                      (val search)
                                      '(create update))
-                       (with-form (actions/admin/project/update :id (val id))
-                         (project-data-form 'update
-                                            :id (val id)
-                                            :search (val search)
-                                            :data (plist-union (parameters->plist id
-                                                                                  company
-                                                                                  description
-                                                                                  location
-                                                                                  price
-                                                                                  vat
-                                                                                  status
-                                                                                  quote-date
-                                                                                  start-date
-                                                                                  end-date)
-                                                               (get-project-plist (val id)))
-                                            :styles (parameters->styles id
-                                                                        company
-                                                                        description
-                                                                        location
-                                                                        price
-                                                                        vat
-                                                                        status
-                                                                        quote-date
-                                                                        start-date
-                                                                        end-date))))
-                 (:div :id "sidebar" :class "sidebar grid_3"
                        (project-notifications))
+                 (with-form (actions/admin/project/update :id (val id))
+                   (project-data-form 'update
+                                      :id (val id)
+                                      :search (val search)
+                                      :data (plist-union (parameters->plist id
+                                                                            company
+                                                                            description
+                                                                            location
+                                                                            price
+                                                                            vat
+                                                                            status
+                                                                            quote-date
+                                                                            start-date
+                                                                            end-date
+                                                                            notes)
+                                                         (get-project-plist (val id)))
+                                      :styles (parameters->styles id
+                                                                  company
+                                                                  description
+                                                                  location
+                                                                  price
+                                                                  vat
+                                                                  status
+                                                                  quote-date
+                                                                  start-date
+                                                                  end-date
+                                                                  notes)))
                  (footer))))
         (see-other (error-page)))))
 
@@ -406,25 +418,21 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Λεπτομέρειες έργου")
+           (:title "Έργο » Λεπτομέρειες")
            (admin-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'admin)
                  (admin-navbar 'project)
-                 (:div :id "project-window" :class "window grid_9"
-                       (:div :class "title" "Λεπτομέρειες έργου")
+                 (:div :id "project-window" :class "window grid_12"
+                       (:p :class "title" "Έργο » Λεπτομέρειες")
                        (project-menu (val id)
                                      (val search)
-                                     '(details create))
-                       (with-form (actions/admin/project/update :id (val id))
-                         (project-data-form 'details
-                                            :search (val search)
-                                            :id (val id)
-                                            :data (get-project-plist (val id)))))
-                 (:div :id "sidebar" :class "sidebar grid_3"
-                       "")
-                 (error-page))))
+                                     '(details create)))
+                 (project-data-form 'details
+                                    :search (val search)
+                                    :id (val id)
+                                    :data (get-project-plist (val id))))))
         (see-other (notfound)))))
 
 (define-dynamic-page project/delete ("admin/project/delete")
@@ -438,14 +446,14 @@
                                             :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Διαγραφή έργου")
+             (:title "Έργο » Διαγραφή")
              (admin-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'project)
                    (:div :id "project-window" :class "window grid_9"
-                         (:div :class "title" "Διαγραφή έργου")
+                         (:div :class "title" "Έργο » Διαγραφή")
                          (project-menu (val id)
                                        (val search)
                                        '(catalogue delete))
@@ -471,10 +479,10 @@
                         :disabledp disabledp
                         :style (getf styles (make-keyword name))))))
       (with-html
-        (:div :id "project-data-form" :class "data-form"
-              (:div :class "grid_6 alpha project-data-form-title"
+        (:div :id "project-data-form" :class "data-form grid_8"
+              (:div :class "grid_5 alpha project-data-form-title"
                     (label+textbox 'description "Περιγραφή"))
-              (:div :class "grid_3 alpha project-data-form-title"
+              (:div :class "grid_3 omega project-data-form-title"
                     (label 'status "Κατάσταση")
                     (dropdown 'status
                               (with-db ()
@@ -482,21 +490,27 @@
                                                 :from 'project-status)))
                               :selected (or (getf data :status) *default-project-status*)
                               :disabledp disabledp))
-              (:div :class "grid_6 alpha project-data-form-subtitle"
+              (:div :class "grid_5 alpha project-data-form-subtitle"
                     (label+textbox 'location "Τοποθεσία")
                     (label+textbox 'company "Εταιρία"))
-              (:div :class "grid_4 alpha"
+              (:div :class "grid_4 alpha project-data-form-details"
                     (:fieldset
                      (:legend "Οικονομικά")
                      (:ul (:li (label+textbox 'price "Τιμή"))
                           (:li (label+textbox 'vat "Φ.Π.Α.")))))
-              (:div :class "grid_4 omega"
+              (:div :class "grid_4 omega project-data-form-details"
                     (:fieldset
                      (:legend "Χρονοδιάγραμμα")
                      (:ul (:li (label+textbox 'quote-date "Ημερομηνία προσφοράς"))
                           (:li (label+textbox 'start-date "Ημερομηνία έναρξης"))
                           (:li (label+textbox 'end-date "Ημερομηνία ολοκλήρωσης"))))))
-        (:div :class "grid_9 data-form-buttons"
+        (:div :id "project-notes" :class "data-form grid_4"
+              (:div :class "project-data-form-title"
+                    (label 'notes "Σημειώσεις")
+                    (:textarea :name 'notes
+                               :cols 39 :rows 22 :disabled disabledp
+                               (str (or (lisp->html (getf data :notes)) :null)))))
+        (:div :class "grid_8 data-form-buttons"
               (if disabledp
                   (cancel-button (project :id id :search search)
                                  "Επιστροφή στον Κατάλογο Έργων")

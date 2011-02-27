@@ -109,7 +109,7 @@
 (defun cheque-stran-menu (id cheque-kind &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "cheque-stran-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions"
                           :spec (crud-actions-spec (config/cheque-stran cheque-kind :id id)
                                                    (config/cheque-stran/create cheque-kind)
                                                    (config/cheque-stran/update cheque-kind :id id)
@@ -243,10 +243,8 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
-                   #|(:div :id "sidebar" :class "sidebar grid_3"
-                         "")|#
                    (:div :id "cheque-stran-window" :class "window grid_9"
-                         (:div :class "title" "Κατάλογος Καταστατικών Μεταβολών Επιταγών")
+                         (:div :class "title" "Καταστατικές Μεταβολών Επιταγών » Κατάλογος")
                          (cheque-stran-menu (val id)
                                             cheque-kind
                                             (if (val id)
@@ -268,33 +266,31 @@
     (no-cache)
     (with-document ()
       (:head
-       (:title "Καταστατικές Μεταβολές Επιταγών > Δημιουργία")
+       (:title "Καταστατικές Μεταβολές Επιταγών » Δημιουργία")
        (config-headers))
       (:body
        (:div :id "container" :class "container_12"
              (header 'config)
              (config-navbar 'cheque)
-             #|(:div :id "sidebar" :class "sidebar grid_3"
-             (cheque-stran-notifications))|#
-               (:div :class "window grid_9"
-                     (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Δημιουργία")
-                     (cheque-stran-menu nil
-                                        cheque-kind
-                                        '(create update delete))
-                     (with-form (actions/config/cheque-stran/create cheque-kind)
-                       (cheque-stran-data-form cheque-kind
-                                               'create
-                                               :id nil
-                                               :data (parameters->plist title
-                                                                        debit-account
-                                                                        credit-account
-                                                                        from-status
-                                                                        to-status)
-                                               :styles (parameters->styles title
-                                                                           debit-account
-                                                                           credit-account
-                                                                           from-status
-                                                                           to-status)))))))))
+             (:div :class "window grid_9"
+                   (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Δημιουργία")
+                   (cheque-stran-menu nil
+                                      cheque-kind
+                                      '(create update delete))
+                   (with-form (actions/config/cheque-stran/create cheque-kind)
+                     (cheque-stran-data-form cheque-kind
+                                             'create
+                                             :id nil
+                                             :data (parameters->plist title
+                                                                      debit-account
+                                                                      credit-account
+                                                                      from-status
+                                                                      to-status)
+                                             :styles (parameters->styles title
+                                                                         debit-account
+                                                                         credit-account
+                                                                         from-status
+                                                                         to-status)))))))))
 
 (define-regex-page config/cheque-stran/update (("config/cheque-kind/" cheque-kind "/update")
                                                :registers (cheque-kind "(receivable|payable)"))
@@ -309,7 +305,7 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Καταστατικές Μεταβολές Επιταγών > Επεξεργασία")
+           (:title "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
            (config-headers))
           (:body
            (:div :id "container" :class "container_12"
@@ -319,7 +315,7 @@
                        (:p :class "title" "Φίλτρα")
                        (cheque-stran-notifications))
                  (:div :id "cheque-stran-window" :class "window grid_9"
-                       (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Επεξεργασία")
+                       (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
                        (cheque-stran-menu (val id)
                                           cheque-kind
                                           '(create update))
@@ -349,14 +345,14 @@
                                                  :op 'delete)))
           (with-document ()
             (:head
-             (:title "Καταστατικές Μεταβολές Επιταγών > Διαγραφή")
+             (:title "Καταστατικές Μεταβολές Επιταγών » Διαγραφή")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
                    (:div :id "cheque-stran-window" :class "window grid_9"
-                         (:div :class "title" "Καταστατικές Μεταβολές Επιταγών > Διαγραφή")
+                         (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Διαγραφή")
                          (cheque-stran-menu (val id)
                                             cheque-kind
                                             '(create delete))

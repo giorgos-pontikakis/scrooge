@@ -89,7 +89,7 @@
 (defun bank-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "bank-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions"
                           :spec (crud-actions-spec (bank :id id
                                                          :search search)
                                                    (bank/create :search search)
@@ -119,7 +119,7 @@
    (header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator      :initform (make-instance 'paginator
                                            :id "bank-paginator"
-                                           :style "paginator grid_9 alpha"
+                                           :style "paginator"
                                            :delta 10
                                            :urlfn (lambda (search start)
                                                     (bank :search search
@@ -181,7 +181,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (bank) (val search)))
                    (:div :id "bank-window" :class "window grid_9"
-                         (:div :class "title" "Κατάλογος τραπεζών")
+                         (:div :class "title" "Τράπεζες » Κατάλογος")
                          (bank-menu (val id)
                                     (val search)
                                     (if (val id)
@@ -203,7 +203,7 @@
                                      :filter (val* search))))
       (with-document ()
         (:head
-         (:title "Δημιουργία τράπεζας")
+         (:title "Τράπεζα » Δημιουργία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -214,7 +214,7 @@
                      (searchbox (bank) (val search))
                      (bank-notifications))
                (:div :id "bank-window" :class "window grid_9"
-                     (:div :class "title" "Δημιουργία τράπεζας")
+                     (:div :class "title" "Τράπεζα » Δημιουργία")
                      (bank-menu nil
                                 (val search)
                                 '(create update delete))
@@ -236,7 +236,7 @@
                                          :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Επεξεργασία τράπεζας")
+             (:title "Τράπεζα » Επεξεργασία")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -247,7 +247,7 @@
                          (searchbox (bank) (val search))
                          (bank-notifications))
                    (:div :id "bank-window" :class "window grid_9"
-                         (:div :class "title" "Επεξεργασία τράπεζας")
+                         (:div :class "title" "Τράπεζα » Επεξεργασία")
                          (bank-menu (val id)
                                     (val search)
                                     '(create update))
@@ -270,7 +270,7 @@
                                          :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Διαγραφή τράπεζας")
+             (:title "Τράπεζα » Διαγραφή")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -280,7 +280,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (bank) (val search)))
                    (:div :id "bank-window" :class "window grid_9"
-                         (:div :class "title" "Διαγραφή τράπεζας")
+                         (:div :class "title" "Τράπεζα » Διαγραφή")
                          (bank-menu (val id)
                                     (val search)
                                     '(create delete))

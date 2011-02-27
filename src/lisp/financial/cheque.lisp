@@ -177,9 +177,10 @@
 ;;; table
 
 (defclass cheque-table (crud-table)
-  ((header-labels :initform '("" "<br />Τράπεζα" "Ημερομηνία<br />πληρωμής"
+  ((item-key-field :initform :id)
+   (header-labels  :initform '("" "<br />Τράπεζα" "Ημερομηνία<br />πληρωμής"
                               "<br />Εταιρία" "<br />Ποσό"))
-   (paginator     :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'paginator
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
                                            :delta 10
@@ -275,7 +276,7 @@
                          (searchbox (cheque cheque-kind) (val search))
                          (cheque-filters cheque-kind))
                    (:div :class "window grid_9"
-                         (:div :class "title" "Κατάλογος επιταγών")
+                         (:div :class "title" "Επιταγές » Κατάλογος")
                          (cheque-menu cheque-kind
                                       (val id)
                                       (val search)
@@ -301,7 +302,7 @@
     (no-cache)
     (with-document ()
       (:head
-       (:title "Επιταγές > Δημιουργία")
+       (:title "Επιταγή » Δημιουργία")
        (financial-headers))
       (:body
        (:div :id "container" :class "container_12"
@@ -312,7 +313,7 @@
                    (searchbox (cheque cheque-kind) (val search))
                    (cheque-notifications))
              (:div :class "window grid_9"
-                   (:div :class "title" "Δημιουργία επιταγής")
+                   (:div :class "title" "Επιταγή » Δημιουργία")
                    (cheque-menu cheque-kind
                                 nil
                                 (val search)
@@ -347,7 +348,7 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Επιταγές > Επεξεργασία")
+           (:title "Επιταγή » Επεξεργασία")
            (financial-headers))
           (:body
            (:div :id "container" :class "container_12"
@@ -358,7 +359,7 @@
                        (searchbox (cheque cheque-kind) (val search))
                        (cheque-notifications))
                  (:div :class "window grid_9"
-                       (:div :class "title" "Επεξεργασία επιταγής")
+                       (:div :class "title" "Επιταγή » Επεξεργασία")
                        (cheque-menu cheque-kind
                                     (val id)
                                     (val search)
@@ -390,14 +391,14 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Επιταγές > Λεπτομέρειες")
+           (:title "Επιταγή » Λεπτομέρειες")
            (financial-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'financial)
                  (financial-navbar 'cheque)
                  (:div :class "window grid_9"
-                       (:div :class "title" "Λεπτομέρειες επιταγής")
+                       (:div :class "title" "Επιταγή » Λεπτομέρειες")
                        (cheque-menu cheque-kind
                                     (val id)
                                     (val search)
@@ -426,7 +427,7 @@
                                                          :cheque-kind cheque-kind))))
           (with-document ()
             (:head
-             (:title "Επιταγές > Διαγραφή")
+             (:title "Επιταγή » Διαγραφή")
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -437,7 +438,7 @@
                                (:p :class "title" "Φίλτρα")
                                (searchbox (cheque cheque-kind) (val search)))
                          (:div :class "window grid_9"
-                               (:div :class "title" "Διαγραφή επιταγής")
+                               (:div :class "title" "Επιταγή » Διαγραφή")
                                (cheque-menu cheque-kind
                                             (val id)
                                             (val search)

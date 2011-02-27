@@ -200,6 +200,7 @@
    (start-date  :col-type date    :accessor start-date  :initarg :start-date)
    (end-date    :col-type date    :accessor end-date    :initarg :end-date)
    (status      :col-type string  :accessor status      :initarg :status)
-   (vat         :col-type integer :accessor vat         :initarg :vat))
+   (vat         :col-type integer :accessor vat         :initarg :vat)
+   (notes       :col-type string  :accessor notes       :initarg :notes))
   (:metaclass dao-class)
   (:keys id))

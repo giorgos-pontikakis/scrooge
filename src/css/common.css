@@ -6,7 +6,7 @@ a, a:hover img {
 }
 
 body {
-    background-color: #F5F5F5;
+    background-color: #ededed;
     color: #000000;
     line-height: 1.5;
     font-size: 12px;
@@ -26,21 +26,31 @@ h3 {
 }
 
 input {
-    border: 1px solid #ddd;
+    border: 1px solid #cccccc;
     padding: 3px 5px 3px 5px;
     font-size: 12px;
     font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
 }
 
-input:hover, input:focus {
-    border: solid 1px #7B8D78;
+textarea {
+    border: 1px solid #ddd;
+    padding: 3px 5px 3px 5px;
+}
+
+input:focus, textarea:focus {
+    border: solid 1px #aaa;
+    background-color: #ffffdd;
 }
 
 input[disabled], input[readonly] {
     color: #000000;
-    background-color: #F5F5F5;
+    background-color: #EDEDED;
 }
 
+textarea[disabled], textarea[readonly] {
+    color: #000000;
+    background-color: #EDEDED;
+}
 
 button, select {
     font-size: 12px;
@@ -149,7 +159,6 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    background-color: #f5f5f5;
     margin-top: 10px;
 }
 

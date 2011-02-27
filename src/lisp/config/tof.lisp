@@ -89,7 +89,7 @@
 (defun tof-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "tof-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions"
                           :spec (crud-actions-spec (tof :id id
                                                         :search search)
                                                    (tof/create :search search)
@@ -119,7 +119,7 @@
    (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
    (paginator      :initform (make-instance 'paginator
                                            :id "tof-paginator"
-                                           :style "paginator grid_9 alpha"
+                                           :style "paginator"
                                            :delta 10
                                            :urlfn (lambda (search start)
                                                     (tof :search search
@@ -172,7 +172,7 @@
                                         :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Τράπεζες")
+             (:title "Δ.Ο.Υ.")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -182,7 +182,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (tof) (val search)))
                    (:div :id "tof-window" :class "window grid_9"
-                         (:div :class "title" "Κατάλογος Δ.Ο.Υ.")
+                         (:div :class "title" "Δ.Ο.Υ. » Κατάλογος")
                          (tof-menu (val id)
                                    (val search)
                                    (if (val id)
@@ -204,7 +204,7 @@
                                     :filter (val* search))))
       (with-document ()
         (:head
-         (:title "Δημιουργία Δ.Ο.Υ.")
+         (:title "Δ.Ο.Υ. » Δημιουργία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -215,7 +215,7 @@
                      (searchbox (tof) (val search))
                      (tof-notifications))
                (:div :id "tof-window" :class "window grid_9"
-                     (:div :class "title" "Δημιουργία Δ.Ο.Υ.")
+                     (:div :class "title" "Δ.Ο.Υ. » Δημιουργία")
                      (tof-menu nil
                                (val search)
                                '(create update delete))
@@ -237,7 +237,7 @@
                                         :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Επεξεργασία Δ.Ο.Υ.")
+             (:title "Δ.Ο.Υ. » Επεξεργασία")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -248,7 +248,7 @@
                          (searchbox (tof) (val search))
                          (tof-notifications))
                    (:div :id "tof-window" :class "window grid_9"
-                         (:div :class "title" "Επεξεργασία Δ.Ο.Υ.")
+                         (:div :class "title" "Δ.Ο.Υ. » Επεξεργασία")
                          (tof-menu (val id)
                                    (val search)
                                    '(create update))
@@ -271,7 +271,7 @@
                                         :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Διαγραφή Δ.Ο.Υ.")
+             (:title "Δ.Ο.Υ. » Διαγραφή")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -281,7 +281,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (tof) (val search)))
                    (:div :id "tof-window" :class "window grid_9"
-                         (:div :class "title" "Διαγραφή Δ.Ο.Υ.")
+                         (:div :class "title" "Δ.Ο.Υ. » Διαγραφή")
                          (tof-menu (val id)
                                    (val search)
                                    '(create delete))

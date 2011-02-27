@@ -156,7 +156,7 @@
   (let ((prefix (if debitp "debit" "credit")))
     (display (make-instance 'actions-menu
                             :id (conc prefix "-account-actions")
-                            :style "hnavbar actions grid_6 alpha"
+                            :style "hnavbar actions"
                             :spec (crud-actions-spec (account :id id)
                                                      (account/create :debitp debitp
                                                                      :parent-id id)
@@ -256,7 +256,7 @@
         (see-other (notfound)))))
 
 (define-dynamic-page account/create ("config/account/create")
-    ((parent-id integer chk-acc-id)
+    ((parent-id integer chk-parent-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-new-acc-title)
      (chequing-p   boolean))
@@ -265,14 +265,14 @@
     (if (and (validp parent-id) (validp debitp))
         (with-document ()
           (:head
-           (:title "Δημιουργία λογαριασμού")
+           (:title "Λογαριασμός » Δημιουργία")
            (config-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
                  (config-navbar 'account)
                  (:div :class "window grid_6"
-                       (:div :class "title" "Δημιουργία Λογαριασμού")
+                       (:div :class "title" "Λογαριασμός » Δημιουργία")
                        (account-crud-menu (val parent-id)
                                           (debit-p (with-db ()
                                                      (get-dao 'account (val parent-id))))
@@ -295,14 +295,14 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Επεξεργασία λογαριασμού")
+           (:title "Λογαριασμός » Επεξεργασία")
            (config-headers))
           (:body
            (:div :id "container" :class "container_12"
                  (header 'config)
                  (config-navbar 'account)
                  (:div :class "window grid_6"
-                       (:div :class "title" "Επεξεργασία Λογαριασμού")
+                       (:div :class "title" "Λογαριασμός » Επεξεργασία")
                        (account-crud-menu (val id)
                                           (debit-p (with-db ()
                                                      (get-dao 'account (val id))))
@@ -331,7 +331,7 @@
     (if (validp id)
         (with-document ()
           (:head
-           (:title "Διαγραφή λογαριασμού")
+           (:title "Λογαριασμός » Διαγραφή")
            (config-headers))
           (:body
            (:div :id "container" :class "container_12"
@@ -363,7 +363,7 @@
         (dependent-tx-p (if id (ref-transactions id) nil)))
     (with-html
       (:div :id "config-account-data-form" :class "data-form"
-            (:div :class "grid_6 data-form-first"
+            (:div :class "data-form-first"
                   (label 'title "Τίτλος")
                   (textbox 'title
                            :value (getf data :title)
@@ -374,7 +374,7 @@
                       :value t
                       :checked (getf data :chequing-p)
                       :disabledp  dependent-tx-p)
-            (:div :class "grid_6 data-form-buttons"
+            (:div :class "data-form-buttons"
                   (if disabledp
                       (cancel-button (account :id id)
                                      "Επιστροφή στον Κατάλογο Λογαριασμών")

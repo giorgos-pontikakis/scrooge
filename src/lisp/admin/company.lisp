@@ -175,11 +175,11 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-menu (id search &optional grid-style disabled-items)
+(defun company-menu (id search &optional disabled-items)
   (display
    (make-instance 'actions-menu
                   :id "company-actions"
-                  :style (conc "hnavbar actions alpha " grid-style)
+                  :style "hnavbar actions"
                   :spec (crud+details+archive-actions-spec (company :id id
                                                                     :search search)
                                                            (company/create :search search)
@@ -240,12 +240,12 @@
    (header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
    (paginator      :initform (make-instance 'paginator
                                            :id "company-paginator"
-                                           :style "paginator grid_9 alpha"
+                                           :style "paginator"
                                            :delta 10
                                            :urlfn (lambda (search start)
                                                     (company :search search
                                                              :start start)))))
-  (:default-initargs :item-class 'company-row))
+  (:default-initargs :item-class 'company-row :id "company-table"))
 
 (defmethod read-records ((table company-table))
   (let* ((search (filter table))
@@ -324,7 +324,6 @@
                          (:div :class "title" "Εταιρίες » Κατάλογος")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_9"
                                        (if (val id)
                                            '(catalogue)
                                            '(catalogue details archive update delete)))
@@ -361,10 +360,8 @@
                    (:div :class "title" "Εταιρία » Δημιουργία")
                    (company-menu nil
                                  (val search)
-                                 "grid_6"
                                  '(details create update archive delete))
-                   (:div :class "grid_6 alpha"
-                         (company-notifications))
+                   (company-notifications)
                    (with-form (actions/admin/company/create)
                      (company-data-form 'create
                                         :search (val search)
@@ -420,10 +417,8 @@
                          (:div :class "title" "Εταιρία » Επεξεργασία")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_6"
                                        '(create update))
-                         (:div :class "grid_6 alpha"
-                               (company-notifications))
+                         (company-notifications)
                          (with-form (actions/admin/company/update :id (val id))
                            (company-data-form 'update
                                               :id (val id)
@@ -480,7 +475,6 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_6"
                                        '(details create))
                          (company-data-form 'details
                                             :search (val search)
@@ -519,7 +513,6 @@
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_9"
                                        '(catalogue delete))
                          (with-form (actions/admin/company/delete :id (val id)
                                                                   :search (val* search))
@@ -534,7 +527,7 @@
 (defun company-data-form (op &key id data styles search)
   (let ((disabledp (eql op 'details)))
     (with-html
-      (:div :id "company-data-form" :class "data-form grid_6 alpha"
+      (:div :id "company-data-form" :class "data-form"
             (:div :class "company-data-form-title"
                   (label 'title "Επωνυμία")
                   (textbox 'title
@@ -585,7 +578,7 @@
                                       :value (getf data :pobox)
                                       :disabledp disabledp
                                       :style (getf styles :pobox))))))
-            (:div :class "data-form-buttons grid_6"
+            (:div :class "data-form-buttons"
                   (if disabledp
                       (cancel-button (company :id id :search search)
                                      "Επιστροφή στον Κατάλογο Εταιριών")

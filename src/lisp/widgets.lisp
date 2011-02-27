@@ -572,7 +572,8 @@
                              (null href))
                    (htm (:li (:a :href href
                                  :class (string-downcase action-id)
-                                 (str label))))))))))
+                                 (str label)))))))
+          (:div :class "clear"))))
 
 (defclass actions-menu (menu)
   ((style :initform "hnavbar actions")))

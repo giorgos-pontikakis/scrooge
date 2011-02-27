@@ -90,7 +90,7 @@
 (defun city-menu (id search &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "city-actions"
-                          :style "hnavbar actions grid_9 alpha"
+                          :style "hnavbar actions"
                           :spec (crud-actions-spec (city :id id
                                                          :search search)
                                                    (city/create :search search)
@@ -120,7 +120,7 @@
    (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
    (paginator      :initform (make-instance 'paginator
                                        :id "city-paginator"
-                                       :style "paginator grid_9 alpha"
+                                       :style "paginator"
                                        :delta 10
                                        :urlfn (lambda (search start)
                                                 (city :search search
@@ -182,7 +182,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (city) (val search)))
                    (:div :id "city-window" :class "window grid_9"
-                         (:div :class "title" "Κατάλογος πόλεων")
+                         (:div :class "title" "Πόλεις » Κατάλογος")
                          (city-menu (val id)
                                     (val search)
                                     (if (val id)
@@ -204,7 +204,7 @@
                                      :filter (val* search))))
       (with-document ()
         (:head
-         (:title "Δημιουργία πόλης")
+         (:title "Πόλη » Δημιουργία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -215,7 +215,7 @@
                      (searchbox (city) (val search))
                      (city-notifications))
                (:div :id "city-window" :class "window grid_9"
-                     (:div :class "title" "Δημιουργία πόλης")
+                     (:div :class "title" "Πόλη » Δημιουργία")
                      (city-menu nil
                                 (val search)
                                 '(create update delete))
@@ -237,7 +237,7 @@
                                          :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Επεξεργασία πόλης")
+             (:title "Πόλη » Επεξεργασία")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -248,7 +248,7 @@
                          (searchbox (city) (val search))
                          (city-notifications))
                    (:div :id "city-window" :class "window grid_9"
-                         (:div :class "title" "Επεξεργασία πόλης")
+                         (:div :class "title" "Πόλη » Επεξεργασία")
                          (city-menu (val id)
                                     (val search)
                                     '(create update))
@@ -271,7 +271,7 @@
                                          :filter (val* search))))
           (with-document ()
             (:head
-             (:title "Διαγραφή πόλης")
+             (:title "Πόλη » Διαγραφή")
              (config-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -281,7 +281,7 @@
                          (:p :class "title" "Φίλτρα")
                          (searchbox (city) (val search)))
                    (:div :id "city-window" :class "window grid_9"
-                         (:div :class "title" "Διαγραφή πόλης")
+                         (:div :class "title" "Πόλη » Διαγραφή")
                          (city-menu (val id)
                                     (val search)
                                     '(create delete))

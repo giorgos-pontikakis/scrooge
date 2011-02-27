@@ -19,7 +19,7 @@
                                             :tag (val tag)
                                             :phone (val phone))))
             (insert-dao new-contact)
-            (see-other (company/update :id (val id) :contact-id (id new-contact)))))
+            (see-other (company/details :id (val id) :contact-id (id new-contact)))))
         (see-other (notfound)))))
 
 (define-dynamic-page actions/admin/contact/update ("actions/admin/contact/update"
@@ -48,7 +48,7 @@
     (if (and (validp id) (validp contact-id))
         (with-db ()
           (delete-dao (get-dao 'contact (val contact-id)))
-          (see-other (company/update :id (val id))))
+          (see-other (company/details :id (val id))))
         (see-other (notfound)))))
 
 

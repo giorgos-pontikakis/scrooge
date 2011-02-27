@@ -25,11 +25,11 @@
 /* ---------------------------------------------------------------------- */
 
 .project-data-form-title {
-    margin: 20px 0px 0px 0px;
+    padding-top: 20px;
 }
 
 .project-data-form-title input {
-    width: 408px;
+    width: 368px;
 }
 
 .project-data-form-subtitle {
@@ -37,5 +37,63 @@
 }
 
 .project-data-form-subtitle input {
-    width: 408px;
+    width: 368px;
+}
+
+.project-data-form-details input {
+    width: 246px;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* company crud table */
+/* ---------------------------------------------------------------------- */
+
+#company-table td:nth-child(1) {
+    width: 30px;
+}
+
+#company-table td:nth-child(2) {
+    width: 310px;
+}
+
+#company-table td:nth-child(3) {
+    width: 100px;
+}
+
+#company-table td:nth-child(4) {
+    width: 200px;
+}
+
+#company-table td:nth-child(5), #company-table td:nth-child(6) {
+    width: 30px;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* project crud table */
+/* ---------------------------------------------------------------------- */
+
+#project-table td:nth-child(1) {
+    width: 30px;
+}
+
+#project-table td:nth-child(2) {
+    width: 160px;
+}
+
+#project-table td:nth-child(3) {
+    width: 160px;
+}
+
+#project-table td:nth-child(4) {
+    width: 160px;
+}
+
+#project-table td:nth-child(5) {
+    width: 120px;
+}
+
+#project-table td:nth-child(6), #project-table td:nth-child(7) {
+    width: 30px;
 }
