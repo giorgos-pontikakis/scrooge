@@ -64,7 +64,7 @@
    (header-labels  :initform '("" ""))
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
-  (:default-initargs :item-class 'contact-row))
+  (:default-initargs :item-class 'contact-row :id "contact-table"))
 
 (defmethod read-records ((table contact-table))
   (with-db ()
@@ -163,7 +163,6 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_6"
                                        '(details create))
                          (company-data-form 'details
                                             :search (val search)
@@ -207,7 +206,6 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_6"
                                        '(details create))
                          (company-data-form 'details
                                             :search (val search)
@@ -255,7 +253,6 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        (val search)
-                                       "grid_6"
                                        '(details create))
                          (company-data-form 'details
                                             :search (val search)

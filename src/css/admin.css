@@ -97,3 +97,24 @@
 #project-table td:nth-child(6), #project-table td:nth-child(7) {
     width: 30px;
 }
+
+
+/* ---------------------------------------------------------------------- */
+/* contact table */
+/* ---------------------------------------------------------------------- */
+
+#contact-table td.selector {
+    width: 30px;
+}
+
+#contact-table td.payload {
+    width: 185px;
+}
+
+#contact-table td.payload input {
+    width: 170px;
+}
+
+#contact-table td.pushbutton {
+    width: 30px;
+}

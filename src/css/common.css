@@ -39,7 +39,7 @@ textarea {
 
 input:focus, textarea:focus {
     border: solid 1px #aaa;
-    background-color: #ffffdd;
+    background-color: #ffffff;
 }
 
 input[disabled], input[readonly] {
