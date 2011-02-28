@@ -509,7 +509,7 @@
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes
                                :cols 39 :rows 22 :disabled disabledp
-                               (str (or (lisp->html (getf data :notes)) :null)))))
+                               (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "grid_8 data-form-buttons"
               (if disabledp
                   (cancel-button (project :id id :search search)
