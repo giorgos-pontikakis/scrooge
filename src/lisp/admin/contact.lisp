@@ -174,13 +174,7 @@
                                        (val search)
                                        '(details create update delete))
                          (with-form (actions/admin/contact/create :id (val id))
-                           (display contact-table)
-                           (htm
-                            (:div :class "data-form-buttons"
-                                  (ok-button "Δημιουργία")
-                                  (cancel-button (company/details :id (val id)
-                                                                  :search (val search))
-                                                 "Άκυρο")))))
+                           (display contact-table)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -218,14 +212,7 @@
                                        '(create update))
                          (with-form (actions/admin/contact/update :id (val id)
                                                                   :contact-id (val contact-id))
-                           (display contact-table :selected-id (val contact-id))
-                           (htm
-                            (:div :class "data-form-buttons"
-                                  (ok-button "Ανανέωση")
-                                  (cancel-button (company/details :id (val id)
-                                                                  :contact-id (val contact-id)
-                                                                  :search (val search))
-                                                 "Άκυρο")))))
+                           (display contact-table :selected-id (val contact-id))))
                    (:div :id "sidebar" :class "sidebar grid_3"
                          (company-notifications))
                    (footer)))))
@@ -267,13 +254,6 @@
                                            '(details update delete)))
                          (with-form (actions/admin/contact/delete :id (val id)
                                                                   :contact-id (val contact-id))
-                           (display contact-table :selected-id (val contact-id))
-                           (htm
-                            (:div :class "data-form-buttons"
-                                  (ok-button "Διαγραφή")
-                                  (cancel-button (company/details :id (val id)
-                                                                  :contact-id (val contact-id)
-                                                                  :search (val search))
-                                                 "Άκυρο")))))
+                           (display contact-table :selected-id (val contact-id))))
                    (footer)))))
         (see-other (notfound)))))
