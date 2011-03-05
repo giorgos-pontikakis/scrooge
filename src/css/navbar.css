@@ -15,7 +15,27 @@
     background: coral;
 }
 
+.vnavbar ul li {
+    background-color: #7b8d78;
+    line-height: 26px;
+}
 
+.vnavbar ul li a {
+    display: block;
+    padding-left: 10px;
+    color: #ffffff;
+}
+
+.vnavbar ul li p {
+    padding-left: 10px;
+    color: #ffffff;
+    font-weight: bold;
+    background-color: #9DB499;
+}
+
+.filters {
+    margin-top: 20px;
+}
 
 /* ---------------------------------------------------------------------- */
 /* horizontal navbars */

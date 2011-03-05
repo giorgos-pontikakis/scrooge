@@ -67,7 +67,8 @@
                                              :status (val status)
                                              :notes (val notes))))
             (insert-dao new-project)
-            (see-other (project :id (id new-project) :search (val search)))))
+            (see-other (project :id (id new-project)
+                                :search (val search)))))
         (see-other (project/create :search (raw search)
                                    :company (raw company)
                                    :description (raw description)
@@ -128,13 +129,14 @@
 (define-dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
                                                    :request-type :post)
     ((id     integer chk-project-id)
-     (search string))
+     (search string)
+     (status string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'project (val id)))
-          (see-other (project :search (val search))))
+          (see-other (project :search (val search) :status (val status))))
         (see-other (notfound)))))
 
 
@@ -160,7 +162,6 @@
                                                                                    :search search)))
            :disabled-items disabled-items))
 
-
 (defun project-notifications ()
   ;; date errors missing, system is supposed to respond with the default (error-type param)
   (notifications
@@ -170,6 +171,23 @@
                    :company-title-null "Το όνομα της εταιρίας δεν πρέπει να είναι κενό"))
      (price       (:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
      (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))))
+
+(defun project-filters (status search)
+  (let ((spec `((nil       ,(project :search search)                     "Όλα")
+                (cancelled ,(project :search search :status "cancelled") "Άκυρα")
+                (finished  ,(project :search search :status "finished")  "Τελειωμένα")
+                (ongoing   ,(project :search search :status "ongoing")   "Σε εξέλιξη")
+                (quoted    ,(project :search search :status "quoted")    "Δόθηκε προσφορά"))))
+    (with-html
+      (:div :id "filters" :class "filters"
+            (:p :class "title" "Κατάσταση")
+            (display
+             (make-instance 'vertical-navbar
+                            :id "project-filters"
+                            :style "vnavbar"
+                            :spec spec)
+             :active-page-name (intern (string-upcase status)))))))
+
 
 
 ;;; ------------------------------------------------------------
@@ -208,27 +226,35 @@
   (:default-initargs :item-class 'project-row :id "project-table"))
 
 (defmethod read-records ((table project-table))
-  (let* ((search (filter table))
+  (let* ((search (getf (filter table) :search))
+         (status (getf (filter table) :status))
          (base-query `(:select project.id (:as company.title company)
                                project.description location
-                               (:as project-status.description status)
+                               (:as project-status.description status-description)
                                project.notes
                                :from project
                                :left-join 'company
                                :on (:= project.company-id company.id)
                                :left-join project-status
                                :on (:= project-status.id project.status)))
-         (composite-query (if search
-                              (append base-query
-                                      `(:where (:or (:ilike project.description ,(ilike search))
-                                                    (:ilike company.title ,(ilike search))
-                                                    (:ilike project.location ,(ilike search))
-                                                    (:ilike project.notes ,(ilike search)))))
-                              base-query))
-         (final-query `(:order-by ,composite-query project.id start-date)))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
+         (where-terms nil))
+    (when search
+      (push `(:or (:ilike project.description ,(ilike search))
+                  (:ilike company.title ,(ilike search))
+                  (:ilike project.location ,(ilike search))
+                  (:ilike project.notes ,(ilike search)))
+            where-terms))
+    (when status
+      (push `(:= project.status ,status)
+            where-terms))
+    (let* ((composite-query (if (or search status)
+                                (append base-query
+                                        `(:where (:and ,@where-terms)))
+                                base-query))
+           (final-query `(:order-by ,composite-query project.id start-date)))
+      (with-db ()
+        (query (sql-compile final-query)
+               :plists)))))
 
 
 ;;; rows
@@ -240,22 +266,22 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (search (filter (collection row))))
+         (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :states (list
-                                            :on (project :search search
-                                                         :start (page-start pg (index row) start))
-                                            :off (project :search search
-                                                          :id id)))
+                                            :on (apply #'project
+                                                       :start (page-start pg (index row) start)
+                                                       filter)
+                                            :off (apply #'project :id id filter)))
           :payload (mapcar (lambda (name)
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(description location company status))
+                           '(description location company status-description))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (project :id id :search search))))))
+                                    :href (apply #'project :id id filter))))))
 
 
 
@@ -263,16 +289,17 @@
 ;;; Project - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page project ("admin/project")
-    ((id integer chk-project-id)
+(define-dynamic-page project ("admin/project/")
+    ((id     integer chk-project-id)
+     (status string)
      (search string)
-     (start integer))
+     (start  integer))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
         (let ((project-table (make-instance 'project-table
                                             :op 'catalogue
-                                            :filter (val* search))))
+                                            :filter (parameters->plist search status))))
           (with-document ()
             (:head
              (:title "Έργα » Κατάλογος")
@@ -292,15 +319,15 @@
                                   :selected-id (val* id)
                                   :start (val* start)))
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
-                         (searchbox (project) (val search)))
+                         (searchbox (project :status (val status)) (val search))
+                         (project-filters (val status) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
 (define-dynamic-page project/create ("admin/project/create")
-    ((search string)
-     (company     string chk-company-title)
-     (description string chk-new-project-description)
+    ((search      string)
+     (company     string  chk-company-title)
+     (description string  chk-new-project-description)
      (location    string)
      (price       integer chk-price)
      (vat         integer chk-vat)
@@ -327,7 +354,7 @@
                    (project-notifications))
              (with-form (actions/admin/project/create)
                (project-data-form 'create
-                                  :search (val search)
+                                  :filters (parameters->plist search)
                                   :data (parameters->plist company
                                                            description
                                                            location
@@ -383,7 +410,7 @@
                  (with-form (actions/admin/project/update :id (val id))
                    (project-data-form 'update
                                       :id (val id)
-                                      :search (val search)
+                                      :filters (parameters->plist search status)
                                       :data (plist-union (parameters->plist id
                                                                             company
                                                                             description
@@ -411,8 +438,9 @@
         (see-other (error-page)))))
 
 (define-dynamic-page project/details ("admin/project/details")
-    ((search     string)
-     (id         integer chk-project-id t))
+    ((search string)
+     (status string)
+     (id     integer chk-project-id t))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -430,14 +458,15 @@
                                      (val search)
                                      '(details create)))
                  (project-data-form 'details
-                                    :search (val search)
+                                    :filters (parameters->plist search status)
                                     :id (val id)
                                     :data (get-project-plist (val id))))))
         (see-other (notfound)))))
 
 (define-dynamic-page project/delete ("admin/project/delete")
     ((id integer chk-project-id t)
-     (search string))
+     (search string)
+     (status string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -458,17 +487,17 @@
                                        (val search)
                                        '(catalogue delete))
                          (with-form (actions/admin/project/delete :id (val id)
-                                                                  :search (val* search))
+                                                                  :search (val* search)
+                                                                  :status (val status))
                            (display project-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
-                         (searchbox (project) (val search)))
+                         (searchbox (project :status (val status)) (val search)))
                    (footer)))))
         (see-other (error-page)))))
 
 
-(defun project-data-form (op &key search id data styles)
+(defun project-data-form (op &key id data styles filters)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
              (with-html
@@ -512,8 +541,8 @@
                                (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "grid_8 data-form-buttons"
               (if disabledp
-                  (cancel-button (project :id id :search search)
+                  (cancel-button (apply #'project :id id filters)
                                  "Επιστροφή στον Κατάλογο Έργων")
                   (progn
                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (project :id id :search search) "Άκυρο"))))))))
+                    (cancel-button (apply #'project :id id filters) "Άκυρο"))))))))
