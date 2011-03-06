@@ -255,7 +255,6 @@
                    (header 'financial)
                    (financial-navbar 'transaction)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
                          (searchbox (transaction) (val search)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Συναλλαγές » Κατάλογος")
@@ -309,7 +308,6 @@
                                                                         credit-account
                                                                         amount))))
              (:div :id "sidebar" :class "sidebar grid_3"
-                   (:p :class "title" "Φίλτρα")
                    (searchbox (transaction) (val search))
                    (transaction-notifications))
              (footer))))))
@@ -408,7 +406,6 @@
                    (header 'financial)
                    (financial-navbar 'transaction)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
                          (searchbox (transaction) (val search)))
                    (:div :class "window grid_9"
                          (:div :class "title" "Συναλλαγή » Διαγραφή")

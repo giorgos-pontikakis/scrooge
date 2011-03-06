@@ -424,11 +424,11 @@
                  (min (+ start delta) len)
                  len)
             (if prev
-                (htm (:a :href (funcall (urlfn pg) (filter (table pg)) prev)
+                (htm (:a :href (apply (urlfn pg) :start prev (filter (table pg)))
                          (img "resultset_previous.png" )))
                 (img "resultset_first.png"))
             (if next
-                (htm (:a :href (funcall (urlfn pg) (filter (table pg)) next)
+                (htm (:a :href (apply (urlfn pg) :start next (filter (table pg)))
                          (img "resultset_next.png" )))
                 (img "resultset_last.png"))))))
 

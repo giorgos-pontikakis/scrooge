@@ -26,6 +26,10 @@
     color: #ffffff;
 }
 
+.vnavbar ul li a:hover {
+    text-decoration: underline;
+}
+
 .vnavbar ul li p {
     padding-left: 10px;
     color: #ffffff;

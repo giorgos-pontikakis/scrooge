@@ -37,16 +37,27 @@
     margin-bottom: 20px;
 }
 
+.search {
+    background-color: #7b8d78;
+}
+
 .search input {
     border: 1px solid #444444;
-    margin-top: 10px;
-    width: 180px;
+    margin-bottom: 10px;
+    width: 100px;
     border-radius: 7px 7px 7px 7px;
     -moz-border-radius: 7px 7px 7px 7px;
 }
 
 .search button {
-    width: 28px;
+    width: 26px;
     height: 26px;
-    vertical-align: bottom;
+    vertical-align: top;
+    border-radius: 7px 7px 7px 7px;
+    -moz-border-radius: 7px 7px 7px 7px;
+}
+
+.search button img {
+    vertical-align: top;
+    padding: 0px 0px 0px 0px;
 }

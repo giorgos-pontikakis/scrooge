@@ -312,7 +312,6 @@
                  (header 'config)
                  (config-navbar 'cheque-stran)
                  (:div :id "sidebar" :class "sidebar grid_3"
-                       (:p :class "title" "Φίλτρα")
                        (cheque-stran-notifications))
                  (:div :id "cheque-stran-window" :class "window grid_9"
                        (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")

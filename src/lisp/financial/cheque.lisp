@@ -272,7 +272,6 @@
                    (header 'financial)
                    (financial-navbar 'cheque)
                    (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
                          (searchbox (cheque cheque-kind) (val search))
                          (cheque-filters cheque-kind))
                    (:div :class "window grid_9"
@@ -309,7 +308,6 @@
              (header 'financial)
              (financial-navbar 'cheque)
              (:div :id "sidebar" :class "sidebar grid_3"
-                   (:p :class "title" "Φίλτρα")
                    (searchbox (cheque cheque-kind) (val search))
                    (cheque-notifications))
              (:div :class "window grid_9"
@@ -355,7 +353,6 @@
                  (header 'financial)
                  (financial-navbar 'cheque)
                  (:div :id "sidebar" :class "sidebar grid_3"
-                       (:p :class "title" "Φίλτρα")
                        (searchbox (cheque cheque-kind) (val search))
                        (cheque-notifications))
                  (:div :class "window grid_9"
@@ -435,7 +432,6 @@
                    (financial-navbar 'cheque)
                    (:div :class "window"
                          (:div :id "sidebar" :class "sidebar grid_3"
-                               (:p :class "title" "Φίλτρα")
                                (searchbox (cheque cheque-kind) (val search)))
                          (:div :class "window grid_9"
                                (:div :class "title" "Επιταγή » Διαγραφή")

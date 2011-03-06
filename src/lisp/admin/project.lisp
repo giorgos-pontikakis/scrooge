@@ -145,21 +145,21 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-menu (id search &optional disabled-items)
+(defun project-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "project-actions"
                           :style "hnavbar actions"
-                          :spec (crud+details+archive-actions-spec (project :id id
-                                                                            :search search)
-                                                                   (project/create :search search)
-                                                                   (project/details :id id
-                                                                                    :search search)
-                                                                   (project/update :id id
-                                                                                   :search search)
-                                                                   (project/details :id id
-                                                                                    :search search)
-                                                                   (project/delete :id id
-                                                                                   :search search)))
+                          :spec (crud+details+archive-actions-spec (apply #'project :id id
+                                                                          filter)
+                                                                   (apply #'project/create filter)
+                                                                   (apply #'project/details :id id
+                                                                          filter)
+                                                                   (apply #'project/update :id id
+                                                                          filter)
+                                                                   (apply #'project/details :id id
+                                                                          filter)
+                                                                   (apply #'project/delete :id id
+                                                                          filter)))
            :disabled-items disabled-items))
 
 (defun project-notifications ()
@@ -220,9 +220,7 @@
                                             :id "project-paginator"
                                             :style "paginator"
                                             :delta 10
-                                            :urlfn (lambda (search start)
-                                                     (project :search search
-                                                              :start start)))))
+                                            :urlfn #'project)))
   (:default-initargs :item-class 'project-row :id "project-table"))
 
 (defmethod read-records ((table project-table))
@@ -297,9 +295,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((project-table (make-instance 'project-table
-                                            :op 'catalogue
-                                            :filter (parameters->plist search status))))
+        (let* ((filter  (parameters->plist search status))
+               (project-table (make-instance 'project-table
+                                             :op 'catalogue
+                                             :filter filter)))
           (with-document ()
             (:head
              (:title "Έργα » Κατάλογος")
@@ -308,17 +307,17 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'project)
-                   (:div :id "project-window" :class "window grid_9"
+                   (:div :id "project-window" :class "window grid_10"
                          (:div :class "title" "Έργα » Κατάλογος")
                          (project-menu (val id)
-                                       (val search)
+                                       filter
                                        (if (val id)
                                            '(catalogue)
                                            '(catalogue details archive update delete)))
                          (display project-table
                                   :selected-id (val* id)
                                   :start (val* start)))
-                   (:div :id "sidebar" :class "sidebar grid_3"
+                   (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (project :status (val status)) (val search))
                          (project-filters (val status) (val search)))
                    (footer)))))
@@ -338,44 +337,45 @@
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
-    (with-document ()
-      (:head
-       (:title "Έργο » Δημιουργία")
-       (admin-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'admin)
-             (admin-navbar 'project)
-             (:div :id "project-window" :class "window grid_12"
-                   (:div :class "title" "Έργο » Δημιουργία")
-                   (project-menu nil
-                                 (val search)
-                                 '(details create update archive delete))
-                   (project-notifications))
-             (with-form (actions/admin/project/create)
-               (project-data-form 'create
-                                  :filters (parameters->plist search)
-                                  :data (parameters->plist company
-                                                           description
-                                                           location
-                                                           price
-                                                           vat
-                                                           status
-                                                           quote-date
-                                                           start-date
-                                                           end-date
-                                                           notes)
-                                  :styles (parameters->styles company
-                                                              description
-                                                              location
-                                                              price
-                                                              vat
-                                                              status
-                                                              quote-date
-                                                              start-date
-                                                              end-date
-                                                              notes)))
-             (footer))))))
+    (let ((filter (parameters->plist search status)))
+      (with-document ()
+        (:head
+         (:title "Έργο » Δημιουργία")
+         (admin-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'admin)
+               (admin-navbar 'project)
+               (:div :id "project-window" :class "window grid_12"
+                     (:div :class "title" "Έργο » Δημιουργία")
+                     (project-menu nil
+                                   filter
+                                   '(details create update archive delete))
+                     (project-notifications))
+               (with-form (actions/admin/project/create)
+                 (project-data-form 'create
+                                    :filter filter
+                                    :data (parameters->plist company
+                                                             description
+                                                             location
+                                                             price
+                                                             vat
+                                                             status
+                                                             quote-date
+                                                             start-date
+                                                             end-date
+                                                             notes)
+                                    :styles (parameters->styles company
+                                                                description
+                                                                location
+                                                                price
+                                                                vat
+                                                                status
+                                                                quote-date
+                                                                start-date
+                                                                end-date
+                                                                notes)))
+               (footer)))))))
 
 (define-dynamic-page project/update ("admin/project/update")
     ((search      string)
@@ -393,48 +393,49 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Έργο » Επεξεργασία")
-           (admin-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'admin)
-                 (admin-navbar 'project)
-                 (:div :id "project-window" :class "window grid_12"
-                       (:p :class "title" "Έργο » Επεξεργασία")
-                       (project-menu (val id)
-                                     (val search)
-                                     '(create update))
-                       (project-notifications))
-                 (with-form (actions/admin/project/update :id (val id))
-                   (project-data-form 'update
-                                      :id (val id)
-                                      :filters (parameters->plist search status)
-                                      :data (plist-union (parameters->plist id
-                                                                            company
-                                                                            description
-                                                                            location
-                                                                            price
-                                                                            vat
-                                                                            status
-                                                                            quote-date
-                                                                            start-date
-                                                                            end-date
-                                                                            notes)
-                                                         (get-project-plist (val id)))
-                                      :styles (parameters->styles id
-                                                                  company
-                                                                  description
-                                                                  location
-                                                                  price
-                                                                  vat
-                                                                  status
-                                                                  quote-date
-                                                                  start-date
-                                                                  end-date
-                                                                  notes)))
-                 (footer))))
+        (let ((filter (parameters->plist status search)))
+          (with-document ()
+            (:head
+             (:title "Έργο » Επεξεργασία")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'project)
+                   (:div :id "project-window" :class "window grid_12"
+                         (:p :class "title" "Έργο » Επεξεργασία")
+                         (project-menu (val id)
+                                       filter
+                                       '(create update))
+                         (project-notifications))
+                   (with-form (actions/admin/project/update :id (val id))
+                     (project-data-form 'update
+                                        :id (val id)
+                                        :filter filter
+                                        :data (plist-union (parameters->plist id
+                                                                              company
+                                                                              description
+                                                                              location
+                                                                              price
+                                                                              vat
+                                                                              status
+                                                                              quote-date
+                                                                              start-date
+                                                                              end-date
+                                                                              notes)
+                                                           (get-project-plist (val id)))
+                                        :styles (parameters->styles id
+                                                                    company
+                                                                    description
+                                                                    location
+                                                                    price
+                                                                    vat
+                                                                    status
+                                                                    quote-date
+                                                                    start-date
+                                                                    end-date
+                                                                    notes)))
+                   (footer)))))
         (see-other (error-page)))))
 
 (define-dynamic-page project/details ("admin/project/details")
@@ -444,23 +445,24 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Έργο » Λεπτομέρειες")
-           (admin-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'admin)
-                 (admin-navbar 'project)
-                 (:div :id "project-window" :class "window grid_12"
-                       (:p :class "title" "Έργο » Λεπτομέρειες")
-                       (project-menu (val id)
-                                     (val search)
-                                     '(details create)))
-                 (project-data-form 'details
-                                    :filters (parameters->plist search status)
-                                    :id (val id)
-                                    :data (get-project-plist (val id))))))
+        (let ((filter (parameters->plist status search)))
+          (with-document ()
+            (:head
+             (:title "Έργο » Λεπτομέρειες")
+             (admin-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'admin)
+                   (admin-navbar 'project)
+                   (:div :id "project-window" :class "window grid_12"
+                         (:p :class "title" "Έργο » Λεπτομέρειες")
+                         (project-menu (val id)
+                                       filter
+                                       '(details create)))
+                   (project-data-form 'details
+                                      :filter filter
+                                      :id (val id)
+                                      :data (get-project-plist (val id)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page project/delete ("admin/project/delete")
@@ -470,9 +472,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((project-table (make-instance 'project-table
-                                            :op 'delete
-                                            :filter (val* search))))
+        (let* ((filter (parameters->plist search status))
+               (project-table (make-instance 'project-table
+                                             :op 'delete
+                                             :filter filter)))
           (with-document ()
             (:head
              (:title "Έργο » Διαγραφή")
@@ -481,23 +484,24 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'project)
-                   (:div :id "project-window" :class "window grid_9"
+                   (:div :id "project-window" :class "window grid_10"
                          (:div :class "title" "Έργο » Διαγραφή")
                          (project-menu (val id)
-                                       (val search)
+                                       filter
                                        '(catalogue delete))
                          (with-form (actions/admin/project/delete :id (val id)
                                                                   :search (val* search)
                                                                   :status (val status))
                            (display project-table
                                     :selected-id (val id))))
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (searchbox (project :status (val status)) (val search)))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (searchbox (project :status (val status)) (val search))
+                         (project-filters (val status) (val search)))
                    (footer)))))
         (see-other (error-page)))))
 
 
-(defun project-data-form (op &key id data styles filters)
+(defun project-data-form (op &key id data styles filter)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
              (with-html
@@ -511,7 +515,7 @@
         (:div :id "project-data-form" :class "data-form grid_8"
               (:div :class "grid_5 alpha project-data-form-title"
                     (label+textbox 'description "Περιγραφή"))
-              (:div :class "grid_3 omega project-data-form-title"
+              (:div :class "grid_2 omega project-data-form-title"
                     (label 'status "Κατάσταση")
                     (dropdown 'status
                               (with-db ()
@@ -541,8 +545,8 @@
                                (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "grid_8 data-form-buttons"
               (if disabledp
-                  (cancel-button (apply #'project :id id filters)
+                  (cancel-button (apply #'project :id id filter)
                                  "Επιστροφή στον Κατάλογο Έργων")
                   (progn
                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'project :id id filters) "Άκυρο"))))))))
+                    (cancel-button (apply #'project :id id filter) "Άκυρο"))))))))

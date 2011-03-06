@@ -86,20 +86,17 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun tof-menu (id search &optional disabled-items)
+(defun tof-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "tof-actions"
                           :style "hnavbar actions"
-                          :spec (crud-actions-spec (tof :id id
-                                                        :search search)
-                                                   (tof/create :search search)
-                                                   (tof/update :id id
-                                                               :search search)
+                          :spec (crud-actions-spec (apply #'tof :id id filter)
+                                                   (apply #'tof/create filter)
+                                                   (apply #'tof/update :id id filter)
                                                    (if (or (null id)
                                                            (tof-referenced-p id))
                                                        nil
-                                                       (tof/delete :id id
-                                                                   :search search))))
+                                                       (apply #'tof/delete :id id filter))))
            :disabled-items disabled-items))
 
 (defun tof-notifications ()
@@ -121,14 +118,12 @@
                                            :id "tof-paginator"
                                            :style "paginator"
                                            :delta 10
-                                           :urlfn (lambda (search start)
-                                                    (tof :search search
-                                                         :start start)))))
+                                           :urlfn #'tof)))
   (:default-initargs :id "config-table" :item-class 'tof-row))
 
 
 (defmethod read-records ((table tof-table))
-  (config-data 'tof (filter table)))
+  (config-data 'tof (getf (filter table) :search)))
 
 
 ;; rows
@@ -140,19 +135,21 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (search (filter (collection row))))
+         (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
-                                   :states (list :on (tof :search search
-                                                          :start (page-start pg (index row) start))
-                                                 :off (tof :search search
-                                                           :id id)))
+                                   :states (list :on (apply #'tof
+                                                            :start (page-start pg (index row) start)
+                                                            filter)
+                                                 :off (apply #'tof
+                                                             :id id
+                                                             filter)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (tof :id id :search search))))))
+                                    :href (apply #'tof :id id filter))))))
 
 
 
@@ -167,9 +164,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tof-table (make-instance 'tof-table
-                                        :op 'catalogue
-                                        :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (tof-table (make-instance 'tof-table
+                                         :op 'catalogue
+                                         :filter filter)))
           (with-document ()
             (:head
              (:title "Δ.Ο.Υ.")
@@ -178,19 +176,18 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'tof)
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
-                         (searchbox (tof) (val search)))
-                   (:div :id "tof-window" :class "window grid_9"
+                   (:div :id "tof-window" :class "window grid_10"
                          (:div :class "title" "Δ.Ο.Υ. » Κατάλογος")
                          (tof-menu (val id)
-                                   (val search)
+                                   filter
                                    (if (val id)
                                        '(catalogue)
                                        '(catalogue update delete)))
                          (display tof-table
                                   :selected-id (val* id)
                                   :start (val* start)))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (searchbox (tof) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -199,9 +196,10 @@
      (search string))
   (with-auth ("configuration")
     (no-cache)
-    (let ((tof-table (make-instance 'tof-table
-                                    :op 'create
-                                    :filter (val* search))))
+    (let* ((filter (parameters->plist search))
+           (tof-table (make-instance 'tof-table
+                                     :op 'create
+                                     :filter filter)))
       (with-document ()
         (:head
          (:title "Δ.Ο.Υ. » Δημιουργία")
@@ -210,19 +208,18 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (:div :id "sidebar" :class "sidebar grid_3"
-                     (:p :class "title" "Φίλτρα")
-                     (searchbox (tof) (val search))
-                     (tof-notifications))
-               (:div :id "tof-window" :class "window grid_9"
+               (:div :id "tof-window" :class "window grid_10"
                      (:div :class "title" "Δ.Ο.Υ. » Δημιουργία")
                      (tof-menu nil
-                               (val search)
+                               filter
                                '(create update delete))
                      (with-form (actions/config/tof/create :search (val* search))
                        (display tof-table
                                 :selected-id nil
                                 :selected-data (list :title (val* title)))))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (tof) (val search))
+                     (tof-notifications))
                (footer)))))))
 
 (define-dynamic-page tof/update ("config/tof/update")
@@ -232,9 +229,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tof-table (make-instance 'tof-table
-                                        :op 'update
-                                        :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (tof-table (make-instance 'tof-table
+                                         :op 'update
+                                         :filter filter)))
           (with-document ()
             (:head
              (:title "Δ.Ο.Υ. » Επεξεργασία")
@@ -243,20 +241,19 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'tof)
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
-                         (searchbox (tof) (val search))
-                         (tof-notifications))
-                   (:div :id "tof-window" :class "window grid_9"
+                   (:div :id "tof-window" :class "window grid_10"
                          (:div :class "title" "Δ.Ο.Υ. » Επεξεργασία")
                          (tof-menu (val id)
-                                   (val search)
+                                   filter
                                    '(create update))
                          (with-form (actions/config/tof/update :id (val* id)
                                                                :filter (val* search))
                            (display tof-table
                                     :selected-id (val id)
                                     :selected-data (list :title (val* title)))))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (searchbox (tof) (val search))
+                         (tof-notifications))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -266,9 +263,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tof-table (make-instance 'tof-table
-                                        :op 'delete
-                                        :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (tof-table (make-instance 'tof-table
+                                         :op 'delete
+                                         :filter filter)))
           (with-document ()
             (:head
              (:title "Δ.Ο.Υ. » Διαγραφή")
@@ -277,17 +275,16 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'tof)
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
-                         (searchbox (tof) (val search)))
-                   (:div :id "tof-window" :class "window grid_9"
+                   (:div :id "tof-window" :class "window grid_10"
                          (:div :class "title" "Δ.Ο.Υ. » Διαγραφή")
                          (tof-menu (val id)
-                                   (val search)
+                                   filter
                                    '(create delete))
                          (with-form (actions/config/tof/delete :id (val id)
                                                                :search (val* search))
                            (display tof-table
                                     :selected-id (val id))))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (searchbox (tof) (val search)))
                    (footer)))))
         (see-other (notfound)))))

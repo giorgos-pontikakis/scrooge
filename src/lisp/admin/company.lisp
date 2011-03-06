@@ -175,24 +175,19 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-menu (id search &optional disabled-items)
+(defun company-menu (id filter &optional disabled-items)
   (display
    (make-instance 'actions-menu
                   :id "company-actions"
                   :style "hnavbar actions"
-                  :spec (crud+details+archive-actions-spec (company :id id
-                                                                    :search search)
-                                                           (company/create :search search)
-                                                           (company/details :id id
-                                                                            :search search)
-                                                           (company/update :id id
-                                                                           :search search)
-                                                           (company/details :id id
-                                                                            :search search)
+                  :spec (crud+details+archive-actions-spec (apply #'company :id id filter)
+                                                           (apply #'company/create filter)
+                                                           (apply #'company/details :id id filter)
+                                                           (apply #'company/update :id id filter)
+                                                           (apply #'company/details :id id filter)
                                                            (if (chk-company-id/ref id)
                                                                nil
-                                                               (company/delete :id id
-                                                                               :search search))))
+                                                               (apply #'company/delete :id id filter))))
    :disabled-items disabled-items))
 
 (defun company-notifications ()
@@ -242,13 +237,11 @@
                                            :id "company-paginator"
                                            :style "paginator"
                                            :delta 10
-                                           :urlfn (lambda (search start)
-                                                    (company :search search
-                                                             :start start)))))
+                                           :urlfn #'company)))
   (:default-initargs :item-class 'company-row :id "company-table"))
 
 (defmethod read-records ((table company-table))
-  (let* ((search (filter table))
+  (let* ((search (getf (filter table) :search))
          (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
                                address
@@ -279,13 +272,13 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (search (filter (collection row))))
+         (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :states (list
-                                            :on (company :search search
-                                                         :start (page-start pg (index row) start))
-                                            :off (company :search search
-                                                          :id id)))
+                                            :on (apply #'company
+                                                       :start (page-start pg (index row) start)
+                                                       filter)
+                                            :off (apply #'company :id id filter)))
           :payload (mapcar (lambda (name)
                              (make-instance 'textbox-cell
                                             :name name
@@ -294,7 +287,7 @@
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
-                                    :href (company :id id :search search))))))
+                                    :href (apply #'company :id id filter))))))
 
 
 
@@ -309,9 +302,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((company-table (make-instance 'company-table
-                                            :op 'catalogue
-                                            :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (company-table (make-instance 'company-table
+                                             :op 'catalogue
+                                             :filter filter)))
           (with-document ()
             (:head
              (:title "Εταιρίες » Κατάλογος")
@@ -320,18 +314,17 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
-                   (:div :id "company-window" :class "window grid_9"
+                   (:div :id "company-window" :class "window grid_10"
                          (:div :class "title" "Εταιρίες » Κατάλογος")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        (if (val id)
                                            '(catalogue)
                                            '(catalogue details archive update delete)))
                          (display company-table
                                   :selected-id (val* id)
                                   :start (val* start)))
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
+                   (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (company) (val search)))
                    (footer)))))
         (see-other (notfound)))))
@@ -348,44 +341,45 @@
      (zipcode    integer chk-zipcode))
   (with-auth ("configuration")
     (no-cache)
-    (with-document ()
-      (:head
-       (:title "Εταιρία » Δημιουργία")
-       (admin-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'admin)
-             (admin-navbar 'company)
-             (:div :id "company-window" :class "window grid_6"
-                   (:div :class "title" "Εταιρία » Δημιουργία")
-                   (company-menu nil
-                                 (val search)
-                                 '(details create update archive delete))
-                   (company-notifications)
-                   (with-form (actions/admin/company/create)
-                     (company-data-form 'create
-                                        :search (val search)
-                                        :data (parameters->plist title
-                                                                 occupation
-                                                                 tof
-                                                                 tin
-                                                                 address
-                                                                 city
-                                                                 pobox
-                                                                 zipcode)
-                                        :styles (parameters->styles title
-                                                                    occupation
-                                                                    tof
-                                                                    tin
-                                                                    address
-                                                                    city
-                                                                    pobox
-                                                                    zipcode))))
-             (:div :id "contact-window" :class "window grid_6"
-                   (:div :class "title" "Επαφές")
-                   (:div :class "hnavbar actions"
-                         (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))
-             (footer))))))
+    (let ((filter (parameters->plist search)))
+      (with-document ()
+        (:head
+         (:title "Εταιρία » Δημιουργία")
+         (admin-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'admin)
+               (admin-navbar 'company)
+               (:div :id "company-window" :class "window grid_6"
+                     (:div :class "title" "Εταιρία » Δημιουργία")
+                     (company-menu nil
+                                   filter
+                                   '(details create update archive delete))
+                     (company-notifications)
+                     (with-form (actions/admin/company/create)
+                       (company-data-form 'create
+                                          :filter filter
+                                          :data (parameters->plist title
+                                                                   occupation
+                                                                   tof
+                                                                   tin
+                                                                   address
+                                                                   city
+                                                                   pobox
+                                                                   zipcode)
+                                          :styles (parameters->styles title
+                                                                      occupation
+                                                                      tof
+                                                                      tin
+                                                                      address
+                                                                      city
+                                                                      pobox
+                                                                      zipcode))))
+               (:div :id "contact-window" :class "window grid_6"
+                     (:div :class "title" "Επαφές")
+                     (:div :class "hnavbar actions"
+                           (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))
+               (footer)))))))
 
 (define-dynamic-page company/update ("admin/company/update")
     ((search     string)
@@ -402,9 +396,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((contact-table (make-instance 'contact-table
-                                            :op 'details
-                                            :company-id (val id))))
+        (let* ((filter (parameters->plist search))
+               (contact-table (make-instance 'contact-table
+                                             :op 'details
+                                             :company-id (val id))))
           (with-document ()
             (:head
              (:title "Εταιρία » Επεξεργασία")
@@ -416,13 +411,13 @@
                    (:div :id "company-window" :class "window grid_6"
                          (:div :class "title" "Εταιρία » Επεξεργασία")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        '(create update))
                          (company-notifications)
                          (with-form (actions/admin/company/update :id (val id))
                            (company-data-form 'update
                                               :id (val id)
-                                              :search (val search)
+                                              :filter filter
                                               :data (plist-union (parameters->plist title
                                                                                     occupation
                                                                                     tof
@@ -460,7 +455,8 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((contact-table (make-instance 'contact-table
+        (let ((filter (parameters->plist search))
+              (contact-table (make-instance 'contact-table
                                             :op 'details
                                             :company-id (val id))))
           (with-document ()
@@ -474,10 +470,10 @@
                    (:div :id "company-window" :class "window grid_6"
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        '(details create))
                          (company-data-form 'details
-                                            :search (val search)
+                                            :filter filter
                                             :id (val id)
                                             :data (get-company-plist (val id))))
                    (:div :id "contact-window" :class "window grid_6"
@@ -498,9 +494,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((company-table (make-instance 'company-table
-                                            :op 'delete
-                                            :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (company-table (make-instance 'company-table
+                                             :op 'delete
+                                             :filter filter)))
           (with-document ()
             (:head
              (:title "Διαγραφή εταιρίας")
@@ -509,22 +506,21 @@
              (:div :id "container" :class "container_12"
                    (header 'admin)
                    (admin-navbar 'company)
-                   (:div :id "company-window" :class "window grid_9"
+                   (:div :id "company-window" :class "window grid_10"
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        '(catalogue delete))
                          (with-form (actions/admin/company/delete :id (val id)
                                                                   :search (val* search))
                            (display company-table
                                     :selected-id (val id))))
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (:p :class "title" "Φίλτρα")
+                   (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (company) (val search)))
                    (footer)))))
         (see-other (error-page)))))
 
-(defun company-data-form (op &key id data styles search)
+(defun company-data-form (op &key id data styles filter)
   (let ((disabledp (eql op 'details)))
     (with-html
       (:div :id "company-data-form" :class "data-form"
@@ -580,8 +576,8 @@
                                       :style (getf styles :pobox))))))
             (:div :class "data-form-buttons"
                   (if disabledp
-                      (cancel-button (company :id id :search search)
+                      (cancel-button (apply #'company :id id filter)
                                      "Επιστροφή στον Κατάλογο Εταιριών")
                       (progn
                         (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                        (cancel-button (company :id id :search search) "Άκυρο"))))))))
+                        (cancel-button (apply #'company :id id filter) "Άκυρο"))))))))
