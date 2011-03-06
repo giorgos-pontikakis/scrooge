@@ -43,7 +43,7 @@
     /* line-height: 31px; */
     line-height: 20px;
     text-align: left;
-    padding: 6px 0px;
+    padding: 6px 5px;
 }
 
 .crud-table td input {
@@ -75,7 +75,7 @@
 /* ---------------------------------------------------------------------- */
 
 .selector, .pushbutton {
-    width: 30px;
+    width: 20px;
     padding: 0px;
     text-align: center;
 }

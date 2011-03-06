@@ -118,22 +118,25 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun contact-menu (id contact-id search &optional disabled-items)
+(defun contact-menu (id contact-id filter &optional disabled-items)
   (display
    (make-instance 'actions-menu
                   :id "contact-actions"
                   :style "hnavbar actions grid_6 alpha"
-                  :spec (crud-actions-spec (company/update :id id
-                                                           :contact-id contact-id
-                                                           :search search)
-                                           (company/details/contact/create :id id
-                                                                           :search search)
-                                           (company/details/contact/update :id id
-                                                                           :contact-id contact-id
-                                                                           :search search)
-                                           (company/details/contact/delete :id id
-                                                                           :contact-id contact-id
-                                                                           :search search)))
+                  :spec (crud-actions-spec (apply #'company/update
+                                                  :id id
+                                                  :contact-id contact-id
+                                                  filter)
+                                           (apply #'company/details/contact/create
+                                                  :id id
+                                                  filter)
+                                           (apply #'company/details/contact/update
+                                                  :id id
+                                                  :contact-id contact-id
+                                                  filter)
+                                           (apply #'company/details/contact/delete
+                                                  :id id
+                                                  :contact-id contact-id filter)))
    :disabled-items disabled-items))
 
 
@@ -148,7 +151,8 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((contact-table (make-instance 'contact-table
+        (let ((filter (parameters->plist search))
+              (contact-table (make-instance 'contact-table
                                             :op 'create
                                             :company-id (val id))))
           (with-document ()
@@ -162,16 +166,16 @@
                    (:div :id "company-window" :class "window grid_6"
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        '(details create))
                          (company-data-form 'details
-                                            :search (val search)
+                                            :filter filter
                                             :data (get-company-plist (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Δημιουργία")
                          (contact-menu (val id)
                                        nil
-                                       (val search)
+                                       filter
                                        '(details create update delete))
                          (with-form (actions/admin/contact/create :id (val id))
                            (display contact-table)))
@@ -185,7 +189,8 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((contact-table (make-instance 'contact-table
+        (let ((filter (parameters->plist search))
+              (contact-table (make-instance 'contact-table
                                             :op 'update
                                             :company-id (val id))))
           (with-document ()
@@ -199,16 +204,16 @@
                    (:div :id "company-window" :class "window grid_6"
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        '(details create))
                          (company-data-form 'details
-                                            :search (val search)
+                                            :filter filter
                                             :data (get-company-plist (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Επεξεργασία")
                          (contact-menu (val id)
                                        (val contact-id)
-                                       (val search)
+                                       filter
                                        '(create update))
                          (with-form (actions/admin/contact/update :id (val id)
                                                                   :contact-id (val contact-id))
@@ -225,7 +230,8 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((contact-table (make-instance 'contact-table
+        (let ((filter (parameters->plist search))
+              (contact-table (make-instance 'contact-table
                                             :op 'delete
                                             :company-id (val id))))
           (with-document ()
@@ -239,16 +245,16 @@
                    (:div :id "company-window" :class "window grid_6"
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
-                                       (val search)
+                                       filter
                                        '(details create))
                          (company-data-form 'details
-                                            :search (val search)
+                                            :filter filter
                                             :data (get-company-plist (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Διαγραφή")
                          (contact-menu (val id)
                                        (val contact-id)
-                                       (val search)
+                                       filter
                                        (if (val contact-id)
                                            '(details)
                                            '(details update delete)))
