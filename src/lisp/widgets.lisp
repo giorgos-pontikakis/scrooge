@@ -97,9 +97,11 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-tree (collection)
-  ((root           :accessor root           :initarg :root)
+  ((root-id           :accessor root-id           :initarg :root-id)
+   (root              :accessor root              :initarg :root)
    (item-parent-field :accessor item-parent-field :initarg :item-parent-field))
-  (:default-initargs :id "crud-tree" :style "crud-tree" :item-class 'crud-node))
+  (:default-initargs :id "crud-tree" :style "crud-tree"
+                     :item-class 'crud-node :root-id :null :filter nil))
 
 (defmethod initialize-instance :after ((tree crud-tree) &key)
   (setf (slot-value tree 'root)
@@ -124,7 +126,7 @@
                      :key nil
                      :record nil
                      :parent-key nil
-                     :children (make-nodes :null)))))
+                     :children (make-nodes (root-id tree))))))
 
 (defmethod update-item ((tree crud-tree) &key record key)
   (let ((node (find-node (root tree) key)))
@@ -366,7 +368,7 @@
                       nil)
            (:td :class "selector"
                 (display (getf cells :selector)
-                         :state (if (selected-p row selected-id) :on :off)))
+                         :state (if selected-p :on :off)))
            (mapc (lambda (cell)
                    (htm (:td :class "payload"
                              (display cell
@@ -489,6 +491,20 @@
                       "bullet_red.png"
                       "bullet_blue.png"))))))
 
+
+(defclass radio-cell (widget)
+  ((name    :accessor name    :initarg :name)
+   (value   :accessor value   :initarg :value)
+   (content :accessor content :initarg :content)))
+
+(defmethod display ((cell radio-cell) &key state)
+  (with-html
+    (:div :class (style cell)
+          (:input :type "radio"
+                  :name (string-downcase (name cell))
+                  :value (lisp->html (value cell))
+                  :checked (eql state :on)
+                  (str (content cell))))))
 
 
 (defclass ok-cell (widget)

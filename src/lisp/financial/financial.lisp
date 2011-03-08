@@ -7,8 +7,9 @@
   (display (make-instance 'horizontal-navbar
                           :style "section-navbar hnavbar grid_12"
                           :spec `((transaction ,(transaction)         "Συναλλαγές")
+                                  (account     ,(account/overview)    "Λογαριασμοί")
                                   (cheque      ,(cheque "receivable") "Επιταγές")
-                                  (account     ,(account/overview)    "Λογαριασμοί")))
+                                  (cash        ,(cash "revenue")      "Μετρητά")))
            :active-page-name active-page-name))
 
 

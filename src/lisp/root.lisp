@@ -71,7 +71,7 @@
     (let ((results (query (:select (val column) :distinct
                                    :from (val table)
                                    :where (:ilike (val column)
-                                                  (ilike (string-upcase-gr (val term)))))
+                                                  (ilike (val term))))
                           :column)))
       (if results
           (with-html-output (*standard-output* nil :indent nil :prologue nil)

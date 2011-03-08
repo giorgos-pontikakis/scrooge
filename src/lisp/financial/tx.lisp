@@ -112,20 +112,17 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun transaction-menu (id search &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "transaction-actions"
-                          :style "hnavbar actions grid_9 alpha"
-                          :spec (crud+details-actions-spec (transaction :id id
-                                                                        :search search)
-                                                           (transaction/create :search search)
-                                                           (transaction/details :id id
-                                                                                :search search)
-                                                           (transaction/update :id id
-                                                                               :search search)
-                                                           (transaction/delete :id id
-                                                                               :search search)))
-           :disabled-items disabled-items))
+(defun transaction-menu (id filter &optional disabled-items)
+  (display
+   (make-instance 'actions-menu
+                  :id "transaction-actions"
+                  :style "hnavbar actions"
+                  :spec (crud+details-actions-spec (apply #'transaction :id id filter)
+                                                   (apply #'transaction/create filter)
+                                                   (apply #'transaction/details :id id filter)
+                                                   (apply #'transaction/update  :id id filter)
+                                                   (apply #'transaction/delete  :id id filter)))
+   :disabled-items disabled-items))
 
 (defun transaction-notifications ()
   (notifications
@@ -151,6 +148,8 @@
                     'description
                     (:as 'debit-account.title 'debit-account-nonchequing)
                     (:as 'credit-account.title 'credit-account-nonchequing)
+                    'tx.debit-acc-id
+                    'tx.credit-acc-id
                     'amount
                     :from 'tx
                     :left-join 'company
@@ -170,20 +169,18 @@
 
 ;;; table
 
-(defclass tx-crud-table (crud-table)
+(defclass tx-table (crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
    (paginator      :initform (make-instance 'paginator
-                                           :id "tx-paginator"
-                                           :style "paginator grid_9 alpha"
-                                           :delta 10
-                                           :urlfn (lambda (search start)
-                                                    (transaction :search search
-                                                                 :start start)))))
+                                            :id "tx-paginator"
+                                            :style "paginator"
+                                            :delta 10
+                                            :urlfn #'transaction)))
   (:default-initargs :item-class 'tx-row))
 
-(defmethod read-records ((table tx-crud-table))
-  (let* ((search (filter table))
+(defmethod read-records ((table tx-table))
+  (let* ((search (getf (filter table) :search))
          (base-query `(:select tx.id
                                (:as tx-date date)
                                (:as company.title company)
@@ -211,13 +208,13 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (search (filter (collection row))))
+         (filter (filter (collection row))))
     (list :selector
           (make-instance 'selector-cell
-                         :states (list :on (transaction :search search
-                                                        :start (page-start pg (index row) start))
-                                       :off (transaction :search search
-                                                         :id id)))
+                         :states (list :on (apply #'transaction
+                                                  :start (page-start pg (index row) start)
+                                                  filter)
+                                       :off (apply #'transaction :id id filter)))
           :payload
           (mapcar (lambda (name)
                     (make-instance 'textbox-cell
@@ -228,7 +225,7 @@
           (list
            (make-instance 'ok-cell)
            (make-instance 'cancel-cell
-                          :href (transaction :id id :search search))))))
+                          :href (apply #'transaction :id id filter))))))
 
 
 
@@ -243,9 +240,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tx-crud-table (make-instance 'tx-crud-table
-                                            :op 'catalogue
-                                            :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (tx-table (make-instance 'tx-table
+                                        :op 'catalogue
+                                        :filter filter)))
           (with-document ()
             (:head
              (:title "Συναλλαγές")
@@ -254,18 +252,18 @@
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'transaction)
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (searchbox (transaction) (val search)))
-                   (:div :class "window grid_9"
+                   (:div :class "window grid_10"
                          (:div :class "title" "Συναλλαγές » Κατάλογος")
                          (transaction-menu (val id)
-                                           (val search)
+                                           filter
                                            (if (val id)
-                                               '(catalogue create)
+                                               '(catalogue)
                                                '(catalogue details update delete)))
-                         (display tx-crud-table
+                         (display tx-table
                                   :selected-id (val* id)
                                   :start (val* start)))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (searchbox (transaction) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -279,38 +277,37 @@
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")
     (no-cache)
-    (with-document ()
-      (:head
-       (:title "Συναλλαγές » Δημιουργία")
-       (financial-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'financial)
-             (financial-navbar 'transaction)
-             (:div :class "window grid_9"
-                   (:div :class "title" "Συναλλαγή » Δημιουργία")
-                   (transaction-menu nil
-                                     (val search)
-                                     '(details create update delete))
-                   (with-form (actions/financial/transaction/create)
-                     (transaction-data-form 'create
-                                            :search (val search)
-                                            :data (parameters->plist date
-                                                                     company
-                                                                     description
-                                                                     debit-account
-                                                                     credit-account
-                                                                     amount)
-                                            :styles (parameters->styles date
-                                                                        company
-                                                                        description
-                                                                        debit-account
-                                                                        credit-account
-                                                                        amount))))
-             (:div :id "sidebar" :class "sidebar grid_3"
-                   (searchbox (transaction) (val search))
-                   (transaction-notifications))
-             (footer))))))
+    (let ((filter (parameters->plist search)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγές » Δημιουργία")
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'transaction)
+               (:div :class "window grid_12"
+                     (:div :class "title" "Συναλλαγή » Δημιουργία")
+                     (transaction-menu nil
+                                       filter
+                                       '(details create update delete))
+                     (transaction-notifications)
+                     (with-form (actions/financial/transaction/create)
+                       (transaction-data-form 'create
+                                              :filter filter
+                                              :data (parameters->plist date
+                                                                       company
+                                                                       description
+                                                                       debit-account
+                                                                       credit-account
+                                                                       amount)
+                                              :styles (parameters->styles date
+                                                                          company
+                                                                          description
+                                                                          debit-account
+                                                                          credit-account
+                                                                          amount))))
+               (footer)))))))
 
 (define-dynamic-page transaction/update ("financial/transaction/update")
     ((search         string)
@@ -324,40 +321,41 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Συναλλαγή » Επεξεργασία")
-           (financial-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'financial)
-                 (financial-navbar 'transaction)
-                 (:div :class "window grid_9"
-                       (:div :class "title" "Συναλλαγή » Επεξεργασία")
-                       (transaction-menu (val id)
-                                         (val search)
-                                         '(create update))
-                       (with-form (actions/financial/transaction/update :id (val* id)
-                                                                        :search (val* search))
-                         (transaction-data-form 'update
-                                                :id (val id)
-                                                :search (val search)
-                                                :data (plist-union (parameters->plist date
-                                                                                      company
-                                                                                      description
-                                                                                      debit-account
-                                                                                      credit-account
-                                                                                      amount)
-                                                                   (get-tx-plist (val id)))
-                                                :styles (parameters->styles date
+        (let ((filter (parameters->plist search)))
+          (with-document ()
+            (:head
+             (:title "Συναλλαγή » Επεξεργασία")
+             (financial-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'financial)
+                   (financial-navbar 'transaction)
+                   (:div :class "window grid_12"
+                         (:div :class "title" "Συναλλαγή » Επεξεργασία")
+                         (transaction-menu (val id)
+                                           filter
+                                           '(create update))
+                         (transaction-notifications)
+                         (with-form (actions/financial/transaction/update :id (val* id)
+                                                                          :search (val* search))
+                           (transaction-data-form 'update
+                                                  :id (val id)
+                                                  :filter filter
+                                                  :data (plist-union
+                                                         (parameters->plist date
                                                                             company
                                                                             description
                                                                             debit-account
                                                                             credit-account
-                                                                            amount))))
-                 (:div :id "sidebar" :class "sidebar grid_3"
-                       (transaction-notifications))
-                 (footer))))
+                                                                            amount)
+                                                         (get-tx-plist (val id)))
+                                                  :styles (parameters->styles date
+                                                                              company
+                                                                              description
+                                                                              debit-account
+                                                                              credit-account
+                                                                              amount))))
+                   (footer)))))
         (see-other (notfound)))))
 
 (define-dynamic-page transaction/details ("financial/transaction/details")
@@ -366,26 +364,27 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Συναλλαγή » Λεπτομέρειες")
-           (financial-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'financial)
-                 (financial-navbar 'transaction)
-                 (:div :class "window grid_9"
-                       (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
-                       (transaction-menu (val id)
-                                         (val search)
-                                         '(details create))
-                       (transaction-data-form 'details
-                                              :search (val search)
-                                              :id (val id)
-                                              :data (get-tx-plist (val id))))
-                 (:div :id "sidebar" :class "sidebar grid_3"
-                       "")
-                 (error-page))))
+        (let ((filter (parameters->plist search)))
+          (with-document ()
+            (:head
+             (:title "Συναλλαγή » Λεπτομέρειες")
+             (financial-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'financial)
+                   (financial-navbar 'transaction)
+                   (:div :class "window grid_12"
+                         (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
+                         (transaction-menu (val id)
+                                           filter
+                                           '(details create))
+                         (transaction-data-form 'details
+                                                :filter filter
+                                                :id (val id)
+                                                :data (get-tx-plist (val id))))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         "")
+                   (error-page)))))
         (see-other (notfound)))))
 
 (define-dynamic-page transaction/delete ("financial/transaction/delete")
@@ -394,9 +393,10 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((tx-crud-table (make-instance 'tx-crud-table
-                                            :op 'delete
-                                            :filter (val* search))))
+        (let* ((filter (parameters->plist search))
+               (tx-table (make-instance 'tx-table
+                                        :op 'delete
+                                        :filter filter)))
           (with-document ()
             (:head
              (:title "Συναλλαγή » Διαγραφή")
@@ -405,21 +405,20 @@
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'transaction)
-                   (:div :id "sidebar" :class "sidebar grid_3"
-                         (searchbox (transaction) (val search)))
-                   (:div :class "window grid_9"
+                   (:div :class "window grid_10"
                          (:div :class "title" "Συναλλαγή » Διαγραφή")
                          (transaction-menu (val id)
-                                           (val search)
+                                           filter
                                            '(create delete))
                          (with-form (actions/financial/transaction/delete :id (val id)
                                                                           :search (val* search))
-                           (display tx-crud-table
-                                    :selected-id (val id))))
+                           (display tx-table :selected-id (val id))))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (searchbox (transaction) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
-(defun transaction-data-form (op &key search id data styles)
+(defun transaction-data-form (op &key filter id data styles)
   (let ((disabledp (eql op 'details)))
     (flet ((label+textbox (name label)
              (with-html
@@ -431,17 +430,17 @@
                         :style (getf styles (make-keyword name))))))
       (with-html
         (:div :id "transaction-data-form" :class "data-form"
-              (:div :id "transaction-description" :class "grid_9 alpha"
+              (:div :id "transaction-description" :class "grid_12 alpha"
                     (label+textbox 'date "Ημερομηνία")
                     (label+textbox 'company "Εταιρία")
                     (label+textbox 'description "Περιγραφή")
-                    (label+textbox 'debit-account "Λογαριασμός χρέωσης")
-                    (label+textbox 'credit-account "Λογαριασμός πίστωσης")
+                    (label+textbox 'debit-account-nonchequing "Λογαριασμός χρέωσης")
+                    (label+textbox 'credit-account-nonchequing "Λογαριασμός πίστωσης")
                     (label+textbox 'amount "Ποσόν")))
-        (:div :class "grid_9 data-form-buttons"
+        (:div :class "grid_12 data-form-buttons"
               (if disabledp
-                  (cancel-button (transaction :id id :search search)
+                  (cancel-button (apply #'transaction :id id filter)
                                  "Επιστροφή στον Κατάλογο Συναλλαγών")
                   (progn
                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (transaction :id id :search search) "Άκυρο"))))))))
+                    (cancel-button (apply #'transaction :id id filter) "Άκυρο"))))))))
