@@ -15,8 +15,13 @@
 (define-uniqueness-predicate tin-unique-p company tin id)
 
 (defun company-referenced-p (id)
-  (declare (ignore id))
-  nil)
+  (with-db ()
+    (or (query (:select 1 :from 'project
+                        :where (:= 'company-id id)))
+        (query (:select 1 :from 'cheque
+                        :where (:= 'company-id id)))
+        (query (:select 1 :from 'tx
+                        :where (:= 'company-id id))))))
 
 (defun chk-company-id (id)
   (if (company-id-exists-p id)
@@ -25,8 +30,8 @@
 
 (defun chk-company-id/ref (id)
   (if (and (not (null id))
-           (null (chk-company-id id))
-           (null (company-referenced-p id)))
+           (not (chk-company-id id))
+           (not (company-referenced-p id)))
       nil
       :company-referenced))
 
@@ -106,7 +111,7 @@
                                              :zipcode (val zipcode)
                                              :pobox (val pobox))))
             (insert-dao new-company)
-            (see-other (company :id (id new-company) :search (val search)))))
+            (see-other (company :id (id new-company)))))
         (see-other (company/create :search (raw search)
                                    :title (raw title)
                                    :occupation (raw occupation)
@@ -145,7 +150,7 @@
                               'pobox (val pobox)
                               'zipcode (val zipcode)
                               :where (:= 'id (val id))))
-            (see-other (company :id (val id) :search (val search)))))
+            (see-other (company :id (val id)))))
         (see-other (company/update :search (raw search)
                                    :id (raw id)
                                    :title (raw title)
@@ -165,7 +170,10 @@
     (no-cache)
     (if (validp id)
         (with-db ()
-          (delete-dao (get-dao 'company (val id)))
+          (with-transaction ()
+            (execute (:delete-from 'contact
+                                   :where (:= 'company-id (val id))))
+            (delete-dao (get-dao 'company (val id))))
           (see-other (company :search (val search))))
         (see-other (notfound)))))
 
@@ -356,7 +364,7 @@
                                    filter
                                    '(details create update archive delete))
                      (company-notifications)
-                     (with-form (actions/admin/company/create)
+                     (with-form (actions/admin/company/create :search (val search))
                        (company-data-form 'create
                                           :filter filter
                                           :data (parameters->plist title
@@ -414,7 +422,7 @@
                                        filter
                                        '(create update))
                          (company-notifications)
-                         (with-form (actions/admin/company/update :id (val id))
+                         (with-form (actions/admin/company/update :id (val id) :search (val search))
                            (company-data-form 'update
                                               :id (val id)
                                               :filter filter
@@ -439,7 +447,7 @@
                          (:div :class "title" "Επαφές")
                          (contact-menu (val id)
                                        (val contact-id)
-                                       (val search)
+                                       filter
                                        (if (val contact-id)
                                            '(catalogue)
                                            '(catalogue update delete)))
@@ -480,7 +488,7 @@
                          (:div :class "title" "Επαφές » Κατάλογος")
                          (contact-menu (val id)
                                        (val contact-id)
-                                       (val search)
+                                       filter
                                        (if (val contact-id)
                                            '(catalogue)
                                            '(catalogue update delete)))
@@ -489,7 +497,7 @@
         (see-other (error-page)))))
 
 (define-dynamic-page company/delete ("admin/company/delete")
-    ((id     integer chk-company-id t)
+    ((id     integer chk-company-id/ref t)
      (search string))
   (with-auth ("configuration")
     (no-cache)

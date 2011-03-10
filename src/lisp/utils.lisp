@@ -76,6 +76,9 @@
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun today ()
+  (universal-time-to-timestamp (get-universal-time)))
+
 (defun ninsert-list (n thing list)
   ;; by Kent Pitman (named insert-before-element-n-destructively, comp-lang-lisp: 28 Oct 1992)
   (if (= n 0)

@@ -67,8 +67,7 @@
                                              :status (val status)
                                              :notes (val notes))))
             (insert-dao new-project)
-            (see-other (project :id (id new-project)
-                                :search (val search)))))
+            (see-other (project :id (id new-project) :status (val status)))))
         (see-other (project/create :search (raw search)
                                    :company (raw company)
                                    :description (raw description)
@@ -112,7 +111,7 @@
                               'status (val status)
                               'notes (val notes)
                               :where (:= 'id (val id))))
-            (see-other (project :id (val id) :search (val search)))))
+            (see-other (project :id (val id) :status (val status)))))
         (see-other (project/update :search (raw search)
                                    :id (raw id)
                                    :company (raw company)
@@ -173,20 +172,20 @@
      (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))))
 
 (defun project-filters (status search)
-  (let ((spec `((nil       ,(project :search search)                     "Όλα")
-                (cancelled ,(project :search search :status "cancelled") "Άκυρα")
-                (finished  ,(project :search search :status "finished")  "Τελειωμένα")
-                (ongoing   ,(project :search search :status "ongoing")   "Σε εξέλιξη")
-                (quoted    ,(project :search search :status "quoted")    "Δόθηκε προσφορά"))))
+  (let ((spec `((nil      ,(project :search search)                    "Όλα")
+                (quoted   ,(project :search search :status "quoted")   "Προσφορές")
+                (ongoing  ,(project :search search :status "ongoing")  "Σε εξέλιξη")
+                (finished ,(project :search search :status "finished") "Ολοκληρωμένα")
+                (archived ,(project :search search :status "archived") "Αρχειοθετημένα")
+                (canceled ,(project :search search :status "canceled") "Άκυρα"))))
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Κατάσταση")
-            (display
-             (make-instance 'vertical-navbar
-                            :id "project-filters"
-                            :style "vnavbar"
-                            :spec spec)
-             :active-page-name (intern (string-upcase status)))))))
+            (display (make-instance 'vertical-navbar
+                                    :id "project-filters"
+                                    :style "vnavbar"
+                                    :spec spec)
+                     :active-page-name (intern (string-upcase status)))))))
 
 
 
@@ -249,7 +248,15 @@
                                 (append base-query
                                         `(:where (:and ,@where-terms)))
                                 base-query))
-           (final-query `(:order-by ,composite-query project.id start-date)))
+           (final-query `(:order-by ,composite-query
+                                    ,(cond ((member status
+                                                    (list "quoted" nil) :test #'string=)
+                                            'quote-date)
+                                           ((string= status "ongoing")
+                                            'start-date)
+                                           ((member status
+                                                    (list "finished" "archived") :test #'string=)
+                                            'end-date)))))
       (with-db ()
         (query (sql-compile final-query)
                :plists)))))
@@ -287,7 +294,7 @@
 ;;; Project - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page project ("admin/project/")
+(define-dynamic-page project ("admin/project")
     ((id     integer chk-project-id)
      (status string)
      (search string)
@@ -352,19 +359,20 @@
                                    filter
                                    '(details create update archive delete))
                      (project-notifications))
-               (with-form (actions/admin/project/create)
+               (with-form (actions/admin/project/create :search (val search) :status (val status))
                  (project-data-form 'create
                                     :filter filter
-                                    :data (parameters->plist company
-                                                             description
-                                                             location
-                                                             price
-                                                             vat
-                                                             status
-                                                             quote-date
-                                                             start-date
-                                                             end-date
-                                                             notes)
+                                    :data (plist-union (parameters->plist company
+                                                                          description
+                                                                          location
+                                                                          price
+                                                                          vat
+                                                                          status
+                                                                          quote-date
+                                                                          start-date
+                                                                          end-date
+                                                                          notes)
+                                                       (list :quote-date (today)))
                                     :styles (parameters->styles company
                                                                 description
                                                                 location
@@ -408,7 +416,7 @@
                                        filter
                                        '(create update))
                          (project-notifications))
-                   (with-form (actions/admin/project/update :id (val id))
+                   (with-form (actions/admin/project/update :id (val id) :search (val search))
                      (project-data-form 'update
                                         :id (val id)
                                         :filter filter
@@ -541,7 +549,7 @@
               (:div :class "project-data-form-title"
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes
-                               :cols 39 :rows 22 :disabled disabledp
+                               :cols 34 :rows 22 :disabled disabledp
                                (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "grid_8 data-form-buttons"
               (if disabledp
