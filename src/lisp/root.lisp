@@ -64,20 +64,23 @@
 ;;; --- Autocomplete --------------------
 
 (define-dynamic-page autocomplete ("autocomplete" :content-type "text/plain")
-    ((table symbol)
-     (column symbol)
-     (term string))
-  (with-db ()
-    (let ((results (query (:select (val column) :distinct
-                                   :from (val table)
-                                   :where (:ilike (val column)
-                                                  (ilike (val term))))
-                          :column)))
-      (if results
-          (with-html-output (*standard-output* nil :indent nil :prologue nil)
-            (write-json (coerce results 'vector)))
-          (with-html-output (*standard-output* nil :indent nil :prologue nil)
-            "[]")))))
+    ((table  symbol nil t)
+     (column symbol nil t)
+     (term   string nil t))
+  (with-auth ("configuration")
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (let ((results (query (:select (val column) :distinct
+                                         :from (val table)
+                                         :where (:ilike (val column)
+                                                        (ilike (val term))))
+                                :column)))
+            (if results
+                (with-html-output (*standard-output* nil :indent nil :prologue nil)
+                  (write-json (coerce results 'vector)))
+                (with-html-output (*standard-output* nil :indent nil :prologue nil)
+                  "[]"))))
+        (see-other (error-page)))))
 
 
 
