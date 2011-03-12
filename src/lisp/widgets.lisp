@@ -606,13 +606,20 @@
 
 (defmethod display ((messenger messenger) &key params)
   (flet ((get-message (param messages)
-           (or (getf (second (assoc (name param) messages))
-                     (error-type param))
-               (string-downcase (error-type param)))))
+           (if-let (msg-plist (assoc (name param) messages))
+             ;; if the name of the parameter is not found, don't print any messages
+             (if-let (tail (member (error-type param) (second msg-plist)))
+               ;; Use member to extract message from plist instead of
+               ;; getf, to be able to have nil as a value (the cadr of
+               ;; tail may be nil) and not get the fallback
+               (cadr tail)
+               (string-downcase (error-type param)))
+             nil)))
     (unless (every #'validp params)
       (with-html
         (:ul :id (id messenger)
              (iter (for p in params)
                    (unless (validp p)
-                     (htm (:li :class (style messenger)
-                               (str (get-message p (messages messenger))))))))))))
+                     (when-let (msg (get-message p (messages messenger)))
+                       (htm (:li :class (style messenger)
+                                 (str msg)))))))))))

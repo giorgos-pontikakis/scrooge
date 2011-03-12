@@ -1,6 +1,5 @@
 (in-package :scrooge)
 
-
 (define-existence-predicate cheque-stran-exists-p cheque-stran id)
 (define-existence-predicate cheque-status-exists-p cheque-status id)
 
@@ -19,6 +18,38 @@
       :cheque-stran-title-null
       nil))
 
+(defun chk-cheque-stran-from/to/payable (from-status to-status cheque-kind)
+  (if (cheque-stran-from/to/payable-exists-p from-status to-status cheque-kind)
+      :cheque-stran-from/to/payable-exists
+      nil))
+
+(defun cheque-stran-from/to/payable-exists-p (from-status to-status cheque-kind)
+  (if (or (null from-status) (null to-status))
+      nil
+      (with-db ()
+        (query (:select 1 :from 'cheque-stran
+                        :where (:and (:= 'from-status from-status)
+                                     (:= 'to-status to-status)
+                                     (:= 'payable-p (string= cheque-kind "payable"))))
+               :plists))))
+
+(defun post-checks (from-status to-status debit-account credit-account cheque-kind)
+  (post-parameter-check (lambda (from to)
+                          (chk-cheque-stran-from/to/payable from to cheque-kind))
+                        from-status to-status)
+  (post-parameter-check (lambda (from to)
+                          (if (string= from to)
+                              :cheque-stran-from-to-equal
+                              nil))
+                        from-status to-status)
+  (post-parameter-check (lambda (&rest accounts)
+                          (if (some #'chequing-p accounts)
+                              nil
+                              :no-chequing-accounts-found))
+                        debit-account credit-account)
+  nil)
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Cheque state transitions - actions
@@ -35,6 +66,7 @@
      (to-status      string chk-cheque-status))
   (with-auth ("configuration")
     (no-cache)
+    (post-checks from-status to-status debit-account credit-account cheque-kind)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (let* ((debit-acc-id (account-id (val debit-account)))
@@ -67,6 +99,7 @@
      (to-status      string  chk-cheque-status))
   (with-auth ("configuration")
     (no-cache)
+    (post-checks from-status to-status debit-account credit-account cheque-kind)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (let* ((debit-acc-id (account-id (val debit-account)))
@@ -118,8 +151,19 @@
 
 (defun cheque-stran-notifications ()
   (notifications
-   '((title (:cheque-stran-title-null "Το όνομα καταστατικής μεταβολής είναι κενό."
-             :cheque-stran-title-exists "Το όνομα καταστατικής μεταβολής υπάρχει ήδη.")))))
+   '((title (:cheque-stran-title-null "Η περιγραφή της  καταστατικής μεταβολής είναι κενή."
+             :cheque-stran-title-exists "Αυτή η περιγραφή καταστατικής μεταβολής έχει ήδη οριστεί."))
+     (from-status (:cheque-stran-from/to/payable-exists
+                   "Έχει ήδη οριστεί καταστατική μεταβολή για αυτή την αρχική και τελική κατάσταση"
+                   :cheque-stran-from-to-equal nil))
+     (to-status (:cheque-stran-from-to-equal
+                 "Η τελική κατάσταση δεν μπορεί να είναι ίδια με την αρχική κατάσταση."))
+     (debit-account (:account-title-unknown "Άγνωστος λογαριασμός χρέωσης."
+                     :account-title-null "O λογαριασμός χρέωσης είναι κενός."
+                     :no-chequing-accounts-found nil))
+     (credit-account (:account-title-unknown "Άγνωστος λογαριασμός πίστωσης."
+                      :account-title-null "O λογαριασμός πίστωσης είναι κενός."
+                      :no-chequing-accounts-found "Πρέπει να ορίσετε τραπεζικό λογαριασμό είτε για το λογαριασμό χρέωσης είτε για το λογαριασμό πίστωσης.")))))
 
 
 
@@ -243,7 +287,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
-                   (:div :id "cheque-stran-window" :class "window grid_9"
+                   (:div :id "cheque-stran-window" :class "window grid_10"
                          (:div :class "title" "Καταστατικές Μεταβολών Επιταγών » Κατάλογος")
                          (cheque-stran-menu (val id)
                                             cheque-kind
@@ -252,11 +296,12 @@
                                                 '(catalogue update delete)))
                          (display cheque-stran-table
                                   :selected-id (val* id)))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (cheque-stran-filters cheque-kind))
                    (footer))))))))
 
 (define-regex-page config/cheque-stran/create (("config/cheque-stran/" cheque-kind "/create")
                                                :registers (cheque-kind "(receivable|payable)"))
-
     ((title          string chk-cheque-stran-title)
      (debit-account  string chk-acc-title)
      (credit-account string chk-acc-title)
@@ -264,6 +309,7 @@
      (to-status      string chk-cheque-status))
   (with-auth ("configuration")
     (no-cache)
+    (post-checks from-status to-status debit-account credit-account cheque-kind)
     (with-document ()
       (:head
        (:title "Καταστατικές Μεταβολές Επιταγών » Δημιουργία")
@@ -272,11 +318,12 @@
        (:div :id "container" :class "container_12"
              (header 'config)
              (config-navbar 'cheque)
-             (:div :class "window grid_9"
+             (:div :class "window grid_12"
                    (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Δημιουργία")
                    (cheque-stran-menu nil
                                       cheque-kind
                                       '(create update delete))
+                   (cheque-stran-notifications)
                    (with-form (actions/config/cheque-stran/create cheque-kind)
                      (cheque-stran-data-form cheque-kind
                                              'create
@@ -294,7 +341,7 @@
 
 (define-regex-page config/cheque-stran/update (("config/cheque-kind/" cheque-kind "/update")
                                                :registers (cheque-kind "(receivable|payable)"))
-    ((id     integer chk-cheque-stran-id t)
+    ((id             integer chk-cheque-stran-id t)
      (title          string chk-cheque-stran-title)
      (debit-account  string chk-acc-title)
      (credit-account string chk-acc-title)
@@ -303,37 +350,43 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-navbar 'cheque-stran)
-                 (:div :id "sidebar" :class "sidebar grid_3"
-                       (cheque-stran-notifications))
-                 (:div :id "cheque-stran-window" :class "window grid_9"
-                       (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
-                       (cheque-stran-menu (val id)
-                                          cheque-kind
-                                          '(create update))
-                       (with-form (actions/config/cheque-stran/update cheque-kind :id (val id))
-                         (cheque-stran-data-form cheque-kind
-                                                 'update
-                                                 :id (val id)
-                                                 :data (plist-union
-                                                        (get-cheque-stran-plist (val id))
-                                                        (parameters->plist title
-                                                                           debit-account
-                                                                           credit-account
-                                                                           from-status
-                                                                           to-status)))))
-                 (footer))))
+        (progn
+          (post-checks from-status to-status debit-account credit-account cheque-kind)
+          (with-document ()
+            (:head
+             (:title "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
+             (config-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'config)
+                   (config-navbar 'cheque-stran)
+                   (:div :id "cheque-stran-window" :class "window grid_12"
+                         (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
+                         (cheque-stran-menu (val id)
+                                            cheque-kind
+                                            '(create update))
+                         (cheque-stran-notifications)
+                         (with-form (actions/config/cheque-stran/update cheque-kind :id (val id))
+                           (cheque-stran-data-form cheque-kind
+                                                   'update
+                                                   :id (val id)
+                                                   :data (plist-union
+                                                          (parameters->plist title
+                                                                             debit-account
+                                                                             credit-account
+                                                                             from-status
+                                                                             to-status)
+                                                          (get-cheque-stran-plist (val id)))
+                                                   :styles (parameters->styles title
+                                                                               debit-account
+                                                                               credit-account
+                                                                               from-status
+                                                                               to-status))))
+                   (footer)))))
         (see-other (notfound)))))
 
 (define-regex-page config/cheque-stran/delete (("config/cheque-stran/" cheque-kind "/delete")
-                                        :registers (cheque-kind "(receivable|payable)"))
+                                               :registers (cheque-kind "(receivable|payable)"))
     ((id integer chk-cheque-stran-id t))
   (with-auth ("configuration")
     (no-cache)
@@ -350,7 +403,7 @@
              (:div :id "container" :class "container_12"
                    (header 'config)
                    (config-navbar 'cheque-stran)
-                   (:div :id "cheque-stran-window" :class "window grid_9"
+                   (:div :id "cheque-stran-window" :class "window grid_10"
                          (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Διαγραφή")
                          (cheque-stran-menu (val id)
                                             cheque-kind
@@ -359,6 +412,8 @@
                                                                         :id (val id))
                            (display cheque-stran-table
                                     :selected-id (val id))))
+                   (:div :id "sidebar" :class "sidebar grid_2"
+                         (cheque-stran-filters cheque-kind))
                    (footer)))))
         (see-other (notfound)))))
 
@@ -378,14 +433,14 @@
               ;;
               (label 'from-status "Αρχική Κατάσταση")
               (dropdown 'from-status *cheque-statuses*
-                        :selected (getf data :from-description)
+                        :selected (getf data :from-status)
                         :disabledp disabledp
-                        :style (getf styles :from-description))
+                        :style (getf styles :from-status))
               (label 'from-status "Τελική Κατάσταση")
               (dropdown 'to-status *cheque-statuses*
-                        :selected (getf data :to-description)
+                        :selected (getf data :to-status)
                         :disabledp disabledp
-                        :style (getf styles :to-description))
+                        :style (getf styles :to-status))
               ;;
               (label+textbox 'debit-account "Λογαριασμός Χρέωσης")
               (label+textbox 'credit-account "Λογαριασμός Πίστωσης"))
@@ -396,3 +451,15 @@
                   (progn
                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (config/cheque-stran cheque-kind :id id) "Άκυρο"))))))))
+
+(defun cheque-stran-filters (cheque-kind)
+  (let ((spec `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
+                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))))
+    (with-html
+      (:div :id "filters" :class "filters"
+            (:p :class "title" "Κατάσταση")
+            (display (make-instance 'vertical-navbar
+                                    :id "cheque-stran-filters"
+                                    :style "vnavbar"
+                                    :spec spec)
+                     :active-page-name (intern (string-upcase cheque-kind)))))))

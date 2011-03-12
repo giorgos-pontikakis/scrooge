@@ -39,6 +39,7 @@
 
 .search {
     background-color: #7b8d78;
+    margin-bottom: 20px;
 }
 
 .search input {
@@ -60,4 +61,13 @@
 .search button img {
     vertical-align: top;
     padding: 0px 0px 0px 0px;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* filters */
+/* ---------------------------------------------------------------------- */
+
+.filters {
+    margin-bottom: 20px;
 }

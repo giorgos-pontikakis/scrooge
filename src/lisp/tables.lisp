@@ -57,9 +57,8 @@
 
 (defmethod tof-id ((tof-title string))
   (with-db ()
-    (or (query (:select 'id :from 'tof :where (:= 'title tof-title))
-               :single)
-        :null)))
+    (query (:select 'id :from 'tof :where (:= 'title tof-title))
+           :single)))
 
 (defmethod tof-id ((tof-title (eql :null)))
   :null)
@@ -145,6 +144,14 @@
    (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p))
   (:metaclass dao-class)
   (:keys id))
+
+(defmethod chequing-p ((title string))
+  (with-db ()
+    (query (:select 'id
+                    :from 'account
+                    :where (:and (:= 'title title)
+                                 (:= 'chequing-p t)))
+           :plists)))
 
 (defmethod account-id ((title string))
   (with-db ()

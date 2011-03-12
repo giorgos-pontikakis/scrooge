@@ -23,14 +23,6 @@
   (or (ref-subaccounts id)
       (ref-transactions id)))
 
-(defun chequing-account-p (title)
-  (with-db ()
-    (query (:select 'id
-                    :from 'account
-                    :where (:and (:= 'title title)
-                                 (:= 'chequing-p t)))
-           :plists)))
-
 (define-existence-predicate acc-id-exists-p account id)
 (define-existence-predicate acc-title-exists-p account title)
 (define-uniqueness-predicate acc-title-unique-p account title id)
@@ -64,7 +56,7 @@
 (defun chk-acc-title-nc (title)
   (cond ((eql title :null) :account-title-null)
         ((not (acc-title-exists-p title)) :account-title-unknown)
-        ((chequing-account-p title) :chequing-account)
+        ((chequing-p title) :chequing-account)
         (t nil)))
 
 (defun chk-debitp (debitp id)
