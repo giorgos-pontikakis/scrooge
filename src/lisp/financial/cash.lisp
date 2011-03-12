@@ -6,16 +6,6 @@
 (defparameter *revenues-root-account* 05)
 
 
-;;; ----------------------------------------------------------------------
-;;; Utilities
-;;; ----------------------------------------------------------------------
-
-(defun cash-kind-label (cash-kind)
-  (cond ((string-equal cash-kind "revenue") "Έσοδα")
-        ((string-equal cash-kind "expense") "Έξοδα")
-        (t (error "internal error in cash-kind-label"))))
-
-
 
 ;;; ----------------------------------------------------------------------
 ;;; Actions
@@ -200,6 +190,11 @@
 ;;; ----------------------------------------------------------------------
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
+
+(defun cash-kind-label (cash-kind)
+  (cond ((string-equal cash-kind "revenue") "Έσοδα")
+        ((string-equal cash-kind "expense") "Έξοδα")
+        (t (error "Internal error in cash-kind-label"))))
 
 (defun cash-filters (cash-kind search)
   (let ((spec `((revenue ,(cash "revenue" :search search) "Έσοδα")

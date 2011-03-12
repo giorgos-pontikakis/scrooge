@@ -112,6 +112,11 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
+(defun cheque-kind-label (cheque-kind)
+  (cond ((string-equal cheque-kind "receivable") "Εισπρακτέες")
+        ((string-equal cheque-kind "payable") "Πληρωτέες")
+        (t (error "internal error in cheque-kind-label"))))
+
 (defun cheque-menu (cheque-kind id filter &optional disabled-items)
   (display
    (make-instance 'actions-menu
@@ -136,11 +141,11 @@
               :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))))
 
 (defun cheque-filters (cheque-kind)
-  (let ((spec `((receivable ,(cheque "receivable") "Προς είσπραξη")
-                (payable    ,(cheque "payable")    "Προς πληρωμή"))))
+  (let ((spec `((receivable ,(cheque "receivable") "Εισπρακτέες")
+                (payable    ,(cheque "payable")    "Πληρωτέες"))))
     (with-html
       (:div :id "filters" :class "filters"
-            (:p :class "title" "Είδος επιταγής")
+            (:p :class "title" "Είδος")
             (display (make-instance 'vertical-navbar
                                     :id "cheque-kind-filter"
                                     :style "vnavbar"
@@ -191,8 +196,8 @@
 (defclass cheque-table (crud-table)
   ((subpage        :accessor subpage :initarg :subpage)
    (item-key-field :initform :id)
-   (header-labels  :initform '("" "<br />Τράπεζα" "Ημερομηνία<br />πληρωμής"
-                              "<br />Εταιρία" "<br />Ποσό"))
+   (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
+                               "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'paginator
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
@@ -255,7 +260,7 @@
                     (make-instance 'textbox-cell
                                    :name name
                                    :value (getf record (make-keyword name))))
-                  '(bank due-date company amount))
+                  '(company bank due-date amount))
           :controls
           (list
            (make-instance 'ok-cell)
@@ -278,6 +283,7 @@
     (no-cache)
     (if (every #'validp (parameters *page*))
         (let* ((filter (parameters->plist status search))
+               (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Κατάλογος"))
                (cheque-table (make-instance 'cheque-table
                                             :id "cheque-table"
                                             :subpage cheque-kind
@@ -285,14 +291,14 @@
                                             :filter filter)))
           (with-document ()
             (:head
-             (:title "Επιταγές")
+             (:title (str page-title))
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'cheque)
                    (:div :class "window grid_10"
-                         (:div :class "title" "Επιταγές » Κατάλογος")
+                         (:div :class "title" (str page-title))
                          (cheque-menu cheque-kind
                                       (val id)
                                       filter
@@ -320,17 +326,18 @@
      (status   string chk-cheque-status))
   (with-auth ("configuration")
     (no-cache)
-    (let ((filter (parameters->plist search status)))
+    (let ((filter (parameters->plist search status))
+          (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Δημιουργία")))
       (with-document ()
         (:head
-         (:title "Επιταγή » Δημιουργία")
+         (:title (str page-title))
          (financial-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'financial)
                (financial-navbar 'cheque)
                (:div :class "window grid_12"
-                     (:div :class "title" "Επιταγή » Δημιουργία")
+                     (:div :class "title" (str page-title))
                      (cheque-menu cheque-kind
                                   nil
                                   filter
@@ -363,17 +370,18 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist status search)))
+        (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Επεξεργασία"))
+              (filter (parameters->plist status search)))
           (with-document ()
             (:head
-             (:title "Επιταγή » Επεξεργασία")
+             (:title (str page-title))
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'cheque)
                    (:div :id "cheque-window" :class "window grid_12"
-                         (:p :class "title" "Επιταγή » Επεξεργασία")
+                         (:p :class "title" (str page-title))
                          (cheque-menu cheque-kind
                                       (val id)
                                       filter
@@ -398,7 +406,7 @@
                                                                    amount
                                                                    status)))
                    (footer)))))
-        (see-other (notfound)))))
+        (see-other (error-page)))))
 
 (define-regex-page cheque/details (("financial/cheque/" cheque-kind "/details")
                                    :registers (cheque-kind "(receivable|payable)"))
@@ -408,17 +416,18 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist status search)))
+        (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Λεπτομέρειες"))
+              (filter (parameters->plist status search)))
           (with-document ()
             (:head
-             (:title "Επιταγή » Λεπτομέρειες")
+             (:title (str page-title))
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
                    (header 'financial)
                    (financial-navbar 'cheque)
                    (:div :class "window grid_12"
-                         (:div :class "title" "Επιταγή » Λεπτομέρειες")
+                         (:div :class "title" (str page-title))
                          (cheque-menu cheque-kind
                                       (val id)
                                       filter
@@ -427,9 +436,8 @@
                                      'details
                                      :filter filter
                                      :id (val id)
-                                     :data (get-cheque-plist (val id)))
-                   (error-page)))))
-        (see-other (notfound)))))
+                                     :data (get-cheque-plist (val id)))))))
+        (see-other (error-page)))))
 
 (define-regex-page cheque/delete (("financial/cheque/" cheque-kind "/delete")
                                   :registers (cheque-kind "(receivable|payable)"))
@@ -439,7 +447,8 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist status search))
+        (let* ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Διαγραφή"))
+               (filter (parameters->plist status search))
                (cheque-table (make-instance 'cheque-table
                                             :op 'delete
                                             :subpage cheque-kind
@@ -448,7 +457,7 @@
 
           (with-document ()
             (:head
-             (:title "Επιταγή » Διαγραφή")
+             (:title (str page-title))
              (financial-headers))
             (:body
              (:div :id "container" :class "container_12"
@@ -456,7 +465,7 @@
                    (financial-navbar 'cheque)
                    (:div :class "window"
                          (:div :class "window grid_10"
-                               (:div :class "title" "Επιταγή » Διαγραφή")
+                               (:div :class "title" (str page-title))
                                (cheque-menu cheque-kind
                                             (val id)
                                             filter
@@ -472,7 +481,7 @@
                                (cheque-filters cheque-kind)
                                (cheque-status-filters cheque-kind (val status) (val search))))
                    (footer)))))
-        (see-other (notfound)))))
+        (see-other (error-page)))))
 
 (defun cheque-data-form (cheque-kind op &key filter id data styles)
   (let ((disabledp (eql op 'details)))
@@ -485,9 +494,10 @@
                         :disabledp disabledp
                         :style (getf styles (make-keyword name))))))
       (with-html
+        (:div :id "cheque-data-form" :class "data-form data-form-first grid_12"
+              (label+textbox 'company "Εταιρία"))
         (:div :id "cheque-data-form" :class "data-form grid_12"
               (label+textbox 'bank "Τράπεζα")
-              (label+textbox 'company "Εταιρία")
               (label+textbox 'due-date "Ημερομηνία πληρωμής")
               (label+textbox 'amount "Ποσό")
               (:div :class "grid_3 alpha cheque-data-form-title"
