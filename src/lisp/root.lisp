@@ -39,7 +39,9 @@
       (see-other (login :user (raw user)))))
 
 (define-dynamic-page logout ("logout") ()
-  (remove-session *session*)
+  ;; the when check is needed in case *session* has expired
+  (when *session*
+    (remove-session *session*))
   (see-other (login)))
 
 
