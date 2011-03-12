@@ -413,25 +413,26 @@
                          (with-form (actions/financial/transaction/delete :id (val id)
                                                                           :search (val* search))
                            (display tx-table :selected-id (val id))))
-                   (:div :id "sidebar" :class "sidebar grid_2"
+                   (:div :id "sidebar" :class "sidebar `grid_2"
                          (searchbox (transaction) (val search)))
                    (footer)))))
         (see-other (notfound)))))
 
 (defun transaction-data-form (op &key filter id data styles)
   (let ((disabledp (eql op 'details)))
-    (flet ((label+textbox (name label)
+    (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
-                        :style (getf styles (make-keyword name))))))
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles)))))
       (with-html
         (:div :id "transaction-data-form" :class "data-form"
               (:div :id "transaction-description" :class "grid_12 alpha"
-                    (label+textbox 'date "Ημερομηνία")
+                    (label+textbox 'date "Ημερομηνία" "datepicker")
                     (label+textbox 'company "Εταιρία")
                     (label+textbox 'description "Περιγραφή")
                     (label+textbox 'debit-account-nonchequing "Λογαριασμός χρέωσης")

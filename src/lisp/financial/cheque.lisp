@@ -485,20 +485,21 @@
 
 (defun cheque-data-form (cheque-kind op &key filter id data styles)
   (let ((disabledp (eql op 'details)))
-    (flet ((label+textbox (name label)
+    (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
-                        :style (getf styles (make-keyword name))))))
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles)))))
       (with-html
         (:div :id "cheque-data-form" :class "data-form data-form-first grid_12"
               (label+textbox 'company "Εταιρία"))
         (:div :id "cheque-data-form" :class "data-form grid_12"
               (label+textbox 'bank "Τράπεζα")
-              (label+textbox 'due-date "Ημερομηνία πληρωμής")
+              (label+textbox 'due-date "Ημερομηνία πληρωμής" "datepicker")
               (label+textbox 'amount "Ποσό")
               (:div :class "grid_3 alpha cheque-data-form-title"
                     (label 'status "Κατάσταση")

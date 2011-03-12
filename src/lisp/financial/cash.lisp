@@ -407,18 +407,19 @@
                      (if (string-equal cash-kind "revenue")
                          (list :filter nil :root-id *revenues-root-account*)
                          (list :filter t   :root-id *expenses-root-account*)))))
-    (flet ((label+textbox (name label)
+    (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
-                        :style (getf styles (make-keyword name))))))
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles)))))
       (with-html
         (:div :id "cash-data-form" :class "data-form"
               (:div :class "grid_6 alpha"
-                    (label+textbox 'date "Ημερομηνία")
+                    (label+textbox 'date "Ημερομηνία" "datepicker")
                     (label+textbox 'description "Περιγραφή")
                     (label+textbox 'company "Εταιρία")
                     (label+textbox 'amount "Ποσό")

@@ -1,8 +1,13 @@
 $(document).ready(function () {
                       applyAutocomplete();
+                      applyDatepicker();
                       applyCheckUnsaved();
                   });
 
+function applyDatepicker () {
+    $.datepicker.setDefaults({dateFormat: "dd/mm/yy"});
+    $(".datepicker").datepicker();
+};
 
 function applyAutocomplete () {
     var id, table, col, source;

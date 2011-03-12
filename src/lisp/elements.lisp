@@ -31,7 +31,8 @@
   (js (url 'lib "jquery/jquery-1.5.min.js")))
 
 (defun jquery-ui ()
-  (js (url 'lib "jquery/jquery-ui-1.8.9.custom/js/jquery-ui-1.8.9.custom.min.js")))
+  (js (url 'lib "jquery/jquery-ui-1.8.9.custom/js/jquery-ui-1.8.9.custom.min.js"))
+  (js (url 'lib "jquery/jquery.ui.datepicker-el.js")))
 
 (defun jquery-autocomplete ()
   (js (url 'js "main.js"))

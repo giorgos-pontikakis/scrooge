@@ -152,7 +152,6 @@
                                                            (apply #'project/create filter)
                                                            (apply #'project/details :id id filter)
                                                            (apply #'project/update :id id filter)
-                                                           (apply #'project/details :id id filter)
                                                            (apply #'project/delete :id id filter)))
            :disabled-items disabled-items))
 
@@ -504,14 +503,15 @@
 
 (defun project-data-form (op &key id data styles filter)
   (let ((disabledp (eql op 'details)))
-    (flet ((label+textbox (name label)
+    (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
-                        :style (getf styles (make-keyword name))))))
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles)))))
       (with-html
         (:div :id "project-data-form" :class "data-form grid_8"
               (:div :class "grid_5 alpha project-data-form-title"
@@ -535,9 +535,9 @@
               (:div :class "grid_4 omega project-data-form-details"
                     (:fieldset
                      (:legend "Χρονοδιάγραμμα")
-                     (:ul (:li (label+textbox 'quote-date "Ημερομηνία προσφοράς"))
-                          (:li (label+textbox 'start-date "Ημερομηνία έναρξης"))
-                          (:li (label+textbox 'end-date "Ημερομηνία ολοκλήρωσης"))))))
+                     (:ul (:li (label+textbox 'quote-date "Ημερομηνία προσφοράς" "datepicker"))
+                          (:li (label+textbox 'start-date "Ημερομηνία έναρξης" "datepicker"))
+                          (:li (label+textbox 'end-date "Ημερομηνία ολοκλήρωσης" "datepicker"))))))
         (:div :id "project-notes" :class "data-form grid_4"
               (:div :class "project-data-form-title"
                     (label 'notes "Σημειώσεις")
