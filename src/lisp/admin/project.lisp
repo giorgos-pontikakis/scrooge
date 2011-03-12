@@ -359,7 +359,7 @@
                                    filter
                                    '(details create update archive delete))
                      (project-notifications))
-               (with-form (actions/admin/project/create :search (val search) :status (val status))
+               (with-form (actions/admin/project/create :search (val search))
                  (project-data-form 'create
                                     :filter filter
                                     :data (plist-union (parameters->plist company
@@ -420,8 +420,7 @@
                      (project-data-form 'update
                                         :id (val id)
                                         :filter filter
-                                        :data (plist-union (parameters->plist id
-                                                                              company
+                                        :data (plist-union (parameters->plist company
                                                                               description
                                                                               location
                                                                               price
@@ -432,8 +431,7 @@
                                                                               end-date
                                                                               notes)
                                                            (get-project-plist (val id)))
-                                        :styles (parameters->styles id
-                                                                    company
+                                        :styles (parameters->styles company
                                                                     description
                                                                     location
                                                                     price

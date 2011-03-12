@@ -165,6 +165,18 @@
                       :account-title-null "O λογαριασμός πίστωσης είναι κενός."
                       :no-chequing-accounts-found "Πρέπει να ορίσετε τραπεζικό λογαριασμό είτε για το λογαριασμό χρέωσης είτε για το λογαριασμό πίστωσης.")))))
 
+(defun cheque-stran-filters (cheque-kind)
+  (let ((spec `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
+                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))))
+    (with-html
+      (:div :id "filters" :class "filters"
+            (:p :class "title" "Είδος επιταγής")
+            (display (make-instance 'vertical-navbar
+                                    :id "cheque-stran-filters"
+                                    :style "vnavbar"
+                                    :spec spec)
+                     :active-page-name (intern (string-upcase cheque-kind)))))))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -451,15 +463,3 @@
                   (progn
                     (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (config/cheque-stran cheque-kind :id id) "Άκυρο"))))))))
-
-(defun cheque-stran-filters (cheque-kind)
-  (let ((spec `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
-                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))))
-    (with-html
-      (:div :id "filters" :class "filters"
-            (:p :class "title" "Κατάσταση")
-            (display (make-instance 'vertical-navbar
-                                    :id "cheque-stran-filters"
-                                    :style "vnavbar"
-                                    :spec spec)
-                     :active-page-name (intern (string-upcase cheque-kind)))))))

@@ -88,7 +88,7 @@
 
 (defmethod readonly-p ((item item) selected-id)
   (or (not (controls-p item selected-id))
-      (member (op (collection item)) '(view delete))))
+      (member (op (collection item)) '(catalogue delete))))
 
 
 
