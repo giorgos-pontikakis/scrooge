@@ -188,14 +188,13 @@
    (make-instance 'actions-menu
                   :id "company-actions"
                   :style "hnavbar actions"
-                  :spec (crud+details+archive-actions-spec (apply #'company :id id filter)
-                                                           (apply #'company/create filter)
-                                                           (apply #'company/details :id id filter)
-                                                           (apply #'company/update :id id filter)
-                                                           (apply #'company/details :id id filter)
-                                                           (if (chk-company-id/ref id)
-                                                               nil
-                                                               (apply #'company/delete :id id filter))))
+                  :spec (crud+details-actions-spec (apply #'company :id id filter)
+                                                   (apply #'company/create filter)
+                                                   (apply #'company/details :id id filter)
+                                                   (apply #'company/update :id id filter)
+                                                   (if (chk-company-id/ref id)
+                                                       nil
+                                                       (apply #'company/delete :id id filter))))
    :disabled-items disabled-items))
 
 (defun company-notifications ()
@@ -328,7 +327,7 @@
                                        filter
                                        (if (val id)
                                            '(catalogue)
-                                           '(catalogue details archive update delete)))
+                                           '(catalogue details update delete)))
                          (display company-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -362,7 +361,7 @@
                      (:div :class "title" "Εταιρία » Δημιουργία")
                      (company-menu nil
                                    filter
-                                   '(details create update archive delete))
+                                   '(details create update delete))
                      (company-notifications)
                      (with-form (actions/admin/company/create :search (val search))
                        (company-data-form 'create

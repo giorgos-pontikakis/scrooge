@@ -156,14 +156,6 @@
     (update    ,update    "Επεξεργασία")
     (delete    ,delete    "Διαγραφή")))
 
-(defun crud+details+archive-actions-spec (catalogue create details update archive delete)
-  `((catalogue ,catalogue "Κατάλογος")
-    (create    ,create    "Δημιουργία")
-    (details   ,details   "Λεπτομέρειες")
-    (update    ,update    "Επεξεργασία")
-    (archive   ,archive   "Αρχειοθέτηση")
-    (delete    ,delete    "Διαγραφή")))
-
 
 
 ;;; ------------------------------------------------------------

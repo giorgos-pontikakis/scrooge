@@ -148,17 +148,12 @@
   (display (make-instance 'actions-menu
                           :id "project-actions"
                           :style "hnavbar actions"
-                          :spec (crud+details+archive-actions-spec (apply #'project :id id
-                                                                          filter)
-                                                                   (apply #'project/create filter)
-                                                                   (apply #'project/details :id id
-                                                                          filter)
-                                                                   (apply #'project/update :id id
-                                                                          filter)
-                                                                   (apply #'project/details :id id
-                                                                          filter)
-                                                                   (apply #'project/delete :id id
-                                                                          filter)))
+                          :spec (crud+details-actions-spec (apply #'project :id id filter)
+                                                           (apply #'project/create filter)
+                                                           (apply #'project/details :id id filter)
+                                                           (apply #'project/update :id id filter)
+                                                           (apply #'project/details :id id filter)
+                                                           (apply #'project/delete :id id filter)))
            :disabled-items disabled-items))
 
 (defun project-notifications ()
@@ -320,7 +315,7 @@
                                        filter
                                        (if (val id)
                                            '(catalogue)
-                                           '(catalogue details archive update delete)))
+                                           '(catalogue details update delete)))
                          (display project-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -357,7 +352,7 @@
                      (:div :class "title" "Έργο » Δημιουργία")
                      (project-menu nil
                                    filter
-                                   '(details create update archive delete))
+                                   '(details create update delete))
                      (project-notifications))
                (with-form (actions/admin/project/create :search (val search))
                  (project-data-form 'create
