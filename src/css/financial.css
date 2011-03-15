@@ -5,23 +5,3 @@
 .data-form .selector input {
     display: inline;
 }
-
-/* ---------------------------------------------------------------------- */
-/* cheque-table */
-/* ---------------------------------------------------------------------- */
-
-#cheque-table td:nth-child(2) input {
-    width: 150px;
-}
-
-#cheque-table td:nth-child(3) input {
-    width: 100px;
-}
-
-#cheque-table td:nth-child(4) input {
-    width: 200px;
-}
-
-#cheque-table td:nth-child(5) input {
-    width: 50px;
-}

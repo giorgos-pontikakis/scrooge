@@ -75,9 +75,13 @@
 /* ---------------------------------------------------------------------- */
 
 .selector, .pushbutton {
-    width: 20px;
     padding: 0px;
     text-align: center;
+}
+
+.selector a, .pushbutton a {
+    display: block;
+    width: 18px;
 }
 
 .selector a img, .pushbutton a img {
@@ -89,6 +93,7 @@
 }
 
 .pushbutton button {
+    width: 18px;
     padding: 0px;
     background-color: transparent;
     border: none;
@@ -100,4 +105,5 @@
 
 .pushbutton button img {
     vertical-align: middle;
+    padding: 0px;
 }

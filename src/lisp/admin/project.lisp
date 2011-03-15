@@ -208,7 +208,7 @@
 
 (defclass project-table (crud-table)
   ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία" "Κατάσταση"))
+   (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
    (paginator      :initform (make-instance 'paginator
                                             :id "project-paginator"
                                             :style "paginator"
@@ -221,13 +221,10 @@
          (status (getf (filter table) :status))
          (base-query `(:select project.id (:as company.title company)
                                project.description location
-                               (:as project-status.description status-description)
                                project.notes
                                :from project
                                :left-join 'company
-                               :on (:= project.company-id company.id)
-                               :left-join project-status
-                               :on (:= project-status.id project.status)))
+                               :on (:= project.company-id company.id)))
          (where-terms nil))
     (when search
       (push `(:or (:ilike project.description ,(ilike search))
@@ -276,7 +273,7 @@
                              (make-instance 'textbox-cell
                                             :name name
                                             :value (getf record (make-keyword name))))
-                           '(description location company status-description))
+                           '(description location company))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
