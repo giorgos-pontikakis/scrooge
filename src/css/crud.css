@@ -40,7 +40,6 @@
 }
 
 .crud-table td, .crud-table th  {
-    /* line-height: 31px; */
     line-height: 20px;
     text-align: left;
     padding: 6px 5px;
@@ -74,6 +73,9 @@
 /* crud items */
 /* ---------------------------------------------------------------------- */
 
+td.selector, td.pushbutton {
+    width: 18px !important;
+}
 .selector, .pushbutton {
     padding: 0px;
     text-align: center;
@@ -81,7 +83,7 @@
 
 .selector a, .pushbutton a {
     display: block;
-    width: 18px;
+    width: 18px !important;
 }
 
 .selector a img, .pushbutton a img {
@@ -93,7 +95,7 @@
 }
 
 .pushbutton button {
-    width: 18px;
+    width: 18px !important;
     padding: 0px;
     background-color: transparent;
     border: none;
