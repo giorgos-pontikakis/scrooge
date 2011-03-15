@@ -28,7 +28,7 @@
 
 (defun chk-new-project-description (description &optional id)
   (cond ((eql :null description) :project-description-null)
-        ((not (project-description-unique-p description id)) :company-description-exists)
+        ((not (project-description-unique-p description id)) :project-description-exists)
         (t nil)))
 
 
@@ -158,10 +158,10 @@
 (defun project-notifications ()
   ;; date errors missing, system is supposed to respond with the default (error-type param)
   (notifications
-   '((description (:project-description-null "Το όνομα του έργου είναι κενό"
+   '((description (:project-description-null "Η περιγραφή του έργου πρέπει να μην είναι κενή."
                    :project-description-exists "Υπάρχει ήδη έργο με αυτή την περιγραφή"))
      (company     (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
-                   :company-title-null "Το όνομα της εταιρίας δεν πρέπει να είναι κενό"))
+                   :company-title-null "Η επωνυμία της εταιρίας πρέπει να μην είναι κενή"))
      (price       (:invalid-price  "Η τιμή πρέπει να είναι θετικός αριθμός ή μηδέν"))
      (vat         (:invalid-vat "Ο Φ.Π.Α. πρέπει να είναι θετικός αριθμός ή μηδέν")))))
 
