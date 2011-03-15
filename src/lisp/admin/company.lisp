@@ -93,7 +93,8 @@
      (address    string)
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode))
+     (zipcode    integer chk-zipcode)
+     (notes      string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -109,7 +110,8 @@
                                              :address (val address)
                                              :city-id (or city-id :null)
                                              :zipcode (val zipcode)
-                                             :pobox (val pobox))))
+                                             :pobox (val pobox)
+                                             :notes (val notes))))
             (insert-dao new-company)
             (see-other (company :id (id new-company)))))
         (see-other (company/create :search (raw search)
@@ -120,7 +122,8 @@
                                    :address (raw address)
                                    :city (raw city)
                                    :zipcode (raw zipcode)
-                                   :pobox (raw pobox))))))
+                                   :pobox (raw pobox)
+                                   :notes (raw notes))))))
 
 (define-dynamic-page actions/admin/company/update ("actions/admin/company/update"
                                                    :request-type :post)
@@ -133,7 +136,8 @@
      (address    string)
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode))
+     (zipcode    integer chk-zipcode)
+     (notes      string))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -149,6 +153,7 @@
                               'city-id city-id
                               'pobox (val pobox)
                               'zipcode (val zipcode)
+                              'notes (val notes)
                               :where (:= 'id (val id))))
             (see-other (company :id (val id)))))
         (see-other (company/update :search (raw search)
@@ -159,8 +164,9 @@
                                    :tin (raw tin)
                                    :address (raw address)
                                    :city (raw city)
+                                   :pobox (raw pobox)
                                    :zipcode (raw zipcode)
-                                   :pobox (raw pobox))))))
+                                   :notes (raw notes))))))
 
 (define-dynamic-page actions/admin/company/delete ("actions/admin/company/delete"
                                                    :request-type :post)
@@ -220,7 +226,7 @@
     (query (:select 'company.title 'occupation
                     'tin (:as 'tof.title 'tof)
                     'address (:as 'city.title 'city)
-                    'zipcode 'pobox
+                    'zipcode 'pobox 'notes
                     :from 'company
                     :left-join 'city
                     :on (:= 'company.city-id 'city.id)
@@ -345,7 +351,8 @@
      (address    string)
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode))
+     (zipcode    integer chk-zipcode)
+     (notes      string))
   (with-auth ("configuration")
     (no-cache)
     (let ((filter (parameters->plist search)))
@@ -373,7 +380,8 @@
                                                                    address
                                                                    city
                                                                    pobox
-                                                                   zipcode)
+                                                                   zipcode
+                                                                   notes)
                                           :styles (parameters->styles title
                                                                       occupation
                                                                       tof
@@ -381,7 +389,8 @@
                                                                       address
                                                                       city
                                                                       pobox
-                                                                      zipcode))))
+                                                                      zipcode
+                                                                      notes))))
                (:div :id "contact-window" :class "window grid_6"
                      (:div :class "title" "Επαφές")
                      (:div :class "hnavbar actions"
@@ -399,7 +408,8 @@
      (address    string)
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode))
+     (zipcode    integer chk-zipcode)
+     (notes      string))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
@@ -432,7 +442,8 @@
                                                                                     address
                                                                                     city
                                                                                     pobox
-                                                                                    zipcode)
+                                                                                    zipcode
+                                                                                    notes)
                                                                  (get-company-plist (val id)))
                                               :styles (parameters->styles title
                                                                           occupation
@@ -441,7 +452,8 @@
                                                                           address
                                                                           city
                                                                           pobox
-                                                                          zipcode))))
+                                                                          zipcode
+                                                                          notes))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές")
                          (contact-menu (val id)
@@ -530,66 +542,70 @@
 (defun company-data-form (op &key id data styles filter)
   (let ((disabledp (eql op 'details)))
     (with-html
-      (:div :id "company-data-form" :class "data-form"
-            (:div :class "company-data-form-title"
+      (:div :class "data-form company-data"
+            (:div :class "company-form-no-fieldset"
                   (label 'title "Επωνυμία")
                   (textbox 'title
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (:div :class "company-data"
-                  (:fieldset
-                   (:legend "Φορολογικά στοιχεία")
-                   (:div :class "company-data-full"
-                         (label 'occupation "Επάγγελμα")
-                         (textbox 'occupation
-                                  :id "occupation"
-                                  :value (getf data :occupation)
-                                  :disabledp disabledp
-                                  :style (getf styles :occupation)))
-                   (:div :id "tin" :class "company-data-half"
-                         (label 'tin "Α.Φ.Μ.")
-                         (textbox 'tin
+            (:fieldset
+             (:legend "Φορολογικά στοιχεία")
+             (:div :class "company-data-full"
+                   (label 'occupation "Επάγγελμα")
+                   (textbox 'occupation
+                            :id "occupation"
+                            :value (getf data :occupation)
+                            :disabledp disabledp
+                            :style (getf styles :occupation)))
+             (:div :id "tin" :class "company-data-half"
+                   (label 'tin "Α.Φ.Μ.")
+                   (textbox 'tin
 
-                                  :value (getf data :tin)
-                                  :disabledp disabledp
-                                  :style (getf styles :tin)))
-                   (:div :id "tof-div" :class "company-data-half"
-                         (label 'tof "Δ.Ο.Υ.")
-                         (textbox 'tof
-                                  :id "tof"
-                                  :value (getf data :tof)
-                                  :disabledp disabledp
-                                  :style (getf styles :tof))))
-                  (:fieldset
-                   (:legend "Διεύθυνση")
-                   (:div (label 'address "Οδός")
-                         (textbox 'address
-                                  :value (getf data :address)
-                                  :disabledp disabledp
-                                  :style (getf styles :address)))
-                   (:div (label 'city "Πόλη")
-                         (textbox 'city
-                                  :id "city"
-                                  :value (getf data :city)
-                                  :disabledp disabledp
-                                  :style (getf styles :city)))
-                   (:div :id "zipcode"
-                         (label 'zipcode "Ταχυδρομικός κωδικός")
-                         (textbox 'zipcode
-                                  :value (getf data :zipcode)
-                                  :disabledp disabledp
-                                  :style (getf styles :zipcode)))
-                   (:div :id "pobox"
-                         (label 'pobox "Ταχυδρομική θυρίδα")
-                         (textbox 'pobox
-                                  :value (getf data :pobox)
-                                  :disabledp disabledp
-                                  :style (getf styles :pobox)))))
-            (:div :class "data-form-buttons"
-                  (if disabledp
-                      (cancel-button (apply #'company :id id filter)
-                                     "Επιστροφή στον Κατάλογο Εταιριών")
-                      (progn
-                        (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                        (cancel-button (apply #'company :id id filter) "Άκυρο"))))))))
+                            :value (getf data :tin)
+                            :disabledp disabledp
+                            :style (getf styles :tin)))
+             (:div :id "tof-div" :class "company-data-half"
+                   (label 'tof "Δ.Ο.Υ.")
+                   (textbox 'tof
+                            :id "tof"
+                            :value (getf data :tof)
+                            :disabledp disabledp
+                            :style (getf styles :tof))))
+            (:fieldset
+             (:legend "Διεύθυνση")
+             (:div (label 'address "Οδός")
+                   (textbox 'address
+                            :value (getf data :address)
+                            :disabledp disabledp
+                            :style (getf styles :address)))
+             (:div (label 'city "Πόλη")
+                   (textbox 'city
+                            :id "city"
+                            :value (getf data :city)
+                            :disabledp disabledp
+                            :style (getf styles :city)))
+             (:div :id "zipcode"
+                   (label 'zipcode "Ταχυδρομικός κωδικός")
+                   (textbox 'zipcode
+                            :value (getf data :zipcode)
+                            :disabledp disabledp
+                            :style (getf styles :zipcode)))
+             (:div :id "pobox"
+                   (label 'pobox "Ταχυδρομική θυρίδα")
+                   (textbox 'pobox
+                            :value (getf data :pobox)
+                            :disabledp disabledp
+                            :style (getf styles :pobox))))
+            (:div :class "company-form-no-fieldset"
+                  (label 'notes "Σημειώσεις")
+                  (:textarea :name 'notes
+                             :cols 56 :rows 10 :disabled disabledp
+                             (str (lisp->html (or (getf data :notes) :null))))))
+      (:div :class "data-form-buttons"
+            (if disabledp
+                (cancel-button (apply #'company :id id filter)
+                               "Επιστροφή στον Κατάλογο Εταιριών")
+                (progn
+                  (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                  (cancel-button (apply #'company :id id filter) "Άκυρο")))))))

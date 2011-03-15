@@ -191,7 +191,7 @@
   (with-db ()
     (query (:select 'project.id (:as 'company.title 'company)
                     'description 'location 'status 'quote-date
-                    'start-date 'end-date 'price 'vat 'notes
+                    'start-date 'end-date 'price 'vat 'project.notes
                     :from 'project
                     :left-join 'company
                     :on (:= 'project.company-id 'company.id)
@@ -539,7 +539,7 @@
               (:div :class "project-data-form-title"
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes
-                               :cols 34 :rows 22 :disabled disabledp
+                               :cols 38 :rows 22 :disabled disabledp
                                (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "grid_8 data-form-buttons"
               (if disabledp

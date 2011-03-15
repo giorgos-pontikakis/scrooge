@@ -90,7 +90,8 @@
    (address    :col-type string  :accessor address    :initarg :address)
    (city-id    :col-type string  :accessor city-id    :initarg :city-id)
    (pobox      :col-type integer :accessor pobox      :initarg :pobox)
-   (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode))
+   (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode)
+   (notes      :col-type string  :accessor notes      :initarg :notes))
   (:default-initargs
       :id nil :title nil :occupation nil :tof-id nil :tin nil
       :address nil :city nil :pobox nil :zipcode nil)

@@ -33,7 +33,9 @@ input {
 }
 
 textarea {
-    border: 1px solid #ddd;
+    font-family: "Liberation Mono", "Andale Mono", "Courier New", "monospace";
+    font-size: 12px;
+    border: 1px solid grey;
     padding: 3px 5px 3px 5px;
 }
 
@@ -68,6 +70,10 @@ button img {
 
 select {
     padding: 5px;
+}
+
+select option {
+    height: 18px;
 }
 
 select[disabled] {
