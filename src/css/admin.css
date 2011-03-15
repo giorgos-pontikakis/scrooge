@@ -7,18 +7,47 @@
     padding-left: 20px;
 }
 
-.company-data-form-title input {
+.company-data input, .company-data-form-title input {
     width: 406px
 }
 
-.company-data-form-core-data input {
-    width: 406px;
+#tin {
+    width: 112px;
+    float: left;
 }
 
-.company-data-form-core-data fieldset {
+#tin input {
+    width: 100px;
+}
+
+#tof-div {
+    padding-left: 20px;
+    width: 286px;
+    float: left;
+}
+
+#tof-div input {
+    width: 276px;
+}
+
+.company-data fieldset {
     margin-top: 10px;
 }
 
+#pobox {
+    padding-left: 20px;
+    width: 199px;
+    float: left;
+}
+
+#zipcode {
+    width: 199px;
+    float: left;
+}
+
+#pobox input, #zipcode input {
+    width: 187px;
+}
 
 
 /* ---------------------------------------------------------------------- */

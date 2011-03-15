@@ -537,50 +537,55 @@
                            :value (getf data :title)
                            :disabledp disabledp
                            :style (getf styles :title)))
-            (:div :class "company-data-form-core-data"
+            (:div :class "company-data"
                   (:fieldset
                    (:legend "Φορολογικά στοιχεία")
-                   (:ul (:li (label 'occupation "Επάγγελμα")
-                             (textbox 'occupation
-                                      :id "occupation"
-                                      :value (getf data :occupation)
-                                      :disabledp disabledp
-                                      :style (getf styles :occupation)))
-                        (:li (label 'tin "Α.Φ.Μ.")
-                             (textbox 'tin
-                                      :id "tin"
-                                      :value (getf data :tin)
-                                      :disabledp disabledp
-                                      :style (getf styles :tin)))
-                        (:li (label 'tof "Δ.Ο.Υ.")
-                             (textbox 'tof
-                                      :id "tof"
-                                      :value (getf data :tof)
-                                      :disabledp disabledp
-                                      :style (getf styles :tof)))))
+                   (:div :class "company-data-full"
+                         (label 'occupation "Επάγγελμα")
+                         (textbox 'occupation
+                                  :id "occupation"
+                                  :value (getf data :occupation)
+                                  :disabledp disabledp
+                                  :style (getf styles :occupation)))
+                   (:div :id "tin" :class "company-data-half"
+                         (label 'tin "Α.Φ.Μ.")
+                         (textbox 'tin
+
+                                  :value (getf data :tin)
+                                  :disabledp disabledp
+                                  :style (getf styles :tin)))
+                   (:div :id "tof-div" :class "company-data-half"
+                         (label 'tof "Δ.Ο.Υ.")
+                         (textbox 'tof
+                                  :id "tof"
+                                  :value (getf data :tof)
+                                  :disabledp disabledp
+                                  :style (getf styles :tof))))
                   (:fieldset
                    (:legend "Διεύθυνση")
-                   (:ul (:li (label 'address "Οδός")
-                             (textbox 'address
-                                      :value (getf data :address)
-                                      :disabledp disabledp
-                                      :style (getf styles :address)))
-                        (:li (label 'city "Πόλη")
-                             (textbox 'city
-                                      :id "city"
-                                      :value (getf data :city)
-                                      :disabledp disabledp
-                                      :style (getf styles :city)))
-                        (:li (label 'zipcode "Ταχυδρομικός κώδικας")
-                             (textbox 'zipcode
-                                      :value (getf data :zipcode)
-                                      :disabledp disabledp
-                                      :style (getf styles :zipcode))
-                             (label 'pobox "Ταχυδρομική θυρίδα")
-                             (textbox 'pobox
-                                      :value (getf data :pobox)
-                                      :disabledp disabledp
-                                      :style (getf styles :pobox))))))
+                   (:div (label 'address "Οδός")
+                         (textbox 'address
+                                  :value (getf data :address)
+                                  :disabledp disabledp
+                                  :style (getf styles :address)))
+                   (:div (label 'city "Πόλη")
+                         (textbox 'city
+                                  :id "city"
+                                  :value (getf data :city)
+                                  :disabledp disabledp
+                                  :style (getf styles :city)))
+                   (:div :id "zipcode"
+                         (label 'zipcode "Ταχυδρομικός κωδικός")
+                         (textbox 'zipcode
+                                  :value (getf data :zipcode)
+                                  :disabledp disabledp
+                                  :style (getf styles :zipcode)))
+                   (:div :id "pobox"
+                         (label 'pobox "Ταχυδρομική θυρίδα")
+                         (textbox 'pobox
+                                  :value (getf data :pobox)
+                                  :disabledp disabledp
+                                  :style (getf styles :pobox)))))
             (:div :class "data-form-buttons"
                   (if disabledp
                       (cancel-button (apply #'company :id id filter)
