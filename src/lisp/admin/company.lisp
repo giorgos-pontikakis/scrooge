@@ -255,22 +255,27 @@
 
 (defmethod read-records ((table company-table))
   (let* ((search (getf (filter table) :search))
+         (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
                                address
                                (:as city.title city-name)
+                               :distinct
                                :from company
                                :left-join city
                                :on (:= city.id company.city-id)
                                :left-join tof
-                               :on (:= tof.id company.tof-id)))
+                               :on (:= tof.id company.tof-id)
+                               :left-join contact
+                               :on (:= contact.company-id company.id)))
          (composite-query (if search
                               (append base-query
-                                      `(:where (:or (:ilike company.title ,(ilike search))
-                                                    (:ilike tin ,(ilike search))
-                                                    (:ilike address ,(ilike search))
-                                                    (:ilike city.title ,(ilike search))
-                                                    (:ilike city.notes ,(ilike search)))))
+                                      `(:where (:or (:ilike company.title ,ilike-term)
+                                                    (:ilike tin ,ilike-term)
+                                                    (:ilike address ,ilike-term)
+                                                    (:ilike city.title ,ilike-term)
+                                                    (:ilike company.notes ,ilike-term)
+                                                    (:ilike contact.tag ,ilike-term))))
                               base-query))
          (final-query `(:order-by ,composite-query company.title)))
     (with-db ()
