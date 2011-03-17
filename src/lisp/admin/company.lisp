@@ -67,7 +67,7 @@
 
 (defun chk-pobox (pobox)
   (if (or (eql :null pobox)
-          (positive-int-p pobox))
+          (positive-integer-p pobox))
       nil
       :pobox-invalid))
 

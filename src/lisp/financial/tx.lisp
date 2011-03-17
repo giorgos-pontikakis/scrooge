@@ -14,15 +14,6 @@
       nil
       :tx-id-unknown))
 
-(defun chk-amount (string)
-  (if (eql :null string)
-      :non-positive-amount
-      (let ((num (parse-integer string :junk-allowed t)))
-        (if (null num)
-            :invalid-amount
-            (if (positive-int-p num)
-                nil
-                :non-positive-amount)))))
 
 
 ;;; --------------------------------------------------------------------------------
@@ -35,7 +26,7 @@
      (date           date)
      (description    string)
      (company        string  chk-company-title*)
-     (amount         string  chk-amount)
+     (amount         float   chk-amount)
      (debit-account  string  chk-acc-title-nc)
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")
@@ -68,7 +59,7 @@
      (date           date)
      (description    string)
      (company        string  chk-company-title*)
-     (amount         string  chk-amount)
+     (amount         float   chk-amount)
      (debit-account  string  chk-acc-title-nc)
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")
@@ -272,7 +263,7 @@
      (date           date)
      (description    string)
      (company        string  chk-company-title*)
-     (amount         string  chk-amount)
+     (amount         float   chk-amount)
      (debit-account  string  chk-acc-title-nc)
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")
@@ -315,7 +306,7 @@
      (date           date)
      (description    string)
      (company        string  chk-company-title*)
-     (amount         string  chk-amount)
+     (amount         float   chk-amount)
      (debit-account  string  chk-acc-title-nc)
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")

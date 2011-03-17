@@ -4,10 +4,6 @@
 ;;; Generic predicate for chk- functions
 ;;;----------------------------------------------------------------------
 
-(defun positive-int-p (num)
-  (and (integerp num)
-       (>= num 0)))
-
 (defun int-5digits-p (num)
   (and (integerp num)
        (> num 9999)
@@ -28,6 +24,19 @@
         (= (mod (mod sum 11)
                 10)
            control-digit)))))
+
+(defun chk-amount (float)
+  (if float
+      (if (positive-real-p float)
+          nil
+          :non-positive-amount)
+      :invalid-amount))
+
+(defun chk-amount* (float)
+  "Same as chk-amount but allow null values"
+  (if (positive-real-p float)
+      nil
+      :non-positive-amount))
 
 
 
