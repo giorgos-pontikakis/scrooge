@@ -119,7 +119,7 @@
   (notifications
    '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+              :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
      (debit-account (:account-title-null "Ο λογαριασμός χρέωσης είναι κενός"
                      :account-title-unknown "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
      (credit-account (:account-title-null "Ο λογαριασμός πίστωσης είναι κενός"

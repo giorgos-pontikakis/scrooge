@@ -32,7 +32,7 @@
      (bank     string chk-bank-title)
      (company  string chk-company-title t)
      (due-date date   chk-date          t)
-     (amount   string chk-amount        t)
+     (amount   float  chk-amount        t)
      (status   string chk-cheque-status t))
   (with-auth ("configuration")
     (no-cache)
@@ -66,7 +66,7 @@
      (bank     string  chk-bank-title)
      (company  string  chk-company-title t)
      (due-date date    chk-date          t)
-     (amount   string  chk-amount        t)
+     (amount   float   chk-amount        t)
      (status   string  chk-cheque-status t))
   (with-auth ("configuration")
     (no-cache)
@@ -137,8 +137,8 @@
             :bank-title-unknown "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
      (company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
                :company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες")))))
+     (amount (:non-positive-amount  "Το ποσό της επιταγής πρέπει να είναι θετικός αριθμός"
+              :parse-error  "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες")))))
 
 (defun cheque-filters (cheque-kind)
   (let ((spec `((receivable ,(cheque "receivable") "Εισπρακτέες")
@@ -322,7 +322,7 @@
      (bank     string chk-bank-title)
      (due-date date   chk-date)
      (company  string chk-company-title)
-     (amount   string chk-amount)
+     (amount   float  chk-amount)
      (status   string chk-cheque-status))
   (with-auth ("configuration")
     (no-cache)
@@ -366,7 +366,7 @@
      (company  string  chk-company-title)
      (due-date date    chk-date)
      (status   string  chk-cheque-status)
-     (amount   string  chk-amount))
+     (amount   float   chk-amount))
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)

@@ -18,7 +18,7 @@
      (date        date)
      (company     string  chk-company-title*)
      (description string)
-     (amount      string  chk-amount)
+     (amount      float   chk-amount)
      (account-id  integer chk-acc-id t))
   (if (every #'validp (parameters *page*))
       (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
@@ -54,7 +54,7 @@
      (date        date)
      (description string)
      (company     string  chk-company-title*)
-     (amount      string  chk-amount)
+     (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
@@ -226,7 +226,7 @@
   (notifications
    '((company  (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :invalid-amount  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+              :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
      (account-id (:acc-id-null "Δεν έχετε επιλέξει λογαριασμό")))))
 
 ;;; ------------------------------------------------------------
@@ -279,7 +279,7 @@
      (date        date)
      (company     string chk-company-title*)
      (description string)
-     (amount      string  chk-amount)
+     (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
@@ -321,7 +321,7 @@
      (date        date)
      (company     string chk-company-title*)
      (description string)
-     (amount      string  chk-amount)
+     (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)

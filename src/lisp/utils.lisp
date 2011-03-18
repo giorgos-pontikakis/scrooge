@@ -26,15 +26,15 @@
            control-digit)))))
 
 (defun chk-amount (float)
-  (if float
-      (if (positive-real-p float)
-          nil
-          :non-positive-amount)
-      :invalid-amount))
+  (if (positive-real-p float)
+      nil
+      :non-positive-amount))
 
 (defun chk-amount* (float)
   "Same as chk-amount but allow null values"
-  (if (positive-real-p float)
+  (if (or (eql float :null)
+          (positive-real-p float)
+          (zerop float))
       nil
       :non-positive-amount))
 
