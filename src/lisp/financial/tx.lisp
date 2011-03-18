@@ -184,7 +184,7 @@
                                       `(:where (:or (:ilike description ,(ilike search))
                                                     (:ilike company.title ,(ilike search)))))
                               base-query))
-         (final-query `(:order-by ,composite-query date)))
+         (final-query `(:order-by ,composite-query (:desc date))))
     (with-db ()
       (query (sql-compile final-query)
              :plists))))

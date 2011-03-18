@@ -125,8 +125,22 @@
 
 (defclass cash-tx-table (tx-table)
   ((item-key-field :initform :id)
-   (subpage :accessor subpage :initarg :subpage))
+   (subpage :accessor subpage :initarg :subpage)
+   (paginator :initform (make-instance 'paginator
+                                       :id "cash-tx-paginator"
+                                       :style "paginator"
+                                       :delta 10
+                                       :urlfn (make-instance 'paginator
+                                                             :id "cheque-paginator"
+                                                             :style "paginator"
+                                                             :delta 10))))
   (:default-initargs :item-class 'cash-tx-row))
+
+(defmethod initialize-instance :after ((table cash-tx-table) &key)
+  (let ((cash-kind (subpage table)))
+    (setf (urlfn (paginator table))
+          (lambda (&rest args)
+            (apply #'cash cash-kind args)))))
 
 (defmethod read-records ((table cash-tx-table))
   (flet ((cash-kind-account (cash-kind)
@@ -150,7 +164,7 @@
                                             (:ilike company.title ,(ilike search))))))
                 (append base-query
                         `(:where (:or (:= ,(cash-kind-account cash-kind) ,*cash-account*))))))
-           (final-query `(:order-by ,composite-query date)))
+           (final-query `(:order-by ,composite-query (:desc date))))
       (with-db ()
         (query (sql-compile final-query)
                :plists)))))

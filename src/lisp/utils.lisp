@@ -114,7 +114,8 @@
 
 
 (defun post-parameter-check (chk-fn &rest parameters)
-  (when (every #'validp parameters)
+  (when (and (some #'suppliedp parameters)
+             (every #'validp parameters))
     (when-let (error-type (apply chk-fn (mapcar #'val parameters)))
       (mapc (lambda (p)
               (slot-makunbound p 'val)

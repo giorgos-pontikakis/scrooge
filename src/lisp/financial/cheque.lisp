@@ -199,14 +199,16 @@
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'paginator
-                                           :id "tx-paginator"
-                                           :style "paginator grid_9 alpha"
-                                           :delta 10
-                                           :urlfn (lambda (cheque-kind search start)
-                                                    (cheque cheque-kind
-                                                            :search search
-                                                            :start start)))))
+                                            :id "cheque-paginator"
+                                            :style "paginator"
+                                            :delta 10)))
   (:default-initargs :item-class 'cheque-row))
+
+(defmethod initialize-instance :after ((table cheque-table) &key)
+  (let ((cheque-kind (subpage table)))
+    (setf (urlfn (paginator table))
+          (lambda (&rest args)
+            (apply #'cheque cheque-kind args)))))
 
 (defmethod read-records ((table cheque-table))
   (let* ((search (getf (filter table) :search))
@@ -245,16 +247,14 @@
   (let* ((id (key row))
          (record (record row))
          (pg (paginator (collection row)))
-         (search (getf (filter (collection row)) :search))
+         (filter (filter (collection row)))
          (cheque-kind (if (getf record :payable-p) "payable" "receivable")))
     (list :selector
           (make-instance 'selector-cell
-                         :states (list :on (cheque cheque-kind
-                                                   :search search
-                                                   :start (page-start pg (index row) start))
-                                       :off (cheque cheque-kind
-                                                    :search search
-                                                    :id id)))
+                         :states (list :on (apply #'cheque cheque-kind
+                                                  :start (page-start pg (index row) start)
+                                                  filter)
+                                       :off (apply #'cheque cheque-kind :id id filter)))
           :payload
           (mapcar (lambda (name)
                     (make-instance 'textbox-cell
@@ -265,7 +265,7 @@
           (list
            (make-instance 'ok-cell)
            (make-instance 'cancel-cell
-                          :href (cheque cheque-kind :id id :search search))))))
+                          :href (apply #'cheque cheque-kind :id id filter))))))
 
 
 

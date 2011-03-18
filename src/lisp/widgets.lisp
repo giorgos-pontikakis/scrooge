@@ -274,7 +274,7 @@
 
 (defclass crud-table (collection)
   ((header-labels :accessor header-labels :initarg :header-labels)
-   (paginator     :reader   paginator)
+   (paginator     :accessor paginator)
    (rows          :accessor rows))
   (:default-initargs :id "crud-table" :style "crud-table"))
 
