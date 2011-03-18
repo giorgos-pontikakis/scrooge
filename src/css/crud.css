@@ -81,11 +81,6 @@ td.selector, td.pushbutton {
     text-align: center;
 }
 
-.selector a, .pushbutton a {
-    display: block;
-    width: 18px !important;
-}
-
 .selector a img, .pushbutton a img {
     vertical-align: middle;
 }
