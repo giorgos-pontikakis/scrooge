@@ -153,7 +153,10 @@
      (price       (:non-positive-amount  "Το ποσό της τιμής πρέπει να είναι θετικός αριθμός"
                    :parse-error  "Το ποσό της τιμής περιέχει άκυρους χαρακτήρες"))
      (vat         (:non-positive-amount  "Το ποσό του Φ.Π.Α. πρέπει να είναι θετικός αριθμός"
-                   :parse-error  "Το ποσό του Φ.Π.Α. περιέχει άκυρους χαρακτήρες")))))
+                   :parse-error  "Το ποσό του Φ.Π.Α. περιέχει άκυρους χαρακτήρες"))
+     (quote-date  (:parse-error "Η ημερομηνία προσφοράς είναι άκυρη"))
+     (start-date  (:parse-error "Η ημερομηνία έναρξης είναι άκυρη"))
+     (end-date    (:parse-error "Η ημερομηνία ολοκλήρωσης είναι άκυρη")))))
 
 (defun project-filters (status search)
   (let ((spec `((nil      ,(project :search search)                    "Όλα")

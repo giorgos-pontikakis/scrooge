@@ -132,7 +132,8 @@
 
 (defun cheque-notifications ()
   (notifications
-   '((due-date (:date-null "Η ημερομηνία είναι κενή"))
+   '((due-date (:date-null "Η ημερομηνία είναι κενή"
+                :parse-error "Η ημερομηνία της επιταγής είναι άκυρη"))
      (bank (:bank-title-null "Το όνομα της τράπεζας είναι κενό."
             :bank-title-unknown "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
      (company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
