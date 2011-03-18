@@ -34,19 +34,19 @@
                :plists))))
 
 (defun post-checks (from-status to-status debit-account credit-account cheque-kind)
-  (post-parameter-check (lambda (from to)
-                          (chk-cheque-stran-from/to/payable from to cheque-kind))
-                        from-status to-status)
-  (post-parameter-check (lambda (from to)
-                          (if (string= from to)
-                              :cheque-stran-from-to-equal
-                              nil))
-                        from-status to-status)
-  (post-parameter-check (lambda (&rest accounts)
-                          (if (some #'chequing-p accounts)
-                              nil
-                              :no-chequing-accounts-found))
-                        debit-account credit-account)
+  (validate-parameters (lambda (from to)
+                         (chk-cheque-stran-from/to/payable from to cheque-kind))
+                       from-status to-status)
+  (validate-parameters (lambda (from to)
+                         (if (string= from to)
+                             :cheque-stran-from-to-equal
+                             nil))
+                       from-status to-status)
+  (validate-parameters (lambda (&rest accounts)
+                         (if (some #'chequing-p accounts)
+                             nil
+                             :no-chequing-accounts-found))
+                       debit-account credit-account)
   nil)
 
 
