@@ -1,9 +1,10 @@
 (in-package :scrooge)
 
-(defparameter *cash-account* 11)
 
-(defparameter *expenses-root-account* 20)
-(defparameter *revenues-root-account* 05)
+
+(defparameter *cash-account* (get-option "cash-account"))
+(defparameter *revenues-root-account* (get-option "revenues-root-account"))
+(defparameter *expenses-root-account* (get-option "expenses-root-account"))
 
 
 
@@ -426,7 +427,6 @@
              (with-html
                (label name label)
                (textbox name
-                        :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
                         :style (conc (getf styles (make-keyword name))
@@ -436,7 +436,7 @@
               (:div :class "grid_6 alpha"
                     (label+textbox 'date "Ημερομηνία" "datepicker")
                     (label+textbox 'description "Περιγραφή")
-                    (label+textbox 'company "Εταιρία")
+                    (label+textbox 'company "Εταιρία" "ac-company")
                     (label+textbox 'amount "Ποσό")
                     (:div :class "data-form-buttons"
                           (if disabledp

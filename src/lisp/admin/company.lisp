@@ -547,71 +547,38 @@
 
 (defun company-data-form (op &key id data styles filter)
   (let ((disabledp (eql op 'details)))
-    (with-html
-      (:div :class "data-form company-data"
-            (:div :class "company-form-no-fieldset"
-                  (label 'title "Επωνυμία")
-                  (textbox 'title
-                           :value (getf data :title)
-                           :disabledp disabledp
-                           :style (getf styles :title)))
-            (:fieldset
-             (:legend "Φορολογικά στοιχεία")
-             (:div :class "company-data-full"
-                   (label 'occupation "Επάγγελμα")
-                   (textbox 'occupation
-                            :id "occupation"
-                            :value (getf data :occupation)
-                            :disabledp disabledp
-                            :style (getf styles :occupation)))
-             (:div :id "tin" :class "company-data-half"
-                   (label 'tin "Α.Φ.Μ.")
-                   (textbox 'tin
-
-                            :value (getf data :tin)
-                            :disabledp disabledp
-                            :style (getf styles :tin)))
-             (:div :id "tof-div" :class "company-data-half"
-                   (label 'tof "Δ.Ο.Υ.")
-                   (textbox 'tof
-                            :id "tof"
-                            :value (getf data :tof)
-                            :disabledp disabledp
-                            :style (getf styles :tof))))
-            (:fieldset
-             (:legend "Διεύθυνση")
-             (:div (label 'address "Οδός")
-                   (textbox 'address
-                            :value (getf data :address)
-                            :disabledp disabledp
-                            :style (getf styles :address)))
-             (:div (label 'city "Πόλη")
-                   (textbox 'city
-                            :id "city"
-                            :value (getf data :city)
-                            :disabledp disabledp
-                            :style (getf styles :city)))
-             (:div :id "zipcode"
-                   (label 'zipcode "Ταχυδρομικός κωδικός")
-                   (textbox 'zipcode
-                            :value (getf data :zipcode)
-                            :disabledp disabledp
-                            :style (getf styles :zipcode)))
-             (:div :id "pobox"
-                   (label 'pobox "Ταχυδρομική θυρίδα")
-                   (textbox 'pobox
-                            :value (getf data :pobox)
-                            :disabledp disabledp
-                            :style (getf styles :pobox))))
-            (:div :class "company-form-no-fieldset"
-                  (label 'notes "Σημειώσεις")
-                  (:textarea :name 'notes
-                             :cols 56 :rows 10 :disabled disabledp
-                             (str (lisp->html (or (getf data :notes) :null))))))
-      (:div :class "data-form-buttons"
-            (if disabledp
-                (cancel-button (apply #'company :id id filter)
-                               "Επιστροφή στον Κατάλογο Εταιριών")
-                (progn
-                  (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                  (cancel-button (apply #'company :id id filter) "Άκυρο")))))))
+    (flet ((label+textbox (name label &optional extra-styles)
+               (with-html
+                 (label name label)
+                 (textbox name
+                          :value (getf data (make-keyword name))
+                          :disabledp disabledp
+                          :style (conc (getf styles (make-keyword name))
+                                       " " extra-styles)))))
+      (with-html
+        (:div :class "data-form company-data"
+              (:div :class "company-form-no-fieldset"
+                    (label+textbox 'title "Επωνυμία" "ac-company"))
+              (:fieldset
+               (:legend "Φορολογικά στοιχεία")
+               (:div :class "company-data-full" (label+textbox 'occupation "Επάγγελμα"))
+               (:div :id "tin" :class "company-data-half" (label+textbox 'tin "Α.Φ.Μ."))
+               (:div :id "tof-div" :class "company-data-half" (label+textbox 'tof "Δ.Ο.Υ." "ac-tof")))
+              (:fieldset
+               (:legend "Διεύθυνση")
+               (:div :id "address" (label+textbox 'address "Οδός"))
+               (:div :id "city" (label+textbox 'city "Πόλη" "ac-city"))
+               (:div :id "zipcode" (label+textbox 'zipcode "Ταχυδρομικός κωδικός"))
+               (:div :id "pobox" (label+textbox 'pobox "Ταχυδρομική θυρίδα")))
+              (:div :class "company-form-no-fieldset"
+                    (label 'notes "Σημειώσεις")
+                    (:textarea :name 'notes
+                               :cols 56 :rows 10 :disabled disabledp
+                               (str (lisp->html (or (getf data :notes) :null))))))
+        (:div :class "data-form-buttons"
+              (if disabledp
+                  (cancel-button (apply #'company :id id filter)
+                                 "Επιστροφή στον Κατάλογο Εταιριών")
+                  (progn
+                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'company :id id filter) "Άκυρο"))))))))

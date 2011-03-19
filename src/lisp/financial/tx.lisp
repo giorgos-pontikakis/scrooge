@@ -416,7 +416,6 @@
              (with-html
                (label name label)
                (textbox name
-                        :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
                         :style (conc (getf styles (make-keyword name))
@@ -425,10 +424,12 @@
         (:div :id "transaction-data-form" :class "data-form"
               (:div :id "transaction-description" :class "grid_12 alpha"
                     (label+textbox 'date "Ημερομηνία" "datepicker")
-                    (label+textbox 'company "Εταιρία")
+                    (label+textbox 'company "Εταιρία" "ac-company")
                     (label+textbox 'description "Περιγραφή")
-                    (label+textbox 'debit-account-nonchequing "Λογαριασμός χρέωσης")
-                    (label+textbox 'credit-account-nonchequing "Λογαριασμός πίστωσης")
+                    (label+textbox 'debit-account-nonchequing "Λογαριασμός χρέωσης"
+                                   "ac-nonchequing-account")
+                    (label+textbox 'credit-account-nonchequing "Λογαριασμός πίστωσης"
+                                   "ac-nonchequing-account")
                     (label+textbox 'amount "Ποσόν")))
         (:div :class "grid_12 data-form-buttons"
               (if disabledp

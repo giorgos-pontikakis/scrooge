@@ -12,11 +12,7 @@ function applyDatepicker () {
 function applyAutocomplete () {
     var id, table, col, source;
     var options = {minLength: 2};
-    var autocompleteIDs = ["company", "tof", "city", "bank", 
-                           ["debit-account", "account"], 
-                           ["credit-account", "account"],
-                           ["debit-account-nonchequing", "nonchequing-account"], 
-                           ["credit-account-nonchequing", "nonchequing-account"]];
+    var autocompleteIDs = ["company", "tof", "city", "bank", "account", "nonchequing-account"] ;
     for ( var i = 0; i < autocompleteIDs.length; i++) {
         if ((typeof autocompleteIDs[i]) === "string") {
             table = autocompleteIDs[i];
@@ -29,7 +25,7 @@ function applyAutocomplete () {
             options.source = "/scrooge/autocomplete?table=" + table + "&column=" + col;
             id = autocompleteIDs[i][0];
         }
-        $("#" + id).autocomplete(options); 
+        $(".ac-" + id).autocomplete(options); 
     }
 }
 

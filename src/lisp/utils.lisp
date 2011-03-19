@@ -111,3 +111,20 @@
                       ""
                       "attention")))
           params))
+
+(defun parse-option-dao (option-dao)
+  (flet ((parse-config-fn (lisp-type)
+           (cond ((string= lisp-type "integer") #'parse-integer)
+                 ((string= lisp-type "float")   #'parse-float)
+                 ((string= lisp-type "date")    #'parse-date)
+                 ((string= lisp-type "string")  #'identity)
+                 (t (error "Unknown lisp-type in appconfig table.")))))
+    (let ((config-value (config-value option-dao)))
+      (if (eql config-value :null)
+          nil
+          (funcall (parse-config-fn (lisp-type option-dao))
+                   config-value)))))
+
+(defun get-option (id)
+  (with-db ()
+    (parse-option-dao (get-dao 'appconfig id))))

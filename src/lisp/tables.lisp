@@ -2,28 +2,15 @@
 
 
 
-;;; Interface to table rows
+;;; Appconfig
 
-(defun create-row (table &rest fields)
-  (with-db ()
-    (insert-dao (apply #'make-instance table fields))))
+(defclass appconfig ()
+  ((id           :col-type (string 32)  :reader   id)
+   (lisp-type    :col-type (string 16)  :reader   lisp-type)
+   (config-value :col-type (string 128) :accessor config-value :initarg :config-value))
+  (:metaclass dao-class)
+  (:keys id))
 
-
-(defun update-row (table primary-key &rest fields)
-  ;; TODO: this does not work with composite primary keys
-  (with-db ()
-    (let ((pk (first (dao-keys table))))
-      (execute
-       (sql-compile
-        `(:update ,table :set ,@fields :where (:= ,pk ,primary-key)))))))
-
-(defun delete-row (table primary-key)
-  (with-db ()
-    (delete-dao (get-dao table primary-key))))
-
-
-
-;;; Class definitions
 
 (defclass usr ()
   ((username  :col-type (string 128) :accessor username  :initarg :username)

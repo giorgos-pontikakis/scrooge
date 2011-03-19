@@ -15,9 +15,9 @@
 ;;; ------------------------------------------------------------
 
 (defclass collection (widget)
-  ((op              :accessor op              :initarg :op)
-   (filter          :accessor filter          :initarg :filter)
-   (item-class      :accessor item-class      :initarg :item-class)
+  ((op             :accessor op             :initarg :op)
+   (filter         :accessor filter         :initarg :filter)
+   (item-class     :accessor item-class     :initarg :item-class)
    (item-key-field :accessor item-key-field :initarg :item-key-field)))
 
 (defgeneric read-records (collection)

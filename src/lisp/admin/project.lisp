@@ -497,7 +497,6 @@
              (with-html
                (label name label)
                (textbox name
-                        :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
                         :style (conc (getf styles (make-keyword name))
@@ -516,7 +515,7 @@
                               :disabledp disabledp))
               (:div :class "grid_5 alpha project-data-form-subtitle"
                     (label+textbox 'location "Τοποθεσία")
-                    (label+textbox 'company "Εταιρία"))
+                    (label+textbox 'company "Εταιρία" "ac-company"))
               (:div :class "grid_4 alpha project-data-form-details"
                     (:fieldset
                      (:legend "Οικονομικά")

@@ -431,14 +431,14 @@
 
 (defun cheque-stran-data-form (cheque-kind op &key id data styles)
   (let ((disabledp (eql op 'details)))
-    (flet ((label+textbox (name label)
+    (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
-                        :id (string-downcase name)
                         :value (getf data (make-keyword name))
                         :disabledp disabledp
-                        :style (getf styles (make-keyword name))))))
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles)))))
       (with-html
         (:div :id "cheque-data-form" :class "data-form"
               (label+textbox 'title "Περιγραφή")
@@ -454,8 +454,8 @@
                         :disabledp disabledp
                         :style (getf styles :to-status))
               ;;
-              (label+textbox 'debit-account "Λογαριασμός Χρέωσης")
-              (label+textbox 'credit-account "Λογαριασμός Πίστωσης"))
+              (label+textbox 'debit-account "Λογαριασμός Χρέωσης" "ac-account")
+              (label+textbox 'credit-account "Λογαριασμός Πίστωσης" "ac-account"))
         (:div :class "data-form-buttons grid_9"
               (if disabledp
                   (cancel-button (config/cheque-stran cheque-kind :id id)

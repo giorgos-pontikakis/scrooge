@@ -20,6 +20,7 @@
                (:file "config/city")
                (:file "config/account")
                (:file "config/cheque-stran")
+               (:file "config/appconfig")
                ;; admin
                (:file "admin/admin")
                (:file "admin/company")

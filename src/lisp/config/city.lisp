@@ -139,17 +139,16 @@
     (list :selector (make-instance 'selector-cell
                                    :states (list :on (apply #'city
                                                             :start (page-start pg (index row) start)
-                                                           filter)
+                                                            filter)
                                                  :off (apply #'city
                                                              :id id
                                                              filter)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :value (getf record :title))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (apply #'city :id id filter))))))
+          :controls (list (make-instance 'ok-cell)
+                          (make-instance 'cancel-cell
+                                         :href (apply #'city :id id filter))))))
 
 
 

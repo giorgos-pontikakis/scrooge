@@ -137,16 +137,15 @@
          (filter (filter (collection row))))
     (list :selector (make-instance 'selector-cell
                                    :states (list :on (apply #'bank
-                                                           :start (page-start pg (index row) start)
-                                                           filter)
+                                                            :start (page-start pg (index row) start)
+                                                            filter)
                                                  :off (apply #'bank :id id filter)))
           :payload (make-instance 'textbox-cell
                                   :name 'title
                                   :value (getf record :title))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (apply #'bank :id id filter))))))
+          :controls (list (make-instance 'ok-cell)
+                          (make-instance 'cancel-cell
+                                         :href (apply #'bank :id id filter))))))
 
 
 
