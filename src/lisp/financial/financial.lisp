@@ -6,10 +6,11 @@
 (defun financial-navbar (active-page-name)
   (display (make-instance 'horizontal-navbar
                           :style "section-navbar hnavbar grid_12"
-                          :spec `((transaction ,(transaction)         "Συναλλαγές")
-                                  (account     ,(account/overview)    "Λογαριασμοί")
-                                  (cheque      ,(cheque "receivable") "Επιταγές")
-                                  (cash        ,(cash "revenue")      "Μετρητά")))
+                          :spec `((transaction ,(transaction)          "Συναλλαγές")
+                                  (account     ,(account/overview)     "Λογαριασμοί")
+                                  (cheque      ,(cheque "receivable")  "Επιταγές")
+                                  (cash        ,(cash "revenue")       "Μετρητά")
+                                  (invoice     ,(invoice "receivable") "Τιμολόγια")))
            :active-page-name active-page-name))
 
 

@@ -1,12 +1,26 @@
 (in-package :scrooge)
 
 
+;;; ----------------------------------------------------------------------
+;;; Checks
+;;; ----------------------------------------------------------------------
 
-(defparameter *cash-account* (get-option "cash-account"))
-(defparameter *revenues-root-account* (get-option "revenues-root-account"))
-(defparameter *expenses-root-account* (get-option "expenses-root-account"))
+(defun check-cash-accounts ()
+  (unless (and *cash-account* *revenues-root-account* *expenses-root-account*)
+    (see-other (cash-accounts-error-page))))
 
-
+(define-dynamic-page cash-accounts-error-page ("financial/cash/error")
+    ()
+  (with-document ()
+    (:head
+     (:title "Cash accounts error")
+     (error-headers))
+    (:body
+     (:div :id "header"
+           (logo))
+     (:div :id "body"
+           (:div :id "content" :class "summary"
+                 (:p "Δεν έχετε ορίσει στις ρυθμίσεις είτε τον λογαριασμό μετρητών, είτε το λογαριασμό ρίζας εσόδων, ή το λογαριασμό ρίζας εξόδων."))))))
 
 ;;; ----------------------------------------------------------------------
 ;;; Actions
@@ -219,8 +233,6 @@
                             :spec spec)
              :active-page-name (intern (string-upcase cash-kind)))))))
 
-
-
 (defun cash-menu (cash-kind id filter disabled-items)
   (display
    (make-instance 'actions-menu
@@ -240,6 +252,8 @@
      (account-id (:acc-id-null "Δεν έχετε επιλέξει λογαριασμό"))
      (date (:parse-error "Η ημερομηνία της συναλλαγής είναι άκυρη")))))
 
+
+
 ;;; ------------------------------------------------------------
 ;;; Pages
 ;;; ------------------------------------------------------------
@@ -250,6 +264,7 @@
      (id        integer chk-tx-id))
   (with-auth ("configuration")
     (no-cache)
+    (check-cash-accounts)
     (if (every #'validp (parameters *page*))
         (let* ((filter (parameters->plist search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Κατάλογος"))
@@ -294,6 +309,7 @@
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
+    (check-cash-accounts)
     (let ((filter (parameters->plist search))
           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Δημιουργία")))
       (with-document ()
@@ -336,6 +352,7 @@
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
+    (check-cash-accounts)
     (let ((filter (parameters->plist search))
           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Επεξεργασία"))
           (acc-keyword (if (string-equal cash-kind "expense") :debit-acc-id :credit-acc-id)))
@@ -380,6 +397,7 @@
      (search string))
   (with-auth ("configuration")
     (no-cache)
+    (check-cash-accounts)
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Διαγραφή"))

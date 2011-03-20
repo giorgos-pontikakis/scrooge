@@ -101,10 +101,16 @@
                                  (:= 'chequing-p t)))
            :plists)))
 
+(defgeneric account-id (title)
+  (:documentation "Given the title of the account, get the account id"))
+
 (defmethod account-id ((title string))
   (with-db ()
     (query (:select 'id :from 'account :where (:= 'title title))
            :single)))
+
+(defmethod account-id ((title (eql :null)))
+  :null)
 
 (defmethod debit-p ((acc-id integer))
   (with-db ()

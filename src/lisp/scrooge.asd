@@ -6,12 +6,13 @@
   :serial t
   :depends-on (:veil :bricks :json :md5)
   :components ((:file "package")
-               (:file "init")
                (:file "utils")
                (:file "auth")
                (:file "tables")
                (:file "widgets")
                (:file "elements")
+               (:file "init")
+               ;; -- Here come the pages! --
                (:file "root")
                ;; config
                (:file "config/config")

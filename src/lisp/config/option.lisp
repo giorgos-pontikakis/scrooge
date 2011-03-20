@@ -7,9 +7,9 @@
 
 (defun chk-acc-title* (title)
   "Same as chk-acc-title but accepts :null"
-  (if (not (acc-title-exists-p title))
-      :account-title-unknown
-      nil))
+  (if (or (eql title :null) (acc-title-exists-p title))
+      nil
+      :account-title-unknown))
 
 (defun chk-num-rows (num)
   (if (positive-integer-p num)
@@ -23,29 +23,50 @@
 ;;; ----------------------------------------------------------------------
 
 (define-dynamic-page actions/config/update ("actions/config/update" :request-type :post)
-    ((cash-account          string  chk-acc-title*)
-     (revenues-root-account string  chk-acc-title*)
-     (expenses-root-account string  chk-acc-title*)
-     (crud-table-num-rows   integer chk-num-rows))
+    ((cash-account               string  chk-acc-title*)
+     (revenues-root-account      string  chk-acc-title*)
+     (expenses-root-account      string  chk-acc-title*)
+     (invoice-receivable-account string  chk-acc-title*)
+     (invoice-payable-account    string  chk-acc-title*)
+     (cheque-receivable-account  string  chk-acc-title*)
+     (cheque-payable-account     string  chk-acc-title*)
+     (crud-table-num-rows        integer chk-num-rows))
+  (declare (ignorable cash-account
+                      revenues-root-account
+                      expenses-root-account
+                      invoice-receivable-account
+                      invoice-payable-account
+                      cheque-receivable-account
+                      cheque-payable-account
+                      crud-table-num-rows))
   (with-auth ("configuration")
     (no-cache)
     (with-db ()
       (flet ((update-option (p new-value)
                (let ((dao (get-dao 'option (string-downcase (name p)))))
                  (setf (config-value dao) new-value)
-                 (save-dao dao)))
-             (maybe-account-id (p)
-               (if-let (value (val p))
-                 (account-id value)
-                 nil)))
+                 (save-dao dao))))
         (if (every #'validp (parameters *page*))
             (progn
-              (update-option cash-account (maybe-account-id cash-account))
-              (update-option revenues-root-account (maybe-account-id revenues-root-account))
-              (update-option expenses-root-account (maybe-account-id expenses-root-account))
+              (mapc #'(lambda (p)
+                        (update-option p (account-id (val p))))
+                    (list cash-account
+                          revenues-root-account
+                          expenses-root-account
+                          invoice-receivable-account
+                          invoice-payable-account
+                          cheque-receivable-account
+                          cheque-payable-account))
               (update-option crud-table-num-rows (val crud-table-num-rows))
               (see-other (config)))
-            (see-other (config/update)))))))
+            (see-other (config/update :cash-account (raw cash-account)
+                                      :revenues-root-account (raw revenues-root-account)
+                                      :expenses-root-account (raw expenses-root-account)
+                                      :invoice-receivable-account (raw invoice-receivable-account)
+                                      :invoice-payable-account (raw invoice-payable-account)
+                                      :cheque-receivable-account (raw cheque-receivable-account)
+                                      :cheque-payable-account (raw cheque-payable-account) )))))))
+
 
 
 
@@ -76,12 +97,15 @@
 ;;; ----------------------------------------------------------------------
 
 (defun get-option-plist ()
-  (let ((daos (with-db ()
-                (select-dao 'option))))
+  (with-db ()
     (mapcan (lambda (dao)
               (list (make-keyword (string-upcase (id dao)))
-                    (parse-option-dao dao)))
-            daos)))
+                    (if (search "-account" (id dao))
+                        (if-let (account-id (parse-option-dao dao))
+                          (title (get-dao 'account account-id))
+                          :null)
+                        (parse-option-dao dao))))
+            (select-dao 'option))))
 
 
 
@@ -106,11 +130,22 @@
                    (option-form 'details :data (get-option-plist))))))))
 
 (define-dynamic-page config/update ("config/update")
-    ((cash-account          string  chk-acc-title*)
-     (revenues-root-account string  chk-acc-title*)
-     (expenses-root-account string  chk-acc-title*)
-     (crud-table-num-rows   integer chk-num-rows))
-  (declare (ignorable cash-account revenues-root-account expenses-root-account crud-table-num-rows))
+    ((cash-account               string  chk-acc-title*)
+     (revenues-root-account      string  chk-acc-title*)
+     (expenses-root-account      string  chk-acc-title*)
+     (invoice-receivable-account string  chk-acc-title*)
+     (invoice-payable-account    string  chk-acc-title*)
+     (cheque-receivable-account  string  chk-acc-title*)
+     (cheque-payable-account     string  chk-acc-title*)
+     (crud-table-num-rows        integer chk-num-rows))
+  (declare (ignorable cash-account
+                      revenues-root-account
+                      expenses-root-account
+                      invoice-receivable-account
+                      invoice-payable-account
+                      cheque-receivable-account
+                      cheque-payable-account
+                      crud-table-num-rows))
   (with-auth ("configuration")
     (no-cache)
     (with-document ()
@@ -135,26 +170,39 @@
 (defun option-form (op &key data styles)
   (with-db ()
     (let ((disabledp (eql op 'details)))
-      (flet ((label+acc-textbox (name label &optional extra-styles)
-               (with-html
-                 (label name label)
-                 (textbox name
-                          :value (if-let (acc-id (getf data (make-keyword name)))
-                                   (title (get-dao 'account acc-id))
-                                   :null)
-                          :disabledp disabledp
-                          :style (conc (getf styles (make-keyword name))
-                                       " " extra-styles)))))
+      (flet ((label+textbox (name label &optional extra-styles)
+               (label name label)
+               (textbox name
+                        :value (getf data (make-keyword name))
+                        :disabledp disabledp
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles))))
         (with-html
           (:div :id "option-data-form" :class "data-form"
-                (label+acc-textbox 'cash-account "Λογαριασμός Μετρητών" "ac-account")
-                (label+acc-textbox 'revenues-root-account "Λογαριασμός ρίζας εσόδων" "ac-account")
-                (label+acc-textbox 'expenses-root-account "Λογαριασμός ρίζας εξόδων" "ac-account")
-                (label 'crud-table-num-rows "Αριθμός γραμμών στους καταλόγους")
-                (textbox 'crud-table-num-rows
-                         :value (getf data :crud-table-num-rows)
-                         :disabledp disabledp
-                         :style (getf styles :crud-table-num-rows))
+                (label+textbox 'cash-account
+                               "Λογαριασμός Μετρητών"
+                               "ac-account")
+                (label+textbox 'revenues-root-account
+                               "Λογαριασμός ρίζας εσόδων"
+                               "ac-account")
+                (label+textbox 'expenses-root-account
+                               "Λογαριασμός ρίζας εξόδων"
+                               "ac-account")
+                (label+textbox 'invoice-receivable-account
+                               "Λογαριασμός τιμολογημένων ποσών προς είσπραξη"
+                               "ac-account")
+                (label+textbox 'invoice-payable-account
+                               "Λογαριασμός τιμολογημένων ποσών προς πληρωμή"
+                               "ac-account")
+                (label+textbox 'cheque-receivable-account
+                               "Λογαριασμός επιταγών προς είσπραξη"
+                               "ac-account")
+                (label+textbox 'cheque-payable-account
+                               "Λογαριασμός επιταγών προς πληρωμή"
+                               "ac-account")
+                (label+textbox 'crud-table-num-rows
+                               "Αριθμός γραμμών στους καταλόγους"
+                               "ac-account")
                 (:div :class "data-form-buttons grid_12"
                       (unless disabledp
                         (ok-button "Ανανέωση")

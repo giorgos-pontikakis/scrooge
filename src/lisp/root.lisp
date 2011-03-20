@@ -92,7 +92,6 @@
 ;;; :TODO: This should be a static page
 
 (define-dynamic-page notfound ("notfound") ()
-  (no-cache)
   (with-document ()
     (:head
      (:title "Άγνωστη σελίδα")
@@ -106,7 +105,6 @@
                  (:p "Επιστρέψτε στο κεντρικό μενού και προσπαθήστε ξανά."))))))
 
 (define-dynamic-page error-page ("error-page") ()
-  (no-cache)
   (with-document ()
     (:head
      (:title "Generic error page")
@@ -120,7 +118,6 @@
                  (:p "You are supposed to see this page because of illegal URL manipulation"))))))
 
 (define-dynamic-page access-denied ("access-denied") ()
-  (no-cache)
   (with-document ()
     (:head
      (:title "Access denied")
