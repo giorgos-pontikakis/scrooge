@@ -167,7 +167,6 @@
    (paginator      :initform (make-instance 'paginator
                                             :id "tx-paginator"
                                             :style "paginator"
-                                            :delta 10
                                             :urlfn #'transaction)))
   (:default-initargs :item-class 'tx-row))
 

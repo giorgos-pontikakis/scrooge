@@ -117,7 +117,6 @@
    (paginator      :initform (make-instance 'paginator
                                            :id "tof-paginator"
                                            :style "paginator"
-                                           :delta 10
                                            :urlfn #'tof)))
   (:default-initargs :id "config-table" :item-class 'tof-row))
 

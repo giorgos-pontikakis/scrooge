@@ -249,7 +249,6 @@
    (paginator      :initform (make-instance 'paginator
                                            :id "company-paginator"
                                            :style "paginator"
-                                           :delta 10
                                            :urlfn #'company)))
   (:default-initargs :item-class 'company-row :id "company-table"))
 

@@ -205,7 +205,6 @@
    (paginator      :initform (make-instance 'paginator
                                             :id "project-paginator"
                                             :style "paginator"
-                                            :delta 10
                                             :urlfn #'project)))
   (:default-initargs :item-class 'project-row :id "project-table"))
 

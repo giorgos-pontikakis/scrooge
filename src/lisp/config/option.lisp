@@ -2,7 +2,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Appconfig validation
+;;; Option validation
 ;;; ----------------------------------------------------------------------
 
 (defun chk-acc-title* (title)
@@ -11,22 +11,27 @@
       :account-title-unknown
       nil))
 
+(defun chk-num-rows (num)
+  (if (positive-integer-p num)
+      nil
+      :non-positive-num-rows))
+
 
 
 ;;; ----------------------------------------------------------------------
-;;; Appconfig - Actions
+;;; Option - Actions
 ;;; ----------------------------------------------------------------------
 
 (define-dynamic-page actions/config/update ("actions/config/update" :request-type :post)
-    ((cash-account     string chk-acc-title*)
-     (revenues-account string chk-acc-title*)
-     (expenses-account string chk-acc-title*))
-  (declare (ignorable cash-account revenues-account expenses-account))
+    ((cash-account          string  chk-acc-title*)
+     (revenues-root-account string  chk-acc-title*)
+     (expenses-root-account string  chk-acc-title*)
+     (crud-table-num-rows   integer chk-num-rows))
   (with-auth ("configuration")
     (no-cache)
     (with-db ()
       (flet ((update-option (p new-value)
-               (let ((dao (get-dao 'appconfig (string-downcase (name p)))))
+               (let ((dao (get-dao 'option (string-downcase (name p)))))
                  (setf (config-value dao) new-value)
                  (save-dao dao)))
              (maybe-account-id (p)
@@ -35,31 +40,34 @@
                  nil)))
         (if (every #'validp (parameters *page*))
             (progn
-              (update-option cash-account     (maybe-account-id cash-account))
-              (update-option revenues-account (maybe-account-id revenues-account))
-              (update-option expenses-account (maybe-account-id expenses-account))
+              (update-option cash-account (maybe-account-id cash-account))
+              (update-option revenues-root-account (maybe-account-id revenues-root-account))
+              (update-option expenses-root-account (maybe-account-id expenses-root-account))
+              (update-option crud-table-num-rows (val crud-table-num-rows))
               (see-other (config)))
             (see-other (config/update)))))))
 
 
 
 ;;; ----------------------------------------------------------------------
-;;; Appconfig UI elements
+;;; Option UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun appconfig-menu (disabled-items)
+(defun option-menu (disabled-items)
   (display (make-instance 'actions-menu
-                          :id "appconfig-actions"
+                          :id "option-actions"
                           :style "hnavbar actions"
                           :spec `((catalogue ,(config)        "Προβολή")
                                   (update    ,(config/update) "Επεξεργασία")))
            :disabled-items disabled-items))
 
-(defun appconfig-notifications ()
+(defun option-notifications ()
   (notifications
    '((cash-account (:account-title-unknown "Άγνωστος λογαριασμός μετρητών"))
      (revenues-root-account (:account-title-unknown "Άγνωστος λογαριασμός ρίζας εσόδων"))
-     (expenses-root-account (:account-title-unknown "Άγνωστος λογαριασμός ρίζας εξόδων")))))
+     (expenses-root-account (:account-title-unknown "Άγνωστος λογαριασμός ρίζας εξόδων"))
+     (crud-table-num-rows (:non-positive-num-rows "Ο αριθμός των
+     γραμμών των καταλόγων πρέπει να είναι θετικός ακέραιος")))))
 
 
 
@@ -67,9 +75,9 @@
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
 
-(defun get-appconfig-plist ()
+(defun get-option-plist ()
   (let ((daos (with-db ()
-                (select-dao 'appconfig))))
+                (select-dao 'option))))
     (mapcan (lambda (dao)
               (list (make-keyword (string-upcase (id dao)))
                     (parse-option-dao dao)))
@@ -94,14 +102,15 @@
              (config-navbar 'general)
              (:div :id "bank-window" :class "window grid_10"
                    (:div :class "title" "Ρυθμίσεις » Γενικά")
-                   (appconfig-menu '(catalogue))
-                   (appconfig-form 'details :data (get-appconfig-plist))))))))
+                   (option-menu '(catalogue))
+                   (option-form 'details :data (get-option-plist))))))))
 
 (define-dynamic-page config/update ("config/update")
-    ((cash-account     string chk-acc-title*)
-     (revenues-account string chk-acc-title*)
-     (expenses-account string chk-acc-title*))
-  (declare (ignorable cash-account revenues-account expenses-account))
+    ((cash-account          string  chk-acc-title*)
+     (revenues-root-account string  chk-acc-title*)
+     (expenses-root-account string  chk-acc-title*)
+     (crud-table-num-rows   integer chk-num-rows))
+  (declare (ignorable cash-account revenues-root-account expenses-root-account crud-table-num-rows))
   (with-auth ("configuration")
     (no-cache)
     (with-document ()
@@ -114,16 +123,16 @@
              (config-navbar 'general)
              (:div :id "config-window" :class "window grid_12"
                    (:div :class "title" "Ρυθμίσεις » Επεξεργασία")
-                   (appconfig-menu '(update))
+                   (option-menu '(update))
                    (with-form (actions/config/update)
-                     (appconfig-form 'update
-                                     :data (plist-union
-                                            (apply #'parameters->plist (parameters *page*))
-                                            (get-appconfig-plist))
-                                     :styles (apply #'parameters->styles (parameters *page*)))))
+                     (option-form 'update
+                                  :data (plist-union
+                                         (apply #'parameters->plist (parameters *page*))
+                                         (get-option-plist))
+                                  :styles (apply #'parameters->styles (parameters *page*)))))
              (footer))))))
 
-(defun appconfig-form (op &key data styles)
+(defun option-form (op &key data styles)
   (with-db ()
     (let ((disabledp (eql op 'details)))
       (flet ((label+acc-textbox (name label &optional extra-styles)
@@ -137,11 +146,16 @@
                           :style (conc (getf styles (make-keyword name))
                                        " " extra-styles)))))
         (with-html
-          (:div :id "appconfig-data-form" :class "data-form"
+          (:div :id "option-data-form" :class "data-form"
                 (label+acc-textbox 'cash-account "Λογαριασμός Μετρητών" "ac-account")
                 (label+acc-textbox 'revenues-root-account "Λογαριασμός ρίζας εσόδων" "ac-account")
-                (label+acc-textbox 'expenses-root-account "Λογαριασμός ρίζας εξόδων" "ac-account"))
-          (:div :class "data-form-buttons grid_12"
-                (unless disabledp
-                  (ok-button "Ανανέωση")
-                  (cancel-button (config) "Άκυρο"))))))))
+                (label+acc-textbox 'expenses-root-account "Λογαριασμός ρίζας εξόδων" "ac-account")
+                (label 'crud-table-num-rows "Αριθμός γραμμών στους καταλόγους")
+                (textbox 'crud-table-num-rows
+                         :value (getf data :crud-table-num-rows)
+                         :disabledp disabledp
+                         :style (getf styles :crud-table-num-rows))
+                (:div :class "data-form-buttons grid_12"
+                      (unless disabledp
+                        (ok-button "Ανανέωση")
+                        (cancel-button (config) "Άκυρο")))))))))

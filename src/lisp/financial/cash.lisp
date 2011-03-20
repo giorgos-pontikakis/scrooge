@@ -129,12 +129,7 @@
    (subpage :accessor subpage :initarg :subpage)
    (paginator :initform (make-instance 'paginator
                                        :id "cash-tx-paginator"
-                                       :style "paginator"
-                                       :delta 10
-                                       :urlfn (make-instance 'paginator
-                                                             :id "cheque-paginator"
-                                                             :style "paginator"
-                                                             :delta 10))))
+                                       :style "paginator")))
   (:default-initargs :item-class 'cash-tx-row))
 
 (defmethod initialize-instance :after ((table cash-tx-table) &key)

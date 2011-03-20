@@ -118,7 +118,6 @@
    (paginator      :initform (make-instance 'paginator
                                        :id "city-paginator"
                                        :style "paginator"
-                                       :delta 10
                                        :urlfn #'city)))
   (:default-initargs :id "config-table" :item-class 'city-row))
 

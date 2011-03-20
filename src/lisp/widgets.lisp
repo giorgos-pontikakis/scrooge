@@ -388,7 +388,8 @@
 (defclass paginator (widget)
   ((table :accessor table :initarg :table)
    (delta :accessor delta :initarg :delta)
-   (urlfn :accessor urlfn :initarg :urlfn)))
+   (urlfn :accessor urlfn :initarg :urlfn))
+  (:default-initargs :delta (get-option "crud-table-num-rows")))
 
 (defgeneric page-start (paginator index start))
 

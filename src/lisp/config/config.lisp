@@ -12,8 +12,7 @@
                                   (bank         ,(bank)                "Τράπεζες")
                                   (tof          ,(tof)                 "Δ.Ο.Υ.")
                                   (account      ,(account)             "Λογαριασμοί")
-                                  (cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")
-                                  #|(temtx   ,(temtx)   "Πρότυπες Συναλλαγές")|#))
+                                  (cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")))
            :active-page-name active-page-name))
 
 

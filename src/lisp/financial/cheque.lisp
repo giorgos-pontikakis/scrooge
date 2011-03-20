@@ -201,8 +201,7 @@
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'paginator
                                             :id "cheque-paginator"
-                                            :style "paginator"
-                                            :delta 10)))
+                                            :style "paginator")))
   (:default-initargs :item-class 'cheque-row))
 
 (defmethod initialize-instance :after ((table cheque-table) &key)

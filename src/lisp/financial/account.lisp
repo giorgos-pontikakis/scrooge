@@ -33,10 +33,7 @@
    (paginator      :initform (make-instance 'paginator
                                            :id "tx-paginator"
                                            :style "paginator grid_9 alpha"
-                                           :delta 10
-                                           :urlfn (lambda (search start)
-                                                    (declare (ignore search))
-                                                    (account/details :start start))))
+                                           :urlfn #'account/details))
    (op :initform 'catalogue))
   (:default-initargs :item-class 'account-tx-row))
 

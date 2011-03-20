@@ -118,7 +118,7 @@
                  ((string= lisp-type "float")   #'parse-float)
                  ((string= lisp-type "date")    #'parse-date)
                  ((string= lisp-type "string")  #'identity)
-                 (t (error "Unknown lisp-type in appconfig table.")))))
+                 (t (error "Unknown lisp-type in option table.")))))
     (let ((config-value (config-value option-dao)))
       (if (eql config-value :null)
           nil
@@ -127,4 +127,6 @@
 
 (defun get-option (id)
   (with-db ()
-    (parse-option-dao (get-dao 'appconfig id))))
+    (parse-option-dao (get-dao 'option (etypecase id
+                                         (symbol (string-downcase id))
+                                         (string id))))))

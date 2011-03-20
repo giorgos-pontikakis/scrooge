@@ -117,7 +117,6 @@
    (paginator      :initform (make-instance 'paginator
                                            :id "bank-paginator"
                                            :style "paginator"
-                                           :delta 10
                                            :urlfn #'bank)))
   (:default-initargs :id "config-table" :item-class 'bank-row))
 
