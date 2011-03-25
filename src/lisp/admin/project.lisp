@@ -232,14 +232,14 @@
                                         `(:where (:and ,@where-terms)))
                                 base-query))
            (final-query `(:order-by ,composite-query
-                                    ,(cond ((member status
-                                                    (list "quoted" nil) :test #'string=)
-                                            'quote-date)
-                                           ((string= status "ongoing")
-                                            'start-date)
-                                           ((member status
-                                                    (list "finished" "archived") :test #'string=)
-                                            'end-date)))))
+                                    (:desc ,(cond ((member status
+                                                           (list "quoted" nil) :test #'string=)
+                                                   'quote-date)
+                                                  ((string= status "ongoing")
+                                                   'start-date)
+                                                  ((member status
+                                                           (list "finished" "archived") :test #'string=)
+                                                   'end-date))))))
       (with-db ()
         (query (sql-compile final-query)
                :plists)))))
