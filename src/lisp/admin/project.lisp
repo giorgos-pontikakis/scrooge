@@ -19,6 +19,33 @@
         ((not (project-description-unique-p description id)) :project-description-exists)
         (t nil)))
 
+(defun chk-quote-date (date status)
+  (cond ((and (member status (list "quoted" "ongoing" "finished" "archived") :test #'string=)
+              (eql date :null))
+         :quote-date-null)
+        (t
+         nil)))
+
+(defun chk-start-date (date status)
+  (cond ((and (member status (list "ongoing" "finished" "archived") :test #'string=)
+              (eql date :null))
+         :start-date-null)
+        ((and (not (member status (list "ongoing" "finished" "archived") :test #'string=))
+              (not (eql date :null)))
+         :start-date-nonnull)
+        (t
+         nil)))
+
+(defun chk-end-date (date status)
+  (cond ((and (member status (list "finished" "archived") :test #'string=)
+              (eql date :null))
+         :end-date-null)
+        ((and (not (member status (list "finished" "archived") :test #'string=))
+              (not (eql date :null)))
+         :end-date-nonnull)
+        (t
+         nil)))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -28,15 +55,15 @@
 (define-dynamic-page actions/admin/project/create ("actions/admin/project/create"
                                                    :request-type :post)
     ((search      string)
-     (company     string chk-company-title t)
+     (company     string chk-company-title*)
      (description string chk-new-project-description)
      (location    string)
      (price       float chk-amount*)
      (vat         float chk-amount*)
-     (quote-date  date)
-     (start-date  date)
-     (end-date    date)
      (status      string)
+     (quote-date  date  (chk-quote-date quote-date status))
+     (start-date  date  (chk-start-date start-date status))
+     (end-date    date  (chk-end-date end-date status))
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
@@ -72,15 +99,15 @@
                                                    :request-type :post)
     ((search      string)
      (id          integer chk-project-id)
-     (company     string  chk-company-title)
+     (company     string  chk-company-title*)
      (description string  (chk-new-project-description description id))
      (location    string)
      (price       float chk-amount*)
      (vat         float chk-amount*)
-     (quote-date  date)
-     (start-date  date)
-     (end-date    date)
      (status      string)
+     (quote-date  date  (chk-quote-date quote-date status))
+     (start-date  date  (chk-start-date start-date status))
+     (end-date    date  (chk-end-date end-date status))
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
@@ -154,9 +181,14 @@
                    :parse-error  "Το ποσό της τιμής περιέχει άκυρους χαρακτήρες"))
      (vat         (:non-positive-amount  "Το ποσό του Φ.Π.Α. πρέπει να είναι θετικός αριθμός"
                    :parse-error  "Το ποσό του Φ.Π.Α. περιέχει άκυρους χαρακτήρες"))
-     (quote-date  (:parse-error "Η ημερομηνία προσφοράς είναι άκυρη"))
-     (start-date  (:parse-error "Η ημερομηνία έναρξης είναι άκυρη"))
-     (end-date    (:parse-error "Η ημερομηνία ολοκλήρωσης είναι άκυρη")))))
+     (quote-date  (:parse-error "Η ημερομηνία προσφοράς είναι άκυρη"
+                   :quote-date-null "Η ημερομηνία προσφοράς είναι κενή"))
+     (start-date  (:parse-error "Η ημερομηνία έναρξης είναι άκυρη"
+                   :start-date-null "Η ημερομηνία έναρξης είναι κενή ενώ το έργο έχει αρχίσει."
+                   :start-date-nonnull "Η ημερομηνία έναρξης δεν είναι κενή ενώ το έργο δεν έχει αρχίσει."))
+     (end-date    (:parse-error "Η ημερομηνία ολοκλήρωσης είναι άκυρη"
+                   :end-date-null "Η ημερομηνία ολοκλήρωσης είναι κενή ενώ το έργο έχει ολοκληρωθεί."
+                   :end-date-nonnull "Η ημερομηνία ολοκλήρωσης δεν είναι κενή ενώ το έργο δεν έχει ολοκληρωθεί.")))))
 
 (defun project-filters (status search)
   (let ((spec `((nil      ,(project :search search)                    "Όλα")
@@ -232,14 +264,15 @@
                                         `(:where (:and ,@where-terms)))
                                 base-query))
            (final-query `(:order-by ,composite-query
-                                    (:desc ,(cond ((member status
-                                                           (list "quoted" nil) :test #'string=)
-                                                   'quote-date)
-                                                  ((string= status "ongoing")
-                                                   'start-date)
-                                                  ((member status
-                                                           (list "finished" "archived") :test #'string=)
-                                                   'end-date))))))
+                                    (:desc
+                                     ,(cond ((member status
+                                                     (list "quoted" nil) :test #'string=)
+                                             'quote-date)
+                                            ((string= status "ongoing")
+                                             'start-date)
+                                            ((member status
+                                                     (list "finished" "archived") :test #'string=)
+                                             'end-date))))))
       (with-db ()
         (query (sql-compile final-query)
                :plists)))))
@@ -315,15 +348,15 @@
 
 (define-dynamic-page project/create ("admin/project/create")
     ((search      string)
-     (company     string  chk-company-title)
+     (company     string  chk-company-title*)
      (description string  chk-new-project-description)
      (location    string)
      (price       float chk-amount*)
      (vat         float chk-amount*)
-     (quote-date  date)
-     (start-date  date)
-     (end-date    date)
      (status      string)
+     (quote-date  date  (chk-quote-date quote-date status))
+     (start-date  date  (chk-start-date start-date status))
+     (end-date    date  (chk-end-date end-date status))
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
@@ -371,15 +404,15 @@
 (define-dynamic-page project/update ("admin/project/update")
     ((search      string)
      (id          integer chk-project-id)
-     (company     string  chk-company-title)
+     (company     string  chk-company-title*)
      (description string  (chk-new-project-description description id))
      (location    string)
      (price       float chk-amount*)
      (vat         float chk-amount*)
-     (quote-date  date)
-     (start-date  date)
-     (end-date    date)
      (status      string)
+     (quote-date  date  (chk-quote-date quote-date status))
+     (start-date  date  (chk-start-date start-date status))
+     (end-date    date  (chk-end-date end-date status))
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
