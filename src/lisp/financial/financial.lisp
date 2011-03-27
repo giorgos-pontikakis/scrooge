@@ -38,9 +38,3 @@
                               *revenues-root-account*
                               *expenses-root-account*)
                  :filter (not revenues-p)))
-
-;; (defun account-tree (revenues-p)
-;;   (apply #'make-instance 'account-radio-tree
-;;          (if revenues-p
-;;              (list :filter nil :root-id *revenues-root-account*)
-;;              (list :filter t   :root-id *expenses-root-account*))))

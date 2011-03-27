@@ -1,7 +1,6 @@
 $(document).ready(function () {
                       applyAutocomplete();
                       applyDatepicker();
-                      applyCheckUnsaved();
                   });
 
 function applyDatepicker () {
@@ -29,36 +28,3 @@ function applyAutocomplete () {
     }
 }
 
-function applyCheckUnsaved () {
-
-    var message = "Έχετε κάνει αλλαγές στη φόρμα. "
-                  + "Αν φύγετε από αυτή τη σελίδα οι αλλαγές αυτές θα χαθούν.";
-
-    window.onbeforeunload = function () {
-
-        var isDirty = false;
-
-        $(":input:not(:submit)").each(function () {
-                                          if ($(this).data("initialValue") != $(this).val()) {
-                                              isDirty = true;
-                                          }
-                                      });
-
-        if (isDirty === true) {
-            return message;
-        }
-    };
-
-    $(":input:not(:submit)").each(function() {
-                                      if ($(this).attr("type") === "radio") {
-                                          $(this).data("initialValue", $(this).attr("checked"));
-                                      } else {
-                                          $(this).data("initialValue", $(this).val());
-                                      }
-                                  });
-
-    $(":submit").click(function(){
-                           window.onbeforeunload = undefined;
-                       });
-
-}
