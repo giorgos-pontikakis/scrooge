@@ -117,17 +117,19 @@
 (defun primary-navbar (active-page-name)
   (display (make-instance 'horizontal-navbar
                           :id "primary-navbar"
-                          :style "hnavbar grid_8 prefix_1"
+                          :style "hnavbar grid_6 prefix_1"
                           :spec `((financial ,(financial) "Οικονομικά")
                                   (admin     ,(admin)     "Διαχείριση")
                                   (config    ,(config)    "Ρυθμίσεις")))
            :active-page-name active-page-name))
 
 (defun logout-menu ()
-  (display (make-instance 'menu
-                          :id "logout"
-                          :style "hnavbar grid_1"
-                          :spec `((logout ,(logout) "Έξοδος")))))
+  (with-html
+    (:ul :id "logout" :class "grid_3 hnavbar"
+         (:li (fmt "~A@~A" (session-value 'user) (machine-instance)))
+         (:li (display (make-instance 'menu
+                                      :style "hnavbar"
+                                      :spec `((logout ,(logout) "Έξοδος"))))))))
 
 (defun notifications (messages)
   (unless (every #'validp (parameters *page*))

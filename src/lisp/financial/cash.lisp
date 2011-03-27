@@ -6,7 +6,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defun check-cash-accounts ()
-  (unless (and *cash-account* *revenues-root-account* *expenses-root-account*)
+  (unless (and *cash-account*
+               *revenues-root-account*
+               *expenses-root-account*)
     (see-other (cash-accounts-error-page))))
 
 (define-dynamic-page cash-accounts-error-page ("financial/cash/error")
@@ -35,31 +37,34 @@
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id t))
-  (if (every #'validp (parameters *page*))
-      (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
-             (debit-acc-id (if (string-equal cash-kind "revenue")
-                               *cash-account*
-                               (val account-id)))
-             (credit-acc-id (if (string-equal cash-kind "expense")
-                                *cash-account*
-                                (val account-id)))
-             (new-tx (make-instance 'tx
-                                    :tx-date (val date)
-                                    :description (val description)
-                                    :company-id company-id
-                                    :amount (val amount)
-                                    :credit-acc-id credit-acc-id
-                                    :debit-acc-id debit-acc-id)))
-        (with-db ()
-          (insert-dao new-tx)
-          (see-other (cash cash-kind :id (id new-tx) :search (val search)))))
-      (see-other (cash/create cash-kind
-                              :date (raw date)
-                              :description (raw description)
-                              :company (raw company)
-                              :amount (raw amount)
-                              :account-id (raw account-id)
-                              :search (raw search)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cash-accounts)
+    (if (every #'validp (parameters *page*))
+        (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
+               (debit-acc-id (if (string-equal cash-kind "revenue")
+                                 *cash-account*
+                                 (val account-id)))
+               (credit-acc-id (if (string-equal cash-kind "revenue")
+                                  (val account-id)
+                                  *cash-account*))
+               (new-tx (make-instance 'tx
+                                      :tx-date (val date)
+                                      :description (val description)
+                                      :company-id company-id
+                                      :amount (val amount)
+                                      :credit-acc-id credit-acc-id
+                                      :debit-acc-id debit-acc-id)))
+          (with-db ()
+            (insert-dao new-tx)
+            (see-other (cash cash-kind :id (id new-tx) :search (val search)))))
+        (see-other (cash/create cash-kind
+                                :date (raw date)
+                                :description (raw description)
+                                :company (raw company)
+                                :amount (raw amount)
+                                :account-id (raw account-id)
+                                :search (raw search))))))
 
 (define-regex-page actions/financial/cash/update (("actions/financial/cash/" cash-kind "/update")
                                                   :registers (cash-kind "(expense|revenue)")
@@ -73,14 +78,15 @@
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
+    (check-cash-accounts)
     (if (every #'validp (parameters *page*))
         (let ((company-id (company-id (val* company))) ;; using val* (accept null values)
               (debit-acc-id (if (string-equal cash-kind "revenue")
                                 *cash-account*
                                 (val account-id)))
-              (credit-acc-id (if (string-equal cash-kind "expense")
-                                 *cash-account*
-                                 (val account-id))))
+              (credit-acc-id (if (string-equal cash-kind "revenue")
+                                 (val account-id)
+                                 *cash-account*)))
           (with-db ()
             (execute (:update 'tx :set
                               'tx-date (val date)
@@ -105,11 +111,14 @@
                                                   :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'tx (val id)))
-        (see-other (cash cash-kind :search (val search))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cash-accounts)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'tx (val id)))
+          (see-other (cash cash-kind :search (val search))))
+        (see-other (notfound)))))
 
 
 
@@ -128,9 +137,9 @@
   (let* ((id (key node))
          (record (record node)))
     (list :selector (make-instance 'radio-cell
-                                   :name 'account-id
-                                   :value id
-                                   :content (getf record :title)))))
+                                  :name 'account-id
+                                  :value id
+                                  :content (getf record :title)))))
 
 
 
@@ -431,11 +440,15 @@
         (see-other (error-page)))))
 
 (defun cash-data-form (op cash-kind &key id data styles filter)
-  (let ((disabledp (eql op 'details))
-        (tree (apply #'make-instance 'account-radio-tree
-                     (if (string-equal cash-kind "revenue")
-                         (list :filter nil :root-id *revenues-root-account*)
-                         (list :filter t   :root-id *expenses-root-account*)))))
+  (let* ((revenues-p (string-equal cash-kind "revenue"))
+         (disabledp (eql op 'details))
+         (tree (account-tree revenues-p)))
+    (push (root (make-instance 'account-radio-tree
+                               :root-id (if revenues-p
+                                            *invoice-receivable-account*
+                                            *invoice-payable-account*)
+                               :filter revenues-p))
+          (children (root tree)))
     (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
@@ -457,9 +470,10 @@
                                              "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
                               (progn
                                 (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
-                                (cancel-button (apply #'cash cash-kind :id id filter) "Άκυρο")))))
+                                (cancel-button (apply #'cash cash-kind :id id filter)
+                                               "Άκυρο")))))
               (:div :class "grid_6 omega"
-                    (label 'account "Λογαριασμός")
+                    (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.
                     (display tree :selected-id (or (getf data :account-id)
                                                    (key (first (children (root tree))))))))))))

@@ -28,4 +28,4 @@
                          (member (authgroup ,user-dao) ',groups :test #'string=))))))
          (progn
            ,@body)
-         (see-other (access-denied)))))
+         (see-other (login)))))

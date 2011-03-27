@@ -170,6 +170,8 @@
   (:metaclass dao-class)
   (:keys id))
 
+
+
 ;;; Financial
 
 (defclass cheque ()
@@ -190,6 +192,7 @@
    (debit-acc-id  :col-type string        :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type string        :accessor credit-acc-id :initarg :credit-acc-id)
    (company-id    :col-type integer       :accessor company-id    :initarg :company-id)
+   (cheque-id     :col-type integer       :accessor cheque-id     :initarg :cheque-id)
    (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount))
   (:metaclass dao-class)
   (:keys id))

@@ -41,31 +41,34 @@
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id t))
-  (if (every #'validp (parameters *page*))
-      (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
-             (debit-acc-id (if (string-equal invoice-kind "receivable")
-                               *invoice-receivable-account*
-                               (val account-id)))
-             (credit-acc-id (if (string-equal invoice-kind "payable")
-                                *invoice-payable-account*
-                                (val account-id)))
-             (new-tx (make-instance 'tx
-                                    :tx-date (val date)
-                                    :description (val description)
-                                    :company-id company-id
-                                    :amount (val amount)
-                                    :credit-acc-id credit-acc-id
-                                    :debit-acc-id debit-acc-id)))
-        (with-db ()
-          (insert-dao new-tx)
-          (see-other (invoice invoice-kind :id (id new-tx) :search (val search)))))
-      (see-other (invoice/create invoice-kind
-                                 :date (raw date)
-                                 :description (raw description)
-                                 :company (raw company)
-                                 :amount (raw amount)
-                                 :account-id (raw account-id)
-                                 :search (raw search)))))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-invoice-accounts)
+    (if (every #'validp (parameters *page*))
+        (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
+               (debit-acc-id (if (string-equal invoice-kind "receivable")
+                                 *invoice-receivable-account*
+                                 (val account-id)))
+               (credit-acc-id (if (string-equal invoice-kind "receivable")
+                                  (val account-id)
+                                  *invoice-payable-account*))
+               (new-tx (make-instance 'tx
+                                      :tx-date (val date)
+                                      :description (val description)
+                                      :company-id company-id
+                                      :amount (val amount)
+                                      :credit-acc-id credit-acc-id
+                                      :debit-acc-id debit-acc-id)))
+          (with-db ()
+            (insert-dao new-tx)
+            (see-other (invoice invoice-kind :id (id new-tx) :search (val search)))))
+        (see-other (invoice/create invoice-kind
+                                   :date (raw date)
+                                   :description (raw description)
+                                   :company (raw company)
+                                   :amount (raw amount)
+                                   :account-id (raw account-id)
+                                   :search (raw search))))))
 
 (define-regex-page actions/financial/invoice/update
     (("actions/financial/invoice/" invoice-kind "/update")
@@ -79,14 +82,15 @@
      (account-id  integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
+    (check-invoice-accounts)
     (if (every #'validp (parameters *page*))
         (let ((company-id (company-id (val* company))) ;; using val* (accept null values)
               (debit-acc-id (if (string-equal invoice-kind "receivable")
                                 *invoice-receivable-account*
                                 (val account-id)))
-              (credit-acc-id (if (string-equal invoice-kind "payable")
-                                 *invoice-payable-account*
-                                 (val account-id))))
+              (credit-acc-id (if (string-equal invoice-kind "receivable")
+                                 (val account-id)
+                                 *invoice-payable-account*)))
           (with-db ()
             (execute (:update 'tx :set
                               'tx-date (val date)
@@ -111,11 +115,13 @@
      :registers (invoice-kind "(receivable|payable)") :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'tx (val id)))
-        (see-other (invoice invoice-kind :search (val search))))
-      (see-other (notfound))))
+  (with-auth ("configuration")
+    (check-invoice-accounts)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'tx (val id)))
+          (see-other (invoice invoice-kind :search (val search))))
+        (see-other (notfound)))))
 
 
 
@@ -417,10 +423,7 @@
 
 (defun invoice-data-form (op invoice-kind &key id data styles filter)
   (let ((disabledp (eql op 'details))
-        (tree (apply #'make-instance 'account-radio-tree
-                     (if (string-equal invoice-kind "receivable")
-                         (list :filter nil :root-id *revenues-root-account*)
-                         (list :filter t   :root-id *expenses-root-account*)))))
+        (tree (account-tree (string-equal invoice-kind "receivable"))))
     (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)

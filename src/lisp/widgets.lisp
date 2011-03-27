@@ -123,8 +123,11 @@
                                       records))))
       (make-instance (item-class tree)
                      :collection tree
-                     :key nil
-                     :record nil
+                     :key (root-id tree)
+                     :record (find-if (lambda (rec)
+                                        (equal (root-id tree)
+                                               (getf rec (item-key-field tree))))
+                                      records)
                      :parent-key nil
                      :children (make-nodes (root-id tree))))))
 

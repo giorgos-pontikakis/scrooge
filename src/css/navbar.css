@@ -33,12 +33,12 @@
 /* horizontal navbars */
 /* ---------------------------------------------------------------------- */
 
-.hnavbar ul li {
+.hnavbar li {
     list-style: none;
     float: left;
 }
 
-.hnavbar ul li a {
+.hnavbar li a, .hnavbar li p {
     display: block;
 }
 
@@ -47,7 +47,7 @@
     top: 3px;
 }
 
-#primary-navbar ul li, #logout ul li {
+#primary-navbar li, #logout li {
     margin-right: 20px;
 }
 

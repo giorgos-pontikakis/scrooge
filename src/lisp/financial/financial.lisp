@@ -30,3 +30,17 @@
              (financial-navbar nil)
              (:div :id "body"
                    (:p "Financial content not yet available")))))))
+
+
+(defun account-tree (revenues-p)
+  (make-instance 'account-radio-tree
+                 :root-id (if revenues-p
+                              *revenues-root-account*
+                              *expenses-root-account*)
+                 :filter (not revenues-p)))
+
+;; (defun account-tree (revenues-p)
+;;   (apply #'make-instance 'account-radio-tree
+;;          (if revenues-p
+;;              (list :filter nil :root-id *revenues-root-account*)
+;;              (list :filter t   :root-id *expenses-root-account*))))
