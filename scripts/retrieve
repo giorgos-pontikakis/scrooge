@@ -1,0 +1,36 @@
+#!/bin/bash
+
+case $# in
+    1)
+        project_name=scrooge
+        project_root="www/scrooge"
+        static="public db_dumps"
+
+        remote=$1
+        user=`whoami`
+
+        # Make directory structure
+        make_dir_tree p {
+            for i in logs public tmp db_dumps
+            do
+                mkdir -p $HOME/$project_root/$i
+            done
+        }
+
+        # rsync public folder
+        sync_static () {
+            for i in $static
+            do
+                echo
+                echo Rsyncing $HOME/$project_root/$i from "$user@$remote:$HOME/$project_root/$i"
+                rsync -rz "$user@$remote:$HOME/$project_root" \
+                    "$HOME/$project_root/$i"
+            done
+        }
+        exit 0
+        ;;
+    0)
+        echo 'Usage: retrieve <remote machine>'
+        exit 1
+        ;;
+esac

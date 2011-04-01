@@ -1,8 +1,0 @@
-#!/bin/bash
-
-project_root="www/scrooge"
-
-for i in logs public tmp db_dumps
-do
-    mkdir -p $HOME/$project_root/$i
-done
