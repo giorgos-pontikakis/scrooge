@@ -10,7 +10,7 @@ case $# in
         user=`whoami`
 
         # Make directory structure
-        make_dir_tree p {
+        make_dir_tree () {
             for i in logs public tmp db_dumps
             do
                 mkdir -p $HOME/$project_root/$i
@@ -23,10 +23,13 @@ case $# in
             do
                 echo
                 echo Rsyncing $HOME/$project_root/$i from "$user@$remote:$HOME/$project_root/$i"
-                rsync -rz "$user@$remote:$HOME/$project_root" \
-                    "$HOME/$project_root/$i"
+                rsync -rz --delete "$user@$remote:$HOME/$project_root/$i" \
+                    "$HOME/$project_root/"
             done
         }
+        make_dir_tree
+        sync_static
+
         exit 0
         ;;
     0)
