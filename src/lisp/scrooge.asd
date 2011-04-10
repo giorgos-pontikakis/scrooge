@@ -9,8 +9,8 @@
                (:file "utils")
                (:file "auth")
                (:file "tables")
-               (:file "widgets")
                (:file "elements")
+               (:file "widgets")
                (:file "init")
                ;; -- Here come the pages! --
                (:file "root")

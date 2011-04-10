@@ -246,7 +246,7 @@
 (defclass company-table (crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
-   (paginator      :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'default-paginator
                                            :id "company-paginator"
                                            :style "paginator"
                                            :urlfn #'company)))

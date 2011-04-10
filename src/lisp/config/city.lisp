@@ -115,7 +115,7 @@
 (defclass city-table (crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
-   (paginator      :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'default-paginator
                                        :id "city-paginator"
                                        :style "paginator"
                                        :urlfn #'city)))

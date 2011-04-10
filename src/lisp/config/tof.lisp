@@ -114,7 +114,7 @@
 (defclass tof-table (crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
-   (paginator      :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'default-paginator
                                            :id "tof-paginator"
                                            :style "paginator"
                                            :urlfn #'tof)))

@@ -150,7 +150,7 @@
 (defclass cash-tx-table (tx-table)
   ((item-key-field :initform :id)
    (subpage :accessor subpage :initarg :subpage)
-   (paginator :initform (make-instance 'paginator
+   (paginator :initform (make-instance 'default-paginator
                                        :id "cash-tx-paginator"
                                        :style "paginator")))
   (:default-initargs :item-class 'cash-tx-row))

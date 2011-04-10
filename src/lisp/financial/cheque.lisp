@@ -263,7 +263,7 @@
    (item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
-   (paginator      :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'default-paginator
                                             :id "cheque-paginator"
                                             :style "paginator")))
   (:default-initargs :item-class 'cheque-row))

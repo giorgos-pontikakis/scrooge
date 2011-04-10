@@ -114,7 +114,7 @@
 (defclass bank-table (crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
-   (paginator      :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'default-paginator
                                            :id "bank-paginator"
                                            :style "paginator"
                                            :urlfn #'bank)))

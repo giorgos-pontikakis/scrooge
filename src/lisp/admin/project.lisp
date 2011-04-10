@@ -234,7 +234,7 @@
 (defclass project-table (crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
-   (paginator      :initform (make-instance 'paginator
+   (paginator      :initform (make-instance 'default-paginator
                                             :id "project-paginator"
                                             :style "paginator"
                                             :urlfn #'project)))
