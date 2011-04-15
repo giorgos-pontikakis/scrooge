@@ -56,8 +56,7 @@
 ;;; ------------------------------------------------------------
 
 (define-regex-page actions/config/cheque-stran/create
-    (("actions/config/cheque-stran/" cheque-kind "/create")
-     :registers (cheque-kind "(receivable|payable)")
+    (("actions/config/cheque-stran/" (cheque-kind "receivable|payable") "/create")
      :request-type :post)
     ((title          string chk-cheque-stran-title)
      (debit-account  string chk-acc-title)
@@ -88,8 +87,7 @@
                                                :to-status (raw to-status))))))
 
 (define-regex-page actions/config/cheque-stran/update
-    (("actions/config/cheque-stran/" cheque-kind "/update")
-     :registers (cheque-kind "(receivable|payable)")
+    (("actions/config/cheque-stran/" (cheque-kind "receivable|payable") "/update")
      :request-type :post)
     ((id             integer chk-cheque-stran-id t)
      (title          string  chk-cheque-stran-title)
@@ -121,8 +119,7 @@
                                                :to-status (raw to-status))))))
 
 (define-regex-page actions/config/cheque-stran/delete
-    (("actions/config/cheque-stran/" cheque-kind "/delete")
-     :registers (cheque-kind "(receivable|payable)")
+    (("actions/config/cheque-stran/" (cheque-kind "receivable|payable") "/delete")
      :request-type :post)
     ((id integer chk-cheque-stran-id t))
   (with-auth ("configuration")
@@ -281,8 +278,7 @@
 ;;; Cheque state transitions - pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page config/cheque-stran (("config/cheque-stran/" cheque-kind)
-                                        :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page config/cheque-stran (("config/cheque-stran/" (cheque-kind "receivable|payable")))
     ((id integer chk-cheque-stran-id))
   (with-auth ("configuration")
     (no-cache)
@@ -312,8 +308,8 @@
                          (cheque-stran-filters cheque-kind))
                    (footer))))))))
 
-(define-regex-page config/cheque-stran/create (("config/cheque-stran/" cheque-kind "/create")
-                                               :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page config/cheque-stran/create
+    (("config/cheque-stran/" (cheque-kind "receivable|payable") "/create"))
     ((title          string chk-cheque-stran-title)
      (debit-account  string chk-acc-title)
      (credit-account string chk-acc-title)
@@ -351,8 +347,8 @@
                                                                          from-status
                                                                          to-status)))))))))
 
-(define-regex-page config/cheque-stran/update (("config/cheque-kind/" cheque-kind "/update")
-                                               :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page config/cheque-stran/update
+    (("config/cheque-kind/" (cheque-kind "receivable|payable") "/update"))
     ((id             integer chk-cheque-stran-id t)
      (title          string chk-cheque-stran-title)
      (debit-account  string chk-acc-title)
@@ -397,8 +393,8 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page config/cheque-stran/delete (("config/cheque-stran/" cheque-kind "/delete")
-                                               :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page config/cheque-stran/delete
+    (("config/cheque-stran/" (cheque-kind "receivable|payable") "/delete"))
     ((id integer chk-cheque-stran-id t))
   (with-auth ("configuration")
     (no-cache)

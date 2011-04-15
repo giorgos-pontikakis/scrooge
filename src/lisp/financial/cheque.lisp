@@ -45,9 +45,7 @@
 ;;; --------------------------------------------------------------------------------
 
 (define-regex-page actions/financial/cheque/create
-    (("actions/financial/cheque/" cheque-kind "/create")
-     :registers (cheque-kind "(receivable|payable)")
-     :request-type :post)
+    (("actions/financial/cheque/" (cheque-kind "receivable|payable") "/create") :request-type :post)
     ((search     string)
      (bank       string  chk-bank-title)
      (company    string  chk-company-title t)
@@ -98,9 +96,7 @@
                                   :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/cheque/update
-    (("actions/financial/cheque/" cheque-kind "/update")
-     :registers (cheque-kind "(receivable|payable)")
-     :request-type :post)
+    (("actions/financial/cheque/" (cheque-kind "receivable|payable") "/update") :request-type :post)
     ((search     string)
      (id         integer chk-cheque-id     t)
      (bank       string  chk-bank-title)
@@ -154,9 +150,7 @@
                                   :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/cheque/delete
-    (("actions/financial/cheque/" cheque-kind "/delete")
-     :registers (cheque-kind "(receivable|payable)")
-     :request-type :post)
+    (("actions/financial/cheque/" (cheque-kind "receivable|payable") "/delete") :request-type :post)
     ((search string)
      (status string)
      (id     integer chk-cheque-id t))
@@ -337,8 +331,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page cheque (("financial/cheque/" cheque-kind)
-                           :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page cheque (("financial/cheque/" (cheque-kind "receivable|payable")))
     ((search string)
      (status string)
      (start  integer)
@@ -381,8 +374,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page cheque/create (("financial/cheque/" cheque-kind "/create")
-                                  :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page cheque/create (("financial/cheque/" (cheque-kind  "receivable|payable") "/create"))
     ((search     string)
      (bank       string  chk-bank-title)
      (due-date   date    chk-date)
@@ -427,8 +419,7 @@
                                                                account-id)))
                (footer)))))))
 
-(define-regex-page cheque/update (("financial/cheque/" cheque-kind "/update")
-                                  :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page cheque/update (("financial/cheque/" (cheque-kind "receivable|payable") "/update"))
     ((search     string)
      (id         integer chk-cheque-id     t)
      (bank       string  chk-bank-title)
@@ -481,8 +472,7 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(define-regex-page cheque/details (("financial/cheque/" cheque-kind "/details")
-                                   :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page cheque/details (("financial/cheque/" (cheque-kind "(receivable|payable)") "/details"))
     ((search string)
      (status string)
      (id     integer chk-cheque-id t))
@@ -513,8 +503,7 @@
                                      :data (get-cheque-plist (val id)))))))
         (see-other (error-page)))))
 
-(define-regex-page cheque/delete (("financial/cheque/" cheque-kind "/delete")
-                                  :registers (cheque-kind "(receivable|payable)"))
+(define-regex-page cheque/delete (("financial/cheque/" (cheque-kind "(receivable|payable)") "/delete"))
     ((search string)
      (status string)
      (id     integer chk-cheque-id t))

@@ -28,9 +28,8 @@
 ;;; Actions
 ;;; ----------------------------------------------------------------------
 
-(define-regex-page actions/financial/cash/create (("actions/financial/cash/" cash-kind "/create")
-                                                  :registers (cash-kind "(expense|revenue)")
-                                                  :request-type :post)
+(define-regex-page actions/financial/cash/create
+    (("actions/financial/cash/" (cash-kind "expense|revenue") "/create") :request-type :post)
     ((search      string)
      (date        date)
      (company     string  chk-company-title*)
@@ -66,9 +65,8 @@
                                 :account-id (raw account-id)
                                 :search (raw search))))))
 
-(define-regex-page actions/financial/cash/update (("actions/financial/cash/" cash-kind "/update")
-                                                  :registers (cash-kind "(expense|revenue)")
-                                                  :request-type :post)
+(define-regex-page actions/financial/cash/update
+    (("actions/financial/cash/" (cash-kind "expense|revenue") "/update") :request-type :post)
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -106,9 +104,8 @@
                                 :amount (raw amount)
                                 :account-id (raw account-id))))))
 
-(define-regex-page actions/financial/cash/delete (("actions/financial/cash/" cash-kind "/delete")
-                                                  :registers (cash-kind "(expense|revenue)")
-                                                  :request-type :post)
+(define-regex-page actions/financial/cash/delete
+    (("actions/financial/cash/" (cash-kind "expense|revenue") "/delete") :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
   (with-auth ("configuration")
@@ -267,7 +264,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page cash (("financial/cash/" cash-kind) :registers (cash-kind "(expense|revenue)"))
+(define-regex-page cash (("financial/cash/" (cash-kind "expense|revenue")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
@@ -308,8 +305,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page cash/create (("financial/cash/" cash-kind "/create")
-                                :registers (cash-kind "(expense|revenue)"))
+(define-regex-page cash/create (("financial/cash/" (cash-kind "expense|revenue") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
@@ -350,8 +346,7 @@
                                                                    amount))))
                (footer)))))))
 
-(define-regex-page cash/update (("financial/cash/" cash-kind "/update")
-                                :registers (cash-kind "(expense|revenue)"))
+(define-regex-page cash/update (("financial/cash/" (cash-kind "expense|revenue") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -400,8 +395,7 @@
                (footer)))))))
 
 
-(define-regex-page cash/delete (("financial/cash/" cash-kind "/delete")
-                                :registers (cash-kind "(expense|revenue)"))
+(define-regex-page cash/delete (("financial/cash/" (cash-kind "expense|revenue") "/delete"))
     ((id     integer chk-project-id t)
      (search string))
   (with-auth ("configuration")

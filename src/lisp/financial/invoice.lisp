@@ -33,8 +33,8 @@
 ;;; ----------------------------------------------------------------------
 
 (define-regex-page actions/financial/invoice/create
-    (("actions/financial/invoice/" invoice-kind "/create")
-     :registers (invoice-kind "(receivable|payable)") :request-type :post)
+    (("actions/financial/invoice/" (invoice-kind "(receivable|payable)") "/create")
+     :request-type :post)
     ((search      string)
      (date        date)
      (company     string  chk-company-title*)
@@ -71,8 +71,8 @@
                                    :search (raw search))))))
 
 (define-regex-page actions/financial/invoice/update
-    (("actions/financial/invoice/" invoice-kind "/update")
-     :registers (invoice-kind "(receivable|payable)") :request-type :post)
+    (("actions/financial/invoice/" (invoice-kind "receivable|payable") "/update")
+     :request-type :post)
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -111,8 +111,7 @@
                                    :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/invoice/delete
-    (("actions/financial/invoice/" invoice-kind "/delete")
-     :registers (invoice-kind "(receivable|payable)") :request-type :post)
+    (("actions/financial/invoice/" (invoice-kind "receivable|payable") "/delete") :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
   (with-auth ("configuration")
@@ -249,8 +248,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page invoice (("financial/invoice/" invoice-kind)
-                            :registers (invoice-kind "(receivable|payable)"))
+(define-regex-page invoice (("financial/invoice/" (invoice-kind "receivable|payable")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
@@ -291,8 +289,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page invoice/create (("financial/invoice/" invoice-kind "/create")
-                                   :registers (invoice-kind "(receivable|payable)"))
+(define-regex-page invoice/create (("financial/invoice/" (invoice-kind  "receivable|payable") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
@@ -333,8 +330,7 @@
                                                                       amount))))
                (footer)))))))
 
-(define-regex-page invoice/update (("financial/invoice/" invoice-kind "/update")
-                                   :registers (invoice-kind "(receivable|payable)"))
+(define-regex-page invoice/update (("financial/invoice/" (invoice-kind "receivable|payable") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -382,8 +378,7 @@
                                                                       account-id))))
                (footer)))))))
 
-(define-regex-page invoice/delete (("financial/invoice/" invoice-kind "/delete")
-                                   :registers (invoice-kind "(receivable|payable)"))
+(define-regex-page invoice/delete (("financial/invoice/" (invoice-kind "receivable|payable") "/delete"))
     ((id     integer chk-project-id t)
      (search string))
   (with-auth ("configuration")
