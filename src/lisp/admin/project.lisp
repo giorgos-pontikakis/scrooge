@@ -295,9 +295,8 @@
                                                        filter)
                                             :off (apply #'project :id id filter)))
           :payload (mapcar (lambda (name)
-                             (make-instance 'textbox-cell
-                                            :name name
-                                            :value (getf record (make-keyword name))))
+                             (lazy-textbox name
+                                           :value (getf record (make-keyword name))))
                            '(description location company))
           :controls (list
                      (make-instance 'ok-cell)
@@ -320,7 +319,7 @@
     (if (validp id)
         (let* ((filter  (parameters->plist search status))
                (project-table (make-instance 'project-table
-                                             :op 'catalogue
+                                             :op :catalogue
                                              :filter filter)))
           (with-document ()
             (:head
@@ -335,8 +334,8 @@
                          (project-menu (val id)
                                        filter
                                        (if (val id)
-                                           '(catalogue)
-                                           '(catalogue details update delete)))
+                                           '(:catalogue)
+                                           '(:catalogue :details :update :delete)))
                          (display project-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -373,7 +372,7 @@
                      (:div :class "title" "Έργο » Δημιουργία")
                      (project-menu nil
                                    filter
-                                   '(details create update delete))
+                                   '(:details :create :update :delete))
                      (project-notifications))
                (with-form (actions/admin/project/create :search (val search))
                  (project-data-form 'create
@@ -430,7 +429,7 @@
                          (:p :class "title" "Έργο » Επεξεργασία")
                          (project-menu (val id)
                                        filter
-                                       '(create update))
+                                       '(:create :update))
                          (project-notifications))
                    (with-form (actions/admin/project/update :id (val id) :search (val search))
                      (project-data-form 'update
@@ -480,7 +479,7 @@
                          (:p :class "title" "Έργο » Λεπτομέρειες")
                          (project-menu (val id)
                                        filter
-                                       '(details create)))
+                                       '(:details :create)))
                    (project-data-form 'details
                                       :filter filter
                                       :id (val id)
@@ -496,7 +495,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search status))
                (project-table (make-instance 'project-table
-                                             :op 'delete
+                                             :op :delete
                                              :filter filter)))
           (with-document ()
             (:head
@@ -510,7 +509,7 @@
                          (:div :class "title" "Έργο » Διαγραφή")
                          (project-menu (val id)
                                        filter
-                                       '(catalogue delete))
+                                       '(:catalogue :delete))
                          (with-form (actions/admin/project/delete :id (val id)
                                                                   :search (val* search)
                                                                   :status (val status))
@@ -524,13 +523,13 @@
 
 
 (defun project-data-form (op &key id data styles filter)
-  (let ((disabledp (eql op 'details)))
+  (let ((disabled (eql op :details)))
     (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :value (getf data (make-keyword name))
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (conc (getf styles (make-keyword name))
                                      " " extra-styles)))))
       (with-html
@@ -544,7 +543,7 @@
                                 (query (:select 'description 'id
                                                 :from 'project-status)))
                               :selected (or (getf data :status) *default-project-status*)
-                              :disabledp disabledp))
+                              :disabled disabled))
               (:div :class "grid_5 alpha project-data-form-subtitle"
                     (label+textbox 'location "Τοποθεσία")
                     (label+textbox 'company "Εταιρία" "ac-company"))
@@ -563,12 +562,12 @@
               (:div :class "project-data-form-title"
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes
-                               :cols 38 :rows 22 :disabled disabledp
+                               :cols 38 :rows 22 :disabled disabled
                                (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "grid_8 data-form-buttons"
-              (if disabledp
+              (if disabled
                   (cancel-button (apply #'project :id id filter)
                                  "Επιστροφή στον Κατάλογο Έργων")
                   (progn
-                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (apply #'project :id id filter) "Άκυρο"))))))))

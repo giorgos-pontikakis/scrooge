@@ -133,10 +133,7 @@
 (defmethod cells ((node account-radio-node) &key)
   (let* ((id (key node))
          (record (record node)))
-    (list :selector (make-instance 'radio-cell
-                                  :name 'account-id
-                                  :value id
-                                  :content (getf record :title)))))
+    (list :selector (lazy-radio 'account-id id (getf record :title)))))
 
 
 
@@ -205,9 +202,8 @@
                                        :off (apply #'cash cash-kind :id id filter)))
           :payload
           (mapcar (lambda (name)
-                    (make-instance 'textbox-cell
-                                   :name name
-                                   :value (getf record (make-keyword name))))
+                    (lazy-textbox name
+                                  :value (getf record (make-keyword name))))
                   '(date company description amount))
           :controls
           (list
@@ -277,7 +273,7 @@
                (cash-tx-table (make-instance 'cash-tx-table
                                              :id "cash-tx-table"
                                              :subpage cash-kind
-                                             :op 'catalogue
+                                             :op :catalogue
                                              :filter filter)))
           (with-document ()
             (:head
@@ -333,7 +329,7 @@
                                 '(create update delete))
                      (cash-notifications)
                      (with-form (actions/financial/cash/create cash-kind :search (val* search))
-                       (cash-data-form 'create cash-kind
+                       (cash-data-form :create cash-kind
                                        :filter filter
                                        :data (parameters->plist date
                                                                 company
@@ -405,7 +401,7 @@
         (let* ((filter (parameters->plist search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Διαγραφή"))
                (cash-tx-table (make-instance 'cash-tx-table
-                                             :op 'delete
+                                             :op :delete
                                              :subpage cash-kind
                                              :filter filter)))
           (with-document ()
@@ -435,7 +431,7 @@
 
 (defun cash-data-form (op cash-kind &key id data styles filter)
   (let* ((revenues-p (string-equal cash-kind "revenue"))
-         (disabledp (eql op 'details))
+         (disabled (eql op :details))
          (tree (account-tree revenues-p)))
     (push (root (make-instance 'account-radio-tree
                                :root-id (if revenues-p
@@ -448,7 +444,7 @@
                (label name label)
                (textbox name
                         :value (getf data (make-keyword name))
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (conc (getf styles (make-keyword name))
                                      " " extra-styles)))))
       (with-html
@@ -459,11 +455,11 @@
                     (label+textbox 'company "Εταιρία" "ac-company")
                     (label+textbox 'amount "Ποσό")
                     (:div :class "data-form-buttons"
-                          (if disabledp
+                          (if disabled
                               (cancel-button (apply #'cash cash-kind :id id filter)
                                              "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
                               (progn
-                                (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'cash cash-kind :id id filter)
                                                "Άκυρο")))))
               (:div :class "grid_6 omega"

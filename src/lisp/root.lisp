@@ -23,7 +23,7 @@
                           (:p (label 'user "Όνομα χρήστη"))
                           (:p (textbox 'user :value (val user)))
                           (:p (label 'pass "Κωδικός πρόσβασης"))
-                          (:p (textbox 'pass :passwordp t)))
+                          (:p (textbox 'pass :password t)))
                          (submit "Είσοδος"))))))))
 
 (define-dynamic-page verify-login ("verify-login" :request-type :post)

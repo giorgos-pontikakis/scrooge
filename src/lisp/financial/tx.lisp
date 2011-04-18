@@ -208,9 +208,8 @@
                                        :off (apply #'transaction :id id filter)))
           :payload
           (mapcar (lambda (name)
-                    (make-instance 'textbox-cell
-                                   :name name
-                                   :value (getf record (make-keyword name))))
+                    (lazy-textbox name
+                                  :value (getf record (make-keyword name))))
                   '(date company description amount))
           :controls
           (list
@@ -233,7 +232,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tx-table (make-instance 'tx-table
-                                        :op 'catalogue
+                                        :op :catalogue
                                         :filter filter)))
           (with-document ()
             (:head
@@ -248,8 +247,8 @@
                          (transaction-menu (val id)
                                            filter
                                            (if (val id)
-                                               '(catalogue)
-                                               '(catalogue details update delete)))
+                                               '(:catalogue)
+                                               '(:catalogue :details :update :delete)))
                          (display tx-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -281,10 +280,10 @@
                      (:div :class "title" "Συναλλαγή » Δημιουργία")
                      (transaction-menu nil
                                        filter
-                                       '(details create update delete))
+                                       '(:details :create :update :delete))
                      (transaction-notifications)
                      (with-form (actions/financial/transaction/create)
-                       (transaction-data-form 'create
+                       (transaction-data-form :create
                                               :filter filter
                                               :data (parameters->plist date
                                                                        company
@@ -325,7 +324,7 @@
                          (:div :class "title" "Συναλλαγή » Επεξεργασία")
                          (transaction-menu (val id)
                                            filter
-                                           '(create update))
+                                           '(:create :update))
                          (transaction-notifications)
                          (with-form (actions/financial/transaction/update :id (val* id)
                                                                           :search (val* search))
@@ -368,7 +367,7 @@
                          (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
                          (transaction-menu (val id)
                                            filter
-                                           '(details create))
+                                           '(:details :create))
                          (transaction-data-form 'details
                                                 :filter filter
                                                 :id (val id)
@@ -386,7 +385,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tx-table (make-instance 'tx-table
-                                        :op 'delete
+                                        :op :delete
                                         :filter filter)))
           (with-document ()
             (:head
@@ -400,7 +399,7 @@
                          (:div :class "title" "Συναλλαγή » Διαγραφή")
                          (transaction-menu (val id)
                                            filter
-                                           '(create delete))
+                                           '(:create :delete))
                          (with-form (actions/financial/transaction/delete :id (val id)
                                                                           :search (val* search))
                            (display tx-table :selected-id (val id))))
@@ -410,13 +409,13 @@
         (see-other (notfound)))))
 
 (defun transaction-data-form (op &key filter id data styles)
-  (let ((disabledp (eql op 'details)))
+  (let ((disabled (eql op :details)))
     (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :value (getf data (make-keyword name))
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (conc (getf styles (make-keyword name))
                                      " " extra-styles)))))
       (with-html
@@ -431,9 +430,9 @@
                                    "ac-nonchequing-account")
                     (label+textbox 'amount "Ποσόν")))
         (:div :class "grid_12 data-form-buttons"
-              (if disabledp
+              (if disabled
                   (cancel-button (apply #'transaction :id id filter)
                                  "Επιστροφή στον Κατάλογο Συναλλαγών")
                   (progn
-                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (apply #'transaction :id id filter) "Άκυρο"))))))))

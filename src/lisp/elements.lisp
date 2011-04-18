@@ -125,17 +125,17 @@
 ;;; ------------------------------------------------------------
 
 (defun crud-actions-spec (catalogue create update delete)
-  `((catalogue ,catalogue "Κατάλογος")
-    (create    ,create    "Δημιουργία")
-    (update    ,update    "Επεξεργασία")
-    (delete    ,delete    "Διαγραφή")))
+  `((:catalogue ,catalogue "Κατάλογος")
+    (:create    ,create    "Δημιουργία")
+    (:update    ,update    "Επεξεργασία")
+    (:delete    ,delete    "Διαγραφή")))
 
 (defun crud+details-actions-spec (catalogue create details update delete)
-  `((catalogue ,catalogue "Κατάλογος")
-    (create    ,create    "Δημιουργία")
-    (details   ,details   "Λεπτομέρειες")
-    (update    ,update    "Επεξεργασία")
-    (delete    ,delete    "Διαγραφή")))
+  `((:catalogue ,catalogue "Κατάλογος")
+    (:create    ,create    "Δημιουργία")
+    (:details   ,details   "Λεπτομέρειες")
+    (:update    ,update    "Επεξεργασία")
+    (:delete    ,delete    "Διαγραφή")))
 
 
 

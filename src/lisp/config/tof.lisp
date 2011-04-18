@@ -142,9 +142,8 @@
                                                  :off (apply #'tof
                                                              :id id
                                                              filter)))
-          :payload (make-instance 'textbox-cell
-                                  :name 'title
-                                  :value (getf record :title))
+          :payload (lazy-textbox 'title
+                                 :value (getf record :title))
           :controls (list (make-instance 'ok-cell)
                           (make-instance 'cancel-cell
                                          :href (apply #'tof :id id filter))))))
@@ -164,7 +163,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tof-table (make-instance 'tof-table
-                                         :op 'catalogue
+                                         :op :catalogue
                                          :filter filter)))
           (with-document ()
             (:head
@@ -179,8 +178,8 @@
                          (tof-menu (val id)
                                    filter
                                    (if (val id)
-                                       '(catalogue)
-                                       '(catalogue update delete)))
+                                       '(:catalogue)
+                                       '(:catalogue :update :delete)))
                          (display tof-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -196,7 +195,7 @@
     (no-cache)
     (let* ((filter (parameters->plist search))
            (tof-table (make-instance 'tof-table
-                                     :op 'create
+                                     :op :create
                                      :filter filter)))
       (with-document ()
         (:head
@@ -210,7 +209,7 @@
                      (:div :class "title" "Δ.Ο.Υ. » Δημιουργία")
                      (tof-menu nil
                                filter
-                               '(create update delete))
+                               '(:create :update :delete))
                      (with-form (actions/config/tof/create :search (val* search))
                        (display tof-table
                                 :selected-id nil
@@ -229,7 +228,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tof-table (make-instance 'tof-table
-                                         :op 'update
+                                         :op :update
                                          :filter filter)))
           (with-document ()
             (:head
@@ -243,7 +242,7 @@
                          (:div :class "title" "Δ.Ο.Υ. » Επεξεργασία")
                          (tof-menu (val id)
                                    filter
-                                   '(create update))
+                                   '(:create :update))
                          (with-form (actions/config/tof/update :id (val* id)
                                                                :filter (val* search))
                            (display tof-table
@@ -263,7 +262,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tof-table (make-instance 'tof-table
-                                         :op 'delete
+                                         :op :delete
                                          :filter filter)))
           (with-document ()
             (:head
@@ -277,7 +276,7 @@
                          (:div :class "title" "Δ.Ο.Υ. » Διαγραφή")
                          (tof-menu (val id)
                                    filter
-                                   '(create delete))
+                                   '(:create :delete))
                          (with-form (actions/config/tof/delete :id (val id)
                                                                :search (val* search))
                            (display tof-table

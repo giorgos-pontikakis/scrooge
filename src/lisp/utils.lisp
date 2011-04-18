@@ -121,3 +121,7 @@
     (parse-option-dao (get-dao 'option (etypecase id
                                          (symbol (string-downcase id))
                                          (string id))))))
+
+(defun img (href)
+  (with-html
+    (:img :src (url 'img href))))

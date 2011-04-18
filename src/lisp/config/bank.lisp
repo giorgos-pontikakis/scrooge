@@ -111,7 +111,7 @@
 
 ;;; table
 
-(defclass bank-table (crud-table)
+(defclass bank-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator      :initform (make-instance 'default-paginator
@@ -126,25 +126,32 @@
 
 ;;; rows
 
-(defclass bank-row (crud-row)
+(defclass bank-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row bank-row) &key start)
+(defmethod selector ((row bank-row) enabled-p)
   (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row))))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list :on (apply #'bank
-                                                            :start (page-start pg (index row) start)
-                                                            filter)
-                                                 :off (apply #'bank :id id filter)))
-          :payload (make-instance 'textbox-cell
-                                  :name 'title
-                                  :value (getf record :title))
-          :controls (list (make-instance 'ok-cell)
-                          (make-instance 'cancel-cell
-                                         :href (apply #'bank :id id filter))))))
+         (table (collection row))
+         (filter (filter table))
+         (start (page-start (paginator table) (index row) (start-index table))))
+    (html ()
+      (:a :href (if enabled-p
+                    (apply #'bank :start start filter)
+                    (apply #'bank :id id filter))
+          (selector-img enabled-p)))))
+
+(defmethod payload ((row bank-row) enabled-p)
+  (lazy-textbox 'title
+                :value (getf (record row) :title)
+                :disabled (not enabled-p)))
+
+(defmethod controls ((row bank-row) enabled-p)
+  (let ((id (key row))
+        (table (collection row)))
+    (if enabled-p
+        (list (lazy-ok-button)
+              (lazy-cancel-button (apply #'bank :id id (filter table))))
+        (list nil nil))))
 
 
 
@@ -161,8 +168,9 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (bank-table (make-instance 'bank-table
-                                          :op 'catalogue
-                                          :filter filter)))
+                                          :op :catalogue
+                                          :filter filter
+                                          :start (val* start))))
           (with-document ()
             (:head
              (:title "Τράπεζες")
@@ -176,11 +184,10 @@
                          (bank-menu (val id)
                                     filter
                                     (if (val id)
-                                        '(catalogue)
-                                        '(catalogue update delete)))
+                                        '(:catalogue)
+                                        '(:catalogue :update :delete)))
                          (display bank-table
-                                  :selected-id (val* id)
-                                  :start (val* start)))
+                                  :selected-id (val* id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (bank) (val search)))
                    (footer)))))
@@ -193,7 +200,7 @@
     (no-cache)
     (let* ((filter (parameters->plist search))
            (bank-table (make-instance 'bank-table
-                                      :op 'create
+                                      :op :create
                                       :filter filter)))
       (with-document ()
         (:head
@@ -207,7 +214,7 @@
                      (:div :class "title" "Τράπεζα » Δημιουργία")
                      (bank-menu nil
                                 filter
-                                '(create update delete))
+                                '(:create :update :delete))
                      (with-form (actions/config/bank/create :search (val* search))
                        (display bank-table
                                 :selected-id nil
@@ -226,7 +233,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (bank-table (make-instance 'bank-table
-                                          :op 'update
+                                          :op :update
                                           :filter filter)))
           (with-document ()
             (:head
@@ -240,7 +247,7 @@
                          (:div :class "title" "Τράπεζα » Επεξεργασία")
                          (bank-menu (val id)
                                     filter
-                                    '(create update))
+                                    '(:create :update))
                          (with-form (actions/config/bank/update :id (val* id)
                                                                 :search (val* search))
                            (display bank-table
@@ -260,7 +267,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (bank-table (make-instance 'bank-table
-                                          :op 'delete
+                                          :op :delete
                                           :filter filter)))
           (with-document ()
             (:head
@@ -274,7 +281,7 @@
                          (:div :class "title" "Τράπεζα » Διαγραφή")
                          (bank-menu (val id)
                                     filter
-                                    '(create delete))
+                                    '(:create :delete))
                          (with-form (actions/config/bank/delete :id (val id)
                                                                 :search (val* search))
                            (display bank-table

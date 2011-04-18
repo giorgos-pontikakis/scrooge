@@ -315,9 +315,8 @@
                                        :off (apply #'cheque cheque-kind :id id filter)))
           :payload
           (mapcar (lambda (name)
-                    (make-instance 'textbox-cell
-                                   :name name
-                                   :value (getf record (make-keyword name))))
+                    (lazy-textbox :name name
+                                  :value (getf record (make-keyword name))))
                   '(company bank due-date amount))
           :controls
           (list
@@ -345,7 +344,7 @@
                (cheque-table (make-instance 'cheque-table
                                             :id "cheque-table"
                                             :subpage cheque-kind
-                                            :op 'catalogue
+                                            :op :catalogue
                                             :filter filter)))
           (with-document ()
             (:head
@@ -403,7 +402,7 @@
                                   '(details create update delete)))
                (with-form (actions/financial/cheque/create cheque-kind :search (val* search))
                  (cheque-data-form cheque-kind
-                                   'create
+                                   :create
                                    :filter filter
                                    :data (parameters->plist bank
                                                             company
@@ -514,7 +513,7 @@
         (let* ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Διαγραφή"))
                (filter (parameters->plist status search))
                (cheque-table (make-instance 'cheque-table
-                                            :op 'delete
+                                            :op :delete
                                             :subpage cheque-kind
                                             :id "cheque-table"
                                             :filter filter)))
@@ -548,11 +547,11 @@
 
 (defun cheque-data-form (cheque-kind op &key filter id data styles)
   (let* ((revenues-p (string-equal cheque-kind "receivable"))
-         (disabledp (eql op 'details))
-         (tree (if (eql op 'create)
+         (disabled (eql op :details))
+         (tree (if (eql op :create)
                    (account-tree revenues-p)
                    nil)))
-    (when (eql op 'create)
+    (when (eql op :create)
       (push (root (make-instance 'account-radio-tree
                                  :root-id (if revenues-p
                                               *invoice-receivable-account*
@@ -564,7 +563,7 @@
                (label name label)
                (textbox name
                         :value (getf data (make-keyword name))
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (conc (getf styles (make-keyword name))
                                      " " extra-styles)))))
       (with-html
@@ -579,13 +578,13 @@
                     (dropdown 'status
                               *cheque-statuses*
                               :selected (or (getf data :status) *default-cheque-status*)
-                              :disabledp disabledp)
+                              :disabled disabled)
                     (:div :class "data-form-buttons"
-                          (if disabledp
+                          (if disabled
                               (cancel-button (apply #'cheque cheque-kind :id id filter)
                                              "Επιστροφή στον Κατάλογο Επιταγών")
                               (progn
-                                (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'cheque cheque-kind :id id filter)
                                                "Άκυρο")))))
               (:div :class "grid_6 data-form-first"

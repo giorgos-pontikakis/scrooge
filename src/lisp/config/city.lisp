@@ -9,9 +9,10 @@
 (defun city-referenced-p (id)
   (with-db ()
     (and id
-         nil #|(query (:select 'id
-         :from 'company
-         :where (:= 'city-id id)))|#)))
+         (query (:select 'id
+                         :from 'company
+                         :where (:= 'city-id id))
+                :column))))
 
 (define-existence-predicate city-id-exists-p city id)
 (define-existence-predicate city-title-exists-p city title)
@@ -50,6 +51,7 @@
      (search string))
   (with-auth ("configuration")
     (no-cache)
+    (break)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'city :title (val title)))
@@ -116,9 +118,9 @@
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
    (paginator      :initform (make-instance 'default-paginator
-                                       :id "city-paginator"
-                                       :style "paginator"
-                                       :urlfn #'city)))
+                                            :id "city-paginator"
+                                            :style "paginator"
+                                            :urlfn #'city)))
   (:default-initargs :id "config-table" :item-class 'city-row))
 
 (defmethod read-records ((table city-table))
@@ -142,9 +144,8 @@
                                                  :off (apply #'city
                                                              :id id
                                                              filter)))
-          :payload (make-instance 'textbox-cell
-                                  :name 'title
-                                  :value (getf record :title))
+          :payload (lazy-textbox 'title
+                                 :value (getf record :title))
           :controls (list (make-instance 'ok-cell)
                           (make-instance 'cancel-cell
                                          :href (apply #'city :id id filter))))))
@@ -164,7 +165,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (city-table (make-instance 'city-table
-                                          :op 'catalogue
+                                          :op :catalogue
                                           :filter filter)))
           (with-document ()
             (:head
@@ -179,8 +180,8 @@
                          (city-menu (val id)
                                     filter
                                     (if (val id)
-                                        '(catalogue)
-                                        '(catalogue update delete)))
+                                        '(:catalogue)
+                                        '(:catalogue :update :delete)))
                          (display city-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -196,7 +197,7 @@
     (no-cache)
     (let* ((filter (parameters->plist search))
            (city-table (make-instance 'city-table
-                                      :op 'create
+                                      :op :create
                                       :filter filter)))
       (with-document ()
         (:head
@@ -210,7 +211,7 @@
                      (:div :class "title" "Πόλη » Δημιουργία")
                      (city-menu nil
                                 filter
-                                '(create update delete))
+                                '(:create :update :delete))
                      (with-form (actions/config/city/create :search (val* search))
                        (display city-table
                                 :selected-id nil
@@ -229,7 +230,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (city-table (make-instance 'city-table
-                                          :op 'update
+                                          :op :update
                                           :filter filter)))
           (with-document ()
             (:head
@@ -243,7 +244,7 @@
                          (:div :class "title" "Πόλη » Επεξεργασία")
                          (city-menu (val id)
                                     filter
-                                    '(create update))
+                                    '(:create :update))
                          (with-form (actions/config/city/update :id (val* id)
                                                                 :search (val* search))
                            (display city-table
@@ -263,7 +264,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (city-table (make-instance 'city-table
-                                          :op 'delete
+                                          :op :delete
                                           :filter filter)))
           (with-document ()
             (:head
@@ -277,7 +278,7 @@
                          (:div :class "title" "Πόλη » Διαγραφή")
                          (city-menu (val id)
                                     filter
-                                    '(create delete))
+                                    '(:create :delete))
                          (with-form (actions/config/city/delete :id (val id)
                                                                 :search (val* search))
                            (display city-table

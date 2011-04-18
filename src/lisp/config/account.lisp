@@ -192,9 +192,8 @@
     (list :selector (make-instance 'selector-cell
                                    :states (list :on (account)
                                                  :off (account :id id)))
-          :payload (make-instance 'textbox-cell
-                                  :name 'title
-                                  :value (getf record :title))
+          :payload (lazy-textbox 'title
+                                 :value (getf record :title))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -234,7 +233,7 @@
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-crud-tree
-                                                      :op 'catalogue
+                                                      :op :catalogue
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -242,8 +241,8 @@
                           (account-crud-menu (val id)
                                              flag
                                              (if (and (val id) (eql flag (debit-p (val id))))
-                                                 '(catalogue)
-                                                 '(catalogue update delete)))
+                                                 '(:catalogue)
+                                                 '(:catalogue :update :delete)))
                           (display account-tree :selected-id (val* id))))))))
         (see-other (notfound)))))
 
@@ -268,7 +267,7 @@
                        (account-crud-menu (val parent-id)
                                           (debit-p (with-db ()
                                                      (get-dao 'account (val parent-id))))
-                                          '(create update delete))
+                                          '(:create :update :delete))
                        (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                  :debitp (val debitp))
                          (config-account-data-form 'create
@@ -298,7 +297,7 @@
                        (account-crud-menu (val id)
                                           (debit-p (with-db ()
                                                      (get-dao 'account (val id))))
-                                          '(create update delete))
+                                          '(:create :update :delete))
                        (with-form (actions/config/account/update :id (val id))
                          (config-account-data-form 'update
                                                    :id (val id)
@@ -335,8 +334,8 @@
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-crud-tree
                                                       :op (if (eql flag (debit-p (val id)))
-                                                              'delete
-                                                              'catalogue)
+                                                              :delete
+                                                              :catalogue)
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -345,31 +344,30 @@
                                              flag
                                              (if flag
                                                  '()
-                                                 '(create update delete)))
+                                                 '(:create :update :delete)))
                           (with-form (actions/config/account/delete :id (val id))
                             (display account-tree :selected-id (val* id)))))))))
         (see-other (notfound)))))
 
 (defun config-account-data-form (op &key id data styles)
-  (let ((disabledp (eql op 'details))
+  (let ((disabled (eql op :details))
         (dependent-tx-p (if id (ref-transactions id) nil)))
     (with-html
       (:div :id "config-account-data-form" :class "data-form"
             (:div :class "data-form-first"
                   (label 'title "Τίτλος")
                   (textbox 'title
-                           :value (getf data :title)
-                           :disabledp disabledp
-                           :style (getf styles :title)))
-            (checkbox 'chequing-p "Λογαριασμός επιταγών"
+                            :value (getf data :title)
+                            :disabled disabled
+                            :style (getf styles :title)))
+            (checkbox 'chequing-p t "Λογαριασμός επιταγών"
                       :style "inline"
-                      :value t
                       :checked (getf data :chequing-p)
-                      :disabledp  dependent-tx-p)
+                      :disabled  dependent-tx-p)
             (:div :class "data-form-buttons"
-                  (if disabledp
+                  (if disabled
                       (cancel-button (account :id id)
                                      "Επιστροφή στον Κατάλογο Λογαριασμών")
                       (progn
-                        (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                        (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                         (cancel-button (account :id id) "Άκυρο"))))))))

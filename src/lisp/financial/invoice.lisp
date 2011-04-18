@@ -189,9 +189,8 @@
                                        :off (apply #'invoice invoice-kind :id id filter)))
           :payload
           (mapcar (lambda (name)
-                    (make-instance 'textbox-cell
-                                   :name name
-                                   :value (getf record (make-keyword name))))
+                    (lazy-textbox name
+                                  :value (getf record (make-keyword name))))
                   '(date company description amount))
           :controls
           (list
@@ -261,7 +260,7 @@
                (invoice-tx-table (make-instance 'invoice-tx-table
                                                 :id "invoice-tx-table"
                                                 :subpage invoice-kind
-                                                :op 'catalogue
+                                                :op :catalogue
                                                 :filter filter)))
           (with-document ()
             (:head
@@ -277,8 +276,8 @@
                                        (val id)
                                        filter
                                        (if (val id)
-                                           '(catalogue)
-                                           '(catalogue details update delete)))
+                                           '(:catalogue)
+                                           '(:catalogue :details :update :delete)))
                          (display invoice-tx-table
                                   :selected-id (val* id)
                                   :selected-data nil
@@ -314,10 +313,10 @@
                      (invoice-menu invoice-kind
                                    nil
                                    filter
-                                   '(create update delete))
+                                   '(:create :update :delete))
                      (invoice-notifications)
                      (with-form (actions/financial/invoice/create invoice-kind :search (val* search))
-                       (invoice-data-form 'create invoice-kind
+                       (invoice-data-form :create invoice-kind
                                           :filter filter
                                           :data (parameters->plist date
                                                                    company
@@ -357,7 +356,7 @@
                      (invoice-menu invoice-kind
                                    nil
                                    filter
-                                   '(create update delete))
+                                   '(:create :update :delete))
                      (with-form (actions/financial/invoice/update invoice-kind
                                                                   :id (val id)
                                                                   :search (val* search))
@@ -388,7 +387,7 @@
         (let* ((filter (parameters->plist search))
                (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Διαγραφή"))
                (invoice-tx-table (make-instance 'invoice-tx-table
-                                                :op 'delete
+                                                :op :delete
                                                 :subpage invoice-kind
                                                 :filter filter)))
           (with-document ()
@@ -404,7 +403,7 @@
                          (invoice-menu invoice-kind
                                        (val id)
                                        filter
-                                       '(catalogue delete))
+                                       '(:catalogue :delete))
                          (with-form (actions/financial/invoice/delete invoice-kind
                                                                       :id (val id)
                                                                       :search (val* search))
@@ -417,14 +416,14 @@
         (see-other (error-page)))))
 
 (defun invoice-data-form (op invoice-kind &key id data styles filter)
-  (let ((disabledp (eql op 'details))
+  (let ((disabled (eql op :details))
         (tree (account-tree (string-equal invoice-kind "receivable"))))
     (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :value (getf data (make-keyword name))
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (conc (getf styles (make-keyword name))
                                      " " extra-styles)))))
       (with-html
@@ -435,11 +434,11 @@
                     (label+textbox 'company "Εταιρία" "ac-company")
                     (label+textbox 'amount "Ποσό")
                     (:div :class "data-form-buttons"
-                          (if disabledp
+                          (if disabled
                               (cancel-button (apply #'invoice invoice-kind :id id filter)
                                              "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
                               (progn
-                                (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'invoice invoice-kind :id id filter)
                                                "Άκυρο")))))
               (:div :class "grid_6 omega"

@@ -78,8 +78,8 @@
   (display (make-instance 'actions-menu
                           :id "option-actions"
                           :style "hnavbar actions"
-                          :spec `((catalogue ,(config)        "Προβολή")
-                                  (update    ,(config/update) "Επεξεργασία")))
+                          :spec `((:catalogue ,(config)        "Προβολή")
+                                  (:update    ,(config/update) "Επεξεργασία")))
            :disabled-items disabled-items))
 
 (defun option-notifications ()
@@ -126,8 +126,9 @@
              (config-navbar 'general)
              (:div :id "bank-window" :class "window grid_10"
                    (:div :class "title" "Ρυθμίσεις » Γενικά")
-                   (option-menu '(catalogue))
-                   (option-form 'details :data (get-option-plist))))))))
+                   (option-menu '(:catalogue))
+                   (option-form :catalogue
+                                :data (get-option-plist))))))))
 
 (define-dynamic-page config/update ("config/update")
     ((cash-account               string  chk-acc-title*)
@@ -158,9 +159,9 @@
              (config-navbar 'general)
              (:div :id "config-window" :class "window grid_12"
                    (:div :class "title" "Ρυθμίσεις » Επεξεργασία")
-                   (option-menu '(update))
+                   (option-menu '(:update))
                    (with-form (actions/config/update)
-                     (option-form 'update
+                     (option-form :update
                                   :data (plist-union
                                          (apply #'parameters->plist (parameters *page*))
                                          (get-option-plist))
@@ -169,14 +170,14 @@
 
 (defun option-form (op &key data styles)
   (with-db ()
-    (let ((disabledp (eql op 'details)))
+    (let ((disabled (eql op :catalogue)))
       (flet ((label+textbox (name label &optional extra-styles)
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabledp disabledp
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :style (conc (getf styles (make-keyword name))
+                                        " " extra-styles))))
         (with-html
           (:div :id "option-data-form" :class "data-form"
                 (label+textbox 'cash-account
@@ -204,6 +205,6 @@
                                "Αριθμός γραμμών στους καταλόγους"
                                "ac-account")
                 (:div :class "data-form-buttons grid_12"
-                      (unless disabledp
+                      (unless disabled
                         (ok-button "Ανανέωση")
                         (cancel-button (config) "Άκυρο")))))))))

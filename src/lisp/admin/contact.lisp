@@ -90,9 +90,8 @@
                                             :off (company/details :id (company-id table)
                                                                   :contact-id contact-id)))
           :payload (mapcar (lambda (name)
-                             (make-instance 'textbox-cell
-                                            :name name
-                                            :value (getf (record row) (make-keyword name))))
+                             (lazy-textbox name
+                                           :value (getf (record row) (make-keyword name))))
                            '(tag phone))
           :controls (list
                      (make-instance 'ok-cell)
@@ -153,7 +152,7 @@
     (if (every #'validp (parameters *page*))
         (let ((filter (parameters->plist search))
               (contact-table (make-instance 'contact-table
-                                            :op 'create
+                                            :op :create
                                             :company-id (val id))))
           (with-document ()
             (:head
@@ -167,7 +166,7 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        filter
-                                       '(details create))
+                                       '(:details :create))
                          (company-data-form 'details
                                             :filter filter
                                             :data (get-company-plist (val id))))
@@ -176,7 +175,7 @@
                          (contact-menu (val id)
                                        nil
                                        filter
-                                       '(details create update delete))
+                                       '(:details :create :update :delete))
                          (with-form (actions/admin/contact/create :id (val id))
                            (display contact-table)))
                    (footer)))))
@@ -191,7 +190,7 @@
     (if (every #'validp (parameters *page*))
         (let ((filter (parameters->plist search))
               (contact-table (make-instance 'contact-table
-                                            :op 'update
+                                            :op :update
                                             :company-id (val id))))
           (with-document ()
             (:head
@@ -205,7 +204,7 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        filter
-                                       '(details create))
+                                       '(:details :create))
                          (company-data-form 'details
                                             :filter filter
                                             :data (get-company-plist (val id))))
@@ -214,7 +213,7 @@
                          (contact-menu (val id)
                                        (val contact-id)
                                        filter
-                                       '(create update))
+                                       '(:create :update))
                          (with-form (actions/admin/contact/update :id (val id)
                                                                   :contact-id (val contact-id))
                            (display contact-table :selected-id (val contact-id))))
@@ -232,7 +231,7 @@
     (if (every #'validp (parameters *page*))
         (let ((filter (parameters->plist search))
               (contact-table (make-instance 'contact-table
-                                            :op 'delete
+                                            :op :delete
                                             :company-id (val id))))
           (with-document ()
             (:head
@@ -246,7 +245,7 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        filter
-                                       '(details create))
+                                       '(:details :create))
                          (company-data-form 'details
                                             :filter filter
                                             :data (get-company-plist (val id))))
@@ -256,8 +255,8 @@
                                        (val contact-id)
                                        filter
                                        (if (val contact-id)
-                                           '(details)
-                                           '(details update delete)))
+                                           '(:details)
+                                           '(:details :update :delete)))
                          (with-form (actions/admin/contact/delete :id (val id)
                                                                   :contact-id (val contact-id))
                            (display contact-table :selected-id (val contact-id))))

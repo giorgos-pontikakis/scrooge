@@ -298,9 +298,8 @@
                                                        filter)
                                             :off (apply #'company :id id filter)))
           :payload (mapcar (lambda (name)
-                             (make-instance 'textbox-cell
-                                            :name name
-                                            :value (getf record (make-keyword name))))
+                             (lazy-textbox name
+                                           :value (getf record (make-keyword name))))
                            '(title tin tof))
           :controls (list
                      (make-instance 'ok-cell)
@@ -322,7 +321,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (company-table (make-instance 'company-table
-                                             :op 'catalogue
+                                             :op :catalogue
                                              :filter filter)))
           (with-document ()
             (:head
@@ -337,8 +336,8 @@
                          (company-menu (val id)
                                        filter
                                        (if (val id)
-                                           '(catalogue)
-                                           '(catalogue details update delete)))
+                                           '(:catalogue)
+                                           '(:catalogue :details :update :delete)))
                          (display company-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -373,7 +372,7 @@
                      (:div :class "title" "Εταιρία » Δημιουργία")
                      (company-menu nil
                                    filter
-                                   '(details create update delete))
+                                   '(:details :create :update :delete))
                      (company-notifications)
                      (with-form (actions/admin/company/create :search (val search))
                        (company-data-form 'create
@@ -420,7 +419,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (contact-table (make-instance 'contact-table
-                                             :op 'details
+                                             :op :details
                                              :company-id (val id))))
           (with-document ()
             (:head
@@ -434,7 +433,7 @@
                          (:div :class "title" "Εταιρία » Επεξεργασία")
                          (company-menu (val id)
                                        filter
-                                       '(create update))
+                                       '(:create :update))
                          (company-notifications)
                          (with-form (actions/admin/company/update :id (val id) :search (val search))
                            (company-data-form 'update
@@ -465,8 +464,8 @@
                                        (val contact-id)
                                        filter
                                        (if (val contact-id)
-                                           '(catalogue)
-                                           '(catalogue update delete)))
+                                           '(:catalogue)
+                                           '(:catalogue :update :delete)))
                          (display contact-table
                                   :selected-id (val contact-id)))
                    (footer)))))
@@ -481,7 +480,7 @@
     (if (validp id)
         (let ((filter (parameters->plist search))
               (contact-table (make-instance 'contact-table
-                                            :op 'details
+                                            :op :details
                                             :company-id (val id))))
           (with-document ()
             (:head
@@ -495,7 +494,7 @@
                          (:div :class "title" "Εταιρία » Λεπτομέρειες")
                          (company-menu (val id)
                                        filter
-                                       '(details create))
+                                       '(:details :create))
                          (company-data-form 'details
                                             :filter filter
                                             :id (val id)
@@ -506,8 +505,8 @@
                                        (val contact-id)
                                        filter
                                        (if (val contact-id)
-                                           '(catalogue)
-                                           '(catalogue update delete)))
+                                           '(:catalogue)
+                                           '(:catalogue :update :delete)))
                          (display contact-table
                                   :selected-id (val contact-id)))))))
         (see-other (error-page)))))
@@ -520,7 +519,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (company-table (make-instance 'company-table
-                                             :op 'delete
+                                             :op :delete
                                              :filter filter)))
           (with-document ()
             (:head
@@ -534,7 +533,7 @@
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
                                        filter
-                                       '(catalogue delete))
+                                       '(:catalogue :delete))
                          (with-form (actions/admin/company/delete :id (val id)
                                                                   :search (val* search))
                            (display company-table
@@ -545,15 +544,15 @@
         (see-other (error-page)))))
 
 (defun company-data-form (op &key id data styles filter)
-  (let ((disabledp (eql op 'details)))
+  (let ((disabled (eql op :details)))
     (flet ((label+textbox (name label &optional extra-styles)
-               (with-html
-                 (label name label)
-                 (textbox name
-                          :value (getf data (make-keyword name))
-                          :disabledp disabledp
-                          :style (conc (getf styles (make-keyword name))
-                                       " " extra-styles)))))
+             (with-html
+               (label name label)
+               (textbox name
+                        :value (getf data (make-keyword name))
+                        :disabled disabled
+                        :style (conc (getf styles (make-keyword name))
+                                     " " extra-styles)))))
       (with-html
         (:div :class "data-form company-data"
               (:div :class "company-form-no-fieldset"
@@ -572,12 +571,12 @@
               (:div :class "company-form-no-fieldset"
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes
-                               :cols 56 :rows 10 :disabled disabledp
+                               :cols 56 :rows 10 :disabled disabled
                                (str (lisp->html (or (getf data :notes) :null))))))
         (:div :class "data-form-buttons"
-              (if disabledp
+              (if disabled
                   (cancel-button (apply #'company :id id filter)
                                  "Επιστροφή στον Κατάλογο Εταιριών")
                   (progn
-                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (apply #'company :id id filter) "Άκυρο"))))))))

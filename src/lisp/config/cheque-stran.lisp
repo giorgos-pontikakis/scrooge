@@ -250,23 +250,17 @@
                                    :states (list
                                             :on (config/cheque-stran cheque-kind)
                                             :off (config/cheque-stran cheque-kind :id id)))
-          :payload (list (make-instance 'textbox-cell
-                                        :name 'title
-                                        :value (getf record :title))
-                         (make-instance 'dropdown-cell
-                                        :name 'from-status
-                                        :selected (getf record :from-description)
-                                        :alist *cheque-statuses*)
-                         (make-instance 'dropdown-cell
-                                        :name 'to-status
+          :payload (list (lazy-textbox 'title
+                                       :value (getf record :title))
+                         (lazy-dropdown 'from-status *cheque-statuses*
+                                        :selected (getf record :from-description))
+                         (lazy-dropdown 'to-status *cheque-statuses*
                                         :selected (getf record :to-description)
-                                        :alist *cheque-statuses*)
-                         (make-instance 'textbox-cell
-                                        :name 'debit-account
-                                        :value (getf record :debit-account))
-                         (make-instance 'textbox-cell
-                                        :name 'credit-account
-                                        :value (getf record :credit-account)))
+                                        :alist)
+                         (lazy-textbox 'debit-account
+                                       :value (getf record :debit-account))
+                         (lazy-textbox 'credit-account
+                                       :value (getf record :credit-account)))
           :controls (list
                      (make-instance 'ok-cell)
                      (make-instance 'cancel-cell
@@ -284,7 +278,7 @@
     (no-cache)
     (if (validp id)
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                                 :op 'catalogue
+                                                 :op :catalogue
                                                  :id "cheque-stran-table"
                                                  :filter cheque-kind)))
           (with-document ()
@@ -300,8 +294,8 @@
                          (cheque-stran-menu (val id)
                                             cheque-kind
                                             (if (val id)
-                                                '(catalogue)
-                                                '(catalogue update delete)))
+                                                '(:catalogue)
+                                                '(:catalogue :update :delete)))
                          (display cheque-stran-table
                                   :selected-id (val* id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
@@ -330,7 +324,7 @@
                    (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Δημιουργία")
                    (cheque-stran-menu nil
                                       cheque-kind
-                                      '(create update delete))
+                                      '(:create :update :delete))
                    (cheque-stran-notifications)
                    (with-form (actions/config/cheque-stran/create cheque-kind)
                      (cheque-stran-data-form cheque-kind
@@ -372,7 +366,7 @@
                          (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Επεξεργασία")
                          (cheque-stran-menu (val id)
                                             cheque-kind
-                                            '(create update))
+                                            '(:create :update))
                          (cheque-stran-notifications)
                          (with-form (actions/config/cheque-stran/update cheque-kind :id (val id))
                            (cheque-stran-data-form cheque-kind
@@ -402,7 +396,7 @@
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                                  :id "cheque-stran-table"
                                                  :filter cheque-kind
-                                                 :op 'delete)))
+                                                 :op :delete)))
           (with-document ()
             (:head
              (:title "Καταστατικές Μεταβολές Επιταγών » Διαγραφή")
@@ -415,7 +409,7 @@
                          (:div :class "title" "Καταστατικές Μεταβολές Επιταγών » Διαγραφή")
                          (cheque-stran-menu (val id)
                                             cheque-kind
-                                            '(create delete))
+                                            '(:create :delete))
                          (with-form (actions/config/cheque-stran/delete cheque-kind
                                                                         :id (val id))
                            (display cheque-stran-table
@@ -426,13 +420,13 @@
         (see-other (notfound)))))
 
 (defun cheque-stran-data-form (cheque-kind op &key id data styles)
-  (let ((disabledp (eql op 'details)))
+  (let ((disabled (eql op :details)))
     (flet ((label+textbox (name label &optional extra-styles)
              (with-html
                (label name label)
                (textbox name
                         :value (getf data (make-keyword name))
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (conc (getf styles (make-keyword name))
                                      " " extra-styles)))))
       (with-html
@@ -442,20 +436,20 @@
               (label 'from-status "Αρχική Κατάσταση")
               (dropdown 'from-status *cheque-statuses*
                         :selected (getf data :from-status)
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (getf styles :from-status))
               (label 'from-status "Τελική Κατάσταση")
               (dropdown 'to-status *cheque-statuses*
                         :selected (getf data :to-status)
-                        :disabledp disabledp
+                        :disabled disabled
                         :style (getf styles :to-status))
               ;;
               (label+textbox 'debit-account "Λογαριασμός Χρέωσης" "ac-account")
               (label+textbox 'credit-account "Λογαριασμός Πίστωσης" "ac-account"))
         (:div :class "data-form-buttons grid_9"
-              (if disabledp
+              (if disabled
                   (cancel-button (config/cheque-stran cheque-kind :id id)
                                  "Επιστροφή στον Κατάλογο Επιταγών")
                   (progn
-                    (ok-button (if (eql op 'update) "Ανανέωση" "Δημιουργία"))
+                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (config/cheque-stran cheque-kind :id id) "Άκυρο"))))))))

@@ -17,9 +17,8 @@
     (list :selector (make-instance 'selector-cell
                                    :states (list :on (account/overview)
                                                  :off (account/overview :id id)))
-          :payload (make-instance 'textbox-cell
-                                  :name 'title
-                                  :value (getf record :title)))))
+          :payload (lazy-textbox 'title
+                                 :value (getf record :title)))))
 
 
 
@@ -64,9 +63,8 @@
                                   (list :debit-amount :null
                                         :credit-amount (getf record :amount))))))
     (list :payload (mapcar (lambda (name)
-                             (make-instance 'textbox-cell
-                                            :name name
-                                            :value (getf record-plus (make-keyword name))))
+                             (lazy-textbox name
+                                           :value (getf record-plus (make-keyword name))))
                            '(tx-date description company debit-amount credit-amount)))))
 
 
