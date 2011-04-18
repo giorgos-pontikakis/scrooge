@@ -2,6 +2,19 @@
 
 
 
+;;; config crud rows
+
+(defclass config-row (scrooge-crud-row)
+  ())
+
+(defmethod payload ((row config-row) enabled-p)
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record row) :title)
+                 :disabled (not enabled-p)))
+
+
+
 ;;; UI elements
 
 (defun config-navbar (&optional active-page-name)

@@ -11,7 +11,8 @@
     (and id
          (query (:select 'id
                          :from 'company
-                         :where (:= 'tof-id id))))))
+                         :where (:= 'tof-id id))
+                :column))))
 
 (define-existence-predicate tof-id-exists-p tof id)
 (define-existence-predicate tof-title-exists-p tof title)
@@ -74,6 +75,7 @@
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-auth ("configuration")
+    (no-cache)
     (if (validp id)
         (with-db ()
           (delete-dao (get-dao 'tof (val id)))
@@ -89,15 +91,14 @@
 (defun tof-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "tof-actions"
-                          :style "hnavbar actions"
                           :spec (crud-actions-spec (apply #'tof :id id filter)
                                                    (apply #'tof/create filter)
                                                    (apply #'tof/update :id id filter)
                                                    (if (or (null id)
-                                                           (tof-referenced-p id))
+                                                           (chk-tof-id/ref id))
                                                        nil
-                                                       (apply #'tof/delete :id id filter))))
-           :disabled-items disabled-items))
+                                                       (apply #'tof/delete :id id filter)))
+                          :disabled-items disabled-items)))
 
 (defun tof-notifications ()
   (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
@@ -111,7 +112,7 @@
 
 ;;; table
 
-(defclass tof-table (crud-table)
+(defclass tof-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
    (paginator      :initform (make-instance 'default-paginator
@@ -127,26 +128,11 @@
 
 ;; rows
 
-(defclass tof-row (crud-row)
+(defclass tof-row (config-row)
   ())
 
-(defmethod cells ((row tof-row) &key start)
-  (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row))))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list :on (apply #'tof
-                                                            :start (page-start pg (index row) start)
-                                                            filter)
-                                                 :off (apply #'tof
-                                                             :id id
-                                                             filter)))
-          :payload (lazy-textbox 'title
-                                 :value (getf record :title))
-          :controls (list (make-instance 'ok-cell)
-                          (make-instance 'cancel-cell
-                                         :href (apply #'tof :id id filter))))))
+(define-selector tof-row tof)
+(define-controls tof-row tof)
 
 
 

@@ -51,7 +51,6 @@
      (search string))
   (with-auth ("configuration")
     (no-cache)
-    (break)
     (if (every #'validp (parameters *page*))
         (with-db ()
           (insert-dao (make-instance 'city :title (val title)))
@@ -99,9 +98,8 @@
                                                    (if (or (null id)
                                                            (city-referenced-p id))
                                                        nil
-                                                       (apply #'city/delete :id id filter))))
-           :disabled-items disabled-items))
-
+                                                       (apply #'city/delete :id id filter)))
+                          :disabled-items disabled-items)))
 
 (defun city-notifications ()
   (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."

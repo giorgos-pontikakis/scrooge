@@ -11,7 +11,8 @@
     (and id
          (query (:select 'id
                          :from 'cheque
-                         :where (:= 'bank-id id))))))
+                         :where (:= 'bank-id id))
+                :column))))
 
 (define-existence-predicate bank-id-exists-p bank id)
 (define-existence-predicate bank-title-exists-p bank title)
@@ -34,9 +35,10 @@
         (t nil)))
 
 (defun chk-bank-title (title)
-  (cond ((eql :null title) :bank-title-null)
-        ((not (bank-title-exists-p title)) :bank-title-unknown)
-        (t nil)))
+  (if (or (eql :null title)
+          (bank-title-exists-p title))
+      nil
+      :bank-title-unknown))
 
 
 
@@ -89,15 +91,14 @@
 (defun bank-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "bank-actions"
-                          :style "hnavbar actions"
                           :spec (crud-actions-spec (apply #'bank :id id filter)
                                                    (apply #'bank/create filter)
                                                    (apply #'bank/update :id id filter)
                                                    (if (or (null id)
                                                            (chk-bank-id/ref id))
                                                        nil
-                                                       (apply #'bank/delete :id id filter))))
-           :disabled-items disabled-items))
+                                                       (apply #'bank/delete :id id filter)))
+                          :disabled disabled-items)))
 
 (defun bank-notifications ()
   (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
@@ -126,24 +127,16 @@
 
 ;;; rows
 
-(defclass bank-row (scrooge-crud-row)
+(defclass bank-row (config-row)
   ())
 
-(defmethod selector ((row bank-row) enabled-p)
-  (let* ((id (key row))
-         (table (collection row))
-         (filter (filter table))
-         (start (page-start (paginator table) (index row) (start-index table))))
-    (html ()
-      (:a :href (if enabled-p
-                    (apply #'bank :start start filter)
-                    (apply #'bank :id id filter))
-          (selector-img enabled-p)))))
+(define-selector bank-row bank)
 
 (defmethod payload ((row bank-row) enabled-p)
-  (lazy-textbox 'title
-                :value (getf (record row) :title)
-                :disabled (not enabled-p)))
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record row) :title)
+                 :disabled (not enabled-p)))
 
 (defmethod controls ((row bank-row) enabled-p)
   (let ((id (key row))
