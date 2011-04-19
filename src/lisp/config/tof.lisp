@@ -95,7 +95,7 @@
                                                    (apply #'tof/create filter)
                                                    (apply #'tof/update :id id filter)
                                                    (if (or (null id)
-                                                           (chk-tof-id/ref id))
+                                                           (tof-referenced-p id))
                                                        nil
                                                        (apply #'tof/delete :id id filter)))
                           :disabled-items disabled-items)))
@@ -120,7 +120,6 @@
                                            :style "paginator"
                                            :urlfn #'tof)))
   (:default-initargs :id "config-table" :item-class 'tof-row))
-
 
 (defmethod read-records ((table tof-table))
   (config-data 'tof (getf (filter table) :search)))

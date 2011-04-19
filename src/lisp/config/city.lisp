@@ -91,7 +91,6 @@
 (defun city-menu (id filter &optional disabled-items)
   (display (make-instance 'actions-menu
                           :id "city-actions"
-                          :style "hnavbar actions"
                           :spec (crud-actions-spec (apply #'city :id id filter)
                                                    (apply #'city/create filter)
                                                    (apply #'city/update :id id filter)
@@ -106,13 +105,14 @@
                            :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; City table
 ;;; ------------------------------------------------------------
 
 ;;; table
 
-(defclass city-table (crud-table)
+(defclass city-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
    (paginator      :initform (make-instance 'default-paginator
@@ -127,26 +127,11 @@
 
 ;;; rows
 
-(defclass city-row (crud-row)
+(defclass city-row (config-row)
   ())
 
-(defmethod cells ((row city-row) &key start)
-  (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row))))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list :on (apply #'city
-                                                            :start (page-start pg (index row) start)
-                                                            filter)
-                                                 :off (apply #'city
-                                                             :id id
-                                                             filter)))
-          :payload (lazy-textbox 'title
-                                 :value (getf record :title))
-          :controls (list (make-instance 'ok-cell)
-                          (make-instance 'cancel-cell
-                                         :href (apply #'city :id id filter))))))
+(define-selector city-row city)
+(define-controls city-row city)
 
 
 

@@ -298,8 +298,9 @@
                                                        filter)
                                             :off (apply #'company :id id filter)))
           :payload (mapcar (lambda (name)
-                             (lazy-textbox name
-                                           :value (getf record (make-keyword name))))
+                             (make-instance 'textbox
+                                            :name name
+                                            :value (getf record (make-keyword name))))
                            '(title tin tof))
           :controls (list
                      (make-instance 'ok-cell)

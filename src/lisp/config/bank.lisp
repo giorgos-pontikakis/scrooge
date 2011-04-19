@@ -95,7 +95,7 @@
                                                    (apply #'bank/create filter)
                                                    (apply #'bank/update :id id filter)
                                                    (if (or (null id)
-                                                           (chk-bank-id/ref id))
+                                                           (bank-referenced-p id))
                                                        nil
                                                        (apply #'bank/delete :id id filter)))
                           :disabled disabled-items)))
@@ -131,20 +131,7 @@
   ())
 
 (define-selector bank-row bank)
-
-(defmethod payload ((row bank-row) enabled-p)
-  (make-instance 'textbox
-                 :name 'title
-                 :value (getf (record row) :title)
-                 :disabled (not enabled-p)))
-
-(defmethod controls ((row bank-row) enabled-p)
-  (let ((id (key row))
-        (table (collection row)))
-    (if enabled-p
-        (list (lazy-ok-button)
-              (lazy-cancel-button (apply #'bank :id id (filter table))))
-        (list nil nil))))
+(define-controls bank-row bank)
 
 
 

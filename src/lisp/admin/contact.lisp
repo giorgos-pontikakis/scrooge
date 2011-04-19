@@ -90,8 +90,9 @@
                                             :off (company/details :id (company-id table)
                                                                   :contact-id contact-id)))
           :payload (mapcar (lambda (name)
-                             (lazy-textbox name
-                                           :value (getf (record row) (make-keyword name))))
+                             (make-instance 'textbox
+                                            :name name
+                                            :value (getf (record row) (make-keyword name))))
                            '(tag phone))
           :controls (list
                      (make-instance 'ok-cell)

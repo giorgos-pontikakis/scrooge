@@ -76,7 +76,6 @@
   ()
   (:default-initargs :style "hnavbar actions"))
 
-(def)
 
 
 ;;; selector and controls for crud collections
@@ -100,5 +99,5 @@
        (if enabled-p
            (list (make-instance 'ok-button)
                  (make-instance 'cancel-button
-                                (apply #',url :id id (filter table))))
+                                :href (apply #',url :id id (filter table))))
            (list nil nil)))))

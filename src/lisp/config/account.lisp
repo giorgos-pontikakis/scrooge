@@ -168,7 +168,7 @@
 
 ;;; tree
 
-(defclass account-crud-tree (crud-tree)
+(defclass account-crud-tree (scrooge-crud-tree)
   ((item-key-field        :initform :id)
    (item-parent-key-field :initform :parent-id))
   (:default-initargs :item-class 'account-crud-node))
@@ -183,21 +183,28 @@
 
 ;;; nodes
 
-(defclass account-crud-node (crud-node)
+(defclass account-crud-node (scrooge-crud-node)
   ())
 
-(defmethod cells ((node account-crud-node) &key)
-  (let* ((id (key node))
-         (record (record node)))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list :on (account)
-                                                 :off (account :id id)))
-          :payload (lazy-textbox 'title
-                                 :value (getf record :title))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (account :id id))))))
+(defmethod selector ((node account-crud-node) enabled-p)
+  (html ()
+    (:a :href (if enabled-p
+                  (account)
+                  (account :id id))
+        (selector-img enabled-p))))
+
+(defmethod payload ()
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record row)
+                              :title)))
+
+(defmethod controls ((node account-crud-node))
+  (let ((id (key row)))
+    (list (make-instance 'ok-cell)
+          (make-instance 'cancel-cell
+                         :href (account :id id)))))
+
 
 
 

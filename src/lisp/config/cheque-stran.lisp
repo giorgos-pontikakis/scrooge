@@ -207,7 +207,7 @@
 
 ;;; table
 
-(defclass cheque-stran-table (crud-table)
+(defclass cheque-stran-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
@@ -238,34 +238,47 @@
 
 ;;; rows
 
-(defclass cheque-stran-row (crud-row)
+(defclass cheque-stran-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row cheque-stran-row) &key start)
-  (declare (ignore start))
+(defmethod selector ((row cheque-stran-row) enabled-p)
   (let* ((id (key row))
-         (record (record row))
-         (cheque-kind (filter (collection row))))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list
-                                            :on (config/cheque-stran cheque-kind)
-                                            :off (config/cheque-stran cheque-kind :id id)))
-          :payload (list (lazy-textbox 'title
-                                       :value (getf record :title))
-                         (lazy-dropdown 'from-status *cheque-statuses*
-                                        :selected (getf record :from-description))
-                         (lazy-dropdown 'to-status *cheque-statuses*
-                                        :selected (getf record :to-description)
-                                        :alist)
-                         (lazy-textbox 'debit-account
-                                       :value (getf record :debit-account))
-                         (lazy-textbox 'credit-account
-                                       :value (getf record :credit-account)))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (config/cheque-stran cheque-kind :id id))))))
+         (table (collection row))
+         (filter (filter table))
+         (start (page-start (paginator table) (index row) (start-index table))))
+    (html ()
+      (:a :href (if enabled-p
+                    (config/cheque-stran cheque-kind :start start filter)
+                    (config/cheque-stran cheque-kind :id id filter))
+          (selector-img enabled-p)))))
 
+(defmethod payload ((row cheque-stran-row))
+  (let ((record (record row)))
+   (list (make-instance 'textbox
+                        :title 'title
+                        :value (getf record :title))
+         (make-instance 'dropdown
+                        :name 'from-status
+                        :label-value-alist *cheque-statuses*
+                        :selected (getf record :from-description))
+         (make-instance 'dropdown
+                        :name 'to-status
+                        :label-value-alist *cheque-statuses*
+                        :selected (getf record :to-description))
+         (make-instance 'textbox
+                        :name 'debit-account
+                        :value (getf record :debit-account))
+         (make-instance 'textbox
+                        :name 'credit-account
+                        :value (getf record :credit-account)))))
+
+(defmethod controls ((row cheque-stran-row) enabled-p)
+  (let ((id (key row)))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (config/cheque-stran cheque-kind :id id)))
+        (list nil nil))))
 
 
 ;;; ------------------------------------------------------------
