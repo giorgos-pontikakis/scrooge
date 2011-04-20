@@ -144,21 +144,17 @@
 ;;; Account menu
 ;;; ------------------------------------------------------------
 
-(defun account-crud-menu (id debitp &optional disabled-items)
+(defun account-crud-menu (id debitp &optional disabled)
   (let ((prefix (if debitp "debit" "credit")))
-    (display (make-instance 'actions-menu
-                            :id (conc prefix "-account-actions")
-                            :style "hnavbar actions"
-                            :spec (crud-actions-spec (account :id id)
-                                                     (account/create :debitp debitp
-                                                                     :parent-id id)
-                                                     (account/update :id id)
-                                                     (if (or (null id)
-                                                             (acc-referenced-p id))
-                                                         nil
-                                                         (account/delete :id id))))
-             :disabled-items disabled-items)))
-
+    (menu (crud-actions-spec (account :id id)
+                             (account/create :debitp debitp :parent-id id)
+                             (account/update :id id)
+                             (if (or (null id) (acc-referenced-p id))
+                                 nil
+                                 (account/delete :id id)))
+          :id (conc prefix "-account-actions")
+          :style "hnavbar actions"
+          :disabled disabled)))
 
 
 
@@ -187,22 +183,23 @@
   ())
 
 (defmethod selector ((node account-crud-node) enabled-p)
-  (html ()
-    (:a :href (if enabled-p
-                  (account)
-                  (account :id id))
-        (selector-img enabled-p))))
+  (let ((id (key node)))
+    (html ()
+      (:a :href (if enabled-p
+                    (account)
+                    (account :id id))
+          (selector-img enabled-p)))))
 
-(defmethod payload ()
+(defmethod payload ((node account-crud-node) enabled-p)
   (make-instance 'textbox
                  :name 'title
-                 :value (getf (record row)
-                              :title)))
+                 :value (getf (record node) :title)
+                 :disabled (not enabled-p)))
 
-(defmethod controls ((node account-crud-node))
-  (let ((id (key row)))
-    (list (make-instance 'ok-cell)
-          (make-instance 'cancel-cell
+(defmethod controls ((node account-crud-node) enabled-p)
+  (let ((id (key node)))
+    (list (make-instance 'ok-button)
+          (make-instance 'cancel-button
                          :href (account :id id)))))
 
 

@@ -189,19 +189,17 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-menu (id filter &optional disabled-items)
-  (display
-   (make-instance 'actions-menu
-                  :id "company-actions"
-                  :style "hnavbar actions"
-                  :spec (crud+details-actions-spec (apply #'company :id id filter)
-                                                   (apply #'company/create filter)
-                                                   (apply #'company/details :id id filter)
-                                                   (apply #'company/update :id id filter)
-                                                   (if (chk-company-id/ref id)
-                                                       nil
-                                                       (apply #'company/delete :id id filter))))
-   :disabled-items disabled-items))
+(defun company-menu (id filter &optional disabled)
+  (menu (crud+details-actions-spec (apply #'company :id id filter)
+                                   (apply #'company/create filter)
+                                   (apply #'company/details :id id filter)
+                                   (apply #'company/update :id id filter)
+                                   (if (chk-company-id/ref id)
+                                       nil
+                                       (apply #'company/delete :id id filter)))
+        :id "company-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun company-notifications ()
   (notifications '((title   (:company-title-null "Το όνομα της εταιρίας είναι κενό"
@@ -243,10 +241,10 @@
 
 ;;; table
 
-(defclass company-table (crud-table)
+(defclass company-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                            :id "company-paginator"
                                            :style "paginator"
                                            :urlfn #'company)))
@@ -283,29 +281,21 @@
 
 ;;; rows
 
-(defclass company-row (crud-row)
+(defclass company-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row company-row) &key start)
-  (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row))))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list
-                                            :on (apply #'company
-                                                       :start (page-start pg (index row) start)
-                                                       filter)
-                                            :off (apply #'company :id id filter)))
-          :payload (mapcar (lambda (name)
-                             (make-instance 'textbox
-                                            :name name
-                                            :value (getf record (make-keyword name))))
-                           '(title tin tof))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (apply #'company :id id filter))))))
+(define-selector company-row company)
+
+(defmethod payload ((row company-row) enabled-p)
+  (let ((record (record row)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
+            '(title tin tof))))
+
+(define-controls company-row company)
 
 
 

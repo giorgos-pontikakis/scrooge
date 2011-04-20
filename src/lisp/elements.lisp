@@ -110,30 +110,26 @@
           (:p "Powered by lisp"))))
 
 (defun primary-navbar (active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :id "primary-navbar"
-                          :style "hnavbar grid_6 prefix_1"
-                          :spec `((financial ,(financial) "Οικονομικά")
-                                  (admin     ,(admin)     "Διαχείριση")
-                                  (config    ,(config)    "Ρυθμίσεις")))
-           :active-page-name active-page-name))
+  (navbar `((financial ,(financial) "Οικονομικά")
+            (admin     ,(admin)     "Διαχείριση")
+            (config    ,(config)    "Ρυθμίσεις"))
+          :id "primary-navbar"
+          :style "hnavbar grid_6 prefix_1"
+          :active-page-name active-page-name))
 
 (defun logout-menu ()
   (with-html
     (:ul :id "logout" :class "grid_3 hnavbar"
          (:li (fmt "~A@~A" (session-value 'user) (machine-instance)))
-         (:li (display (make-instance 'menu
-                                      :style "hnavbar"
-                                      :spec `((logout ,(logout) "Έξοδος"))))))))
+         (:li (menu `((logout ,(logout) "Έξοδος"))
+                    :style "hnavbar")))))
 
 (defun notifications (messages)
   (unless (every #'validp (parameters *page*))
     (with-html
       (:div :id "notifications"
-            (display (make-instance 'messenger
-                                    :messages messages
-                                    :style "msg-error"
-                                    :parameters (parameters *page*)))))))
+            (messenger messages (parameters *page*)
+                       :style "msg-error")))))
 
 
 

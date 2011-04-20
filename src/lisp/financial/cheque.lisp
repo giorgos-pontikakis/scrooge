@@ -174,18 +174,15 @@
         ((string-equal cheque-kind "payable") "Πληρωτέες")
         (t (error "internal error in cheque-kind-label"))))
 
-(defun cheque-menu (cheque-kind id filter &optional disabled-items)
-  (display
-   (make-instance 'actions-menu
-                  :id "cheque-actions"
-                  :style "hnavbar actions"
-                  :spec (crud+details-actions-spec
-                         (apply #'cheque cheque-kind         :id id filter)
-                         (apply #'cheque/create cheque-kind filter)
-                         (apply #'cheque/details cheque-kind :id id filter)
-                         (apply #'cheque/update cheque-kind  :id id filter)
-                         (apply #'cheque/delete cheque-kind  :id id filter)))
-   :disabled-items disabled-items))
+(defun cheque-menu (cheque-kind id filter &optional disabled)
+  (menu (crud+details-actions-spec (apply #'cheque cheque-kind         :id id filter)
+                                   (apply #'cheque/create cheque-kind filter)
+                                   (apply #'cheque/details cheque-kind :id id filter)
+                                   (apply #'cheque/update cheque-kind  :id id filter)
+                                   (apply #'cheque/delete cheque-kind  :id id filter))
+        :id "cheque-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun cheque-notifications ()
   (notifications
@@ -204,11 +201,10 @@
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Είδος")
-            (display (make-instance 'vertical-navbar
-                                    :id "cheque-kind-filter"
-                                    :style "vnavbar"
-                                    :spec spec)
-                     :active-page-name (intern (string-upcase cheque-kind)))))))
+            (navbar spec
+                    :id "cheque-kind-filter"
+                    :style "vnavbar"
+                    :active-page-name (intern (string-upcase cheque-kind)))))))
 
 (defun cheque-status-filters (cheque-kind status search)
   (let ((spec `((nil      ,(cheque cheque-kind :search search) "Όλες")
@@ -219,11 +215,10 @@
     (with-html
       (:div :id "status-filters" :class "filters"
             (:p :class "title" "Κατάσταση")
-            (display (make-instance 'vertical-navbar
-                                    :id "cheque-kind-filter"
-                                    :style "vnavbar"
-                                    :spec spec)
-                     :active-page-name (intern (string-upcase status)))))))
+            (navbar spec
+                    :id "cheque-kind-filter"
+                    :style "vnavbar"
+                    :active-page-name (intern (string-upcase status)))))))
 
 
 
@@ -252,12 +247,12 @@
 
 ;;; table
 
-(defclass cheque-table (crud-table)
+(defclass cheque-table (scrooge-crud-table)
   ((subpage        :accessor subpage :initarg :subpage)
    (item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "cheque-paginator"
                                             :style "paginator")))
   (:default-initargs :item-class 'cheque-row))
@@ -298,31 +293,39 @@
 
 ;;; rows
 
-(defclass cheque-row (crud-row)
+(defclass cheque-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row cheque-row) &key start)
+(defmethod selector ((row cheque-row) enabled-p)
+  (html ()
+    (let* ((id (key row))
+           (table (collection row))
+           (pg (paginator table))
+           (filter (filter table))
+           (cheque-kind (subpage table))
+           (start (start-index table)))
+      (if enabled-p
+          (apply #'cheque cheque-kind
+                 :start (page-start pg (index row) start)
+                 filter)
+          (apply #'cheque cheque-kind :id id filter)))))
+
+(defmethod payload ((row cheque-row) enabled-p)
+  (let ((record (record row)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))))
+            '(company bank due-date amount))))
+
+(defmethod controls ((row cheque-row) enabled-p)
   (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row)))
-         (cheque-kind (if (getf record :payable-p) "payable" "receivable")))
-    (list :selector
-          (make-instance 'selector-cell
-                         :states (list :on (apply #'cheque cheque-kind
-                                                  :start (page-start pg (index row) start)
-                                                  filter)
-                                       :off (apply #'cheque cheque-kind :id id filter)))
-          :payload
-          (mapcar (lambda (name)
-                    (lazy-textbox :name name
-                                  :value (getf record (make-keyword name))))
-                  '(company bank due-date amount))
-          :controls
-          (list
-           (make-instance 'ok-cell)
-           (make-instance 'cancel-cell
-                          :href (apply #'cheque cheque-kind :id id filter))))))
+         (table (table row))
+         (filter (filter table))
+         (cash-kind (subpage table)))
+    (list (make-instance 'ok-button)
+          (make-instance 'cancel-button
+                         :href (apply #'cash cash-kind :id id filter)))))
 
 
 
@@ -582,11 +585,11 @@
                     (:div :class "data-form-buttons"
                           (if disabled
                               (cancel-button (apply #'cheque cheque-kind :id id filter)
-                                             "Επιστροφή στον Κατάλογο Επιταγών")
+                                             :content "Επιστροφή στον Κατάλογο Επιταγών")
                               (progn
-                                (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'cheque cheque-kind :id id filter)
-                                               "Άκυρο")))))
+                                               :content "Άκυρο")))))
               (:div :class "grid_6 data-form-first"
                     (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.

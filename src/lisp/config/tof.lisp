@@ -88,17 +88,16 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun tof-menu (id filter &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "tof-actions"
-                          :spec (crud-actions-spec (apply #'tof :id id filter)
-                                                   (apply #'tof/create filter)
-                                                   (apply #'tof/update :id id filter)
-                                                   (if (or (null id)
-                                                           (tof-referenced-p id))
-                                                       nil
-                                                       (apply #'tof/delete :id id filter)))
-                          :disabled-items disabled-items)))
+(defun tof-menu (id filter &optional disabled)
+  (menu (crud-actions-spec (apply #'tof :id id filter)
+                           (apply #'tof/create filter)
+                           (apply #'tof/update :id id filter)
+                           (if (or (null id)
+                                   (tof-referenced-p id))
+                               nil
+                               (apply #'tof/delete :id id filter)))
+        :id "tof-actions"
+        :disabled disabled))
 
 (defun tof-notifications ()
   (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
@@ -115,7 +114,7 @@
 (defclass tof-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                            :id "tof-paginator"
                                            :style "paginator"
                                            :urlfn #'tof)))

@@ -11,14 +11,19 @@
 (defclass account-ro-node (account-crud-node)
   ())
 
-(defmethod cells ((node account-ro-node) &key)
-  (let* ((id (key node))
-         (record (record node)))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list :on (account/overview)
-                                                 :off (account/overview :id id)))
-          :payload (lazy-textbox 'title
-                                 :value (getf record :title)))))
+(defmethod selector ((node account-ro-node) enabled-p)
+  (let ((id (key node)))
+    (html ()
+      (:a :href
+          (if enabled-p
+              (account/overview)
+              (account/overview :id id))
+          (selector-img enabled-p)))))
+
+(defmethod payload ((node account-ro-node) enabled-p)
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record node) :title)))
 
 
 
@@ -26,13 +31,13 @@
 ;;; tx-ro (read only) table
 ;;; ----------------------------------------------------------------------
 
-(defclass account-tx-table (crud-table)
+(defclass account-tx-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
-   (paginator      :initform (make-instance 'default-paginator
-                                           :id "tx-paginator"
-                                           :style "paginator grid_9 alpha"
-                                           :urlfn #'account/details))
+   (paginator      :initform (make-instance 'scrooge-paginator
+                                            :id "tx-paginator"
+                                            :style "paginator grid_9 alpha"
+                                            :urlfn #'account/details))
    (op :initform 'catalogue))
   (:default-initargs :item-class 'account-tx-row))
 
@@ -49,11 +54,14 @@
              :plists))))
 
 
-(defclass account-tx-row (crud-row)
+(defclass account-tx-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row account-tx-row) &key start)
-  (declare (ignore start))
+(defmethod selector ((row account-tx-row) enabled-p)
+  (declare (ignore row enabled-p))
+  (list nil nil))
+
+(defmethod payload ((row account-tx-row) enabled-p)
   (let* ((record (record row))
          (account-id (filter (collection row)))
          (record-plus (append record
@@ -62,10 +70,15 @@
                                         :credit-amount :null)
                                   (list :debit-amount :null
                                         :credit-amount (getf record :amount))))))
-    (list :payload (mapcar (lambda (name)
-                             (lazy-textbox name
-                                           :value (getf record-plus (make-keyword name))))
-                           '(tx-date description company debit-amount credit-amount)))))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record-plus (make-keyword name))))
+            '(tx-date description company debit-amount credit-amount))))
+
+(defmethod controls ((row account-tx-row) enabled-p)
+  (declare (ignore row enabled-p))
+  (list nil nil))
 
 
 
@@ -73,13 +86,12 @@
 ;;; account-ro menu
 ;;; ----------------------------------------------------------------------
 
-(defun account-ro-menu (id &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :style "hnavbar actions grid_6 alpha"
-                          :spec `((overview ,(account/overview :id id) "Σύνοψη")
-                                  (details  ,(account/details :id id)  "Λεπτομέρειες")
-                                  (print    ,(account/print :id id)    "Εκτύπωση")))
-           :disabled-items disabled-items))
+(defun account-ro-menu (id &optional disabled)
+  (menu `((overview ,(account/overview :id id) "Σύνοψη")
+          (details  ,(account/details :id id)  "Λεπτομέρειες")
+          (print    ,(account/print :id id)    "Εκτύπωση"))
+        :style "hnavbar actions grid_6 alpha"
+        :disabled disabled))
 
 
 

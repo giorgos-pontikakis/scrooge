@@ -88,17 +88,16 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun city-menu (id filter &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "city-actions"
-                          :spec (crud-actions-spec (apply #'city :id id filter)
-                                                   (apply #'city/create filter)
-                                                   (apply #'city/update :id id filter)
-                                                   (if (or (null id)
-                                                           (city-referenced-p id))
-                                                       nil
-                                                       (apply #'city/delete :id id filter)))
-                          :disabled-items disabled-items)))
+(defun city-menu (id filter &optional disabled)
+  (menu (crud-actions-spec (apply #'city :id id filter)
+                           (apply #'city/create filter)
+                           (apply #'city/update :id id filter)
+                           (if (or (null id)
+                                   (city-referenced-p id))
+                               nil
+                               (apply #'city/delete :id id filter)))
+        :id "city-actions"
+        :disabled disabled))
 
 (defun city-notifications ()
   (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
@@ -115,7 +114,7 @@
 (defclass city-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "city-paginator"
                                             :style "paginator"
                                             :urlfn #'city)))

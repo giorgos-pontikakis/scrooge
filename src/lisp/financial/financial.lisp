@@ -4,14 +4,13 @@
 ;;; UI elements
 
 (defun financial-navbar (active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :style "section-navbar hnavbar grid_12"
-                          :spec `((transaction ,(transaction)          "Συναλλαγές")
-                                  (account     ,(account/overview)     "Λογαριασμοί")
-                                  (cheque      ,(cheque "receivable")  "Επιταγές")
-                                  (cash        ,(cash "revenue")       "Μετρητά")
-                                  (invoice     ,(invoice "receivable") "Τιμολόγια")))
-           :active-page-name active-page-name))
+  (navbar `((transaction ,(transaction)          "Συναλλαγές")
+            (account     ,(account/overview)     "Λογαριασμοί")
+            (cheque      ,(cheque "receivable")  "Επιταγές")
+            (cash        ,(cash "revenue")       "Μετρητά")
+            (invoice     ,(invoice "receivable") "Τιμολόγια"))
+          :style "section-navbar hnavbar grid_12"
+          :active-page-name active-page-name))
 
 
 

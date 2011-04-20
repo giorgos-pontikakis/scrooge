@@ -130,10 +130,13 @@
 (defclass account-radio-node (account-crud-node)
   ())
 
-(defmethod cells ((node account-radio-node) &key)
+(defmethod selector ((node account-radio-node) enabled-p)
   (let* ((id (key node))
          (record (record node)))
-    (list :selector (lazy-radio 'account-id id (getf record :title)))))
+    (make-instance 'radio
+                   :name 'account-id
+                   :value id
+                   :content (getf record :title))))
 
 
 
@@ -144,7 +147,7 @@
 (defclass cash-tx-table (tx-table)
   ((item-key-field :initform :id)
    (subpage :accessor subpage :initarg :subpage)
-   (paginator :initform (make-instance 'default-paginator
+   (paginator :initform (make-instance 'scrooge-paginator
                                        :id "cash-tx-paginator"
                                        :style "paginator")))
   (:default-initargs :item-class 'cash-tx-row))
@@ -188,28 +191,34 @@
 (defclass cash-tx-row (tx-row)
   ())
 
-(defmethod cells ((row cash-tx-row) &key start)
+(defmethod selector ((row cash-tx-row) enabled-p)
   (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row)))
-         (cash-kind (subpage (collection row))))
-    (list :selector
-          (make-instance 'selector-cell
-                         :states (list :on (apply #'cash cash-kind
-                                                  :start (page-start pg (index row) start)
-                                                  filter)
-                                       :off (apply #'cash cash-kind :id id filter)))
-          :payload
-          (mapcar (lambda (name)
-                    (lazy-textbox name
-                                  :value (getf record (make-keyword name))))
-                  '(date company description amount))
-          :controls
-          (list
-           (make-instance 'ok-cell)
-           (make-instance 'cancel-cell
-                          :href (apply #'cash cash-kind :id id filter))))))
+         (table (collection row))
+         (pg (paginator table))
+         (filter (filter table))
+         (cash-kind (subpage table))
+         (start (start-index table)))
+    (html ()
+      (if enabled-p
+          (apply #'cash cash-kind :start (page-start pg (index row) start) filter)
+          (apply #'cash cash-kind :id id filter)))))
+
+(defmethod payload ((row cash-tx-row) enabled-p)
+  (let ((record (record row)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))))
+            '(date company description amount))))
+
+(defmethod controls ((row cash-tx-row) enabled-p)
+  (let* ((id (key row))
+         (table (table row))
+         (filter (filter table))
+         (cash-kind (subpage table)))
+    (list (make-instance 'ok-button)
+          (make-instance 'cancel-button
+                         :href (apply #'cash cash-kind :id id filter)))))
 
 
 
@@ -235,16 +244,14 @@
                             :spec spec)
              :active-page-name (intern (string-upcase cash-kind)))))))
 
-(defun cash-menu (cash-kind id filter disabled-items)
-  (display
-   (make-instance 'actions-menu
-                  :id "cash-actions"
-                  :style "hnavbar actions"
-                  :spec (crud-actions-spec (apply #'cash        cash-kind :id id filter)
-                                           (apply #'cash/create cash-kind filter)
-                                           (apply #'cash/update cash-kind :id id filter)
-                                           (apply #'cash/delete cash-kind :id id filter)))
-   :disabled-items disabled-items))
+(defun cash-menu (cash-kind id filter disabled)
+  (menu (crud-actions-spec (apply #'cash        cash-kind :id id filter)
+                           (apply #'cash/create cash-kind filter)
+                           (apply #'cash/update cash-kind :id id filter)
+                           (apply #'cash/delete cash-kind :id id filter))
+        :id "cash-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun cash-notifications ()
   (notifications
@@ -457,11 +464,11 @@
                     (:div :class "data-form-buttons"
                           (if disabled
                               (cancel-button (apply #'cash cash-kind :id id filter)
-                                             "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
+                                             :content "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
                               (progn
-                                (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'cash cash-kind :id id filter)
-                                               "Άκυρο")))))
+                                               :content "Άκυρο")))))
               (:div :class "grid_6 omega"
                     (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.

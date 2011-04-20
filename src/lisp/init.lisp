@@ -28,10 +28,11 @@
 (defparameter *default-project-status* "quoted")
 (defparameter *default-cheque-status* "pending")
 (defparameter *cheque-statuses*
-  (with-db ()
-    (query (:select 'description 'id
-                    :from 'cheque-status)))
-  "Label-value alist for use with dropdown lists")
+  (load-time-value
+   (with-db ()
+     (query (:select 'description 'id
+                     :from 'cheque-status))))
+  "Label-value alist indended for use with dropdown lists")
 
 ;; invoices
 (defparameter *invoice-receivable-account* (get-option "invoice-receivable-account"))

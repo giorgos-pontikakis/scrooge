@@ -136,15 +136,14 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun cheque-stran-menu (id cheque-kind &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "cheque-stran-actions"
-                          :style "hnavbar actions"
-                          :spec (crud-actions-spec (config/cheque-stran cheque-kind :id id)
-                                                   (config/cheque-stran/create cheque-kind)
-                                                   (config/cheque-stran/update cheque-kind :id id)
-                                                   (config/cheque-stran/delete cheque-kind :id id)))
-           :disabled-items disabled-items))
+(defun cheque-stran-menu (id cheque-kind &optional disabled)
+  (menu (crud-actions-spec (config/cheque-stran cheque-kind :id id)
+                           (config/cheque-stran/create cheque-kind)
+                           (config/cheque-stran/update cheque-kind :id id)
+                           (config/cheque-stran/delete cheque-kind :id id))
+        :id "cheque-stran-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun cheque-stran-notifications ()
   (notifications
@@ -168,11 +167,10 @@
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Είδος επιταγής")
-            (display (make-instance 'vertical-navbar
-                                    :id "cheque-stran-filters"
-                                    :style "vnavbar"
-                                    :spec spec)
-                     :active-page-name (intern (string-upcase cheque-kind)))))))
+            (navbar spec
+                    :id "cheque-stran-filters"
+                    :style "vnavbar"
+                    :active-page-name (intern (string-upcase cheque-kind)))))))
 
 
 
@@ -208,7 +206,8 @@
 ;;; table
 
 (defclass cheque-stran-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
+  ((subpage        :accessor subpage :initarg :subpage)
+   (item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
@@ -216,7 +215,7 @@
   (:default-initargs :item-class 'cheque-stran-row))
 
 (defmethod read-records ((table cheque-stran-table))
-  (let ((payable-p (string= (filter table) "payable")))
+  (let ((payable-p (string= (subpage table) "payable")))
    (with-db ()
      (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
                                 (:as 'debit-account-tbl.title 'debit-account)
@@ -245,35 +244,43 @@
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
+         (cheque-kind (subpage table))
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
       (:a :href (if enabled-p
-                    (config/cheque-stran cheque-kind :start start filter)
-                    (config/cheque-stran cheque-kind :id id filter))
+                    (apply #'config/cheque-stran cheque-kind :start start filter)
+                    (apply #'config/cheque-stran cheque-kind :id id filter))
           (selector-img enabled-p)))))
 
-(defmethod payload ((row cheque-stran-row))
-  (let ((record (record row)))
+(defmethod payload ((row cheque-stran-row) enabled-p)
+  (let ((record (record row))
+        (disabled (not enabled-p)))
    (list (make-instance 'textbox
                         :title 'title
-                        :value (getf record :title))
+                        :value (getf record :title)
+                        :disabled disabled)
          (make-instance 'dropdown
                         :name 'from-status
                         :label-value-alist *cheque-statuses*
-                        :selected (getf record :from-description))
+                        :selected (getf record :from-description)
+                        :disabled disabled)
          (make-instance 'dropdown
                         :name 'to-status
                         :label-value-alist *cheque-statuses*
-                        :selected (getf record :to-description))
+                        :selected (getf record :to-description)
+                        :disabled disabled)
          (make-instance 'textbox
                         :name 'debit-account
-                        :value (getf record :debit-account))
+                        :value (getf record :debit-account)
+                        :disabled disabled)
          (make-instance 'textbox
                         :name 'credit-account
-                        :value (getf record :credit-account)))))
+                        :value (getf record :credit-account)
+                        :disabled disabled))))
 
 (defmethod controls ((row cheque-stran-row) enabled-p)
-  (let ((id (key row)))
+  (let ((id (key row))
+        (cheque-kind (subpage (collection row))))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
@@ -293,7 +300,7 @@
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                                  :op :catalogue
                                                  :id "cheque-stran-table"
-                                                 :filter cheque-kind)))
+                                                 :subpage cheque-kind)))
           (with-document ()
             (:head
              (:title "Καταστατικές Μεταβολές Επιταγών")
@@ -408,7 +415,7 @@
     (if (validp id)
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                                  :id "cheque-stran-table"
-                                                 :filter cheque-kind
+                                                 :subpage cheque-kind
                                                  :op :delete)))
           (with-document ()
             (:head
@@ -462,7 +469,8 @@
         (:div :class "data-form-buttons grid_9"
               (if disabled
                   (cancel-button (config/cheque-stran cheque-kind :id id)
-                                 "Επιστροφή στον Κατάλογο Επιταγών")
+                                 :content "Επιστροφή στον Κατάλογο Επιταγών")
                   (progn
-                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (config/cheque-stran cheque-kind :id id) "Άκυρο"))))))))
+                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία") )
+                    (cancel-button (config/cheque-stran cheque-kind :id id)
+                                   :content "Άκυρο"))))))))

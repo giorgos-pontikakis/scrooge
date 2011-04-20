@@ -18,15 +18,14 @@
 ;;; UI elements
 
 (defun config-navbar (&optional active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :style "section-navbar hnavbar grid_12"
-                          :spec `((general      ,(config)              "Γενικά")
-                                  (city         ,(city)                "Πόλεις")
-                                  (bank         ,(bank)                "Τράπεζες")
-                                  (tof          ,(tof)                 "Δ.Ο.Υ.")
-                                  (account      ,(account)             "Λογαριασμοί")
-                                  (cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")))
-           :active-page-name active-page-name))
+  (navbar `((general      ,(config)              "Γενικά")
+            (city         ,(city)                "Πόλεις")
+            (bank         ,(bank)                "Τράπεζες")
+            (tof          ,(tof)                 "Δ.Ο.Υ.")
+            (account      ,(account)             "Λογαριασμοί")
+            (cheque-stran ,(config/cheque-stran "receivable") "Επιταγές"))
+          :style "section-navbar hnavbar grid_12"
+          :active-page-name active-page-name))
 
 
 

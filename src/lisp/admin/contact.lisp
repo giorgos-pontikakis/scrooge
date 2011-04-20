@@ -59,7 +59,7 @@
 
 ;;; table
 
-(defclass contact-table (crud-table)
+(defclass contact-table (scrooge-crud-table)
   ((item-key-field :initform :contact-id)
    (header-labels  :initform '("" ""))
    (paginator      :initform nil)
@@ -77,28 +77,33 @@
 
 ;;; rows
 
-(defclass contact-row (crud-row)
+(defclass contact-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row contact-row) &key start)
-  (declare (ignore start))
+(defmethod selector ((row contact-row) enabled-p)
   (let ((table (collection row))
         (contact-id (getf (record row) :contact-id)))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list
-                                            :on (company/details :id (company-id table))
-                                            :off (company/details :id (company-id table)
-                                                                  :contact-id contact-id)))
-          :payload (mapcar (lambda (name)
-                             (make-instance 'textbox
-                                            :name name
-                                            :value (getf (record row) (make-keyword name))))
-                           '(tag phone))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (company/update :id (company-id table)
-                                                          :contact-id contact-id))))))
+    (if enabled-p
+        (company/details :id (company-id table))
+        (company/details :id (company-id table) :contact-id contact-id))))
+
+(defmethod payload ((row contact-row) enabled-p)
+  (let ((record (record row))
+        (disabled (not enabled-p)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))
+                             :disabled disabled))
+            '(tag phone))))
+
+(defmethod controls ((row contact-row) enabled-p)
+  (let ((table (collection row))
+        (contact-id (getf (record row) :contact-id)))
+    (list (make-instance 'ok-button)
+          (make-instance 'cancel-button
+                         :href (company/update :id (company-id table)
+                                               :contact-id contact-id)))))
 
 
 
@@ -118,26 +123,24 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun contact-menu (id contact-id filter &optional disabled-items)
-  (display
-   (make-instance 'actions-menu
-                  :id "contact-actions"
-                  :style "hnavbar actions grid_6 alpha"
-                  :spec (crud-actions-spec (apply #'company/update
-                                                  :id id
-                                                  :contact-id contact-id
-                                                  filter)
-                                           (apply #'company/details/contact/create
-                                                  :id id
-                                                  filter)
-                                           (apply #'company/details/contact/update
-                                                  :id id
-                                                  :contact-id contact-id
-                                                  filter)
-                                           (apply #'company/details/contact/delete
-                                                  :id id
-                                                  :contact-id contact-id filter)))
-   :disabled-items disabled-items))
+(defun contact-menu (id contact-id filter &optional disabled)
+  (menu (crud-actions-spec (apply #'company/update
+                                  :id id
+                                  :contact-id contact-id
+                                  filter)
+                           (apply #'company/details/contact/create
+                                  :id id
+                                  filter)
+                           (apply #'company/details/contact/update
+                                  :id id
+                                  :contact-id contact-id
+                                  filter)
+                           (apply #'company/details/contact/delete
+                                  :id id
+                                  :contact-id contact-id filter))
+        :id "contact-actions"
+        :style "hnavbar actions grid_6 alpha"
+        :disabled disabled))
 
 
 

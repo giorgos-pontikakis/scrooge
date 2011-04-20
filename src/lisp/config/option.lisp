@@ -74,13 +74,12 @@
 ;;; Option UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun option-menu (disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "option-actions"
-                          :style "hnavbar actions"
-                          :spec `((:catalogue ,(config)        "Προβολή")
-                                  (:update    ,(config/update) "Επεξεργασία")))
-           :disabled-items disabled-items))
+(defun option-menu (disabled)
+  (menu `((:catalogue ,(config)        "Προβολή")
+          (:update    ,(config/update) "Επεξεργασία"))
+        :id "option-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun option-notifications ()
   (notifications
@@ -206,5 +205,5 @@
                                "ac-account")
                 (:div :class "data-form-buttons grid_12"
                       (unless disabled
-                        (ok-button "Ανανέωση")
-                        (cancel-button (config) "Άκυρο")))))))))
+                        (ok-button :content "Ανανέωση")
+                        (cancel-button (config) :content "Άκυρο")))))))))

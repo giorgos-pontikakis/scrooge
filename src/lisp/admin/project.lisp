@@ -159,16 +159,15 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-menu (id filter &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "project-actions"
-                          :style "hnavbar actions"
-                          :spec (crud+details-actions-spec (apply #'project :id id filter)
-                                                           (apply #'project/create filter)
-                                                           (apply #'project/details :id id filter)
-                                                           (apply #'project/update :id id filter)
-                                                           (apply #'project/delete :id id filter)))
-           :disabled-items disabled-items))
+(defun project-menu (id filter &optional disabled)
+  (menu (crud+details-actions-spec (apply #'project :id id filter)
+                                   (apply #'project/create filter)
+                                   (apply #'project/details :id id filter)
+                                   (apply #'project/update :id id filter)
+                                   (apply #'project/delete :id id filter))
+        :id "project-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun project-notifications ()
   ;; date errors missing, system is supposed to respond with the default (error-type param)
@@ -200,11 +199,10 @@
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Κατάσταση")
-            (display (make-instance 'vertical-navbar
-                                    :id "project-filters"
-                                    :style "vnavbar"
-                                    :spec spec)
-                     :active-page-name (intern (string-upcase status)))))))
+            (navbar spec
+                    :id "project-filters"
+                    :style "vnavbar"
+                    :active-page-name (intern (string-upcase status)))))))
 
 
 
@@ -231,10 +229,10 @@
 
 ;;; table
 
-(defclass project-table (crud-table)
+(defclass project-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "project-paginator"
                                             :style "paginator"
                                             :urlfn #'project)))
@@ -280,29 +278,21 @@
 
 ;;; rows
 
-(defclass project-row (crud-row)
+(defclass project-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row project-row) &key start)
-  (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row))))
-    (list :selector (make-instance 'selector-cell
-                                   :states (list
-                                            :on (apply #'project
-                                                       :start (page-start pg (index row) start)
-                                                       filter)
-                                            :off (apply #'project :id id filter)))
-          :payload (mapcar (lambda (name)
-                             (make-instance 'textbox
-                                            :name name
-                                            :value (getf record (make-keyword name))))
-                           '(description location company))
-          :controls (list
-                     (make-instance 'ok-cell)
-                     (make-instance 'cancel-cell
-                                    :href (apply #'project :id id filter))))))
+(define-selector project-row project)
+
+(defmethod payload ((row project-row) enabled-p)
+  (let ((record (record row)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
+            '(description location company))))
+
+(define-controls project-row project)
 
 
 

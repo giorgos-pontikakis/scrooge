@@ -4,11 +4,10 @@
 ;;; UI elements
 
 (defun admin-navbar (&optional active-page-name)
-  (display (make-instance 'horizontal-navbar
-                          :style "section-navbar hnavbar grid_12"
-                          :spec `((company ,(company) "Εταιρίες")
-                                  (project ,(project) "Έργα")))
-           :active-page-name active-page-name))
+  (navbar `((company ,(company) "Εταιρίες")
+            (project ,(project) "Έργα"))
+          :style "section-navbar hnavbar grid_12"
+          :active-page-name active-page-name))
 
 
 

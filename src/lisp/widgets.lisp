@@ -48,13 +48,14 @@
   (:default-initargs :content (html ()
                                 (img "tick.png"))))
 
-(defun ok-button (&key id style name value disabled)
-  (make-instance 'ok-button
-                 :id id
-                 :style style
-                 :name name
-                 :value value
-                 :disabled disabled))
+(defun ok-button (&key id style name value disabled content)
+  (display (make-instance 'ok-button
+                          :id id
+                          :style style
+                          :name name
+                          :value value
+                          :disabled disabled
+                          :content content)))
 
 (defclass cancel-button (widget)
   ((href    :accessor href    :initarg :href)
@@ -62,11 +63,12 @@
   (:default-initargs :content (html ()
                                 (img "cancel.png"))))
 
-(defun cancel-button (href &key id style)
+(defun cancel-button (href &key id style content)
   (display (make-instance 'cancel-button
                           :id id
                           :style style
-                          :href href)))
+                          :href href
+                          :content content)))
 
 
 

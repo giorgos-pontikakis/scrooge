@@ -88,17 +88,16 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun bank-menu (id filter &optional disabled-items)
-  (display (make-instance 'actions-menu
-                          :id "bank-actions"
-                          :spec (crud-actions-spec (apply #'bank :id id filter)
-                                                   (apply #'bank/create filter)
-                                                   (apply #'bank/update :id id filter)
-                                                   (if (or (null id)
-                                                           (bank-referenced-p id))
-                                                       nil
-                                                       (apply #'bank/delete :id id filter)))
-                          :disabled disabled-items)))
+(defun bank-menu (id filter &optional disabled)
+  (menu (crud-actions-spec (apply #'bank :id id filter)
+                           (apply #'bank/create filter)
+                           (apply #'bank/update :id id filter)
+                           (if (or (null id)
+                                   (bank-referenced-p id))
+                               nil
+                               (apply #'bank/delete :id id filter)))
+        :id "bank-actions"
+        :disabled disabled))
 
 (defun bank-notifications ()
   (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
@@ -115,7 +114,7 @@
 (defclass bank-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                            :id "bank-paginator"
                                            :style "paginator"
                                            :urlfn #'bank)))

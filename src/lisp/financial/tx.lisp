@@ -103,17 +103,15 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun transaction-menu (id filter &optional disabled-items)
-  (display
-   (make-instance 'actions-menu
-                  :id "transaction-actions"
-                  :style "hnavbar actions"
-                  :spec (crud+details-actions-spec (apply #'transaction :id id filter)
-                                                   (apply #'transaction/create filter)
-                                                   (apply #'transaction/details :id id filter)
-                                                   (apply #'transaction/update  :id id filter)
-                                                   (apply #'transaction/delete  :id id filter)))
-   :disabled-items disabled-items))
+(defun transaction-menu (id filter &optional disabled)
+  (menu (crud+details-actions-spec (apply #'transaction :id id filter)
+                                   (apply #'transaction/create filter)
+                                   (apply #'transaction/details :id id filter)
+                                   (apply #'transaction/update  :id id filter)
+                                   (apply #'transaction/delete  :id id filter))
+        :id "transaction-actions"
+        :style "hnavbar actions"
+        :disabled disabled))
 
 (defun transaction-notifications ()
   (notifications
@@ -161,10 +159,10 @@
 
 ;;; table
 
-(defclass tx-table (crud-table)
+(defclass tx-table (scrooge-crud-table)
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
-   (paginator      :initform (make-instance 'default-paginator
+   (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
                                             :style "paginator"
                                             :urlfn #'transaction)))
@@ -192,31 +190,21 @@
 
 ;;; rows
 
-(defclass tx-row (crud-row)
+(defclass tx-row (scrooge-crud-row)
   ())
 
-(defmethod cells ((row tx-row) &key start)
-  (let* ((id (key row))
-         (record (record row))
-         (pg (paginator (collection row)))
-         (filter (filter (collection row))))
-    (list :selector
-          (make-instance 'selector-cell
-                         :states (list :on (apply #'transaction
-                                                  :start (page-start pg (index row) start)
-                                                  filter)
-                                       :off (apply #'transaction :id id filter)))
-          :payload
-          (mapcar (lambda (name)
-                    (lazy-textbox name
-                                  :value (getf record (make-keyword name))))
-                  '(date company description amount))
-          :controls
-          (list
-           (make-instance 'ok-cell)
-           (make-instance 'cancel-cell
-                          :href (apply #'transaction :id id filter))))))
+(define-selector tx-row transaction)
 
+(defmethod payload ((row tx-row) enabled-p)
+  (let ((record (record row)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
+            '(date company description amount))))
+
+(define-controls tx-row transaction)
 
 
 ;;; ----------------------------------------------------------------------
@@ -432,7 +420,7 @@
         (:div :class "grid_12 data-form-buttons"
               (if disabled
                   (cancel-button (apply #'transaction :id id filter)
-                                 "Επιστροφή στον Κατάλογο Συναλλαγών")
+                                 :content "Επιστροφή στον Κατάλογο Συναλλαγών")
                   (progn
-                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'transaction :id id filter) "Άκυρο"))))))))
+                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'transaction :id id filter) :content "Άκυρο"))))))))
