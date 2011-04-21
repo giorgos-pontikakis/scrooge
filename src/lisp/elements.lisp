@@ -78,18 +78,6 @@
         (img "bullet_red.png")
         (img "bullet_blue.png"))))
 
-(defun ok-button (&optional label)
-  (with-html
-    (:button :class "ok-button"
-             :type "submit" (img "tick.png")
-             (str label))))
-
-(defun cancel-button (href &optional label)
-  (with-html
-    (:a :class "cancel-button"
-        :href href
-        (str label))))
-
 (defun logo ()
   (with-html
     (:div :id "logo"

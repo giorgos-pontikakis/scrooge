@@ -142,7 +142,7 @@
                            (config/cheque-stran/update cheque-kind :id id)
                            (config/cheque-stran/delete cheque-kind :id id))
         :id "cheque-stran-actions"
-        :style "hnavbar actions"
+        :style "hmenu actions"
         :disabled disabled))
 
 (defun cheque-stran-notifications ()

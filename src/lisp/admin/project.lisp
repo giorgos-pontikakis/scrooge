@@ -166,7 +166,7 @@
                                    (apply #'project/update :id id filter)
                                    (apply #'project/delete :id id filter))
         :id "project-actions"
-        :style "hnavbar actions"
+        :style "hmenu actions"
         :disabled disabled))
 
 (defun project-notifications ()
@@ -558,7 +558,7 @@
         (:div :class "grid_8 data-form-buttons"
               (if disabled
                   (cancel-button (apply #'project :id id filter)
-                                 "Επιστροφή στον Κατάλογο Έργων")
+                                 :content "Επιστροφή στον Κατάλογο Έργων")
                   (progn
-                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'project :id id filter) "Άκυρο"))))))))
+                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'project :id id filter) :content "Άκυρο"))))))))

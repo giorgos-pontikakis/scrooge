@@ -78,7 +78,7 @@
   (menu `((:read   ,(config)        "Προβολή")
           (:update ,(config/update) "Επεξεργασία"))
         :id "option-actions"
-        :style "hnavbar actions"
+        :style "hmenu actions"
         :disabled disabled))
 
 (defun option-notifications ()

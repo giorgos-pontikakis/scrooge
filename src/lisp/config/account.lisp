@@ -153,7 +153,7 @@
                                  nil
                                  (account/delete :id id)))
           :id (conc prefix "-account-actions")
-          :style "hnavbar actions"
+          :style "hmenu actions"
           :disabled disabled)))
 
 
@@ -198,10 +198,11 @@
 
 (defmethod controls ((node account-crud-node) enabled-p)
   (let ((id (key node)))
-    (list (make-instance 'ok-button)
-          (make-instance 'cancel-button
-                         :href (account :id id)))))
-
+    (if enabled-p
+        (html ()
+          (:div (display (make-instance 'ok-button) )
+                (display (make-instance 'cancel-button :href (account :id id)))))
+        (list nil nil))))
 
 
 
@@ -367,11 +368,12 @@
             (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
                             :style "inline"
                             :checked (getf data :chequing-p)
-                            :disabled dependent-tx-p)
+                            :disabled dependent-tx-p
+                            :readonly dependent-tx-p)
             (:div :class "data-form-buttons"
                   (if disabled
                       (cancel-button (account :id id)
-                                     "Επιστροφή στον Κατάλογο Λογαριασμών")
+                                     :content "Επιστροφή στον Κατάλογο Λογαριασμών")
                       (progn
-                        (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                        (cancel-button (account :id id) "Άκυρο"))))))))
+                        (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                        (cancel-button (account :id id) :content "Άκυρο"))))))))

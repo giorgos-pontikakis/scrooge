@@ -89,15 +89,17 @@
 ;;; ------------------------------------------------------------
 
 (defun tof-menu (id filter &optional disabled)
-  (menu (crud-actions-spec (apply #'tof :id id filter)
-                           (apply #'tof/create filter)
-                           (apply #'tof/update :id id filter)
-                           (if (or (null id)
-                                   (tof-referenced-p id))
-                               nil
-                               (apply #'tof/delete :id id filter)))
-        :id "tof-actions"
-        :disabled disabled))
+  (with-html
+    (menu (crud-actions-spec (apply #'tof :id id filter)
+                             (apply #'tof/create filter)
+                             (apply #'tof/update :id id filter)
+                             (if (or (null id)
+                                     (tof-referenced-p id))
+                                 nil
+                                 (apply #'tof/delete :id id filter)))
+          :id "tof-actions"
+          :style "hmenu actions"
+          :disabled disabled)))
 
 (defun tof-notifications ()
   (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
@@ -148,7 +150,8 @@
         (let* ((filter (parameters->plist search))
                (tof-table (make-instance 'tof-table
                                          :op :read
-                                         :filter filter)))
+                                         :filter filter
+                                         :start-index (val* start))))
           (with-document ()
             (:head
              (:title "Δ.Ο.Υ.")
@@ -164,9 +167,7 @@
                                    (if (val id)
                                        '(:read)
                                        '(:read :update :delete)))
-                         (display tof-table
-                                  :selected-id (val* id)
-                                  :start (val* start)))
+                         (display tof-table :selected-id (val* id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (tof) (val search)))
                    (footer)))))

@@ -97,6 +97,7 @@
                                nil
                                (apply #'bank/delete :id id filter)))
         :id "bank-actions"
+        :style "hmenu actions"
         :disabled disabled))
 
 (defun bank-notifications ()
@@ -149,7 +150,7 @@
                (bank-table (make-instance 'bank-table
                                           :op :read
                                           :filter filter
-                                          :start (val* start))))
+                                          :start-index (val* start))))
           (with-document ()
             (:head
              (:title "Τράπεζες")

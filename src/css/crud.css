@@ -17,6 +17,14 @@
     display: inline;
 }
 
+.crud-tree .controls {
+    float: right;
+}
+
+.crud-tree .controls button {
+    width: 26px !important;
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -51,7 +59,6 @@
 
 
 
-
 /* ---------------------------------------------------------------------- */
 /* crud-table paginator */
 /* ---------------------------------------------------------------------- */
@@ -73,34 +80,34 @@
 /* crud items */
 /* ---------------------------------------------------------------------- */
 
-td.selector, td.pushbutton {
+td.selector, td.controls {
     width: 18px !important;
 }
-.selector, .pushbutton {
+.selector, .controls {
     padding: 0px;
     text-align: center;
 }
 
-.selector a img, .pushbutton a img {
+.selector a img, .controls a img {
     vertical-align: middle;
 }
 
-.selector div, .pushbutton div {
+.selector div, .controls div {
     text-align: center;
 }
 
-.pushbutton button {
+.controls button {
     width: 18px !important;
     padding: 0px;
     background-color: transparent;
     border: none;
 }
 
-.pushbutton button:hover {
+.controls button:hover {
     cursor: pointer;
 }
 
-.pushbutton button img {
+.controls button img {
     vertical-align: middle;
     padding: 0px;
 }

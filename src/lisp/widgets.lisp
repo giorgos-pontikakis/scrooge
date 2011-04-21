@@ -48,14 +48,8 @@
   (:default-initargs :content (html ()
                                 (img "tick.png"))))
 
-(defun ok-button (&key id style name value disabled content)
-  (display (make-instance 'ok-button
-                          :id id
-                          :style style
-                          :name name
-                          :value value
-                          :disabled disabled
-                          :content content)))
+(defun ok-button (&rest instance-initargs)
+  (display (apply #'make-instance 'ok-button instance-initargs )))
 
 (defclass cancel-button (widget)
   ((href    :accessor href    :initarg :href)
@@ -63,20 +57,17 @@
   (:default-initargs :content (html ()
                                 (img "cancel.png"))))
 
-(defun cancel-button (href &key id style content)
-  (display (make-instance 'cancel-button
-                          :id id
-                          :style style
-                          :href href
-                          :content content)))
+(defmethod display ((cancel-button cancel-button) &key)
+  (with-html
+    (:a :id (id cancel-button)
+        :style (style cancel-button)
+        :href (href cancel-button)
+        (display (content cancel-button)))))
 
-
-
-;;; menus
-
-(defclass actions-menu (menu)
-  ()
-  (:default-initargs :style "hnavbar actions"))
+(defun cancel-button (href &rest instance-initargs)
+  (display (apply #'make-instance 'cancel-button
+                  :href href
+                  instance-initargs)))
 
 
 

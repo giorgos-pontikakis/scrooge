@@ -97,6 +97,7 @@
                                nil
                                (apply #'city/delete :id id filter)))
         :id "city-actions"
+        :style "hmenu actions"
         :disabled disabled))
 
 (defun city-notifications ()
@@ -148,7 +149,8 @@
         (let* ((filter (parameters->plist search))
                (city-table (make-instance 'city-table
                                           :op :read
-                                          :filter filter)))
+                                          :filter filter
+                                          :start-index (val* start))))
           (with-document ()
             (:head
              (:title "Πόλεις")
@@ -164,9 +166,7 @@
                                     (if (val id)
                                         '(:read)
                                         '(:read :update :delete)))
-                         (display city-table
-                                  :selected-id (val* id)
-                                  :start (val* start)))
+                         (display city-table :selected-id (val* id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (city) (val search)))
                    (footer)))))

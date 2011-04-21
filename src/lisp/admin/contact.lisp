@@ -83,9 +83,11 @@
 (defmethod selector ((row contact-row) enabled-p)
   (let ((table (collection row))
         (contact-id (getf (record row) :contact-id)))
-    (if enabled-p
-        (company/details :id (company-id table))
-        (company/details :id (company-id table) :contact-id contact-id))))
+    (html ()
+      (:a :href (if enabled-p
+                    (company/details :id (company-id table))
+                    (company/details :id (company-id table) :contact-id contact-id))
+          (selector-img enabled-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
   (let ((record (record row))
@@ -100,10 +102,12 @@
 (defmethod controls ((row contact-row) enabled-p)
   (let ((table (collection row))
         (contact-id (getf (record row) :contact-id)))
-    (list (make-instance 'ok-button)
-          (make-instance 'cancel-button
-                         :href (company/update :id (company-id table)
-                                               :contact-id contact-id)))))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (company/update :id (company-id table)
+                                                   :contact-id contact-id)))
+        (list nil nil))))
 
 
 
@@ -139,7 +143,7 @@
                                   :id id
                                   :contact-id contact-id filter))
         :id "contact-actions"
-        :style "hnavbar actions grid_6 alpha"
+        :style "hmenu actions"
         :disabled disabled))
 
 

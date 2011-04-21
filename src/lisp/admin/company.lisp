@@ -198,7 +198,7 @@
                                        nil
                                        (apply #'company/delete :id id filter)))
         :id "company-actions"
-        :style "hnavbar actions"
+        :style "hmenu actions"
         :disabled disabled))
 
 (defun company-notifications ()
@@ -388,7 +388,7 @@
                                                                       notes))))
                (:div :id "contact-window" :class "window grid_6"
                      (:div :class "title" "Επαφές")
-                     (:div :class "hnavbar actions"
+                     (:div :class "hmenu actions"
                            (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))
                (footer)))))))
 
@@ -567,7 +567,7 @@
         (:div :class "data-form-buttons"
               (if disabled
                   (cancel-button (apply #'company :id id filter)
-                                 "Επιστροφή στον Κατάλογο Εταιριών")
+                                 :content "Επιστροφή στον Κατάλογο Εταιριών")
                   (progn
-                    (ok-button (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'company :id id filter) "Άκυρο"))))))))
+                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'company :id id filter) :content "Άκυρο"))))))))
