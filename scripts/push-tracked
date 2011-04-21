@@ -1,0 +1,101 @@
+#!/bin/bash
+
+
+case $# in
+    1)
+        project_name=scrooge
+        project_root="www/scrooge"
+        deps="src/lisputils src/veil src/bricks"
+
+        repository=$1
+        user=`whoami`
+
+        # Set the global $branch equal to the branch of the repo
+        # given as the first argument
+        get_branch () {
+            dir=$1
+            cd $HOME/$dir
+            branch=$(git branch | grep '*' | cut -d" " -f 2)
+        }
+
+        # Test the status of the repo given as the first argument
+        is_clean () {
+            dir=$1
+            cd $HOME/$dir
+            status=$(git status | tail -n 1)
+            if [[ $status == 'nothing to commit (working directory clean)' ]]
+            then
+                return 0
+            else
+                return 100
+            fi
+        }
+
+        chk_repos_clean () {
+
+            for i in $deps $project_root
+            do
+                is_clean $i
+                if [[ $? -eq 100 ]]
+                then
+                    echo ABORT: Repository at $HOME/$i is not clean
+                    exit 100
+                else
+                    echo Repository at $HOME/$i is clean
+                fi
+            done
+        }
+
+        chk_deps_branch () {
+
+            get_branch $project_root
+            project_branch=$branch
+
+            for i in $deps
+            do
+                get_branch $i
+                if [[ $branch == 'master' || $branch == "${project_name}-${project_branch}" ]]
+                then
+                    echo Repository at $HOME/$i at correct branch
+                else
+                    echo ABORT: Repository at $HOME/$i at incorrect branch
+                    exit 100
+                fi
+            done
+        }
+
+        push_git_repository () {
+
+            get_branch $project_root
+            git push $repository $branch:$branch
+
+            for i in $deps
+            do
+                cd $HOME/$i
+                get_branch $i
+                echo
+                echo Attempting to push repo at $HOME/$i
+                if $(git push $repository $branch:$branch)
+                then
+                    echo Pushed repository at $HOME/$i to $repository
+                else
+                    echo ABORT: Failed to push repository at $HOME/$i to $repository. Return code $?
+                    exit 100
+                fi
+            done
+        }
+
+        echo
+        chk_deps_branch
+        echo
+        chk_repos_clean
+        push_git_repository
+        echo
+        echo "End of push-tracked"
+        exit 0
+        ;;
+    0)
+        echo 'Usage: push-tracked <repository>'
+        exit 1
+        ;;
+esac

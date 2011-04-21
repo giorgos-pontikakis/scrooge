@@ -1,0 +1,31 @@
+#!/bin/bash
+
+
+case $# in
+    1)
+        project_name=scrooge
+        project_root="www/scrooge"
+        untracked="public db_dumps"
+
+        remote=$1
+        user=`whoami`
+
+        sync_untracked () {
+            for i in $untracked
+            do
+                echo
+                echo Rsyncing $HOME/$project_root/$i to "$user@$remote:$HOME/$project_root/$i"
+                rsync -rlptzvi --delete "$HOME/$project_root/$i" "$user@$remote:$HOME/$project_root"
+            done
+        }
+
+        $HOME/$project_root/scripts/dump_db
+        sync_untracked
+        echo "End of push-untracked"
+        exit 0
+        ;;
+    0)
+        echo 'Usage: push-untracked <remote machine>'
+        exit 1
+        ;;
+esac

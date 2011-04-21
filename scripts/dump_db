@@ -3,5 +3,5 @@
 database=scrooge
 project_root="www/scrooge"
 
-echo Dumping database $database
+echo Dumping PostgreSQL database $database
 pg_dump $database > /home/gnp/$project_root/db_dumps/$database.sql

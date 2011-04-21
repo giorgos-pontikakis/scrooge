@@ -6,20 +6,19 @@ case $# in
         project_name=scrooge
         project_root="www/scrooge"
         deps="src/lisputils src/veil src/bricks"
-        static="public db_dumps"
 
-        remote=$1
+        repository=$1
         user=`whoami`
 
-# Set the global $branch equal to the branch of the repo
-# given as the first argument
+        # Set the global $branch equal to the branch of the repo
+        # given as the first argument
         get_branch () {
             dir=$1
             cd $HOME/$dir
             branch=$(git branch | grep '*' | cut -d" " -f 2)
         }
 
-# Test the status of the repo given as the first argument
+        # Test the status of the repo given as the first argument
         is_clean () {
             dir=$1
             cd $HOME/$dir
@@ -47,8 +46,6 @@ case $# in
             done
         }
 
-
-
         chk_deps_branch () {
 
             get_branch $project_root
@@ -67,33 +64,18 @@ case $# in
             done
         }
 
-        push_git_origin () {
+        pull_git_repository () {
 
             get_branch $project_root
-            git push origin $branch:$branch
+            git pull $repository $branch
 
             for i in $deps
             do
                 cd $HOME/$i
                 get_branch $i
                 echo
-                echo Attempting to push repo at $HOME/$i
-                if $(git push origin $branch:$branch)
-                then
-                    echo Pushed repository at $HOME/$i to origin
-                else
-                    echo ABORT: Failed to push repository at $HOME/$i to origin. Return code $?
-                    exit 100
-                fi
-            done
-        }
-
-        sync_static () {
-            for i in $static
-            do
-                echo
-                echo Rsyncing $HOME/$project_root/$i to "$user@$remote:$HOME/$project_root/$i"
-                rsync -rz --delete "$HOME/$project_root/$i" "$user@$remote:$HOME/$project_root"
+                echo Attempting to pull repo at $HOME/$i
+                git pull $repository $branch
             done
         }
 
@@ -101,15 +83,13 @@ case $# in
         chk_deps_branch
         echo
         chk_repos_clean
-        push_git_origin
+        pull_git_repository
         echo
-        $HOME/$project_root/scripts/dump_db
-        sync_static
-        echo "End of deployment"
+        echo "End of pull-tracked"
         exit 0
         ;;
     0)
-        echo 'Usage: deploy <remote machine>'
+        echo 'Usage: pull-tracked <repository>'
         exit 1
         ;;
 esac

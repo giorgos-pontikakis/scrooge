@@ -4,36 +4,37 @@ case $# in
     1)
         project_name=scrooge
         project_root="www/scrooge"
-        static="public db_dumps"
+        alldirs="public db_dumps tmp logs"
+        untracked="public db_dumps"
 
         remote=$1
         user=`whoami`
 
         # Make directory structure
         make_dir_tree () {
-            for i in logs public tmp db_dumps
+            for i in $alldirs
             do
                 mkdir -p $HOME/$project_root/$i
             done
         }
 
-        # rsync public folder
-        sync_static () {
-            for i in $static
+        # rsync untracked folders
+        sync_untracked () {
+            for i in $untracked
             do
                 echo
                 echo Rsyncing $HOME/$project_root/$i from "$user@$remote:$HOME/$project_root/$i"
-                rsync -rz --delete "$user@$remote:$HOME/$project_root/$i" \
+                rsync -rlptzvi --delete "$user@$remote:$HOME/$project_root/$i" \
                     "$HOME/$project_root/"
             done
         }
         make_dir_tree
-        sync_static
+        sync_untracked
 
         exit 0
         ;;
     0)
-        echo 'Usage: retrieve <remote machine>'
+        echo 'Usage: pull-untracked <remote machine>'
         exit 1
         ;;
 esac

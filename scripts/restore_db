@@ -3,13 +3,5 @@
 database=scrooge
 project_root="www/scrooge"
 
-if dropdb $database
-then
-    createdb $database
-    psql $database < $HOME/$project_root/db_dumps/$database.sql >/dev/null
-    exit 0
-else
-    echo
-    echo "ERROR: Cannot drop and restore database $database"
-    exit 1
-fi
+echo Attempting to restore postgresql database $database
+psql $database < $HOME/$project_root/db_dumps/$database.sql >/dev/null
