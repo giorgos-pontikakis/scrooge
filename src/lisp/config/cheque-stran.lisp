@@ -298,7 +298,7 @@
     (no-cache)
     (if (validp id)
         (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                                 :op :catalogue
+                                                 :op :read
                                                  :id "cheque-stran-table"
                                                  :subpage cheque-kind)))
           (with-document ()
@@ -314,8 +314,8 @@
                          (cheque-stran-menu (val id)
                                             cheque-kind
                                             (if (val id)
-                                                '(:catalogue)
-                                                '(:catalogue :update :delete)))
+                                                '(:read)
+                                                '(:read :update :delete)))
                          (display cheque-stran-table
                                   :selected-id (val* id)))
                    (:div :id "sidebar" :class "sidebar grid_2"

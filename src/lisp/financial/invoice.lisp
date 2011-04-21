@@ -263,7 +263,7 @@
                (invoice-tx-table (make-instance 'invoice-tx-table
                                                 :id "invoice-tx-table"
                                                 :subpage invoice-kind
-                                                :op :catalogue
+                                                :op :read
                                                 :filter filter)))
           (with-document ()
             (:head
@@ -279,8 +279,8 @@
                                        (val id)
                                        filter
                                        (if (val id)
-                                           '(:catalogue)
-                                           '(:catalogue :details :update :delete)))
+                                           '(:read)
+                                           '(:read :details :update :delete)))
                          (display invoice-tx-table
                                   :selected-id (val* id)
                                   :selected-data nil
@@ -406,7 +406,7 @@
                          (invoice-menu invoice-kind
                                        (val id)
                                        filter
-                                       '(:catalogue :delete))
+                                       '(:read :delete))
                          (with-form (actions/financial/invoice/delete invoice-kind
                                                                       :id (val id)
                                                                       :search (val* search))

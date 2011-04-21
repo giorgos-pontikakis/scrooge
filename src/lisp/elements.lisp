@@ -137,18 +137,18 @@
 ;;; CRUD actions menu
 ;;; ------------------------------------------------------------
 
-(defun crud-actions-spec (catalogue create update delete)
-  `((:catalogue ,catalogue "Κατάλογος")
-    (:create    ,create    "Δημιουργία")
-    (:update    ,update    "Επεξεργασία")
-    (:delete    ,delete    "Διαγραφή")))
+(defun crud-actions-spec (read create update delete)
+  `((:read   ,read   "Κατάλογος")
+    (:create ,create "Δημιουργία")
+    (:update ,update "Επεξεργασία")
+    (:delete ,delete "Διαγραφή")))
 
-(defun crud+details-actions-spec (catalogue create details update delete)
-  `((:catalogue ,catalogue "Κατάλογος")
-    (:create    ,create    "Δημιουργία")
-    (:details   ,details   "Λεπτομέρειες")
-    (:update    ,update    "Επεξεργασία")
-    (:delete    ,delete    "Διαγραφή")))
+(defun crud+details-actions-spec (read create details update delete)
+  `((:read    ,read    "Κατάλογος")
+    (:create  ,create  "Δημιουργία")
+    (:details ,details "Λεπτομέρειες")
+    (:update  ,update  "Επεξεργασία")
+    (:delete  ,delete  "Διαγραφή")))
 
 
 

@@ -5,7 +5,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass account-ro-tree (account-crud-tree)
-  ((op :initform 'catalogue))
+  ((op :initform :read))
   (:default-initargs :item-class 'account-ro-node))
 
 (defclass account-ro-node (account-crud-node)
@@ -38,7 +38,7 @@
                                             :id "tx-paginator"
                                             :style "paginator grid_9 alpha"
                                             :urlfn #'account/details))
-   (op :initform 'catalogue))
+   (op :initform :read))
   (:default-initargs :item-class 'account-tx-row))
 
 (defmethod read-records ((table account-tx-table))

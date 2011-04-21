@@ -347,7 +347,7 @@
                (cheque-table (make-instance 'cheque-table
                                             :id "cheque-table"
                                             :subpage cheque-kind
-                                            :op :catalogue
+                                            :op :read
                                             :filter filter)))
           (with-document ()
             (:head
@@ -363,8 +363,8 @@
                                       (val id)
                                       filter
                                       (if (val id)
-                                          '(catalogue)
-                                          '(catalogue details update delete)))
+                                          '(read)
+                                          '(read details update delete)))
                          (display cheque-table
                                   :selected-id (val* id)
                                   :selected-data nil
@@ -534,7 +534,7 @@
                                (cheque-menu cheque-kind
                                             (val id)
                                             filter
-                                            '(catalogue create delete))
+                                            '(read create delete))
                                (with-form (actions/financial/cheque/delete cheque-kind
                                                                            :id (val id)
                                                                            :search (val* search)

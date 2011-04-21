@@ -310,7 +310,7 @@
     (if (validp id)
         (let* ((filter  (parameters->plist search status))
                (project-table (make-instance 'project-table
-                                             :op :catalogue
+                                             :op :read
                                              :filter filter)))
           (with-document ()
             (:head
@@ -325,8 +325,8 @@
                          (project-menu (val id)
                                        filter
                                        (if (val id)
-                                           '(:catalogue)
-                                           '(:catalogue :details :update :delete)))
+                                           '(:read)
+                                           '(:read :details :update :delete)))
                          (display project-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -500,7 +500,7 @@
                          (:div :class "title" "Έργο » Διαγραφή")
                          (project-menu (val id)
                                        filter
-                                       '(:catalogue :delete))
+                                       '(:read :delete))
                          (with-form (actions/admin/project/delete :id (val id)
                                                                   :search (val* search)
                                                                   :status (val status))

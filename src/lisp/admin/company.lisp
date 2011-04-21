@@ -312,7 +312,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (company-table (make-instance 'company-table
-                                             :op :catalogue
+                                             :op :read
                                              :filter filter)))
           (with-document ()
             (:head
@@ -327,8 +327,8 @@
                          (company-menu (val id)
                                        filter
                                        (if (val id)
-                                           '(:catalogue)
-                                           '(:catalogue :details :update :delete)))
+                                           '(:read)
+                                           '(:read :details :update :delete)))
                          (display company-table
                                   :selected-id (val* id)
                                   :start (val* start)))
@@ -455,8 +455,8 @@
                                        (val contact-id)
                                        filter
                                        (if (val contact-id)
-                                           '(:catalogue)
-                                           '(:catalogue :update :delete)))
+                                           '(:read)
+                                           '(:read :update :delete)))
                          (display contact-table
                                   :selected-id (val contact-id)))
                    (footer)))))
@@ -496,8 +496,8 @@
                                        (val contact-id)
                                        filter
                                        (if (val contact-id)
-                                           '(:catalogue)
-                                           '(:catalogue :update :delete)))
+                                           '(:read)
+                                           '(:read :update :delete)))
                          (display contact-table
                                   :selected-id (val contact-id)))))))
         (see-other (error-page)))))
@@ -524,7 +524,7 @@
                          (:div :class "title" "Διαγραφή εταιρίας")
                          (company-menu (val id)
                                        filter
-                                       '(:catalogue :delete))
+                                       '(:read :delete))
                          (with-form (actions/admin/company/delete :id (val id)
                                                                   :search (val* search))
                            (display company-table

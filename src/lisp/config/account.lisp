@@ -237,7 +237,7 @@
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-crud-tree
-                                                      :op :catalogue
+                                                      :op :read
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -245,8 +245,8 @@
                           (account-crud-menu (val id)
                                              flag
                                              (if (and (val id) (eql flag (debit-p (val id))))
-                                                 '(:catalogue)
-                                                 '(:catalogue :update :delete)))
+                                                 '(:read)
+                                                 '(:read :update :delete)))
                           (display account-tree :selected-id (val* id))))))))
         (see-other (notfound)))))
 
@@ -339,7 +339,7 @@
                    (for account-tree = (make-instance 'account-crud-tree
                                                       :op (if (eql flag (debit-p (val id)))
                                                               :delete
-                                                              :catalogue)
+                                                              :read)
                                                       :filter flag))
                    (htm
                     (:div :id div-id :class "window grid_6"
@@ -364,10 +364,10 @@
                             :value (getf data :title)
                             :disabled disabled
                             :style (getf styles :title)))
-            (checkbox 'chequing-p t "Λογαριασμός επιταγών"
-                      :style "inline"
-                      :checked (getf data :chequing-p)
-                      :disabled  dependent-tx-p)
+            (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
+                            :style "inline"
+                            :checked (getf data :chequing-p)
+                            :disabled dependent-tx-p)
             (:div :class "data-form-buttons"
                   (if disabled
                       (cancel-button (account :id id)

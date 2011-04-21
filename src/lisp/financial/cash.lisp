@@ -124,7 +124,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass account-radio-tree (account-crud-tree)
-  ((op :initform 'catalogue))
+  ((op :initform :read))
   (:default-initargs :item-class 'account-radio-node))
 
 (defclass account-radio-node (account-crud-node)
@@ -133,7 +133,7 @@
 (defmethod selector ((node account-radio-node) enabled-p)
   (let* ((id (key node))
          (record (record node)))
-    (make-instance 'radio
+    (make-instance 'input-radio
                    :name 'account-id
                    :value id
                    :content (getf record :title))))
@@ -280,7 +280,7 @@
                (cash-tx-table (make-instance 'cash-tx-table
                                              :id "cash-tx-table"
                                              :subpage cash-kind
-                                             :op :catalogue
+                                             :op :read
                                              :filter filter)))
           (with-document ()
             (:head
@@ -296,8 +296,8 @@
                                     (val id)
                                     filter
                                     (if (val id)
-                                        '(catalogue)
-                                        '(catalogue details update delete)))
+                                        '(read)
+                                        '(read details update delete)))
                          (display cash-tx-table
                                   :selected-id (val* id)
                                   :selected-data nil
@@ -424,7 +424,7 @@
                          (cash-menu cash-kind
                                     (val id)
                                     filter
-                                    '(catalogue delete))
+                                    '(read delete))
                          (with-form (actions/financial/cash/delete cash-kind
                                                                    :id (val id)
                                                                    :search (val* search))

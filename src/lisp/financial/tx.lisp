@@ -220,7 +220,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tx-table (make-instance 'tx-table
-                                        :op :catalogue
+                                        :op :read
                                         :filter filter)))
           (with-document ()
             (:head
@@ -235,8 +235,8 @@
                          (transaction-menu (val id)
                                            filter
                                            (if (val id)
-                                               '(:catalogue)
-                                               '(:catalogue :details :update :delete)))
+                                               '(:read)
+                                               '(:read :details :update :delete)))
                          (display tx-table
                                   :selected-id (val* id)
                                   :start (val* start)))

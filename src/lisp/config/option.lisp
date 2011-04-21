@@ -75,8 +75,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defun option-menu (disabled)
-  (menu `((:catalogue ,(config)        "Προβολή")
-          (:update    ,(config/update) "Επεξεργασία"))
+  (menu `((:read   ,(config)        "Προβολή")
+          (:update ,(config/update) "Επεξεργασία"))
         :id "option-actions"
         :style "hnavbar actions"
         :disabled disabled))
@@ -125,8 +125,8 @@
              (config-navbar 'general)
              (:div :id "bank-window" :class "window grid_10"
                    (:div :class "title" "Ρυθμίσεις » Γενικά")
-                   (option-menu '(:catalogue))
-                   (option-form :catalogue
+                   (option-menu '(:read))
+                   (option-form :read
                                 :data (get-option-plist))))))))
 
 (define-dynamic-page config/update ("config/update")
@@ -169,7 +169,7 @@
 
 (defun option-form (op &key data styles)
   (with-db ()
-    (let ((disabled (eql op :catalogue)))
+    (let ((disabled (eql op :read)))
       (flet ((label+textbox (name label &optional extra-styles)
                (label name label)
                (input-text name

@@ -147,7 +147,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (tof-table (make-instance 'tof-table
-                                         :op :catalogue
+                                         :op :read
                                          :filter filter)))
           (with-document ()
             (:head
@@ -162,8 +162,8 @@
                          (tof-menu (val id)
                                    filter
                                    (if (val id)
-                                       '(:catalogue)
-                                       '(:catalogue :update :delete)))
+                                       '(:read)
+                                       '(:read :update :delete)))
                          (display tof-table
                                   :selected-id (val* id)
                                   :start (val* start)))

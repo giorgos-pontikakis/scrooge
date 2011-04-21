@@ -147,7 +147,7 @@
     (if (validp id)
         (let* ((filter (parameters->plist search))
                (bank-table (make-instance 'bank-table
-                                          :op :catalogue
+                                          :op :read
                                           :filter filter
                                           :start (val* start))))
           (with-document ()
@@ -163,8 +163,8 @@
                          (bank-menu (val id)
                                     filter
                                     (if (val id)
-                                        '(:catalogue)
-                                        '(:catalogue :update :delete)))
+                                        '(:read)
+                                        '(:read :update :delete)))
                          (display bank-table
                                   :selected-id (val* id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
