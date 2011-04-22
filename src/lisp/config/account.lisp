@@ -153,7 +153,7 @@
                                  nil
                                  (account/delete :id id)))
           :id (conc prefix "-account-actions")
-          :style "hmenu actions"
+          :css-class "hmenu actions"
           :disabled disabled)))
 
 
@@ -367,19 +367,19 @@
       (:div :id "config-account-data-form" :class "data-form"
             (:div :class "data-form-first"
                   (label 'title "Τίτλος")
-                  (textbox 'title
-                            :value (getf data :title)
-                            :disabled disabled
-                            :style (getf styles :title)))
+                  (input-text 'title
+                              :value (getf data :title)
+                              :disabled disabled
+                              :css-class (getf styles :title)))
             (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
-                            :style "inline"
+                            :css-class "inline"
                             :checked (getf data :chequing-p)
                             :disabled dependent-tx-p
                             :readonly dependent-tx-p)
             (:div :class "data-form-buttons"
                   (if disabled
                       (cancel-button (account :id id)
-                                     :content "Επιστροφή στον Κατάλογο Λογαριασμών")
+                                     :body "Επιστροφή στον Κατάλογο Λογαριασμών")
                       (progn
-                        (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                        (cancel-button (account :id id) :content "Άκυρο"))))))))
+                        (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                        (cancel-button (account :id id) :body "Άκυρο"))))))))

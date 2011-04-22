@@ -9,7 +9,7 @@
             (cheque      ,(cheque "receivable")  "Επιταγές")
             (cash        ,(cash "revenue")       "Μετρητά")
             (invoice     ,(invoice "receivable") "Τιμολόγια"))
-          :style "section-navbar hnavbar grid_12"
+          :css-class "section-navbar hnavbar grid_12"
           :active-page-name active-page-name))
 
 
@@ -27,7 +27,7 @@
        (:div :id "container" :class "container_12"
              (header 'financial)
              (financial-navbar nil)
-             (:div :id "body"
+             (:div :id "content"
                    (:p "Financial content not yet available")))))))
 
 

@@ -21,7 +21,7 @@
      (:div :id "header"
            (logo))
      (:div :id "body"
-           (:div :id "content" :class "summary"
+           (:div :id "body" :class "summary"
                  (:p "Δεν έχετε ορίσει στις ρυθμίσεις είτε τον λογαριασμό μετρητών, είτε το λογαριασμό ρίζας εσόδων, ή το λογαριασμό ρίζας εξόδων."))))))
 
 ;;; ----------------------------------------------------------------------
@@ -136,7 +136,7 @@
     (make-instance 'input-radio
                    :name 'account-id
                    :value id
-                   :content (getf record :title))))
+                   :body (getf record :title))))
 
 
 
@@ -149,7 +149,7 @@
    (subpage :accessor subpage :initarg :subpage)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :id "cash-tx-paginator"
-                                       :style "paginator")))
+                                       :css-class "paginator")))
   (:default-initargs :item-class 'cash-tx-row))
 
 (defmethod initialize-instance :after ((table cash-tx-table) &key)
@@ -240,7 +240,7 @@
             (display
              (make-instance 'vertical-navbar
                             :id "cash-filters"
-                            :style "vnavbar"
+                            :css-class "vnavbar"
                             :spec spec)
              :active-page-name (intern (string-upcase cash-kind)))))))
 
@@ -250,7 +250,7 @@
                            (apply #'cash/update cash-kind :id id filter)
                            (apply #'cash/delete cash-kind :id id filter))
         :id "cash-actions"
-        :style "hnavbar actions"
+        :css-class "hnavbar actions"
         :disabled disabled))
 
 (defun cash-notifications ()
@@ -446,29 +446,29 @@
                                             *invoice-payable-account*)
                                :filter revenues-p))
           (children (root tree)))
-    (flet ((label+textbox (name label &optional extra-styles)
+    (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabled disabled
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles)))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
       (with-html
         (:div :id "cash-data-form" :class "data-form"
               (:div :class "grid_6 alpha"
-                    (label+textbox 'date "Ημερομηνία" "datepicker")
-                    (label+textbox 'description "Περιγραφή")
-                    (label+textbox 'company "Εταιρία" "ac-company")
-                    (label+textbox 'amount "Ποσό")
+                    (label-input-text 'date "Ημερομηνία" "datepicker")
+                    (label-input-text 'description "Περιγραφή")
+                    (label-input-text 'company "Εταιρία" "ac-company")
+                    (label-input-text 'amount "Ποσό")
                     (:div :class "data-form-buttons"
                           (if disabled
                               (cancel-button (apply #'cash cash-kind :id id filter)
-                                             :content "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
+                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
                               (progn
-                                (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'cash cash-kind :id id filter)
-                                               :content "Άκυρο")))))
+                                               :body "Άκυρο")))))
               (:div :class "grid_6 omega"
                     (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.

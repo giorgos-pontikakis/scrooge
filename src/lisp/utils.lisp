@@ -46,7 +46,7 @@
 
 (defun md5sum-sequence->string (str)
   (format nil "~(~{~2,'0X~}~)"
-                 (map 'list #'identity (md5:md5sum-sequence str))))
+          (map 'list #'identity (md5:md5sum-sequence str))))
 
 
 

@@ -98,7 +98,7 @@
                                  nil
                                  (apply #'tof/delete :id id filter)))
           :id "tof-actions"
-          :style "hmenu actions"
+          :css-class "hmenu actions"
           :disabled disabled)))
 
 (defun tof-notifications ()
@@ -117,9 +117,9 @@
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
-                                           :id "tof-paginator"
-                                           :style "paginator"
-                                           :urlfn #'tof)))
+                                            :id "tof-paginator"
+                                            :css-class "paginator"
+                                            :urlfn #'tof)))
   (:default-initargs :id "config-table" :item-class 'tof-row))
 
 (defmethod read-records ((table tof-table))

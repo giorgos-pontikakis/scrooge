@@ -21,9 +21,9 @@
                        (with-form (verify-login)
                          (htm
                           (:p (label 'user "Όνομα χρήστη"))
-                          (:p (textbox 'user :value (val user)))
+                          (:p (input-text 'user :value (val user)))
                           (:p (label 'pass "Κωδικός πρόσβασης"))
-                          (:p (textbox 'pass :password t)))
+                          (:p (input-text 'pass :password t)))
                          (submit "Είσοδος"))))))))
 
 (define-dynamic-page verify-login ("verify-login" :request-type :post)
@@ -32,10 +32,10 @@
   (if (and (validp user)
            (validp pass))
       (let ((login-time (get-universal-time)))
-            (start-session)
-            (setf (session-value 'user) (val user))
-            (setf (session-value 'login-time) login-time)
-            (see-other (home)))
+        (start-session)
+        (setf (session-value 'user) (val user))
+        (setf (session-value 'login-time) login-time)
+        (see-other (home)))
       (see-other (login :user (raw user)))))
 
 (define-dynamic-page logout ("logout") ()
@@ -58,7 +58,7 @@
        (:div :id "container" :class "container_12"
              (header 'home)
              (:div :class "clear")
-             (:div :id "body"
+             (:div :id "content"
                    (:p "Home content not yet available")))))))
 
 

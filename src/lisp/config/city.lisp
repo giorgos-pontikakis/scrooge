@@ -97,7 +97,7 @@
                                nil
                                (apply #'city/delete :id id filter)))
         :id "city-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun city-notifications ()
@@ -117,7 +117,7 @@
    (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "city-paginator"
-                                            :style "paginator"
+                                            :css-class "paginator"
                                             :urlfn #'city)))
   (:default-initargs :id "config-table" :item-class 'city-row))
 

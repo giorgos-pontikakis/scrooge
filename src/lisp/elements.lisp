@@ -102,7 +102,7 @@
             (admin     ,(admin)     "Διαχείριση")
             (config    ,(config)    "Ρυθμίσεις"))
           :id "primary-navbar"
-          :style "hnavbar grid_6 prefix_1"
+          :css-class "hnavbar grid_6 prefix_1"
           :active-page-name active-page-name))
 
 (defun logout-menu ()
@@ -110,14 +110,14 @@
     (:ul :id "logout" :class "grid_3 hnavbar"
          (:li (fmt "~A@~A" (session-value 'user) (machine-instance)))
          (:li (menu `((logout ,(logout) "Έξοδος"))
-                    :style "hnavbar")))))
+                    :css-class "hnavbar")))))
 
 (defun notifications (messages)
   (unless (every #'validp (parameters *page*))
     (with-html
       (:div :id "notifications"
             (messenger messages (parameters *page*)
-                       :style "msg-error")))))
+                       :css-class "msg-error")))))
 
 
 
@@ -148,6 +148,6 @@
   (form submit-url (html ()
                      (:p :class "title" "Αναζήτηση")
                      (:p :class "search"
-                         (textbox 'search :value search)
+                         (input-text 'search :value search)
                          (submit (html ()
                                    (img "magnifier.png")))))))

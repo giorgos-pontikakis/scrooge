@@ -6,7 +6,7 @@
 (defun admin-navbar (&optional active-page-name)
   (navbar `((company ,(company) "Εταιρίες")
             (project ,(project) "Έργα"))
-          :style "section-navbar hnavbar grid_12"
+          :css-class "section-navbar hnavbar grid_12"
           :active-page-name active-page-name))
 
 
@@ -24,5 +24,5 @@
        (:div :id "container" :class "container_12"
              (header 'admin)
              (admin-navbar nil)
-             (:div :id "body"
+             (:div :id "content"
                    (:p "Admin content not yet available")))))))

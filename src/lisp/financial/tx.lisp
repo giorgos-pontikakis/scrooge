@@ -110,7 +110,7 @@
                                    (apply #'transaction/update  :id id filter)
                                    (apply #'transaction/delete  :id id filter))
         :id "transaction-actions"
-        :style "hnavbar actions"
+        :css-class "hnavbar actions"
         :disabled disabled))
 
 (defun transaction-notifications ()
@@ -164,7 +164,7 @@
    (header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
-                                            :style "paginator"
+                                            :css-class "paginator"
                                             :urlfn #'transaction)))
   (:default-initargs :item-class 'tx-row))
 
@@ -398,29 +398,29 @@
 
 (defun transaction-data-form (op &key filter id data styles)
   (let ((disabled (eql op :details)))
-    (flet ((label+textbox (name label &optional extra-styles)
+    (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabled disabled
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles)))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
       (with-html
         (:div :id "transaction-data-form" :class "data-form"
               (:div :id "transaction-description" :class "grid_12 alpha"
-                    (label+textbox 'date "Ημερομηνία" "datepicker")
-                    (label+textbox 'company "Εταιρία" "ac-company")
-                    (label+textbox 'description "Περιγραφή")
-                    (label+textbox 'debit-account-nonchequing "Λογαριασμός χρέωσης"
-                                   "ac-nonchequing-account")
-                    (label+textbox 'credit-account-nonchequing "Λογαριασμός πίστωσης"
-                                   "ac-nonchequing-account")
-                    (label+textbox 'amount "Ποσόν")))
+                    (label-input-text 'date "Ημερομηνία" "datepicker")
+                    (label-input-text 'company "Εταιρία" "ac-company")
+                    (label-input-text 'description "Περιγραφή")
+                    (label-input-text 'debit-account-nonchequing "Λογαριασμός χρέωσης"
+                                      "ac-nonchequing-account")
+                    (label-input-text 'credit-account-nonchequing "Λογαριασμός πίστωσης"
+                                      "ac-nonchequing-account")
+                    (label-input-text 'amount "Ποσόν")))
         (:div :class "grid_12 data-form-buttons"
               (if disabled
                   (cancel-button (apply #'transaction :id id filter)
-                                 :content "Επιστροφή στον Κατάλογο Συναλλαγών")
+                                 :body "Επιστροφή στον Κατάλογο Συναλλαγών")
                   (progn
-                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'transaction :id id filter) :content "Άκυρο"))))))))
+                    (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'transaction :id id filter) :body "Άκυρο"))))))))

@@ -131,7 +131,7 @@
                                   :id id
                                   :contact-id contact-id filter))
         :id "contact-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 

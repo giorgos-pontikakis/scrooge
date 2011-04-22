@@ -181,7 +181,7 @@
                                    (apply #'cheque/update cheque-kind  :id id filter)
                                    (apply #'cheque/delete cheque-kind  :id id filter))
         :id "cheque-actions"
-        :style "hnavbar actions"
+        :css-class "hnavbar actions"
         :disabled disabled))
 
 (defun cheque-notifications ()
@@ -203,7 +203,7 @@
             (:p :class "title" "Είδος")
             (navbar spec
                     :id "cheque-kind-filter"
-                    :style "vnavbar"
+                    :css-class "vnavbar"
                     :active-page-name (intern (string-upcase cheque-kind)))))))
 
 (defun cheque-status-filters (cheque-kind status search)
@@ -217,7 +217,7 @@
             (:p :class "title" "Κατάσταση")
             (navbar spec
                     :id "cheque-kind-filter"
-                    :style "vnavbar"
+                    :css-class "vnavbar"
                     :active-page-name (intern (string-upcase status)))))))
 
 
@@ -254,7 +254,7 @@
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "cheque-paginator"
-                                            :style "paginator")))
+                                            :css-class "paginator")))
   (:default-initargs :item-class 'cheque-row))
 
 (defmethod initialize-instance :after ((table cheque-table) &key)
@@ -558,22 +558,22 @@
                                               *invoice-payable-account*)
                                  :filter revenues-p))
             (children (root tree))))
-    (flet ((label+textbox (name label &optional extra-styles)
+    (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabled disabled
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles)))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
       (with-html
         (:div :id "cheque-data-form" :class "data-form"
               (:div :class "grid_6"
                     (:div :class "data-form-first"
-                          (label+textbox 'company "Εταιρία" "ac-company"))
-                    (label+textbox 'bank "Τράπεζα" "ac-bank")
-                    (label+textbox 'due-date "Ημερομηνία πληρωμής" "datepicker")
-                    (label+textbox 'amount "Ποσό")
+                          (label-input-text 'company "Εταιρία" "ac-company"))
+                    (label-input-text 'bank "Τράπεζα" "ac-bank")
+                    (label-input-text 'due-date "Ημερομηνία πληρωμής" "datepicker")
+                    (label-input-text 'amount "Ποσό")
                     (label 'status "Κατάσταση")
                     (dropdown 'status
                               *cheque-statuses*
@@ -582,11 +582,11 @@
                     (:div :class "data-form-buttons"
                           (if disabled
                               (cancel-button (apply #'cheque cheque-kind :id id filter)
-                                             :content "Επιστροφή στον Κατάλογο Επιταγών")
+                                             :body "Επιστροφή στον Κατάλογο Επιταγών")
                               (progn
-                                (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                                 (cancel-button (apply #'cheque cheque-kind :id id filter)
-                                               :content "Άκυρο")))))
+                                               :body "Άκυρο")))))
               (:div :class "grid_6 data-form-first"
                     (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.

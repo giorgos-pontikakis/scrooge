@@ -24,7 +24,7 @@
             (tof          ,(tof)                              "Δ.Ο.Υ.")
             (account      ,(account)                          "Λογαριασμοί")
             (cheque-stran ,(config/cheque-stran "receivable") "Επιταγές"))
-          :style "section-navbar hnavbar grid_12"
+          :css-class "section-navbar hnavbar grid_12"
           :active-page-name active-page-name))
 
 

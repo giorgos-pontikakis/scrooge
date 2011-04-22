@@ -97,7 +97,7 @@
                                nil
                                (apply #'bank/delete :id id filter)))
         :id "bank-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun bank-notifications ()
@@ -116,9 +116,9 @@
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
-                                           :id "bank-paginator"
-                                           :style "paginator"
-                                           :urlfn #'bank)))
+                                            :id "bank-paginator"
+                                            :css-class "paginator"
+                                            :urlfn #'bank)))
   (:default-initargs :id "config-table" :item-class 'bank-row))
 
 (defmethod read-records ((table bank-table))

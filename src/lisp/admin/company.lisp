@@ -198,7 +198,7 @@
                                        nil
                                        (apply #'company/delete :id id filter)))
         :id "company-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun company-notifications ()
@@ -245,9 +245,9 @@
   ((item-key-field :initform :id)
    (header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
    (paginator      :initform (make-instance 'scrooge-paginator
-                                           :id "company-paginator"
-                                           :style "paginator"
-                                           :urlfn #'company)))
+                                            :id "company-paginator"
+                                            :css-class "paginator"
+                                            :urlfn #'company)))
   (:default-initargs :item-class 'company-row :id "company-table"))
 
 (defmethod read-records ((table company-table))
@@ -536,29 +536,29 @@
 
 (defun company-data-form (op &key id data styles filter)
   (let ((disabled (eql op :details)))
-    (flet ((label+textbox (name label &optional extra-styles)
+    (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabled disabled
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles)))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
       (with-html
         (:div :class "data-form company-data"
               (:div :class "company-form-no-fieldset"
-                    (label+textbox 'title "Επωνυμία" "ac-company"))
+                    (label-input-text 'title "Επωνυμία" "ac-company"))
               (:fieldset
                (:legend "Φορολογικά στοιχεία")
-               (:div :class "company-data-full" (label+textbox 'occupation "Επάγγελμα"))
-               (:div :id "tin" :class "company-data-half" (label+textbox 'tin "Α.Φ.Μ."))
-               (:div :id "tof-div" :class "company-data-half" (label+textbox 'tof "Δ.Ο.Υ." "ac-tof")))
+               (:div :class "company-data-full" (label-input-text 'occupation "Επάγγελμα"))
+               (:div :id "tin" :class "company-data-half" (label-input-text 'tin "Α.Φ.Μ."))
+               (:div :id "tof-div" :class "company-data-half" (label-input-text 'tof "Δ.Ο.Υ." "ac-tof")))
               (:fieldset
                (:legend "Διεύθυνση")
-               (:div :id "address" (label+textbox 'address "Οδός"))
-               (:div :id "city" (label+textbox 'city "Πόλη" "ac-city"))
-               (:div :id "zipcode" (label+textbox 'zipcode "Ταχυδρομικός κωδικός"))
-               (:div :id "pobox" (label+textbox 'pobox "Ταχυδρομική θυρίδα")))
+               (:div :id "address" (label-input-text 'address "Οδός"))
+               (:div :id "city" (label-input-text 'city "Πόλη" "ac-city"))
+               (:div :id "zipcode" (label-input-text 'zipcode "Ταχυδρομικός κωδικός"))
+               (:div :id "pobox" (label-input-text 'pobox "Ταχυδρομική θυρίδα")))
               (:div :class "company-form-no-fieldset"
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes
@@ -567,7 +567,7 @@
         (:div :class "data-form-buttons"
               (if disabled
                   (cancel-button (apply #'company :id id filter)
-                                 :content "Επιστροφή στον Κατάλογο Εταιριών")
+                                 :body "Επιστροφή στον Κατάλογο Εταιριών")
                   (progn
-                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'company :id id filter) :content "Άκυρο"))))))))
+                    (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'company :id id filter) :body "Άκυρο"))))))))

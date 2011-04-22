@@ -36,7 +36,7 @@
    (header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
-                                            :style "paginator grid_9 alpha"
+                                            :css-class "paginator grid_9 alpha"
                                             :urlfn #'account/details))
    (op :initform :read))
   (:default-initargs :item-class 'account-tx-row))
@@ -90,7 +90,7 @@
   (menu `((overview ,(account/overview :id id) "Σύνοψη")
           (details  ,(account/details :id id)  "Λεπτομέρειες")
           (print    ,(account/print :id id)    "Εκτύπωση"))
-        :style "hnavbar actions grid_6 alpha"
+        :css-class "hnavbar actions grid_6 alpha"
         :disabled disabled))
 
 

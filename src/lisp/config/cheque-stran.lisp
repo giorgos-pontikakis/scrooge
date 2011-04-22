@@ -142,7 +142,7 @@
                            (config/cheque-stran/update cheque-kind :id id)
                            (config/cheque-stran/delete cheque-kind :id id))
         :id "cheque-stran-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun cheque-stran-notifications ()
@@ -169,7 +169,7 @@
             (:p :class "title" "Είδος επιταγής")
             (navbar spec
                     :id "cheque-stran-filters"
-                    :style "vnavbar"
+                    :css-class "vnavbar"
                     :active-page-name (intern (string-upcase cheque-kind)))))))
 
 
@@ -209,31 +209,31 @@
   ((subpage        :accessor subpage :initarg :subpage)
    (item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Περιγραφή"
-                              "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
+                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
+                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
    (paginator      :initform nil))
   (:default-initargs :item-class 'cheque-stran-row))
 
 (defmethod read-records ((table cheque-stran-table))
   (let ((payable-p (string= (subpage table) "payable")))
-   (with-db ()
-     (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
-                                (:as 'debit-account-tbl.title 'debit-account)
-                                (:as 'credit-account-tbl.title 'credit-account)
-                                (:as 'from-cheque-status.description 'from-description)
-                                (:as 'to-cheque-status.description 'to-description)
-                                :from 'cheque-stran
-                                :inner-join (:as 'account 'debit-account-tbl)
-                                :on (:= 'debit-acc-id 'debit-account-tbl.id)
-                                :inner-join (:as 'account 'credit-account-tbl)
-                                :on (:= 'credit-acc-id 'credit-account-tbl.id)
-                                :inner-join (:as 'cheque-status 'from-cheque-status)
-                                :on (:= 'from-cheque-status.id 'cheque-stran.from-status)
-                                :inner-join (:as 'cheque-status 'to-cheque-status)
-                                :on (:= 'to-cheque-status.id 'cheque-stran.to-status)
-                                :where (:= 'payable_p payable-p))
-                       'cheque-stran.title)
-            :plists))))
+    (with-db ()
+      (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
+                                 (:as 'debit-account-tbl.title 'debit-account)
+                                 (:as 'credit-account-tbl.title 'credit-account)
+                                 (:as 'from-cheque-status.description 'from-description)
+                                 (:as 'to-cheque-status.description 'to-description)
+                                 :from 'cheque-stran
+                                 :inner-join (:as 'account 'debit-account-tbl)
+                                 :on (:= 'debit-acc-id 'debit-account-tbl.id)
+                                 :inner-join (:as 'account 'credit-account-tbl)
+                                 :on (:= 'credit-acc-id 'credit-account-tbl.id)
+                                 :inner-join (:as 'cheque-status 'from-cheque-status)
+                                 :on (:= 'from-cheque-status.id 'cheque-stran.from-status)
+                                 :inner-join (:as 'cheque-status 'to-cheque-status)
+                                 :on (:= 'to-cheque-status.id 'cheque-stran.to-status)
+                                 :where (:= 'payable_p payable-p))
+                        'cheque-stran.title)
+             :plists))))
 
 ;;; rows
 
@@ -255,28 +255,28 @@
 (defmethod payload ((row cheque-stran-row) enabled-p)
   (let ((record (record row))
         (disabled (not enabled-p)))
-   (list (make-instance 'textbox
-                        :title 'title
-                        :value (getf record :title)
-                        :disabled disabled)
-         (make-instance 'dropdown
-                        :name 'from-status
-                        :label-value-alist *cheque-statuses*
-                        :selected (getf record :from-description)
-                        :disabled disabled)
-         (make-instance 'dropdown
-                        :name 'to-status
-                        :label-value-alist *cheque-statuses*
-                        :selected (getf record :to-description)
-                        :disabled disabled)
-         (make-instance 'textbox
-                        :name 'debit-account
-                        :value (getf record :debit-account)
-                        :disabled disabled)
-         (make-instance 'textbox
-                        :name 'credit-account
-                        :value (getf record :credit-account)
-                        :disabled disabled))))
+    (list (make-instance 'textbox
+                         :title 'title
+                         :value (getf record :title)
+                         :disabled disabled)
+          (make-instance 'dropdown
+                         :name 'from-status
+                         :label-value-alist *cheque-statuses*
+                         :selected (getf record :from-description)
+                         :disabled disabled)
+          (make-instance 'dropdown
+                         :name 'to-status
+                         :label-value-alist *cheque-statuses*
+                         :selected (getf record :to-description)
+                         :disabled disabled)
+          (make-instance 'textbox
+                         :name 'debit-account
+                         :value (getf record :debit-account)
+                         :disabled disabled)
+          (make-instance 'textbox
+                         :name 'credit-account
+                         :value (getf record :credit-account)
+                         :disabled disabled))))
 
 (defmethod controls ((row cheque-stran-row) enabled-p)
   (let ((id (key row))
@@ -441,36 +441,36 @@
 
 (defun cheque-stran-data-form (cheque-kind op &key id data styles)
   (let ((disabled (eql op :details)))
-    (flet ((label+textbox (name label &optional extra-styles)
+    (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabled disabled
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles)))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
       (with-html
         (:div :id "cheque-data-form" :class "data-form"
-              (label+textbox 'title "Περιγραφή")
+              (label-input-text 'title "Περιγραφή")
               ;;
               (label 'from-status "Αρχική Κατάσταση")
               (dropdown 'from-status *cheque-statuses*
                         :selected (getf data :from-status)
                         :disabled disabled
-                        :style (getf styles :from-status))
+                        :css-class (getf styles :from-status))
               (label 'from-status "Τελική Κατάσταση")
               (dropdown 'to-status *cheque-statuses*
                         :selected (getf data :to-status)
                         :disabled disabled
-                        :style (getf styles :to-status))
+                        :css-class (getf styles :to-status))
               ;;
-              (label+textbox 'debit-account "Λογαριασμός Χρέωσης" "ac-account")
-              (label+textbox 'credit-account "Λογαριασμός Πίστωσης" "ac-account"))
+              (label-input-text 'debit-account "Λογαριασμός Χρέωσης" "ac-account")
+              (label-input-text 'credit-account "Λογαριασμός Πίστωσης" "ac-account"))
         (:div :class "data-form-buttons grid_9"
               (if disabled
                   (cancel-button (config/cheque-stran cheque-kind :id id)
-                                 :content "Επιστροφή στον Κατάλογο Επιταγών")
+                                 :body "Επιστροφή στον Κατάλογο Επιταγών")
                   (progn
-                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία") )
+                    (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία") )
                     (cancel-button (config/cheque-stran cheque-kind :id id)
-                                   :content "Άκυρο"))))))))
+                                   :body "Άκυρο"))))))))

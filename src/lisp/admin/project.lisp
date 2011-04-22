@@ -166,7 +166,7 @@
                                    (apply #'project/update :id id filter)
                                    (apply #'project/delete :id id filter))
         :id "project-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun project-notifications ()
@@ -201,7 +201,7 @@
             (:p :class "title" "Κατάσταση")
             (navbar spec
                     :id "project-filters"
-                    :style "vnavbar"
+                    :css-class "vnavbar"
                     :active-page-name (intern (string-upcase status)))))))
 
 
@@ -234,7 +234,7 @@
    (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "project-paginator"
-                                            :style "paginator"
+                                            :css-class "paginator"
                                             :urlfn #'project)))
   (:default-initargs :item-class 'project-row :id "project-table"))
 
@@ -515,18 +515,18 @@
 
 (defun project-data-form (op &key id data styles filter)
   (let ((disabled (eql op :details)))
-    (flet ((label+textbox (name label &optional extra-styles)
+    (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
-               (textbox name
-                        :value (getf data (make-keyword name))
-                        :disabled disabled
-                        :style (conc (getf styles (make-keyword name))
-                                     " " extra-styles)))))
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
       (with-html
         (:div :id "project-data-form" :class "data-form grid_8"
               (:div :class "grid_5 alpha project-data-form-title"
-                    (label+textbox 'description "Περιγραφή"))
+                    (label-input-text 'description "Περιγραφή"))
               (:div :class "grid_2 omega project-data-form-title"
                     (label 'status "Κατάσταση")
                     (dropdown 'status
@@ -536,19 +536,19 @@
                               :selected (or (getf data :status) *default-project-status*)
                               :disabled disabled))
               (:div :class "grid_5 alpha project-data-form-subtitle"
-                    (label+textbox 'location "Τοποθεσία")
-                    (label+textbox 'company "Εταιρία" "ac-company"))
+                    (label-input-text 'location "Τοποθεσία")
+                    (label-input-text 'company "Εταιρία" "ac-company"))
               (:div :class "grid_4 alpha project-data-form-details"
                     (:fieldset
                      (:legend "Οικονομικά")
-                     (:ul (:li (label+textbox 'price "Τιμή"))
-                          (:li (label+textbox 'vat "Φ.Π.Α.")))))
+                     (:ul (:li (label-input-text 'price "Τιμή"))
+                          (:li (label-input-text 'vat "Φ.Π.Α.")))))
               (:div :class "grid_4 omega project-data-form-details"
                     (:fieldset
                      (:legend "Χρονοδιάγραμμα")
-                     (:ul (:li (label+textbox 'quote-date "Ημερομηνία προσφοράς" "datepicker"))
-                          (:li (label+textbox 'start-date "Ημερομηνία έναρξης" "datepicker"))
-                          (:li (label+textbox 'end-date "Ημερομηνία ολοκλήρωσης" "datepicker"))))))
+                     (:ul (:li (label-input-text 'quote-date "Ημερομηνία προσφοράς" "datepicker"))
+                          (:li (label-input-text 'start-date "Ημερομηνία έναρξης" "datepicker"))
+                          (:li (label-input-text 'end-date "Ημερομηνία ολοκλήρωσης" "datepicker"))))))
         (:div :id "project-notes" :class "data-form grid_4"
               (:div :class "project-data-form-title"
                     (label 'notes "Σημειώσεις")
@@ -558,7 +558,7 @@
         (:div :class "grid_8 data-form-buttons"
               (if disabled
                   (cancel-button (apply #'project :id id filter)
-                                 :content "Επιστροφή στον Κατάλογο Έργων")
+                                 :body "Επιστροφή στον Κατάλογο Έργων")
                   (progn
-                    (ok-button :content (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'project :id id filter) :content "Άκυρο"))))))))
+                    (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (apply #'project :id id filter) :body "Άκυρο"))))))))

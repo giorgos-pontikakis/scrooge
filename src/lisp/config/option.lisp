@@ -78,7 +78,7 @@
   (menu `((:read   ,(config)        "Προβολή")
           (:update ,(config/update) "Επεξεργασία"))
         :id "option-actions"
-        :style "hmenu actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun option-notifications ()
@@ -170,40 +170,40 @@
 (defun option-form (op &key data styles)
   (with-db ()
     (let ((disabled (eql op :read)))
-      (flet ((label+textbox (name label &optional extra-styles)
+      (flet ((label-input-text (name label &optional extra-styles)
                (label name label)
                (input-text name
                            :value (getf data (make-keyword name))
                            :disabled disabled
-                           :style (conc (getf styles (make-keyword name))
-                                        " " extra-styles))))
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles))))
         (with-html
           (:div :id "option-data-form" :class "data-form"
-                (label+textbox 'cash-account
-                               "Λογαριασμός Μετρητών"
-                               "ac-account")
-                (label+textbox 'revenues-root-account
-                               "Λογαριασμός ρίζας εσόδων"
-                               "ac-account")
-                (label+textbox 'expenses-root-account
-                               "Λογαριασμός ρίζας εξόδων"
-                               "ac-account")
-                (label+textbox 'invoice-receivable-account
-                               "Λογαριασμός τιμολογημένων ποσών προς είσπραξη"
-                               "ac-account")
-                (label+textbox 'invoice-payable-account
-                               "Λογαριασμός τιμολογημένων ποσών προς πληρωμή"
-                               "ac-account")
-                (label+textbox 'cheque-receivable-account
-                               "Λογαριασμός επιταγών προς είσπραξη"
-                               "ac-account")
-                (label+textbox 'cheque-payable-account
-                               "Λογαριασμός επιταγών προς πληρωμή"
-                               "ac-account")
-                (label+textbox 'crud-table-num-rows
-                               "Αριθμός γραμμών στους καταλόγους"
-                               "ac-account")
+                (label-input-text 'cash-account
+                                  "Λογαριασμός Μετρητών"
+                                  "ac-account")
+                (label-input-text 'revenues-root-account
+                                  "Λογαριασμός ρίζας εσόδων"
+                                  "ac-account")
+                (label-input-text 'expenses-root-account
+                                  "Λογαριασμός ρίζας εξόδων"
+                                  "ac-account")
+                (label-input-text 'invoice-receivable-account
+                                  "Λογαριασμός τιμολογημένων ποσών προς είσπραξη"
+                                  "ac-account")
+                (label-input-text 'invoice-payable-account
+                                  "Λογαριασμός τιμολογημένων ποσών προς πληρωμή"
+                                  "ac-account")
+                (label-input-text 'cheque-receivable-account
+                                  "Λογαριασμός επιταγών προς είσπραξη"
+                                  "ac-account")
+                (label-input-text 'cheque-payable-account
+                                  "Λογαριασμός επιταγών προς πληρωμή"
+                                  "ac-account")
+                (label-input-text 'crud-table-num-rows
+                                  "Αριθμός γραμμών στους καταλόγους"
+                                  "ac-account")
                 (:div :class "data-form-buttons grid_12"
                       (unless disabled
-                        (ok-button :content "Ανανέωση")
-                        (cancel-button (config) :content "Άκυρο")))))))))
+                        (ok-button :body "Ανανέωση")
+                        (cancel-button (config) :body "Άκυρο")))))))))
