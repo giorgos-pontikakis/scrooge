@@ -219,7 +219,7 @@
 ;;; Database interface
 ;;; ------------------------------------------------------------
 
-(defun get-company-plist (id)
+(defun company-record (id)
   (with-db ()
     (query (:select 'company.title 'occupation
                     'tin (:as 'tof.title 'tof)
@@ -366,7 +366,7 @@
                                    '(:details :create :update :delete))
                      (company-notifications)
                      (with-form (actions/admin/company/create :search (val search))
-                       (company-data-form 'create
+                       (company-data-form :create
                                           :filter filter
                                           :data (parameters->plist title
                                                                    occupation
@@ -427,7 +427,7 @@
                                        '(:create :update))
                          (company-notifications)
                          (with-form (actions/admin/company/update :id (val id) :search (val search))
-                           (company-data-form 'update
+                           (company-data-form :update
                                               :id (val id)
                                               :filter filter
                                               :data (plist-union (parameters->plist title
@@ -439,7 +439,7 @@
                                                                                     pobox
                                                                                     zipcode
                                                                                     notes)
-                                                                 (get-company-plist (val id)))
+                                                                 (company-record (val id)))
                                               :styles (parameters->styles title
                                                                           occupation
                                                                           tof
@@ -486,10 +486,10 @@
                          (company-menu (val id)
                                        filter
                                        '(:details :create))
-                         (company-data-form 'details
+                         (company-data-form :details
                                             :filter filter
                                             :id (val id)
-                                            :data (get-company-plist (val id))))
+                                            :data (company-record (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Κατάλογος")
                          (contact-menu (val id)

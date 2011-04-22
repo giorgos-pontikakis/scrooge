@@ -144,11 +144,10 @@
 ;;; Searchbox
 ;;; ------------------------------------------------------------
 
-(defmacro searchbox (submit-url search)
-  `(with-form ,submit-url
-     (:p :class "title" "Αναζήτηση")
-     (:p :class "search"
-         (textbox 'search :value ,search)
-         (submit (html ()
-                   (img "magnifier.png")))
-         (cancel-button ,submit-url))))
+(defun searchbox (submit-url search)
+  (form submit-url (html ()
+                     (:p :class "title" "Αναζήτηση")
+                     (:p :class "search"
+                         (textbox 'search :value search)
+                         (submit (html ()
+                                   (img "magnifier.png")))))))

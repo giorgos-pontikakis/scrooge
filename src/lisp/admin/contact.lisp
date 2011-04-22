@@ -111,18 +111,6 @@
 
 
 
-;;; ----------------------------------------------------------------------
-;;; Database interface
-;;; ----------------------------------------------------------------------
-
-(defun get-contact-plist (contact-id)
-  (with-db ()
-    (query (:select (:as 'id 'contact-id) 'tag 'phone
-                    :from 'contact
-                    :where (:= 'id contact-id))
-           :plists)))
-
-
 ;;; ------------------------------------------------------------
 ;;; UI elements
 ;;; ------------------------------------------------------------
@@ -175,9 +163,9 @@
                          (company-menu (val id)
                                        filter
                                        '(:details :create))
-                         (company-data-form 'details
+                         (company-data-form :details
                                             :filter filter
-                                            :data (get-company-plist (val id))))
+                                            :data (company-record (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Δημιουργία")
                          (contact-menu (val id)
@@ -213,9 +201,9 @@
                          (company-menu (val id)
                                        filter
                                        '(:details :create))
-                         (company-data-form 'details
+                         (company-data-form :details
                                             :filter filter
-                                            :data (get-company-plist (val id))))
+                                            :data (company-record (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Επεξεργασία")
                          (contact-menu (val id)
@@ -254,9 +242,9 @@
                          (company-menu (val id)
                                        filter
                                        '(:details :create))
-                         (company-data-form 'details
+                         (company-data-form :details
                                             :filter filter
-                                            :data (get-company-plist (val id))))
+                                            :data (company-record (val id))))
                    (:div :id "contact-window" :class "window grid_6"
                          (:div :class "title" "Επαφές » Διαγραφή")
                          (contact-menu (val id)

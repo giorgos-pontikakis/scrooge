@@ -210,7 +210,7 @@
 ;;; Database interface
 ;;; ------------------------------------------------------------
 
-(defun get-project-plist (id)
+(defun project-record (id)
   (with-db ()
     (query (:select 'project.id (:as 'company.title 'company)
                     'description 'location 'status 'quote-date
@@ -366,7 +366,7 @@
                                    '(:details :create :update :delete))
                      (project-notifications))
                (with-form (actions/admin/project/create :search (val search))
-                 (project-data-form 'create
+                 (project-data-form :create
                                     :filter filter
                                     :data (plist-union (parameters->plist company
                                                                           description
@@ -423,7 +423,7 @@
                                        '(:create :update))
                          (project-notifications))
                    (with-form (actions/admin/project/update :id (val id) :search (val search))
-                     (project-data-form 'update
+                     (project-data-form :update
                                         :id (val id)
                                         :filter filter
                                         :data (plist-union (parameters->plist company
@@ -436,7 +436,7 @@
                                                                               start-date
                                                                               end-date
                                                                               notes)
-                                                           (get-project-plist (val id)))
+                                                           (project-record (val id)))
                                         :styles (parameters->styles company
                                                                     description
                                                                     location
@@ -471,10 +471,10 @@
                          (project-menu (val id)
                                        filter
                                        '(:details :create)))
-                   (project-data-form 'details
+                   (project-data-form :details
                                       :filter filter
                                       :id (val id)
-                                      :data (get-project-plist (val id)))))))
+                                      :data (project-record (val id)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page project/delete ("admin/project/delete")

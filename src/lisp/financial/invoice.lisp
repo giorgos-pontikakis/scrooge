@@ -319,7 +319,7 @@
                                    '(:create :update :delete))
                      (invoice-notifications)
                      (with-form (actions/financial/invoice/create invoice-kind :search (val* search))
-                       (invoice-data-form :create invoice-kind
+                       (invoice-data-form invoice-kind :create
                                           :filter filter
                                           :data (parameters->plist date
                                                                    company
@@ -363,7 +363,7 @@
                      (with-form (actions/financial/invoice/update invoice-kind
                                                                   :id (val id)
                                                                   :search (val* search))
-                       (invoice-data-form 'update invoice-kind
+                       (invoice-data-form invoice-kind :update
                                           :id (val id)
                                           :filter filter
                                           :data (plist-union (parameters->plist date
@@ -372,7 +372,7 @@
                                                                                 amount)
                                                              (subst :account-id
                                                                     acc-keyword
-                                                                    (get-tx-plist (val id))))
+                                                                    (tx-record (val id))))
                                           :styles (parameters->styles date
                                                                       company
                                                                       description
@@ -418,7 +418,7 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(defun invoice-data-form (op invoice-kind &key id data styles filter)
+(defun invoice-data-form (invoice-kind op &key id data styles filter)
   (let ((disabled (eql op :details))
         (tree (account-tree (string-equal invoice-kind "receivable"))))
     (flet ((label+textbox (name label &optional extra-styles)

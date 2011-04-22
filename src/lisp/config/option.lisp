@@ -95,7 +95,7 @@
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
 
-(defun get-option-plist ()
+(defun option-record ()
   (with-db ()
     (mapcan (lambda (dao)
               (list (make-keyword (string-upcase (id dao)))
@@ -127,7 +127,7 @@
                    (:div :class "title" "Ρυθμίσεις » Γενικά")
                    (option-menu '(:read))
                    (option-form :read
-                                :data (get-option-plist))))))))
+                                :data (option-record))))))))
 
 (define-dynamic-page config/update ("config/update")
     ((cash-account               string  chk-acc-title*)
@@ -163,7 +163,7 @@
                      (option-form :update
                                   :data (plist-union
                                          (apply #'parameters->plist (parameters *page*))
-                                         (get-option-plist))
+                                         (option-record))
                                   :styles (apply #'parameters->styles (parameters *page*)))))
              (footer))))))
 

@@ -130,7 +130,7 @@
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
 
-(defun get-tx-plist (id)
+(defun tx-record (id)
   (with-db ()
     (query (:select 'tx.id
                     (:as 'tx-date 'date)
@@ -316,7 +316,7 @@
                          (transaction-notifications)
                          (with-form (actions/financial/transaction/update :id (val* id)
                                                                           :search (val* search))
-                           (transaction-data-form 'update
+                           (transaction-data-form :update
                                                   :id (val id)
                                                   :filter filter
                                                   :data (plist-union
@@ -326,7 +326,7 @@
                                                                             debit-account
                                                                             credit-account
                                                                             amount)
-                                                         (get-tx-plist (val id)))
+                                                         (tx-record (val id)))
                                                   :styles (parameters->styles date
                                                                               company
                                                                               description
@@ -356,10 +356,10 @@
                          (transaction-menu (val id)
                                            filter
                                            '(:details :create))
-                         (transaction-data-form 'details
+                         (transaction-data-form :details
                                                 :filter filter
                                                 :id (val id)
-                                                :data (get-tx-plist (val id))))
+                                                :data (tx-record (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          "")
                    (error-page)))))

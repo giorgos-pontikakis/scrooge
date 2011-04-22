@@ -159,6 +159,19 @@
 
 
 ;;; ------------------------------------------------------------
+;;; Database interface
+;;; ------------------------------------------------------------
+
+(defun account-record (id)
+  (with-db ()
+    (query (:select 'id 'title 'chequing-p
+                    :from 'account
+                    :where (:= id 'id))
+           :plist)))
+
+
+
+;;; ------------------------------------------------------------
 ;;; Account tree
 ;;; ------------------------------------------------------------
 
@@ -275,7 +288,7 @@
                                           '(:create :update :delete))
                        (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                  :debitp (val debitp))
-                         (config-account-data-form 'create
+                         (config-account-data-form :create
                                                    :data (parameters->plist parent-id
                                                                             title
                                                                             chequing-p)
@@ -304,21 +317,14 @@
                                                      (get-dao 'account (val id))))
                                           '(:create :update :delete))
                        (with-form (actions/config/account/update :id (val id))
-                         (config-account-data-form 'update
+                         (config-account-data-form :update
                                                    :id (val id)
                                                    :data (plist-union
                                                           (parameters->plist title
                                                                              chequing-p)
-                                                          (get-account-plist (val id)))
+                                                          (account-record (val id)))
                                                    :styles (parameters->styles title)))))))
         (see-other (notfound)))))
-
-(defun get-account-plist (id)
-  (with-db ()
-    (query (:select 'id 'title 'chequing-p
-                    :from 'account
-                    :where (:= id 'id))
-           :plist)))
 
 (define-dynamic-page account/delete ("config/account/delete")
     ((id integer chk-acc-id/ref t))

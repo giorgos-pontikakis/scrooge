@@ -226,7 +226,7 @@
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
 
-(defun get-cheque-plist (id)
+(defun cheque-record (id)
   (with-db ()
     (query (:select 'cheque.id (:as 'bank.title 'bank)
                     'due-date (:as 'company.title 'company)
@@ -404,8 +404,7 @@
                                   filter
                                   '(details create update delete)))
                (with-form (actions/financial/cheque/create cheque-kind :search (val* search))
-                 (cheque-data-form cheque-kind
-                                   :create
+                 (cheque-data-form cheque-kind :create
                                    :filter filter
                                    :data (parameters->plist bank
                                                             company
@@ -454,8 +453,7 @@
                    (with-form (actions/financial/cheque/update cheque-kind
                                                                :id (val id)
                                                                :search (val search))
-                     (cheque-data-form cheque-kind
-                                       'update
+                     (cheque-data-form cheque-kind :update
                                        :id (val id)
                                        :filter filter
                                        :data (plist-union (parameters->plist bank
@@ -464,7 +462,7 @@
                                                                              amount
                                                                              status
                                                                              account-id)
-                                                          (get-cheque-plist (val id)))
+                                                          (cheque-record (val id)))
                                        :styles (parameters->styles bank
                                                                    company
                                                                    due-date
@@ -498,11 +496,10 @@
                                       (val id)
                                       filter
                                       '(details create)))
-                   (cheque-data-form cheque-kind
-                                     'details
+                   (cheque-data-form cheque-kind :details
                                      :filter filter
                                      :id (val id)
-                                     :data (get-cheque-plist (val id)))))))
+                                     :data (cheque-record (val id)))))))
         (see-other (error-page)))))
 
 (define-regex-page cheque/delete (("financial/cheque/" (cheque-kind "(receivable|payable)") "/delete"))

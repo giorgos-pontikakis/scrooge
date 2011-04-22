@@ -47,7 +47,6 @@
     margin-bottom: 10px;
     width: 100px;
     border-radius: 7px 7px 7px 7px;
-    -moz-border-radius: 7px 7px 7px 7px;
 }
 
 .search button {
@@ -55,7 +54,6 @@
     height: 26px;
     vertical-align: top;
     border-radius: 7px 7px 7px 7px;
-    -moz-border-radius: 7px 7px 7px 7px;
 }
 
 .search button img {

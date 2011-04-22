@@ -178,7 +178,7 @@
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
 
-(defun get-cheque-stran-plist (id)
+(defun cheque-stran-record (id)
   (with-db ()
     (query (:select 'cheque-stran.id 'cheque-stran.title
                     (:as 'debit-account-tbl.title 'debit-account)
@@ -348,7 +348,7 @@
                    (cheque-stran-notifications)
                    (with-form (actions/config/cheque-stran/create cheque-kind)
                      (cheque-stran-data-form cheque-kind
-                                             'create
+                                             :create
                                              :id nil
                                              :data (parameters->plist title
                                                                       debit-account
@@ -390,7 +390,7 @@
                          (cheque-stran-notifications)
                          (with-form (actions/config/cheque-stran/update cheque-kind :id (val id))
                            (cheque-stran-data-form cheque-kind
-                                                   'update
+                                                   :update
                                                    :id (val id)
                                                    :data (plist-union
                                                           (parameters->plist title
@@ -398,7 +398,7 @@
                                                                              credit-account
                                                                              from-status
                                                                              to-status)
-                                                          (get-cheque-stran-plist (val id)))
+                                                          (cheque-stran-record (val id)))
                                                    :styles (parameters->styles title
                                                                                debit-account
                                                                                credit-account

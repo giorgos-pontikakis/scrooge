@@ -336,7 +336,7 @@
                                 '(create update delete))
                      (cash-notifications)
                      (with-form (actions/financial/cash/create cash-kind :search (val* search))
-                       (cash-data-form :create cash-kind
+                       (cash-data-form cash-kind :create
                                        :filter filter
                                        :data (parameters->plist date
                                                                 company
@@ -380,7 +380,7 @@
                      (with-form (actions/financial/cash/update cash-kind
                                                                :id (val id)
                                                                :search (val* search))
-                       (cash-data-form 'update cash-kind
+                       (cash-data-form cash-kind :update
                                        :id (val id)
                                        :filter filter
                                        :data (plist-union (parameters->plist date
@@ -389,7 +389,7 @@
                                                                              amount)
                                                           (subst :account-id
                                                                  acc-keyword
-                                                                 (get-tx-plist (val id))))
+                                                                 (tx-record (val id))))
                                        :styles (parameters->styles date
                                                                    company
                                                                    description
@@ -436,7 +436,7 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(defun cash-data-form (op cash-kind &key id data styles filter)
+(defun cash-data-form (cash-kind op &key id data styles filter)
   (let* ((revenues-p (string-equal cash-kind "revenue"))
          (disabled (eql op :details))
          (tree (account-tree revenues-p)))
