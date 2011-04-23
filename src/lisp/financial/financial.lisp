@@ -36,4 +36,4 @@
                  :root-key (if revenues-p
                                *revenues-root-account*
                                *expenses-root-account*)
-                 :filter (not revenues-p)))
+                 :filter (list :debit-p (not revenues-p))))

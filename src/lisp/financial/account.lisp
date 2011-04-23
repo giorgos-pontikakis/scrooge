@@ -74,7 +74,8 @@
     (mapcar (lambda (name)
               (make-instance 'textbox
                              :name name
-                             :value (getf record-plus (make-keyword name))))
+                             :value (getf record-plus (make-keyword name))
+                             :disabled (not enabled-p)))
             '(tx-date description company debit-amount credit-amount))))
 
 (defmethod controls ((row account-tx-row) enabled-p)
@@ -124,8 +125,8 @@
                       (:div :class "title" (str window-title))
                       (account-ro-menu (val id)
                                        (if (and (val id) (eql flag (debit-p (val id))))
-                                           '(overview)
-                                           '(overview details print)))
+                                           '(:overview)
+                                           '(:overview :details :print)))
                       (display account-tree :selected-id (val* id))))))))))
 
 

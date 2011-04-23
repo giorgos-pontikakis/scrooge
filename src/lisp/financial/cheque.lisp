@@ -367,8 +367,8 @@
                                       (val id)
                                       filter
                                       (if (val id)
-                                          '(read)
-                                          '(read details update delete)))
+                                          '(:read)
+                                          '(:read :details :update :delete)))
                          (display cheque-table
                                   :selected-id (val* id)
                                   :selected-data nil
@@ -406,7 +406,7 @@
                      (cheque-menu cheque-kind
                                   nil
                                   filter
-                                  '(details create update delete)))
+                                  '(:details :create :update :delete)))
                (with-form (actions/financial/cheque/create cheque-kind :search (val* search))
                  (cheque-data-form cheque-kind :create
                                    :filter filter
@@ -452,7 +452,7 @@
                          (cheque-menu cheque-kind
                                       (val id)
                                       filter
-                                      '(create update))
+                                      '(:create :update))
                          (cheque-notifications))
                    (with-form (actions/financial/cheque/update cheque-kind
                                                                :id (val id)
@@ -499,7 +499,7 @@
                          (cheque-menu cheque-kind
                                       (val id)
                                       filter
-                                      '(details create)))
+                                      '(:details :create)))
                    (cheque-data-form cheque-kind :details
                                      :filter filter
                                      :id (val id)
@@ -535,7 +535,7 @@
                                (cheque-menu cheque-kind
                                             (val id)
                                             filter
-                                            '(read create delete))
+                                            '(:read :create :delete))
                                (with-form (actions/financial/cheque/delete cheque-kind
                                                                            :id (val id)
                                                                            :search (val* search)

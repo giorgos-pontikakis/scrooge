@@ -131,12 +131,11 @@
   ())
 
 (defmethod selector ((node account-radio-node) enabled-p)
-  (let* ((id (key node))
-         (record (record node)))
+  (let* ((id (key node)))
     (make-instance 'input-radio
                    :name 'account-id
                    :value id
-                   :body (getf record :title))))
+                   :body nil)))
 
 
 
@@ -298,8 +297,8 @@
                                     (val id)
                                     filter
                                     (if (val id)
-                                        '(read)
-                                        '(read details update delete)))
+                                        '(:read)
+                                        '(:read :details :update :delete)))
                          (display cash-tx-table
                                   :selected-id (val* id)
                                   :selected-data nil
@@ -335,7 +334,7 @@
                      (cash-menu cash-kind
                                 nil
                                 filter
-                                '(create update delete))
+                                '(:create :update :delete))
                      (cash-notifications)
                      (with-form (actions/financial/cash/create cash-kind :search (val* search))
                        (cash-data-form cash-kind :create
@@ -378,7 +377,7 @@
                      (cash-menu cash-kind
                                 nil
                                 filter
-                                '(create update delete))
+                                '(:create :update :delete))
                      (with-form (actions/financial/cash/update cash-kind
                                                                :id (val id)
                                                                :search (val* search))
@@ -426,7 +425,7 @@
                          (cash-menu cash-kind
                                     (val id)
                                     filter
-                                    '(read delete))
+                                    '(:read :delete))
                          (with-form (actions/financial/cash/delete cash-kind
                                                                    :id (val id)
                                                                    :search (val* search))
@@ -446,7 +445,7 @@
                                :root-key (if revenues-p
                                              *invoice-receivable-account*
                                              *invoice-payable-account*)
-                               :filter revenues-p))
+                               :filter (list :debit-p revenues-p)))
           (children (root tree)))
     (flet ((label-input-text (name label &optional extra-styles)
              (with-html
