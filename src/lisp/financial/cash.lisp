@@ -29,7 +29,7 @@
 ;;; ----------------------------------------------------------------------
 
 (define-regex-page actions/financial/cash/create
-    (("actions/financial/cash/" (cash-kind "expense|revenue") "/create") :request-type :post)
+    (("actions/financial/cash/" (cash-kind "(expense|revenue)") "/create") :request-type :post)
     ((search      string)
      (date        date)
      (company     string  chk-company-title*)
@@ -66,7 +66,7 @@
                                 :search (raw search))))))
 
 (define-regex-page actions/financial/cash/update
-    (("actions/financial/cash/" (cash-kind "expense|revenue") "/update") :request-type :post)
+    (("actions/financial/cash/" (cash-kind "(expense|revenue)") "/update") :request-type :post)
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -105,7 +105,7 @@
                                 :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/cash/delete
-    (("actions/financial/cash/" (cash-kind "expense|revenue") "/delete") :request-type :post)
+    (("actions/financial/cash/" (cash-kind "(expense|revenue)") "/delete") :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
   (with-auth ("configuration")
@@ -199,26 +199,30 @@
          (cash-kind (subpage table))
          (start (start-index table)))
     (html ()
-      (if enabled-p
-          (apply #'cash cash-kind :start (page-start pg (index row) start) filter)
-          (apply #'cash cash-kind :id id filter)))))
+      (:a :href (if enabled-p
+                    (apply #'cash cash-kind :start (page-start pg (index row) start) filter)
+                    (apply #'cash cash-kind :id id filter))
+          (selector-img enabled-p)))))
 
 (defmethod payload ((row cash-tx-row) enabled-p)
   (let ((record (record row)))
     (mapcar (lambda (name)
               (make-instance 'textbox
                              :name name
-                             :value (getf record (make-keyword name))))
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
             '(date company description amount))))
 
 (defmethod controls ((row cash-tx-row) enabled-p)
   (let* ((id (key row))
-         (table (table row))
+         (table (collection row))
          (filter (filter table))
          (cash-kind (subpage table)))
-    (list (make-instance 'ok-button)
-          (make-instance 'cancel-button
-                         :href (apply #'cash cash-kind :id id filter)))))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (apply #'cash cash-kind :id id filter)))
+        (list nil nil))))
 
 
 
@@ -237,12 +241,10 @@
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Κατάσταση")
-            (display
-             (make-instance 'vertical-navbar
-                            :id "cash-filters"
-                            :css-class "vnavbar"
-                            :spec spec)
-             :active-page-name (intern (string-upcase cash-kind)))))))
+            (navbar spec
+                    :id "cash-filters"
+                    :css-class "vnavbar"
+                    :active-page-name (intern (string-upcase cash-kind)))))))
 
 (defun cash-menu (cash-kind id filter disabled)
   (menu (crud-actions-spec (apply #'cash        cash-kind :id id filter)
@@ -250,7 +252,7 @@
                            (apply #'cash/update cash-kind :id id filter)
                            (apply #'cash/delete cash-kind :id id filter))
         :id "cash-actions"
-        :css-class "hnavbar actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun cash-notifications ()
@@ -267,7 +269,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page cash (("financial/cash/" (cash-kind "expense|revenue")))
+(define-regex-page cash (("financial/cash/" (cash-kind "(expense|revenue)")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
@@ -308,7 +310,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page cash/create (("financial/cash/" (cash-kind "expense|revenue") "/create"))
+(define-regex-page cash/create (("financial/cash/" (cash-kind "(expense|revenue)") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
@@ -349,7 +351,7 @@
                                                                    amount))))
                (footer)))))))
 
-(define-regex-page cash/update (("financial/cash/" (cash-kind "expense|revenue") "/update"))
+(define-regex-page cash/update (("financial/cash/" (cash-kind "(expense|revenue)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -398,7 +400,7 @@
                (footer)))))))
 
 
-(define-regex-page cash/delete (("financial/cash/" (cash-kind "expense|revenue") "/delete"))
+(define-regex-page cash/delete (("financial/cash/" (cash-kind "(expense|revenue)") "/delete"))
     ((id     integer chk-project-id t)
      (search string))
   (with-auth ("configuration")
@@ -441,9 +443,9 @@
          (disabled (eql op :details))
          (tree (account-tree revenues-p)))
     (push (root (make-instance 'account-radio-tree
-                               :root-id (if revenues-p
-                                            *invoice-receivable-account*
-                                            *invoice-payable-account*)
+                               :root-key (if revenues-p
+                                             *invoice-receivable-account*
+                                             *invoice-payable-account*)
                                :filter revenues-p))
           (children (root tree)))
     (flet ((label-input-text (name label &optional extra-styles)

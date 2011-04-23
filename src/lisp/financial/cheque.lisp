@@ -45,7 +45,7 @@
 ;;; --------------------------------------------------------------------------------
 
 (define-regex-page actions/financial/cheque/create
-    (("actions/financial/cheque/" (cheque-kind "receivable|payable") "/create") :request-type :post)
+    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/create") :request-type :post)
     ((search     string)
      (bank       string  chk-bank-title)
      (company    string  chk-company-title t)
@@ -96,7 +96,7 @@
                                   :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/cheque/update
-    (("actions/financial/cheque/" (cheque-kind "receivable|payable") "/update") :request-type :post)
+    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/update") :request-type :post)
     ((search     string)
      (id         integer chk-cheque-id     t)
      (bank       string  chk-bank-title)
@@ -150,7 +150,7 @@
                                   :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/cheque/delete
-    (("actions/financial/cheque/" (cheque-kind "receivable|payable") "/delete") :request-type :post)
+    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/delete") :request-type :post)
     ((search string)
      (status string)
      (id     integer chk-cheque-id t))
@@ -181,7 +181,7 @@
                                    (apply #'cheque/update cheque-kind  :id id filter)
                                    (apply #'cheque/delete cheque-kind  :id id filter))
         :id "cheque-actions"
-        :css-class "hnavbar actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun cheque-notifications ()
@@ -297,35 +297,39 @@
   ())
 
 (defmethod selector ((row cheque-row) enabled-p)
-  (html ()
-    (let* ((id (key row))
-           (table (collection row))
-           (pg (paginator table))
-           (filter (filter table))
-           (cheque-kind (subpage table))
-           (start (start-index table)))
-      (if enabled-p
-          (apply #'cheque cheque-kind
-                 :start (page-start pg (index row) start)
-                 filter)
-          (apply #'cheque cheque-kind :id id filter)))))
+  (let* ((id (key row))
+         (table (collection row))
+         (pg (paginator table))
+         (filter (filter table))
+         (cheque-kind (subpage table))
+         (start (start-index table)))
+    (html ()
+      (:a :href (if enabled-p
+                    (apply #'cheque cheque-kind
+                           :start (page-start pg (index row) start)
+                           filter)
+                    (apply #'cheque cheque-kind :id id filter))
+          (selector-img enabled-p)))))
 
 (defmethod payload ((row cheque-row) enabled-p)
   (let ((record (record row)))
     (mapcar (lambda (name)
               (make-instance 'textbox
                              :name name
-                             :value (getf record (make-keyword name))))
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
             '(company bank due-date amount))))
 
 (defmethod controls ((row cheque-row) enabled-p)
   (let* ((id (key row))
-         (table (table row))
+         (table (collection row))
          (filter (filter table))
          (cash-kind (subpage table)))
-    (list (make-instance 'ok-button)
-          (make-instance 'cancel-button
-                         :href (apply #'cash cash-kind :id id filter)))))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (apply #'cash cash-kind :id id filter)))
+        (list nil nil))))
 
 
 
@@ -333,7 +337,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page cheque (("financial/cheque/" (cheque-kind "receivable|payable")))
+(define-regex-page cheque (("financial/cheque/" (cheque-kind "(receivable|payable)")))
     ((search string)
      (status string)
      (start  integer)
@@ -376,7 +380,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page cheque/create (("financial/cheque/" (cheque-kind  "receivable|payable") "/create"))
+(define-regex-page cheque/create (("financial/cheque/" (cheque-kind  "(receivable|payable)") "/create"))
     ((search     string)
      (bank       string  chk-bank-title)
      (due-date   date    chk-date)
@@ -420,7 +424,7 @@
                                                                account-id)))
                (footer)))))))
 
-(define-regex-page cheque/update (("financial/cheque/" (cheque-kind "receivable|payable") "/update"))
+(define-regex-page cheque/update (("financial/cheque/" (cheque-kind "(receivable|payable)") "/update"))
     ((search     string)
      (id         integer chk-cheque-id     t)
      (bank       string  chk-bank-title)
@@ -553,9 +557,9 @@
                    nil)))
     (when (eql op :create)
       (push (root (make-instance 'account-radio-tree
-                                 :root-id (if revenues-p
-                                              *invoice-receivable-account*
-                                              *invoice-payable-account*)
+                                 :root-key (if revenues-p
+                                               *invoice-receivable-account*
+                                               *invoice-payable-account*)
                                  :filter revenues-p))
             (children (root tree))))
     (flet ((label-input-text (name label &optional extra-styles)

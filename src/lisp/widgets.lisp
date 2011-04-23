@@ -34,10 +34,10 @@
   ()
   (:default-initargs
    :delta (get-option "crud-table-num-rows")
-    :html-prev (html () (img "resultset_previous.png"))
-    :html-next (html () (img "resultset_next.png"))
-    :html-prev-inactive (html () (img "resultset_first.png"))
-    :html-next-inactive (html () (img "resultset_last.png"))))
+    :body-prev (html () (img "resultset_previous.png"))
+    :body-next (html () (img "resultset_next.png"))
+    :body-prev-inactive (html () (img "resultset_first.png"))
+    :body-next-inactive (html () (img "resultset_last.png"))))
 
 
 

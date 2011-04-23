@@ -23,7 +23,8 @@
 (defmethod payload ((node account-ro-node) enabled-p)
   (make-instance 'textbox
                  :name 'title
-                 :value (getf (record node) :title)))
+                 :value (getf (record node) :title)
+                 :disabled (not enabled-p)))
 
 
 
@@ -117,7 +118,7 @@
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-ro-tree
-                                                  :filter flag))
+                                                  :filter `(:debit-p ,flag)))
                (htm
                 (:div :id div-id :class "window grid_6"
                       (:div :class "title" (str window-title))

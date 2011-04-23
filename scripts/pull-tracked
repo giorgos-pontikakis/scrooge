@@ -54,7 +54,7 @@ case $# in
             for i in $deps
             do
                 get_branch $i
-                if [[ $branch == 'master' || $branch == "${project_name}-${project_branch}" ]]
+                if [[ $branch == 'master' || $branch == "${project_branch}" ]]
                 then
                     echo Repository at $HOME/$i at correct branch
                 else

@@ -186,7 +186,7 @@
   (with-db ()
     (query (:select 'id 'title 'parent-id
                     :from 'account
-                    :where (:= 'debit-p (filter tree)))
+                    :where (:= 'debit-p (getf (filter tree) :debit-p)))
            :plists)))
 
 
@@ -252,7 +252,7 @@
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-crud-tree
                                                       :op :read
-                                                      :filter flag))
+                                                      :filter `(:debit-p ,flag)))
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))
@@ -347,7 +347,7 @@
                                                       :op (if (eql flag (debit-p (val id)))
                                                               :delete
                                                               :read)
-                                                      :filter flag))
+                                                      :filter `(:debit-p ,flag)))
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))

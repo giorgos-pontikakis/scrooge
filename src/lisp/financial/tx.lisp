@@ -110,7 +110,7 @@
                                    (apply #'transaction/update  :id id filter)
                                    (apply #'transaction/delete  :id id filter))
         :id "transaction-actions"
-        :css-class "hnavbar actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun transaction-notifications ()

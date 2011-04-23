@@ -71,7 +71,7 @@
                                    :search (raw search))))))
 
 (define-regex-page actions/financial/invoice/update
-    (("actions/financial/invoice/" (invoice-kind "receivable|payable") "/update")
+    (("actions/financial/invoice/" (invoice-kind "(receivable|payable)") "/update")
      :request-type :post)
     ((search      string)
      (id          integer chk-tx-id t)
@@ -111,7 +111,7 @@
                                    :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/invoice/delete
-    (("actions/financial/invoice/" (invoice-kind "receivable|payable") "/delete") :request-type :post)
+    (("actions/financial/invoice/" (invoice-kind "(receivable|payable)") "/delete") :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
   (with-auth ("configuration")
@@ -128,7 +128,7 @@
 ;;; Invoice transactions table
 ;;; ----------------------------------------------------------------------
 
-(defclass invoice-tx-table (crud-tx-table)
+(defclass invoice-tx-table (tx-table)
   ((item-key-field :initform :id)
    (subpage :accessor subpage :initarg :subpage)
    (paginator :initform (make-instance 'scrooge-paginator
@@ -183,25 +183,29 @@
          (filter (filter table))
          (start (start-index table)))
     (html ()
-      (if enabled-p
-          (apply #'invoice invoice-kind :start (page-start pg (index row) start) filter)
-          (apply #'invoice invoice-kind :id id filter)))))
+      (:a :href (if enabled-p
+                    (apply #'invoice invoice-kind :start (page-start pg (index row) start) filter)
+                    (apply #'invoice invoice-kind :id id filter))
+          (selector-img enabled-p)))))
 
 (defmethod payload ((row invoice-tx-row) enabled-p)
   (let ((record (record row)))
     (mapcar (lambda (name)
               (make-instance 'textbox
                              :name name
-                             :value (getf record (make-keyword name))))
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
             '(date company description amount))))
 
 (defmethod controls ((row invoice-tx-row) enabled-p)
   (let* ((id (key row))
-         (table (table row))
+         (table (collection row))
          (invoice-kind (subpage table))
          (filter (filter table)))
-    (list (make-instance 'ok-button)
-          (make-instance 'cancel-button :href (apply #'invoice invoice-kind :id id filter)))))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button :href (apply #'invoice invoice-kind :id id filter)))
+        (list nil nil))))
 
 
 
@@ -220,12 +224,10 @@
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Κατάσταση")
-            (display
-             (make-instance 'vertical-navbar
-                            :id "invoice-filters"
-                            :css-class "vnavbar"
-                            :spec spec)
-             :active-page-name (intern (string-upcase invoice-kind)))))))
+            (navbar spec
+                    :id "invoice-filters"
+                    :css-class "vnavbar"
+                    :active-page-name (intern (string-upcase invoice-kind)))))))
 
 (defun invoice-menu (invoice-kind id filter disabled)
   (menu (crud-actions-spec (apply #'invoice        invoice-kind :id id filter)
@@ -233,7 +235,7 @@
                            (apply #'invoice/update invoice-kind :id id filter)
                            (apply #'invoice/delete invoice-kind :id id filter))
         :id "invoice-actions"
-        :css-class "hnavbar actions"
+        :css-class "hmenu actions"
         :disabled disabled))
 
 (defun invoice-notifications ()
@@ -250,7 +252,7 @@
 ;;; Pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page invoice (("financial/invoice/" (invoice-kind "receivable|payable")))
+(define-regex-page invoice (("financial/invoice/" (invoice-kind "(receivable|payable)")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
@@ -291,7 +293,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page invoice/create (("financial/invoice/" (invoice-kind  "receivable|payable") "/create"))
+(define-regex-page invoice/create (("financial/invoice/" (invoice-kind  "(receivable|payable)") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
@@ -332,7 +334,7 @@
                                                                       amount))))
                (footer)))))))
 
-(define-regex-page invoice/update (("financial/invoice/" (invoice-kind "receivable|payable") "/update"))
+(define-regex-page invoice/update (("financial/invoice/" (invoice-kind "(receivable|payable)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -380,7 +382,7 @@
                                                                       account-id))))
                (footer)))))))
 
-(define-regex-page invoice/delete (("financial/invoice/" (invoice-kind "receivable|payable") "/delete"))
+(define-regex-page invoice/delete (("financial/invoice/" (invoice-kind "(receivable|payable)") "/delete"))
     ((id     integer chk-project-id t)
      (search string))
   (with-auth ("configuration")

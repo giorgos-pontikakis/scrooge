@@ -33,7 +33,7 @@
 
 (defun account-tree (revenues-p)
   (make-instance 'account-radio-tree
-                 :root-id (if revenues-p
-                              *revenues-root-account*
-                              *expenses-root-account*)
+                 :root-key (if revenues-p
+                               *revenues-root-account*
+                               *expenses-root-account*)
                  :filter (not revenues-p)))
