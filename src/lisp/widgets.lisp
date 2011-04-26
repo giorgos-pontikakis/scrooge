@@ -2,21 +2,11 @@
 
 
 
-;;; collections
+;;; ----------------------------------------------------------------------
+;;; top scrooge collections
+;;; ----------------------------------------------------------------------
 
-(defclass scrooge-crud-tree (crud-tree)
-  ()
-  (:default-initargs :css-class "crud-tree"))
-
-(defclass scrooge-crud-node (crud-node)
-  ()
-  (:default-initargs :css-delete "attention"
-    :css-selected "selected"
-    :css-selector "selector"
-    :css-payload "payload"
-    :css-controls "controls"
-    :css-indent "indent"))
-
+;;; crud-tables
 
 (defclass scrooge-crud-table (crud-table)
   ()
@@ -40,8 +30,126 @@
     :body-next-inactive (html () (img "resultset_last.png"))))
 
 
+;;; crud-trees
 
+(defclass scrooge-crud-tree (crud-tree)
+  ()
+  (:default-initargs :css-class "crud-tree"))
+
+(defclass scrooge-crud-node (crud-node)
+  ()
+  (:default-initargs :css-delete "attention"
+    :css-selected "selected"
+    :css-selector "selector"
+    :css-payload "payload"
+    :css-controls "controls"
+    :css-indent "indent"))
+
+
+
+;;; ------------------------------------------------------------
+;;; Account tree
+;;; ------------------------------------------------------------
+
+;;; tree
+
+(defclass account-crud-tree (scrooge-crud-tree)
+  ((item-key-field        :initform :id)
+   (item-parent-key-field :initform :parent-id))
+  (:default-initargs :item-class 'account-crud-node))
+
+(defmethod read-records ((tree account-crud-tree))
+  (with-db ()
+    (query (:select 'id 'title 'parent-id
+                    :from 'account
+                    :where (:= 'debit-p (getf (filter tree) :debit-p)))
+           :plists)))
+
+
+;;; nodes
+
+(defclass account-crud-node (scrooge-crud-node)
+  ())
+
+(defmethod selector ((node account-crud-node) enabled-p)
+  (let ((id (key node)))
+    (html ()
+      (:a :href (if enabled-p
+                    (account)
+                    (account :id id))
+          (selector-img enabled-p)))))
+
+(defmethod payload ((node account-crud-node) enabled-p)
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record node) :title)
+                 :disabled (not enabled-p)))
+
+(defmethod controls ((node account-crud-node) enabled-p)
+  (let ((id (key node)))
+    (if enabled-p
+        (html ()
+          (:div (display (make-instance 'ok-button) )
+                (display (make-instance 'cancel-button :href (account :id id)))))
+        (list nil nil))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; Account-RO (read only) tree
+;;; ----------------------------------------------------------------------
+
+(defclass account-ro-tree (account-crud-tree)
+  ((op :initform :read))
+  (:default-initargs :item-class 'account-ro-node))
+
+(defclass account-ro-node (account-crud-node)
+  ())
+
+(defmethod selector ((node account-ro-node) enabled-p)
+  (let ((id (key node)))
+    (html ()
+      (:a :href
+          (if enabled-p
+              (account/overview)
+              (account/overview :id id))
+          (selector-img enabled-p)))))
+
+(defmethod payload ((node account-ro-node) enabled-p)
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record node) :title)
+                 :disabled (not enabled-p)))
+
+(defmethod controls ((node account-ro-node) enabled-p)
+  (declare (ignore node enabled-p))
+  (list nil nil))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; account-radio tree
+;;; ----------------------------------------------------------------------
+
+(defclass account-radio-tree (account-crud-tree)
+  ()
+  (:default-initargs :item-class 'account-radio-node))
+
+(defclass account-radio-node (account-crud-node)
+  ())
+
+(defmethod selector ((node account-radio-node) enabled-p)
+  (let* ((id (key node)))
+    (make-instance 'input-radio
+                   :name 'account-id
+                   :value id
+                   :body nil)))
+
+
+
+;;; ----------------------------------------------------------------------
 ;;; buttons
+;;; ----------------------------------------------------------------------
 
 (defclass ok-button (submit)
   ()

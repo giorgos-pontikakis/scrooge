@@ -172,54 +172,6 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Account tree
-;;; ------------------------------------------------------------
-
-;;; tree
-
-(defclass account-crud-tree (scrooge-crud-tree)
-  ((item-key-field        :initform :id)
-   (item-parent-key-field :initform :parent-id))
-  (:default-initargs :item-class 'account-crud-node))
-
-(defmethod read-records ((tree account-crud-tree))
-  (with-db ()
-    (query (:select 'id 'title 'parent-id
-                    :from 'account
-                    :where (:= 'debit-p (getf (filter tree) :debit-p)))
-           :plists)))
-
-
-;;; nodes
-
-(defclass account-crud-node (scrooge-crud-node)
-  ())
-
-(defmethod selector ((node account-crud-node) enabled-p)
-  (let ((id (key node)))
-    (html ()
-      (:a :href (if enabled-p
-                    (account)
-                    (account :id id))
-          (selector-img enabled-p)))))
-
-(defmethod payload ((node account-crud-node) enabled-p)
-  (make-instance 'textbox
-                 :name 'title
-                 :value (getf (record node) :title)
-                 :disabled (not enabled-p)))
-
-(defmethod controls ((node account-crud-node) enabled-p)
-  (let ((id (key node)))
-    (if enabled-p
-        (html ()
-          (:div (display (make-instance 'ok-button) )
-                (display (make-instance 'cancel-button :href (account :id id)))))
-        (list nil nil))))
-
-
-
-;;; ------------------------------------------------------------
 ;;; Notifications
 ;;; ------------------------------------------------------------
 

@@ -120,26 +120,6 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; account-ro (read only) tree
-;;; ----------------------------------------------------------------------
-
-(defclass account-radio-tree (account-crud-tree)
-  ((op :initform :read))
-  (:default-initargs :item-class 'account-radio-node))
-
-(defclass account-radio-node (account-crud-node)
-  ())
-
-(defmethod selector ((node account-radio-node) enabled-p)
-  (let* ((id (key node)))
-    (make-instance 'input-radio
-                   :name 'account-id
-                   :value id
-                   :body nil)))
-
-
-
-;;; ----------------------------------------------------------------------
 ;;; Cash transactions table
 ;;; ----------------------------------------------------------------------
 
@@ -256,7 +236,7 @@
 
 (defun cash-notifications ()
   (notifications
-   '((company  (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+   '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
               :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
      (account-id (:acc-id-null "Δεν έχετε επιλέξει λογαριασμό"))

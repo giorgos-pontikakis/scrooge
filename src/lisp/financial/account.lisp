@@ -1,31 +1,5 @@
 (in-package :scrooge)
 
-;;; ----------------------------------------------------------------------
-;;; account-ro (read only) tree
-;;; ----------------------------------------------------------------------
-
-(defclass account-ro-tree (account-crud-tree)
-  ((op :initform :read))
-  (:default-initargs :item-class 'account-ro-node))
-
-(defclass account-ro-node (account-crud-node)
-  ())
-
-(defmethod selector ((node account-ro-node) enabled-p)
-  (let ((id (key node)))
-    (html ()
-      (:a :href
-          (if enabled-p
-              (account/overview)
-              (account/overview :id id))
-          (selector-img enabled-p)))))
-
-(defmethod payload ((node account-ro-node) enabled-p)
-  (make-instance 'textbox
-                 :name 'title
-                 :value (getf (record node) :title)
-                 :disabled (not enabled-p)))
-
 
 
 ;;; ----------------------------------------------------------------------

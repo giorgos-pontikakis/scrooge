@@ -31,8 +31,9 @@
                    (:p "Financial content not yet available")))))))
 
 
-(defun account-tree (revenues-p)
+(defun make-account-radio-tree (revenues-p)
   (make-instance 'account-radio-tree
+                 :op :read
                  :root-key (if revenues-p
                                *revenues-root-account*
                                *expenses-root-account*)

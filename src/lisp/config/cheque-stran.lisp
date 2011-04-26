@@ -292,7 +292,8 @@
 ;;; Cheque state transitions - pages
 ;;; ------------------------------------------------------------
 
-(define-regex-page config/cheque-stran (("config/cheque-stran/" (cheque-kind "(receivable|payable)")))
+(define-regex-page config/cheque-stran
+    (("config/cheque-stran/" (cheque-kind "(receivable|payable)")))
     ((id integer chk-cheque-stran-id))
   (with-auth ("configuration")
     (no-cache)
