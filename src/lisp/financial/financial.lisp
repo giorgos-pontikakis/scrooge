@@ -5,10 +5,10 @@
 
 (defun financial-navbar (active-page-name)
   (navbar `((transaction ,(transaction)          "Συναλλαγές")
-            (account     ,(account/overview)     "Λογαριασμοί")
-            (cheque      ,(cheque "receivable")  "Επιταγές")
+            (invoice     ,(invoice "receivable") "Τιμολόγια")
             (cash        ,(cash "revenue")       "Μετρητά")
-            (invoice     ,(invoice "receivable") "Τιμολόγια"))
+            (cheque      ,(cheque "receivable")  "Επιταγές")
+            (account     ,(account/overview)     "Λογαριασμοί"))
           :css-class "section-navbar hnavbar grid_12"
           :active-page-name active-page-name))
 
