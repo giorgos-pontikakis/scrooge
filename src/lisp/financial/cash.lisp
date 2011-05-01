@@ -124,8 +124,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass cash-tx-table (tx-table)
-  ((item-key-field :initform :id)
-   (subpage :accessor subpage :initarg :subpage)
+  ((subpage :accessor subpage :initarg :subpage)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :id "cash-tx-paginator"
                                        :css-class "paginator")))
@@ -420,7 +419,7 @@
 (defun cash-data-form (cash-kind op &key id data styles filter)
   (let* ((revenues-p (string-equal cash-kind "revenue"))
          (disabled (eql op :details))
-         (tree (account-tree revenues-p)))
+         (tree (make-account-radio-tree revenues-p)))
     (push (root (make-instance 'account-radio-tree
                                :root-key (if revenues-p
                                              *invoice-receivable-account*

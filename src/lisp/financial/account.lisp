@@ -7,8 +7,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass account-tx-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
+  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
                                             :css-class "paginator grid_9 alpha"

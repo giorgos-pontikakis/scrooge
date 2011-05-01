@@ -113,8 +113,7 @@
 ;;; table
 
 (defclass bank-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
+  ((header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "bank-paginator"
                                             :css-class "paginator"

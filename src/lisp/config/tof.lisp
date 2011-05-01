@@ -114,8 +114,7 @@
 ;;; table
 
 (defclass tof-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
+  ((header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tof-paginator"
                                             :css-class "paginator"

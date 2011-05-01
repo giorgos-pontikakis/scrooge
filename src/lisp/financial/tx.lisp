@@ -160,8 +160,7 @@
 ;;; table
 
 (defclass tx-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
                                             :css-class "paginator"

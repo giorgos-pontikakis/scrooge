@@ -249,7 +249,6 @@
 
 (defclass cheque-table (scrooge-crud-table)
   ((subpage        :accessor subpage :initarg :subpage)
-   (item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
@@ -553,14 +552,14 @@
   (let* ((revenues-p (string-equal cheque-kind "receivable"))
          (disabled (eql op :details))
          (tree (if (eql op :create)
-                   (account-tree revenues-p)
+                   (make-account-radio-tree revenues-p)
                    nil)))
     (when (eql op :create)
       (push (root (make-instance 'account-radio-tree
                                  :root-key (if revenues-p
                                                *invoice-receivable-account*
                                                *invoice-payable-account*)
-                                 :filter revenues-p))
+                                 :filter (list :debit-p revenues-p)))
             (children (root tree))))
     (flet ((label-input-text (name label &optional extra-styles)
              (with-html

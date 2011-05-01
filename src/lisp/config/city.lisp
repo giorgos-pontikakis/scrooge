@@ -113,8 +113,7 @@
 ;;; table
 
 (defclass city-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Ονομασία πόλης" "" ""))
+  ((header-labels  :initform '("" "Ονομασία πόλης" "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "city-paginator"
                                             :css-class "paginator"

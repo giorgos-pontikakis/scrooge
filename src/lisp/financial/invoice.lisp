@@ -129,8 +129,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass invoice-tx-table (tx-table)
-  ((item-key-field :initform :id)
-   (subpage :accessor subpage :initarg :subpage)
+  ((subpage :accessor subpage :initarg :subpage)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :id "invoice-tx-paginator"
                                        :css-class "paginator")))
@@ -422,7 +421,7 @@
 
 (defun invoice-data-form (invoice-kind op &key id data styles filter)
   (let ((disabled (eql op :details))
-        (tree (account-tree (string-equal invoice-kind "receivable"))))
+        (tree (make-account-radio-tree (string-equal invoice-kind "receivable"))))
     (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)

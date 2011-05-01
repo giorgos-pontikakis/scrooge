@@ -382,56 +382,58 @@
 
 (defun seed-accounts ()
   (with-db ()
-    (let ((debit-accounts
-           '((assets "Ενεργητικό"
-              ((current-assets "Κυκλοφορούν Ενεργητικό"
-                               ((cash "Μετρητά" ())
-                                (accounts-receivable "Τρέχουσες απαιτήσεις (Ανοιχτοί λογαριασμοί)" ())
-                                (cheques-receivable "Επιταγές εισπρακτέες" ())
-                                (bank-checking-account "Τραπεζικός λογαριασμός όψεως" ())
-                                (bank-deposit-account "Τραπεζικός λογαριασμός καταθέσεων" ())))
-               (property "Περιουσιακά στοιχεία"
-                         ((vehicles "Οχήματα" ())
-                          (machinery "Εργαλεία και εργαλειομηχανές" ())
-                          (equipment "Λοιπός εξοπλισμός" ())))))
-             (expenses "Έξοδα" ((operating-expenses "Λειτουργικά έξοδα"
-                                                    ((personnel "Προσωπικό"
-                                                                ((salaries "Μισθοί" ())
-                                                                 (travel "Εκτός έδρας" ())
-                                                                 (bonuses "Πριμ" ())
-                                                                 (insuranse "Ασφαλιστικά ταμεία" ())
-                                                                 (severances "Αποζημιώσεις" ())))
-                                                     (misc-expenses "Γενικά Έξοδα"
-                                                                    ((supplies "Αναλώσιμα" ())
-                                                                     (utilities "Επιχειρήσεις κοινής ωφέλειας"
-                                                                                ((electricity "Δ.Ε.Η." ())
-                                                                                 (phones "Τηλέφωνα και Διαδίκτυο" ())
-                                                                                 (mail "Ταχυδρομείο και ταχυμεταφορές" ())))
-                                                                     (auxiliary-services "Βοηθητικές υπηρεσίες"
-                                                                                         ((lawyer "Δικηγόρος" ())
-                                                                                          (accountant "Λογιστής" ())))))
-                                                     (depreciation "Απαξίωση περιουσιακών στοιχείων" ())
-                                                     (bad-debts "Διεγραμμένες ανείσπρακτες οφειλές" ())))
-                                (manufacturing-expenses "Έξοδα παραγωγής"
-                                                        ((raw-material "Πρώτες ύλες" ())
-                                                         (machinery "Μηχανήματα" ())
-                                                         (installation "Έξοδα εγκαταστάσεων"
-                                                                       ((fuel "Καύσιμα" ())
-                                                                        (tolls "Διόδια" ())
-                                                                        (external-services "Εξωτερικοί συνεργάτες" ()))))
-                                                        (other-manufacturing-expenses "Διάφορα έξοδα παραγωγής" ()))
-                                (non-operating-expenses "Μή λειτουργικά έξοδα"
-                                                        ((various-non-op-expenses "Διάφορα μη λειτουργικά έξοδα" ())
-                                                         (taxes "Φόροι" ())
-                                                         (vat "Φ.Π.Α." ())
-                                                         (fines "Πρόστιμα" ())))))))
-          (credit-accounts '((liabilities "Παθητικό"
-                              ((current-liabilities "Τρέχουσες Υποχρεώσεις" ())
-                               (cheques-payable "Επιταγές πληρωτέες" ())
-                               (taxes-payable "Φόροι πληρωτέοι" ())))
-                             (revenues "Έσοδα" ((supplied-services "Παροχή υπηρεσιών" ())
-                                                (products "Προϊόντα" ())
-                                                (projects "Έργα" ())))))
+    (let ((debit-accounts '((debit-accounts-root "debit-accounts-root"
+                             ((assets "Ενεργητικό"
+                                      ((current-assets "Κυκλοφορούν Ενεργητικό"
+                                                       ((cash "Μετρητά" ())
+                                                        (accounts-receivable "Τρέχουσες απαιτήσεις (Ανοιχτοί λογαριασμοί)" ())
+                                                        (cheques-receivable "Επιταγές εισπρακτέες" ())
+                                                        (bank-checking-account "Τραπεζικός λογαριασμός όψεως" ())
+                                                        (bank-deposit-account "Τραπεζικός λογαριασμός καταθέσεων" ())))
+                                       (property "Περιουσιακά στοιχεία"
+                                                 ((vehicles "Οχήματα" ())
+                                                  (machinery "Εργαλεία και εργαλειομηχανές" ())
+                                                  (equipment "Λοιπός εξοπλισμός" ())))))
+                              (expenses "Έξοδα"
+                                        ((operating-expenses "Λειτουργικά έξοδα"
+                                                             ((personnel "Προσωπικό"
+                                                                         ((salaries "Μισθοί" ())
+                                                                          (travel "Εκτός έδρας" ())
+                                                                          (bonuses "Πριμ" ())
+                                                                          (insuranse "Ασφαλιστικά ταμεία" ())
+                                                                          (severances "Αποζημιώσεις" ())))
+                                                              (misc-expenses "Γενικά Έξοδα"
+                                                                             ((supplies "Αναλώσιμα" ())
+                                                                              (utilities "Επιχειρήσεις κοινής ωφέλειας"
+                                                                                         ((electricity "Δ.Ε.Η." ())
+                                                                                          (phones "Τηλέφωνα και Διαδίκτυο" ())
+                                                                                          (mail "Ταχυδρομείο και ταχυμεταφορές" ())))
+                                                                              (auxiliary-services "Βοηθητικές υπηρεσίες"
+                                                                                                  ((lawyer "Δικηγόρος" ())
+                                                                                                   (accountant "Λογιστής" ())))))
+                                                              (depreciation "Απαξίωση περιουσιακών στοιχείων" ())
+                                                              (bad-debts "Διεγραμμένες ανείσπρακτες οφειλές" ())))
+                                         (manufacturing-expenses "Έξοδα παραγωγής"
+                                                                 ((raw-material "Πρώτες ύλες" ())
+                                                                  (machinery "Μηχανήματα" ())
+                                                                  (installation "Έξοδα εγκαταστάσεων"
+                                                                                ((fuel "Καύσιμα" ())
+                                                                                 (tolls "Διόδια" ())
+                                                                                 (external-services "Εξωτερικοί συνεργάτες" ()))))
+                                                                 (other-manufacturing-expenses "Διάφορα έξοδα παραγωγής" ()))
+                                         (non-operating-expenses "Μή λειτουργικά έξοδα"
+                                                                 ((various-non-op-expenses "Διάφορα μη λειτουργικά έξοδα" ())
+                                                                  (taxes "Φόροι" ())
+                                                                  (vat "Φ.Π.Α." ())
+                                                                  (fines "Πρόστιμα" ())))))))))
+          (credit-accounts '((credit-accounts-root "credit-accounts-root"
+                              ((liabilities "Παθητικό"
+                                            ((current-liabilities "Τρέχουσες Υποχρεώσεις" ())
+                                             (cheques-payable "Επιταγές πληρωτέες" ())
+                                             (taxes-payable "Φόροι πληρωτέοι" ())))
+                               (revenues "Έσοδα" ((supplied-services "Παροχή υπηρεσιών" ())
+                                                  (products "Προϊόντα" ())
+                                                  (projects "Έργα" ())))))))
           (*debitp* nil))
       (declare (special *debitp*))
       (labels ((create-accounts (account-list parent-id)

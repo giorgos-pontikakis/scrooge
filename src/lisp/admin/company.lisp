@@ -242,8 +242,7 @@
 ;;; table
 
 (defclass company-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
+  ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ."))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "company-paginator"
                                             :css-class "paginator"

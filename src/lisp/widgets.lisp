@@ -20,6 +20,9 @@
     :css-payload "payload"
     :css-controls "controls"))
 
+(defmethod key ((item scrooge-crud-row))
+  (getf (record item) :id))
+
 (defclass scrooge-paginator (paginator)
   ()
   (:default-initargs
@@ -34,7 +37,7 @@
 
 (defclass scrooge-crud-tree (crud-tree)
   ()
-  (:default-initargs :css-class "crud-tree"))
+  (:default-initargs :css-class "crud-tree" :root-key :null))
 
 (defclass scrooge-crud-node (crud-node)
   ()
@@ -45,6 +48,12 @@
     :css-controls "controls"
     :css-indent "indent"))
 
+(defmethod key ((item scrooge-crud-node))
+  (getf (record item) :id))
+
+(defmethod parent-key ((item scrooge-crud-node))
+  (getf (record item) :parent-id))
+
 
 
 ;;; ------------------------------------------------------------
@@ -54,8 +63,7 @@
 ;;; tree
 
 (defclass account-crud-tree (scrooge-crud-tree)
-  ((item-key-field        :initform :id)
-   (item-parent-key-field :initform :parent-id))
+  ()
   (:default-initargs :item-class 'account-crud-node))
 
 (defmethod read-records ((tree account-crud-tree))
@@ -144,6 +152,14 @@
                    :name 'account-id
                    :value id
                    :body nil)))
+
+(defun make-account-radio-tree (revenues-p)
+  (make-instance 'account-radio-tree
+                 :op :read
+                 :root-key (if revenues-p
+                               *revenues-root-account*
+                               *expenses-root-account*)
+                 :filter (list :debit-p (not revenues-p))))
 
 
 

@@ -230,8 +230,7 @@
 ;;; table
 
 (defclass project-table (scrooge-crud-table)
-  ((item-key-field :initform :id)
-   (header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
+  ((header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "project-paginator"
                                             :css-class "paginator"

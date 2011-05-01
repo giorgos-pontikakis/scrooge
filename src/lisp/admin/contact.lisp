@@ -60,8 +60,7 @@
 ;;; table
 
 (defclass contact-table (scrooge-crud-table)
-  ((item-key-field :initform :contact-id)
-   (header-labels  :initform '("" ""))
+  ((header-labels  :initform '("" ""))
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'contact-row :id "contact-table"))
@@ -108,6 +107,9 @@
                              :href (company/update :id (company-id table)
                                                    :contact-id contact-id)))
         (list nil nil))))
+
+(defmethod key ((item contact-row))
+  (getf (record item) :contact-id))
 
 
 

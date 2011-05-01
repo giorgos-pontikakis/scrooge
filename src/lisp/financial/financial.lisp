@@ -29,12 +29,3 @@
              (financial-navbar nil)
              (:div :id "content"
                    (:p "Financial content not yet available")))))))
-
-
-(defun make-account-radio-tree (revenues-p)
-  (make-instance 'account-radio-tree
-                 :op :read
-                 :root-key (if revenues-p
-                               *revenues-root-account*
-                               *expenses-root-account*)
-                 :filter (list :debit-p (not revenues-p))))

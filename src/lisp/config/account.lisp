@@ -213,7 +213,7 @@
                                              (if (and (val id) (eql flag (debit-p (val id))))
                                                  '(:read)
                                                  '(:read :update :delete)))
-                          (display account-tree :selected-id (val* id))))))))
+                          (display account-tree :selected-id (val* id) :hide-root-p t)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page account/create ("config/account/create")
@@ -309,7 +309,7 @@
                                                  '()
                                                  '(:create :update :delete)))
                           (with-form (actions/config/account/delete :id (val id))
-                            (display account-tree :selected-id (val* id)))))))))
+                            (display account-tree :selected-id (val* id) :hide-root-p t))))))))
         (see-other (notfound)))))
 
 (defun config-account-data-form (op &key id data styles)

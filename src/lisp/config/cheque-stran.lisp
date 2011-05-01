@@ -207,12 +207,13 @@
 
 (defclass cheque-stran-table (scrooge-crud-table)
   ((subpage        :accessor subpage :initarg :subpage)
-   (item-key-field :initform :id)
    (header-labels  :initform '("" "<br />Περιγραφή"
                                "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
                                "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
    (paginator      :initform nil))
   (:default-initargs :item-class 'cheque-stran-row))
+
+
 
 (defmethod read-records ((table cheque-stran-table))
   (let ((payable-p (string= (subpage table) "payable")))
