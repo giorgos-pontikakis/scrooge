@@ -109,9 +109,9 @@
 
 (define-dynamic-page actions/config/account/update ("actions/config/account/update"
                                                     :request-type :post)
-    ((id        integer chk-acc-id t)
-     (title     string  (chk-new-acc-title title id) t)
-     (chequing-p   boolean (chk-chequing-p chequing-p id)))
+    ((id         integer chk-acc-id                     t)
+     (title      string  (chk-new-acc-title title id)   t)
+     (chequing-p boolean (chk-chequing-p chequing-p id)))
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
@@ -200,6 +200,8 @@
                  (config-navbar 'account)
                  (iter
                    (for flag in (list t nil))
+                   (for flagged-id-debit-p  = (and (val id)
+                                                   (eql flag (debit-p (val id)))))
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-crud-tree
@@ -208,9 +210,11 @@
                    (htm
                     (:div :id div-id :class "window grid_6"
                           (:div :class "title" (str window-title))
-                          (account-crud-menu (val id)
+                          (account-crud-menu (if flagged-id-debit-p
+                                                 (val id)
+                                                 (key (root account-tree)))
                                              flag
-                                             (if (and (val id) (eql flag (debit-p (val id))))
+                                             (if flagged-id-debit-p
                                                  '(:read)
                                                  '(:read :update :delete)))
                           (display account-tree :selected-id (val* id) :hide-root-p t)))))))
@@ -235,10 +239,10 @@
                  (:div :class "window grid_6"
                        (:div :class "title" "Λογαριασμός » Δημιουργία")
                        (account-crud-menu (val parent-id)
-                                          (debit-p (with-db ()
-                                                     (get-dao 'account (val parent-id))))
+                                          debitp
                                           '(:create :update :delete))
-                       (with-form (actions/config/account/create :parent-id (val parent-id)
+                       (with-form (actions/config/account/create :parent-id (or (val parent-id)
+                                                                                )
                                                                  :debitp (val debitp))
                          (config-account-data-form :create
                                                    :data (parameters->plist parent-id
@@ -293,10 +297,11 @@
                  (config-navbar 'account)
                  (iter
                    (for flag in (list t nil))
+                   (for flagged-id-debit-p  = (eql flag (debit-p (val id))))
                    (for div-id in '("debit-accounts" "credit-accounts"))
                    (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                    (for account-tree = (make-instance 'account-crud-tree
-                                                      :op (if (eql flag (debit-p (val id)))
+                                                      :op (if flagged-id-debit-p
                                                               :delete
                                                               :read)
                                                       :filter `(:debit-p ,flag)))
@@ -305,8 +310,8 @@
                           (:div :class "title" (str window-title))
                           (account-crud-menu (val id)
                                              flag
-                                             (if flag
-                                                 '()
+                                             (if flagged-id-debit-p
+                                                 '(:delete)
                                                  '(:create :update :delete)))
                           (with-form (actions/config/account/delete :id (val id))
                             (display account-tree :selected-id (val* id) :hide-root-p t))))))))
