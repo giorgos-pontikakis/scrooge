@@ -437,15 +437,17 @@
           (*debitp* nil))
       (declare (special *debitp*))
       (labels ((create-accounts (account-list parent-id)
-                 (let (list)
+                 (let (list
+                       (rank 1))
                    (mapc (lambda (acc)
-                           (let* ((db-pid parent-id)
-                                  (inst (make-instance 'account
+                           (let ((inst (make-instance 'account
                                                        :title (second acc)
-                                                       :parent-id db-pid
-                                                       :debit-p *debitp*)))
+                                                       :parent-id parent-id
+                                                       :debit-p *debitp*
+                                                       :rank rank)))
                              (insert-dao inst)
                              (push inst list)
+                             (incf rank)
                              (create-accounts (third acc)
                                               (id (select-dao-unique 'account (:= 'title
                                                                                   (second acc)))))))
