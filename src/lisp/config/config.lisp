@@ -41,3 +41,7 @@
                 `(:order-by (:select 'id 'title :from ,table-name)
                             'title)))
            :plists)))
+
+(defclass page-family-mixin ()
+  ((filter-parameter-names :accessor filter-parameter-names :initarg :filter-parameter-names)
+   (system-parameter-names :accessor system-parameter-names :initarg :system-parameter-names)))

@@ -162,9 +162,9 @@
                    (with-form (actions/config/update)
                      (option-form :update
                                   :data (plist-union
-                                         (apply #'parameters->plist (parameters *page*))
+                                         (apply #'params->plist (parameters *page*))
                                          (option-record))
-                                  :styles (apply #'parameters->styles (parameters *page*)))))
+                                  :styles (apply #'params->styles (parameters *page*)))))
              (footer))))))
 
 (defun option-form (op &key data styles)

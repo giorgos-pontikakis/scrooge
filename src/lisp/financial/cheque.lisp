@@ -345,7 +345,7 @@
     (no-cache)
     (check-cheque-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((filter (parameters->plist status search))
+        (let* ((filter (params->plist status search))
                (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Κατάλογος"))
                (cheque-table (make-instance 'cheque-table
                                             :id "cheque-table"
@@ -369,9 +369,9 @@
                                           '(:read)
                                           '(:read :details :update :delete)))
                          (display cheque-table
-                                  :selected-id (val* id)
+                                  :selected-id (val id)
                                   :selected-data nil
-                                  :start (val* start)))
+                                  :start (val start)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (cheque cheque-kind) (val search))
                          (cheque-filters cheque-kind)
@@ -390,7 +390,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-cheque-accounts)
-    (let ((filter (parameters->plist search status))
+    (let ((filter (params->plist search status))
           (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -406,16 +406,16 @@
                                   nil
                                   filter
                                   '(:details :create :update :delete)))
-               (with-form (actions/financial/cheque/create cheque-kind :search (val* search))
+               (with-form (actions/financial/cheque/create cheque-kind :search (val search))
                  (cheque-data-form cheque-kind :create
                                    :filter filter
-                                   :data (parameters->plist bank
+                                   :data (params->plist bank
                                                             company
                                                             due-date
                                                             amount
                                                             status
                                                             account-id)
-                                   :styles (parameters->styles bank
+                                   :styles (params->styles bank
                                                                company
                                                                due-date
                                                                amount
@@ -437,7 +437,7 @@
     (check-cheque-accounts)
     (if (validp id)
         (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Επεξεργασία"))
-              (filter (parameters->plist status search)))
+              (filter (params->plist status search)))
           (with-document ()
             (:head
              (:title (str page-title))
@@ -459,14 +459,14 @@
                      (cheque-data-form cheque-kind :update
                                        :id (val id)
                                        :filter filter
-                                       :data (plist-union (parameters->plist bank
+                                       :data (plist-union (params->plist bank
                                                                              company
                                                                              due-date
                                                                              amount
                                                                              status
                                                                              account-id)
                                                           (cheque-record (val id)))
-                                       :styles (parameters->styles bank
+                                       :styles (params->styles bank
                                                                    company
                                                                    due-date
                                                                    amount
@@ -484,7 +484,7 @@
     (check-cheque-accounts)
     (if (validp id)
         (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Λεπτομέρειες"))
-              (filter (parameters->plist status search)))
+              (filter (params->plist status search)))
           (with-document ()
             (:head
              (:title (str page-title))
@@ -514,7 +514,7 @@
     (check-cheque-accounts)
     (if (validp id)
         (let* ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Διαγραφή"))
-               (filter (parameters->plist status search))
+               (filter (params->plist status search))
                (cheque-table (make-instance 'cheque-table
                                             :op :delete
                                             :subpage cheque-kind
@@ -537,7 +537,7 @@
                                             '(:read :create :delete))
                                (with-form (actions/financial/cheque/delete cheque-kind
                                                                            :id (val id)
-                                                                           :search (val* search)
+                                                                           :search (val search)
                                                                            :status (val status))
                                  (display cheque-table
                                           :selected-id (val id))))

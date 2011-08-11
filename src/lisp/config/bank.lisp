@@ -42,47 +42,6 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Bank - Actions
-;;; ------------------------------------------------------------
-
-(define-dynamic-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
-    ((title  string chk-new-bank-title t)
-     (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (with-db ()
-          (insert-dao (make-instance 'bank :title (val title)))
-          (see-other (bank :id (bank-id (val title)))))
-        (see-other (bank/create :title (raw title) :search (raw search))))))
-
-(define-dynamic-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
-    ((id     integer chk-bank-id t)
-     (title  string  (chk-new-bank-title title id) t)
-     (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (with-db ()
-          (execute (:update 'bank :set
-                            'title (val title)
-                            :where (:= 'id (val id))))
-          (see-other (bank :id (val id) :search (val search))))
-        (see-other (bank/update :id (raw id) :title (raw title) :search (raw search))))))
-
-(define-dynamic-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
-    ((id     integer chk-bank-id/ref t)
-     (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (with-db ()
-          (delete-dao (get-dao 'bank (val id)))
-          (see-other (bank :search (val search))))
-        (see-other (notfound)))))
-
-
 
 ;;; ------------------------------------------------------------
 ;;; UI elements
@@ -135,7 +94,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Bank - Pages
+;;; VIEW
 ;;; ------------------------------------------------------------
 
 (define-dynamic-page bank ("config/bank")
@@ -145,11 +104,11 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (bank-table (make-instance 'bank-table
                                           :op :read
                                           :filter filter
-                                          :start-index (val* start))))
+                                          :start-index (val start))))
           (with-document ()
             (:head
              (:title "Τράπεζες")
@@ -166,18 +125,24 @@
                                         '(:read)
                                         '(:read :update :delete)))
                          (display bank-table
-                                  :selected-id (val* id)))
+                                  :selected-id (val id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (bank) (val search)))
                    (footer)))))
         (see-other (notfound)))))
+
+
+
+;;; ------------------------------------------------------------
+;;; CREATE
+;;; ------------------------------------------------------------
 
 (define-dynamic-page bank/create ("config/bank/create")
     ((title  string chk-new-bank-title)
      (search string))
   (with-auth ("configuration")
     (no-cache)
-    (let* ((filter (parameters->plist search))
+    (let* ((filter (params->plist search))
            (bank-table (make-instance 'bank-table
                                       :op :create
                                       :filter filter)))
@@ -194,14 +159,31 @@
                      (bank-menu nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/config/bank/create :search (val* search))
+                     (with-form (actions/config/bank/create :search (val search))
                        (display bank-table
                                 :selected-id nil
-                                :selected-data (list :title (val* title)))))
+                                :selected-data (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search))
                      (bank-notifications))
                (footer)))))))
+
+(define-dynamic-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
+    ((title  string chk-new-bank-title t)
+     (search string))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (insert-dao (make-instance 'bank :title (val title)))
+          (see-other (bank :id (bank-id (val title)))))
+        (see-other (bank/create :title (raw title) :search (raw search))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; UPDATE
+;;; ------------------------------------------------------------
 
 (define-dynamic-page bank/update ("config/bank/update")
     ((id     integer chk-bank-id t)
@@ -210,7 +192,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (bank-table (make-instance 'bank-table
                                           :op :update
                                           :filter filter)))
@@ -227,16 +209,36 @@
                          (bank-menu (val id)
                                     filter
                                     '(:create :update))
-                         (with-form (actions/config/bank/update :id (val* id)
-                                                                :search (val* search))
+                         (with-form (actions/config/bank/update :id (val id)
+                                                                :search (val search))
                            (display bank-table
                                     :selected-id (val id)
-                                    :selected-data (list :title (val* title)))))
+                                    :selected-data (list :title (val title)))))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (bank) (val search))
                          (bank-notifications))
                    (footer)))))
         (see-other (notfound)))))
+
+(define-dynamic-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
+    ((id     integer chk-bank-id t)
+     (title  string  (chk-new-bank-title title id) t)
+     (search string))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (every #'validp (parameters *page*))
+        (with-db ()
+          (execute (:update 'bank :set
+                            'title (val title)
+                            :where (:= 'id (val id))))
+          (see-other (bank :id (val id) :search (val search))))
+        (see-other (bank/update :id (raw id) :title (raw title) :search (raw search))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; DELETE
+;;; ------------------------------------------------------------
 
 (define-dynamic-page bank/delete ("config/bank/delete")
     ((id     integer chk-bank-id/ref t)
@@ -244,7 +246,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (bank-table (make-instance 'bank-table
                                           :op :delete
                                           :filter filter)))
@@ -262,10 +264,21 @@
                                     filter
                                     '(:create :delete))
                          (with-form (actions/config/bank/delete :id (val id)
-                                                                :search (val* search))
+                                                                :search (val search))
                            (display bank-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (bank) (val search)))
                    (footer)))))
+        (see-other (notfound)))))
+
+(define-dynamic-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
+    ((id     integer chk-bank-id/ref t)
+     (search string))
+  (with-auth ("configuration")
+    (no-cache)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'bank (val id)))
+          (see-other (bank :search (val search))))
         (see-other (notfound)))))

@@ -148,7 +148,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((filter (parameters->plist search))
+        (let ((filter (params->plist search))
               (contact-table (make-instance 'contact-table
                                             :op :create
                                             :company-id (val id))))
@@ -186,7 +186,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((filter (parameters->plist search))
+        (let ((filter (params->plist search))
               (contact-table (make-instance 'contact-table
                                             :op :update
                                             :company-id (val id))))
@@ -227,7 +227,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((filter (parameters->plist search))
+        (let ((filter (params->plist search))
               (contact-table (make-instance 'contact-table
                                             :op :delete
                                             :company-id (val id))))

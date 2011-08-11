@@ -319,7 +319,7 @@
                                                 '(:read)
                                                 '(:read :update :delete)))
                          (display cheque-stran-table
-                                  :selected-id (val* id)))
+                                  :selected-id (val id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (cheque-stran-filters cheque-kind))
                    (footer))))))))
@@ -352,12 +352,12 @@
                      (cheque-stran-data-form cheque-kind
                                              :create
                                              :id nil
-                                             :data (parameters->plist title
+                                             :data (params->plist title
                                                                       debit-account
                                                                       credit-account
                                                                       from-status
                                                                       to-status)
-                                             :styles (parameters->styles title
+                                             :styles (params->styles title
                                                                          debit-account
                                                                          credit-account
                                                                          from-status
@@ -395,13 +395,13 @@
                                                    :update
                                                    :id (val id)
                                                    :data (plist-union
-                                                          (parameters->plist title
+                                                          (params->plist title
                                                                              debit-account
                                                                              credit-account
                                                                              from-status
                                                                              to-status)
                                                           (cheque-stran-record (val id)))
-                                                   :styles (parameters->styles title
+                                                   :styles (params->styles title
                                                                                debit-account
                                                                                credit-account
                                                                                from-status

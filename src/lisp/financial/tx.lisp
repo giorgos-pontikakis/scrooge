@@ -32,7 +32,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
+        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
                (debit-acc-id (account-id (val debit-account)))
                (credit-acc-id (account-id (val credit-account)))
                (new-tx (make-instance 'tx
@@ -65,7 +65,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (every #'validp (parameters *page*))
-        (let ((company-id (company-id (val* company))) ;; using val* (accept null values)
+        (let ((company-id (company-id (val company))) ;; using val (accept null values)
               (debit-acc-id (account-id (val debit-account)))
               (credit-acc-id (account-id (val credit-account))))
           (with-db ()
@@ -217,7 +217,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (tx-table (make-instance 'tx-table
                                         :op :read
                                         :filter filter)))
@@ -237,8 +237,8 @@
                                                '(:read)
                                                '(:read :details :update :delete)))
                          (display tx-table
-                                  :selected-id (val* id)
-                                  :start (val* start)))
+                                  :selected-id (val id)
+                                  :start (val start)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (transaction) (val search)))
                    (footer)))))
@@ -254,7 +254,7 @@
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")
     (no-cache)
-    (let ((filter (parameters->plist search)))
+    (let ((filter (params->plist search)))
       (with-document ()
         (:head
          (:title "Συναλλαγές » Δημιουργία")
@@ -272,13 +272,13 @@
                      (with-form (actions/financial/transaction/create)
                        (transaction-data-form :create
                                               :filter filter
-                                              :data (parameters->plist date
+                                              :data (params->plist date
                                                                        company
                                                                        description
                                                                        debit-account
                                                                        credit-account
                                                                        amount)
-                                              :styles (parameters->styles date
+                                              :styles (params->styles date
                                                                           company
                                                                           description
                                                                           debit-account
@@ -298,7 +298,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist search)))
+        (let ((filter (params->plist search)))
           (with-document ()
             (:head
              (:title "Συναλλαγή » Επεξεργασία")
@@ -313,20 +313,20 @@
                                            filter
                                            '(:create :update))
                          (transaction-notifications)
-                         (with-form (actions/financial/transaction/update :id (val* id)
-                                                                          :search (val* search))
+                         (with-form (actions/financial/transaction/update :id (val id)
+                                                                          :search (val search))
                            (transaction-data-form :update
                                                   :id (val id)
                                                   :filter filter
                                                   :data (plist-union
-                                                         (parameters->plist date
+                                                         (params->plist date
                                                                             company
                                                                             description
                                                                             debit-account
                                                                             credit-account
                                                                             amount)
                                                          (tx-record (val id)))
-                                                  :styles (parameters->styles date
+                                                  :styles (params->styles date
                                                                               company
                                                                               description
                                                                               debit-account
@@ -341,7 +341,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist search)))
+        (let ((filter (params->plist search)))
           (with-document ()
             (:head
              (:title "Συναλλαγή » Λεπτομέρειες")
@@ -370,7 +370,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (tx-table (make-instance 'tx-table
                                         :op :delete
                                         :filter filter)))
@@ -388,7 +388,7 @@
                                            filter
                                            '(:create :delete))
                          (with-form (actions/financial/transaction/delete :id (val id)
-                                                                          :search (val* search))
+                                                                          :search (val search))
                            (display tx-table :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar `grid_2"
                          (searchbox (transaction) (val search)))

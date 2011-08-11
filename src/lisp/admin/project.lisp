@@ -307,7 +307,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter  (parameters->plist search status))
+        (let* ((filter  (params->plist search status))
                (project-table (make-instance 'project-table
                                              :op :read
                                              :filter filter)))
@@ -327,8 +327,8 @@
                                            '(:read)
                                            '(:read :details :update :delete)))
                          (display project-table
-                                  :selected-id (val* id)
-                                  :start (val* start)))
+                                  :selected-id (val id)
+                                  :start (val start)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (project :status (val status)) (val search))
                          (project-filters (val status) (val search)))
@@ -349,7 +349,7 @@
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
-    (let ((filter (parameters->plist search status)))
+    (let ((filter (params->plist search status)))
       (with-document ()
         (:head
          (:title "Έργο » Δημιουργία")
@@ -367,7 +367,7 @@
                (with-form (actions/admin/project/create :search (val search))
                  (project-data-form :create
                                     :filter filter
-                                    :data (plist-union (parameters->plist company
+                                    :data (plist-union (params->plist company
                                                                           description
                                                                           location
                                                                           price
@@ -378,7 +378,7 @@
                                                                           end-date
                                                                           notes)
                                                        (list :quote-date (today)))
-                                    :styles (parameters->styles company
+                                    :styles (params->styles company
                                                                 description
                                                                 location
                                                                 price
@@ -406,7 +406,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist status search)))
+        (let ((filter (params->plist status search)))
           (with-document ()
             (:head
              (:title "Έργο » Επεξεργασία")
@@ -425,7 +425,7 @@
                      (project-data-form :update
                                         :id (val id)
                                         :filter filter
-                                        :data (plist-union (parameters->plist company
+                                        :data (plist-union (params->plist company
                                                                               description
                                                                               location
                                                                               price
@@ -436,7 +436,7 @@
                                                                               end-date
                                                                               notes)
                                                            (project-record (val id)))
-                                        :styles (parameters->styles company
+                                        :styles (params->styles company
                                                                     description
                                                                     location
                                                                     price
@@ -456,7 +456,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist status search)))
+        (let ((filter (params->plist status search)))
           (with-document ()
             (:head
              (:title "Έργο » Λεπτομέρειες")
@@ -483,7 +483,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search status))
+        (let* ((filter (params->plist search status))
                (project-table (make-instance 'project-table
                                              :op :delete
                                              :filter filter)))
@@ -501,7 +501,7 @@
                                        filter
                                        '(:read :delete))
                          (with-form (actions/admin/project/delete :id (val id)
-                                                                  :search (val* search)
+                                                                  :search (val search)
                                                                   :status (val status))
                            (display project-table
                                     :selected-id (val id))))

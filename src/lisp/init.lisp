@@ -1,29 +1,35 @@
 (in-package :scrooge)
 
 
+;;; ----------------------------------------------------------------------
+;;; Acceptor configuration
+;;; ----------------------------------------------------------------------
 
-;;; ----------------------------------------------------------------------
-;;; Application configuration
-;;; ----------------------------------------------------------------------
-(define-webapp *scrooge* (webapp)
-  :name 'scrooge
+(define-acceptor *scrooge* (veil-acceptor)
+  :packages '(#:scrooge)
   :port 3001
+  :db-connection-spec '(:dbname "scrooge"
+                        :dbhost "localhost"
+                        :dbuser "gnp"
+                        :dbpass "gnp!p0stgresql")
+  :doc-root #p"/home/gnp/www/scrooge/public"
   :web-root "/scrooge/"
-  :fs-root #p"/home/gnp/www/scrooge/public/"
   :web-paths '((css  . "css/")
                (js   . "js/")
                (lib  . "lib/")
                (img  . "img/"))
-  :debug-p (not (member (machine-instance) (list "www" "pulsar") :test #'string-equal))
-  :database (make-instance 'database
-                           :dbname "scrooge"
-                           :dbhost "localhost"
-                           :dbuser "gnp"
-                           :dbpass "gnp!p0stgresql"
-                           :adapter "postgres"))
+  :fs-root #p"/home/gnp/www/scrooge/"
+  :fs-paths '()
+  :debug-p (not (member (machine-instance) (list "www" "pulsar") :test #'string-equal)))
 
-(when (debug-p (package-webapp))
+(when (debug-p *scrooge*)
   (setf *catch-errors-p* nil))
+
+
+
+;;; ------------------------------------------------------------
+;;; Globals
+;;; ------------------------------------------------------------
 
 (defparameter *default-project-status* "quoted")
 (defparameter *default-cheque-status* "pending")

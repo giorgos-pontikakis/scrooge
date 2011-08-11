@@ -309,7 +309,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (company-table (make-instance 'company-table
                                              :op :read
                                              :filter filter)))
@@ -329,8 +329,8 @@
                                            '(:read)
                                            '(:read :details :update :delete)))
                          (display company-table
-                                  :selected-id (val* id)
-                                  :start (val* start)))
+                                  :selected-id (val id)
+                                  :start (val start)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (company) (val search)))
                    (footer)))))
@@ -349,7 +349,7 @@
      (notes      string))
   (with-auth ("configuration")
     (no-cache)
-    (let ((filter (parameters->plist search)))
+    (let ((filter (params->plist search)))
       (with-document ()
         (:head
          (:title "Εταιρία » Δημιουργία")
@@ -367,7 +367,7 @@
                      (with-form (actions/admin/company/create :search (val search))
                        (company-data-form :create
                                           :filter filter
-                                          :data (parameters->plist title
+                                          :data (params->plist title
                                                                    occupation
                                                                    tof
                                                                    tin
@@ -376,7 +376,7 @@
                                                                    pobox
                                                                    zipcode
                                                                    notes)
-                                          :styles (parameters->styles title
+                                          :styles (params->styles title
                                                                       occupation
                                                                       tof
                                                                       tin
@@ -407,7 +407,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (contact-table (make-instance 'contact-table
                                              :op :details
                                              :company-id (val id))))
@@ -429,7 +429,7 @@
                            (company-data-form :update
                                               :id (val id)
                                               :filter filter
-                                              :data (plist-union (parameters->plist title
+                                              :data (plist-union (params->plist title
                                                                                     occupation
                                                                                     tof
                                                                                     tin
@@ -439,7 +439,7 @@
                                                                                     zipcode
                                                                                     notes)
                                                                  (company-record (val id)))
-                                              :styles (parameters->styles title
+                                              :styles (params->styles title
                                                                           occupation
                                                                           tof
                                                                           tin
@@ -468,7 +468,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (parameters->plist search))
+        (let ((filter (params->plist search))
               (contact-table (make-instance 'contact-table
                                             :op :details
                                             :company-id (val id))))
@@ -507,7 +507,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (company-table (make-instance 'company-table
                                              :op :delete
                                              :filter filter)))
@@ -525,7 +525,7 @@
                                        filter
                                        '(:read :delete))
                          (with-form (actions/admin/company/delete :id (val id)
-                                                                  :search (val* search))
+                                                                  :search (val search))
                            (display company-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"

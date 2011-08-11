@@ -145,11 +145,11 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (city-table (make-instance 'city-table
                                           :op :read
                                           :filter filter
-                                          :start-index (val* start))))
+                                          :start-index (val start))))
           (with-document ()
             (:head
              (:title "Πόλεις")
@@ -165,7 +165,7 @@
                                     (if (val id)
                                         '(:read)
                                         '(:read :update :delete)))
-                         (display city-table :selected-id (val* id)))
+                         (display city-table :selected-id (val id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (city) (val search)))
                    (footer)))))
@@ -176,7 +176,7 @@
      (search string))
   (with-auth ("configuration")
     (no-cache)
-    (let* ((filter (parameters->plist search))
+    (let* ((filter (params->plist search))
            (city-table (make-instance 'city-table
                                       :op :create
                                       :filter filter)))
@@ -193,10 +193,10 @@
                      (city-menu nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/config/city/create :search (val* search))
+                     (with-form (actions/config/city/create :search (val search))
                        (display city-table
                                 :selected-id nil
-                                :selected-data (list :title (val* title)))))
+                                :selected-data (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
                      (city-notifications))
@@ -209,7 +209,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (city-table (make-instance 'city-table
                                           :op :update
                                           :filter filter)))
@@ -226,11 +226,11 @@
                          (city-menu (val id)
                                     filter
                                     '(:create :update))
-                         (with-form (actions/config/city/update :id (val* id)
-                                                                :search (val* search))
+                         (with-form (actions/config/city/update :id (val id)
+                                                                :search (val search))
                            (display city-table
                                     :selected-id (val id)
-                                    :selected-data (list :title (val* title)))))
+                                    :selected-data (list :title (val title)))))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (city) (val search))
                          (city-notifications))
@@ -243,7 +243,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (city-table (make-instance 'city-table
                                           :op :delete
                                           :filter filter)))
@@ -261,7 +261,7 @@
                                     filter
                                     '(:create :delete))
                          (with-form (actions/config/city/delete :id (val id)
-                                                                :search (val* search))
+                                                                :search (val search))
                            (display city-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"

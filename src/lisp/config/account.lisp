@@ -213,7 +213,7 @@
                                              (if (and (val id) (eql flag (debit-p (val id))))
                                                  '(:read)
                                                  '(:read :update :delete)))
-                          (display account-tree :selected-id (val* id) :hide-root-p t)))))))
+                          (display account-tree :selected-id (val id) :hide-root-p t)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page account/create ("config/account/create")
@@ -241,10 +241,10 @@
                        (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                  :debitp (val debitp))
                          (config-account-data-form :create
-                                                   :data (parameters->plist parent-id
+                                                   :data (params->plist parent-id
                                                                             title
                                                                             chequing-p)
-                                                   :styles (parameters->styles title)))))))
+                                                   :styles (params->styles title)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page account/update ("config/account/update")
@@ -272,10 +272,10 @@
                          (config-account-data-form :update
                                                    :id (val id)
                                                    :data (plist-union
-                                                          (parameters->plist title
+                                                          (params->plist title
                                                                              chequing-p)
                                                           (account-record (val id)))
-                                                   :styles (parameters->styles title)))))))
+                                                   :styles (params->styles title)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page account/delete ("config/account/delete")
@@ -309,7 +309,7 @@
                                                  '()
                                                  '(:create :update :delete)))
                           (with-form (actions/config/account/delete :id (val id))
-                            (display account-tree :selected-id (val* id) :hide-root-p t))))))))
+                            (display account-tree :selected-id (val id) :hide-root-p t))))))))
         (see-other (notfound)))))
 
 (defun config-account-data-form (op &key id data styles)

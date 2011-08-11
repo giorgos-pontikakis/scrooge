@@ -100,7 +100,7 @@
                                        (if (and (val id) (eql flag (debit-p (val id))))
                                            '(:overview)
                                            '(:overview :details :print)))
-                      (display account-tree :selected-id (val* id))))))))))
+                      (display account-tree :selected-id (val id))))))))))
 
 
 (define-dynamic-page account/details ("financial/account/details")
@@ -126,7 +126,7 @@
                                (str (conc "Ανάλυση Λογαριασμού: "
                                           account-title)))
                          (display tx-table
-                                  :start (val* start)))))))
+                                  :start (val start)))))))
         (see-other (notfound)))))
 
 (define-dynamic-page account/print ("financial/account/print")

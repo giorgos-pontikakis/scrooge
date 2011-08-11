@@ -3,8 +3,8 @@
 (in-package :cl-user)
 
 (asdf:defsystem :scrooge
+  :depends-on ("veil" "bricks" "mortar" "json")
   :serial t
-  :depends-on (:veil :bricks :json :md5)
   :components ((:file "package")
                (:file "utils")
                (:file "auth")
@@ -13,6 +13,7 @@
                (:file "elements")
                (:file "widgets")
                ;; -- Here come the pages! --
+               (:file "errors")
                (:file "root")
                ;; config
                (:file "config/config")

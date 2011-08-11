@@ -146,11 +146,11 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (tof-table (make-instance 'tof-table
                                          :op :read
                                          :filter filter
-                                         :start-index (val* start))))
+                                         :start-index (val start))))
           (with-document ()
             (:head
              (:title "Δ.Ο.Υ.")
@@ -166,7 +166,7 @@
                                    (if (val id)
                                        '(:read)
                                        '(:read :update :delete)))
-                         (display tof-table :selected-id (val* id)))
+                         (display tof-table :selected-id (val id)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (tof) (val search)))
                    (footer)))))
@@ -177,7 +177,7 @@
      (search string))
   (with-auth ("configuration")
     (no-cache)
-    (let* ((filter (parameters->plist search))
+    (let* ((filter (params->plist search))
            (tof-table (make-instance 'tof-table
                                      :op :create
                                      :filter filter)))
@@ -194,10 +194,10 @@
                      (tof-menu nil
                                filter
                                '(:create :update :delete))
-                     (with-form (actions/config/tof/create :search (val* search))
+                     (with-form (actions/config/tof/create :search (val search))
                        (display tof-table
                                 :selected-id nil
-                                :selected-data (list :title (val* title)))))
+                                :selected-data (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search))
                      (tof-notifications))
@@ -210,7 +210,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (tof-table (make-instance 'tof-table
                                          :op :update
                                          :filter filter)))
@@ -227,11 +227,11 @@
                          (tof-menu (val id)
                                    filter
                                    '(:create :update))
-                         (with-form (actions/config/tof/update :id (val* id)
-                                                               :filter (val* search))
+                         (with-form (actions/config/tof/update :id (val id)
+                                                               :filter (val search))
                            (display tof-table
                                     :selected-id (val id)
-                                    :selected-data (list :title (val* title)))))
+                                    :selected-data (list :title (val title)))))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (tof) (val search))
                          (tof-notifications))
@@ -244,7 +244,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (tof-table (make-instance 'tof-table
                                          :op :delete
                                          :filter filter)))
@@ -262,7 +262,7 @@
                                    filter
                                    '(:create :delete))
                          (with-form (actions/config/tof/delete :id (val id)
-                                                               :search (val* search))
+                                                               :search (val search))
                            (display tof-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"

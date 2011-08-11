@@ -40,7 +40,7 @@
     (no-cache)
     (check-cash-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
+        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
                (debit-acc-id (if (string-equal cash-kind "revenue")
                                  *cash-account*
                                  (val account-id)))
@@ -78,7 +78,7 @@
     (no-cache)
     (check-cash-accounts)
     (if (every #'validp (parameters *page*))
-        (let ((company-id (company-id (val* company))) ;; using val* (accept null values)
+        (let ((company-id (company-id (val company))) ;; using val (accept null values)
               (debit-acc-id (if (string-equal cash-kind "revenue")
                                 *cash-account*
                                 (val account-id)))
@@ -255,7 +255,7 @@
     (no-cache)
     (check-cash-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Κατάλογος"))
                (cash-tx-table (make-instance 'cash-tx-table
                                              :id "cash-tx-table"
@@ -279,9 +279,9 @@
                                         '(:read)
                                         '(:read :details :update :delete)))
                          (display cash-tx-table
-                                  :selected-id (val* id)
+                                  :selected-id (val id)
                                   :selected-data nil
-                                  :start (val* start)))
+                                  :start (val start)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (cash cash-kind) (val search))
                          (cash-filters cash-kind (val search)))
@@ -298,7 +298,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-cash-accounts)
-    (let ((filter (parameters->plist search))
+    (let ((filter (params->plist search))
           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -315,15 +315,15 @@
                                 filter
                                 '(:create :update :delete))
                      (cash-notifications)
-                     (with-form (actions/financial/cash/create cash-kind :search (val* search))
+                     (with-form (actions/financial/cash/create cash-kind :search (val search))
                        (cash-data-form cash-kind :create
                                        :filter filter
-                                       :data (parameters->plist date
+                                       :data (params->plist date
                                                                 company
                                                                 description
                                                                 amount
                                                                 account-id)
-                                       :styles (parameters->styles date
+                                       :styles (params->styles date
                                                                    company
                                                                    description
                                                                    amount))))
@@ -340,7 +340,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-cash-accounts)
-    (let ((filter (parameters->plist search))
+    (let ((filter (params->plist search))
           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Επεξεργασία"))
           (acc-keyword (if (string-equal cash-kind "expense") :debit-acc-id :credit-acc-id)))
       (with-document ()
@@ -359,18 +359,18 @@
                                 '(:create :update :delete))
                      (with-form (actions/financial/cash/update cash-kind
                                                                :id (val id)
-                                                               :search (val* search))
+                                                               :search (val search))
                        (cash-data-form cash-kind :update
                                        :id (val id)
                                        :filter filter
-                                       :data (plist-union (parameters->plist date
+                                       :data (plist-union (params->plist date
                                                                              company
                                                                              description
                                                                              amount)
                                                           (subst :account-id
                                                                  acc-keyword
                                                                  (tx-record (val id))))
-                                       :styles (parameters->styles date
+                                       :styles (params->styles date
                                                                    company
                                                                    description
                                                                    amount
@@ -385,7 +385,7 @@
     (no-cache)
     (check-cash-accounts)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Διαγραφή"))
                (cash-tx-table (make-instance 'cash-tx-table
                                              :op :delete
@@ -407,7 +407,7 @@
                                     '(:read :delete))
                          (with-form (actions/financial/cash/delete cash-kind
                                                                    :id (val id)
-                                                                   :search (val* search))
+                                                                   :search (val search))
                            (display cash-tx-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"

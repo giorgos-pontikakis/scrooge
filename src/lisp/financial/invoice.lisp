@@ -45,7 +45,7 @@
     (no-cache)
     (check-invoice-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((company-id (company-id (val* company))) ;; using val* (accept null values)
+        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
                (debit-acc-id (if (string-equal invoice-kind "receivable")
                                  *invoice-receivable-account*
                                  (val account-id)))
@@ -84,7 +84,7 @@
     (no-cache)
     (check-invoice-accounts)
     (if (every #'validp (parameters *page*))
-        (let ((company-id (company-id (val* company))) ;; using val* (accept null values)
+        (let ((company-id (company-id (val company))) ;; using val (accept null values)
               (debit-acc-id (if (string-equal invoice-kind "receivable")
                                 *invoice-receivable-account*
                                 (val account-id)))
@@ -259,7 +259,7 @@
     (no-cache)
     (check-invoice-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Κατάλογος"))
                (invoice-tx-table (make-instance 'invoice-tx-table
                                                 :id "invoice-tx-table"
@@ -283,9 +283,9 @@
                                            '(:read)
                                            '(:read :details :update :delete)))
                          (display invoice-tx-table
-                                  :selected-id (val* id)
+                                  :selected-id (val id)
                                   :selected-data nil
-                                  :start (val* start)))
+                                  :start (val start)))
                    (:div :id "sidebar" :class "sidebar grid_2"
                          (searchbox (invoice invoice-kind) (val search))
                          (invoice-filters invoice-kind (val search)))
@@ -302,7 +302,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-invoice-accounts)
-    (let ((filter (parameters->plist search))
+    (let ((filter (params->plist search))
           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -319,15 +319,15 @@
                                    filter
                                    '(:create :update :delete))
                      (invoice-notifications)
-                     (with-form (actions/financial/invoice/create invoice-kind :search (val* search))
+                     (with-form (actions/financial/invoice/create invoice-kind :search (val search))
                        (invoice-data-form invoice-kind :create
                                           :filter filter
-                                          :data (parameters->plist date
+                                          :data (params->plist date
                                                                    company
                                                                    description
                                                                    amount
                                                                    account-id)
-                                          :styles (parameters->styles date
+                                          :styles (params->styles date
                                                                       company
                                                                       description
                                                                       amount))))
@@ -344,7 +344,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-invoice-accounts)
-    (let ((filter (parameters->plist search))
+    (let ((filter (params->plist search))
           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Επεξεργασία"))
           (acc-keyword (if (string-equal invoice-kind "payable") :debit-acc-id :credit-acc-id)))
       (with-document ()
@@ -363,18 +363,18 @@
                                    '(:create :update :delete))
                      (with-form (actions/financial/invoice/update invoice-kind
                                                                   :id (val id)
-                                                                  :search (val* search))
+                                                                  :search (val search))
                        (invoice-data-form invoice-kind :update
                                           :id (val id)
                                           :filter filter
-                                          :data (plist-union (parameters->plist date
+                                          :data (plist-union (params->plist date
                                                                                 company
                                                                                 description
                                                                                 amount)
                                                              (subst :account-id
                                                                     acc-keyword
                                                                     (tx-record (val id))))
-                                          :styles (parameters->styles date
+                                          :styles (params->styles date
                                                                       company
                                                                       description
                                                                       amount
@@ -388,7 +388,7 @@
     (no-cache)
     (check-invoice-accounts)
     (if (validp id)
-        (let* ((filter (parameters->plist search))
+        (let* ((filter (params->plist search))
                (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Διαγραφή"))
                (invoice-tx-table (make-instance 'invoice-tx-table
                                                 :op :delete
@@ -410,7 +410,7 @@
                                        '(:read :delete))
                          (with-form (actions/financial/invoice/delete invoice-kind
                                                                       :id (val id)
-                                                                      :search (val* search))
+                                                                      :search (val search))
                            (display invoice-tx-table
                                     :selected-id (val id))))
                    (:div :id "sidebar" :class "sidebar grid_2"

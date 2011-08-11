@@ -1,5 +1,109 @@
 (in-package :scrooge)
 
+
+
+;;; ------------------------------------------------------------
+;;; PARAMETER UTILITIES
+;;; ------------------------------------------------------------
+
+;;; Parameter utilites
+
+(defun params->plist (params &optional (fn #'val))
+  (mapcan (lambda (param)
+            (list (parameter-key (attributes param))
+                  (funcall fn param)))
+          params))
+
+(defun params->styles (&rest params)
+  (mapcan (lambda (param)
+            (list (parameter-key (attributes param))
+                  (if (validp param)
+                      ""
+                      "attention")))
+          params))
+
+(defun collect-params (names)
+  (remove-if-not (lambda (p)
+                   (member (parameter-name (attributes p)) names))
+                 *parameters*))
+
+
+
+;;; ------------------------------------------------------------
+;;; PAGE UTILITIES
+;;; ------------------------------------------------------------
+
+;;; Conditions
+
+(define-condition data-entry-error ()
+  ())
+
+(define-condition bad-request-error ()
+  ())
+
+(define-condition authentication-error ()
+  ())
+
+
+;;; Authentication and page macros
+
+(defun authenticated-p (&rest groups)
+  (and *session*  ;; session is valid
+       (let ((session-user (session-value 'user)))
+         (with-db ()
+           (let ((user-dao (get-dao 'usr session-user)))
+             ;; session user exists and belongs to group
+             (and user-dao
+                  (or (member "all" groups :test #'string=)
+                      (member (authgroup user-dao) groups :test #'string=))))))))
+
+(defmacro with-view-page ((&optional system-params) &body body)
+  `(handler-case
+       (progn
+         (no-cache)
+         (unless (authenticated-p "user" "admin")
+           (error 'authentication-error))
+         ,(when system-params
+            `(unless (every #'validp (funcall #',system-params))
+               (error 'bad-request-error)))
+         (with-db ()
+           ,@body))
+     (bad-request-error ()
+       (setf (return-code*) +http-bad-request+))
+     (authentication-error ()
+       (see-other (login :origin (conc (script-name*) "?" (query-string*)))))
+     (error (c)
+       (if (debug-p (default-acceptor))
+           (signal c)
+           (setf (return-code*) +http-internal-server-error+)))))
+
+(defmacro with-controller-page ((view-page &optional system-params user-params) &body body)
+  `(handler-case
+       (progn
+         (no-cache)
+         (unless (authenticated-p "user" "admin")
+           (error 'authentication-error))
+         ,(when system-params
+            `(unless (every #'validp (funcall #',system-params))
+               (error 'bad-request-error)))
+         ,(when user-params
+            `(unless (every #'validp (funcall #',user-params))
+               (error 'data-entry-error)))
+         (with-db ()
+           ,@body))
+     (data-entry-error ()
+       (see-other (apply #',view-page (params->plist *parameters* #'raw))))
+     (bad-request-error ()
+       (setf (return-code*) +http-bad-request+))
+     (authentication-error ()
+       (see-other (login :origin (conc (script-name*) "?" (query-string*)))))
+     (error (c)
+       (if (debug-p (default-acceptor))
+           (signal c)
+           (setf (return-code*) +http-internal-server-error+)))))
+
+
+
 ;;;----------------------------------------------------------------------
 ;;; Generic predicate for chk- functions
 ;;;----------------------------------------------------------------------
@@ -41,16 +145,6 @@
 
 
 ;;;----------------------------------------------------------------------
-;;; MD5
-;;;----------------------------------------------------------------------
-
-(defun md5sum-sequence->string (str)
-  (format nil "~(~{~2,'0X~}~)"
-          (map 'list #'identity (md5:md5sum-sequence str))))
-
-
-
-;;;----------------------------------------------------------------------
 ;;; SQL utilities
 ;;;----------------------------------------------------------------------
 
@@ -79,6 +173,18 @@
                                 :where (:= ',unique-field ,unique-field))
                        :single))))))
 
+(defmacro define-existence-predicate* (name table field primary-key)
+  `(defun ,name (,field &optional ,primary-key)
+     (with-db ()
+       (if ,primary-key
+           (query (:select 1 :from ',table
+                   :where (:and (:= ',field ,field)
+                                (:not (:= ',primary-key ,primary-key))))
+                  :single)
+           (query (:select 1 :from ',table
+                   :where (:= ',field ,field))
+                  :single)))))
+
 
 
 ;;;----------------------------------------------------------------------
@@ -87,21 +193,6 @@
 
 (defun today ()
   (universal-time-to-timestamp (get-universal-time)))
-
-
-(defun parameters->plist (&rest params)
-  (mapcan (lambda (param)
-            (list (key param)
-                  (val* param)))
-          params))
-
-(defun parameters->styles (&rest params)
-  (mapcan (lambda (param)
-            (list (key param)
-                  (if (validp param)
-                      ""
-                      "attention")))
-          params))
 
 (defun parse-option-dao (option-dao)
   (flet ((parse-config-fn (lisp-type)
