@@ -23,6 +23,11 @@
 (defmethod key ((item scrooge-crud-row))
   (getf (record item) :id))
 
+(defmethod update-item ((table crud-table) &key data index)
+  (let ((row (nth index (rows table))))
+    (setf (record row)
+          (plist-union data (record row)))))
+
 (defclass scrooge-paginator (paginator)
   ()
   (:default-initargs
@@ -33,11 +38,12 @@
     :body-next-inactive (html () (img "resultset_last.png"))))
 
 
+
 ;;; crud-trees
 
 (defclass scrooge-crud-tree (crud-tree)
   ()
-  (:default-initargs :css-class "crud-tree" :root-key :null))
+  (:default-initargs :css-class "crud-tree" :root-parent-key :null))
 
 (defclass scrooge-crud-node (crud-node)
   ()
@@ -47,6 +53,11 @@
     :css-payload "payload"
     :css-controls "controls"
     :css-indent "indent"))
+
+(defmethod update-item ((tree scrooge-crud-tree) &key data key)
+  (let ((node (find-node (root tree) key)))
+    (setf (record node)
+          (plist-union data (record node)))))
 
 (defmethod key ((item scrooge-crud-node))
   (getf (record item) :id))
@@ -156,9 +167,9 @@
 (defun make-account-radio-tree (revenues-p)
   (make-instance 'account-radio-tree
                  :op :read
-                 :root-key (if revenues-p
-                               *revenues-root-account*
-                               *expenses-root-account*)
+                 :root-parent-key (if revenues-p
+                                      *revenues-root-account*
+                                      *expenses-root-account*)
                  :filter (list :debit-p (not revenues-p))))
 
 
