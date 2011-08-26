@@ -83,7 +83,7 @@
 ;;; Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/admin/company/create ("actions/admin/company/create"
+(defpage dynamic-page actions/admin/company/create ("actions/admin/company/create"
                                                    :request-type :post)
     ((search     string)
      (title      string  chk-new-company-title)
@@ -125,7 +125,7 @@
                                    :pobox (raw pobox)
                                    :notes (raw notes))))))
 
-(define-dynamic-page actions/admin/company/update ("actions/admin/company/update"
+(defpage dynamic-page actions/admin/company/update ("actions/admin/company/update"
                                                    :request-type :post)
     ((search     string)
      (id         integer chk-company-id)
@@ -168,7 +168,7 @@
                                    :zipcode (raw zipcode)
                                    :notes (raw notes))))))
 
-(define-dynamic-page actions/admin/company/delete ("actions/admin/company/delete"
+(defpage dynamic-page actions/admin/company/delete ("actions/admin/company/delete"
                                                    :request-type :post)
     ((id     integer chk-company-id)
      (search string))
@@ -302,7 +302,7 @@
 ;;; Company - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page company ("admin/company")
+(defpage dynamic-page company ("admin/company")
     ((id integer chk-company-id)
      (search string)
      (start integer))
@@ -336,7 +336,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page company/create ("admin/company/create")
+(defpage dynamic-page company/create ("admin/company/create")
     ((search     string)
      (title      string  chk-new-company-title)
      (occupation string)
@@ -391,7 +391,7 @@
                            (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))
                (footer)))))))
 
-(define-dynamic-page company/update ("admin/company/update")
+(defpage dynamic-page company/update ("admin/company/update")
     ((search     string)
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id))
@@ -461,7 +461,7 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(define-dynamic-page company/details ("admin/company/details")
+(defpage dynamic-page company/details ("admin/company/details")
     ((search     string)
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id)))
@@ -501,7 +501,7 @@
                                   :selected-id (val contact-id)))))))
         (see-other (error-page)))))
 
-(define-dynamic-page company/delete ("admin/company/delete")
+(defpage dynamic-page company/delete ("admin/company/delete")
     ((id     integer chk-company-id/ref t)
      (search string))
   (with-auth ("configuration")

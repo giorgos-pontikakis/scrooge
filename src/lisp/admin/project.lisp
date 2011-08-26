@@ -52,7 +52,7 @@
 ;;; Actions
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page actions/admin/project/create ("actions/admin/project/create"
+(defpage dynamic-page actions/admin/project/create ("actions/admin/project/create"
                                                    :request-type :post)
     ((search      string)
      (company     string chk-company-title*)
@@ -95,7 +95,7 @@
                                    :status (raw status)
                                    :notes (raw notes))))))
 
-(define-dynamic-page actions/admin/project/update ("actions/admin/project/update"
+(defpage dynamic-page actions/admin/project/update ("actions/admin/project/update"
                                                    :request-type :post)
     ((search      string)
      (id          integer chk-project-id)
@@ -140,7 +140,7 @@
                                    :status (raw status)
                                    :notes (raw notes))))))
 
-(define-dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
+(defpage dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
                                                    :request-type :post)
     ((id     integer chk-project-id)
      (search string)
@@ -299,7 +299,7 @@
 ;;; Project - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page project ("admin/project")
+(defpage dynamic-page project ("admin/project")
     ((id     integer chk-project-id)
      (status string)
      (search string)
@@ -335,7 +335,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page project/create ("admin/project/create")
+(defpage dynamic-page project/create ("admin/project/create")
     ((search      string)
      (company     string  chk-company-title*)
      (description string  chk-new-project-description)
@@ -390,7 +390,7 @@
                                                                 notes)))
                (footer)))))))
 
-(define-dynamic-page project/update ("admin/project/update")
+(defpage dynamic-page project/update ("admin/project/update")
     ((search      string)
      (id          integer chk-project-id)
      (company     string  chk-company-title*)
@@ -449,7 +449,7 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(define-dynamic-page project/details ("admin/project/details")
+(defpage dynamic-page project/details ("admin/project/details")
     ((search string)
      (status string)
      (id     integer chk-project-id t))
@@ -476,7 +476,7 @@
                                       :data (project-record (val id)))))))
         (see-other (notfound)))))
 
-(define-dynamic-page project/delete ("admin/project/delete")
+(defpage dynamic-page project/delete ("admin/project/delete")
     ((id     integer chk-project-id t)
      (search string)
      (status string))

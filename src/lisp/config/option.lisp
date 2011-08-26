@@ -1,6 +1,7 @@
 (in-package :scrooge)
 
 
+
 ;;; ----------------------------------------------------------------------
 ;;; Option validation
 ;;; ----------------------------------------------------------------------
@@ -22,7 +23,7 @@
 ;;; Option - Actions
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page actions/config/update ("actions/config/update" :request-type :post)
+(defpage dynamic-page actions/config/update ("actions/config/update" :request-type :post)
     ((cash-account               string  chk-acc-title*)
      (revenues-root-account      string  chk-acc-title*)
      (expenses-root-account      string  chk-acc-title*)
@@ -112,7 +113,7 @@
 ;;; Pages
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page config ("config/") ()
+(defpage dynamic-page config ("config/") ()
   (with-auth ("configuration")
     (no-cache)
     (with-document ()
@@ -129,7 +130,7 @@
                    (option-form :read
                                 :data (option-record))))))))
 
-(define-dynamic-page config/update ("config/update")
+(defpage dynamic-page config/update ("config/update")
     ((cash-account               string  chk-acc-title*)
      (revenues-root-account      string  chk-acc-title*)
      (expenses-root-account      string  chk-acc-title*)

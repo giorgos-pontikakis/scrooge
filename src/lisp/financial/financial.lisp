@@ -16,7 +16,7 @@
 
 ;;; main page
 
-(define-dynamic-page financial ("financial/") ()
+(defpage dynamic-page financial ("financial/") ()
   (with-auth ("configuration")
     (no-cache)
     (with-document ()

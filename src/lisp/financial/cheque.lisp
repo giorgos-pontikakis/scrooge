@@ -13,7 +13,7 @@
                *expenses-root-account*)
     (see-other (cheque-accounts-error-page))))
 
-(define-dynamic-page cheque-accounts-error-page ("financial/cash/error")
+(defpage dynamic-page cheque-accounts-error-page ("financial/cash/error")
     ()
   (with-document ()
     (:head

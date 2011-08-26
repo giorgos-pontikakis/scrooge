@@ -81,7 +81,7 @@
 ;;; Accounts - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/config/account/create ("actions/config/account/create"
+(defpage dynamic-page actions/config/account/create ("actions/config/account/create"
                                                     :request-type :post)
     ((parent-id integer chk-parent-acc-id)
      (title     string  chk-new-acc-title t)
@@ -107,7 +107,7 @@
             ;; tampered URL - abort
             (see-other (notfound))))))
 
-(define-dynamic-page actions/config/account/update ("actions/config/account/update"
+(defpage dynamic-page actions/config/account/update ("actions/config/account/update"
                                                     :request-type :post)
     ((id         integer chk-acc-id                     t)
      (title      string  (chk-new-acc-title title id)   t)
@@ -127,7 +127,7 @@
             ;; tampered URL - abort
             (see-other (notfound))))))
 
-(define-dynamic-page actions/config/account/delete ("actions/config/account/delete"
+(defpage dynamic-page actions/config/account/delete ("actions/config/account/delete"
                                                     :request-type :post)
     ((id integer chk-acc-id/ref t))
   (with-auth ("configuration")
@@ -185,7 +185,7 @@
 ;;; Account pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page account ("config/account")
+(defpage dynamic-page account ("config/account")
     ((id integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
@@ -220,7 +220,7 @@
                           (display account-tree :selected-id (val id) :hide-root-p t)))))))
         (see-other (notfound)))))
 
-(define-dynamic-page account/create ("config/account/create")
+(defpage dynamic-page account/create ("config/account/create")
     ((parent-id integer chk-parent-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-new-acc-title)
@@ -251,7 +251,7 @@
                                                    :styles (params->styles title)))))))
         (see-other (notfound)))))
 
-(define-dynamic-page account/update ("config/account/update")
+(defpage dynamic-page account/update ("config/account/update")
     ((id      integer chk-acc-id t)
      (title   string  (chk-new-acc-title title id))
      (chequing-p boolean (chk-chequing-p chequing-p id)))
@@ -282,7 +282,7 @@
                                                    :styles (params->styles title)))))))
         (see-other (notfound)))))
 
-(define-dynamic-page account/delete ("config/account/delete")
+(defpage dynamic-page account/delete ("config/account/delete")
     ((id integer chk-acc-id/ref t))
   (with-auth ("configuration")
     (no-cache)

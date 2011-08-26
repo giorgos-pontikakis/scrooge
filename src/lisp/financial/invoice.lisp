@@ -13,7 +13,7 @@
                *expenses-root-account*)
     (see-other (invoice-accounts-error-page))))
 
-(define-dynamic-page invoice-accounts-error-page ("financial/invoice/error")
+(defpage dynamic-page invoice-accounts-error-page ("financial/invoice/error")
     ()
   (with-document ()
     (:head

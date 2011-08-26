@@ -95,7 +95,8 @@
 (defun footer ()
   (with-html
     (:div :id "footer" :class "grid_12"
-          (:p "Powered by lisp"))))
+          (:p "Powered by lisp"))
+    (:div :class "clear" "")))
 
 (defun primary-navbar (active-page-name)
   (navbar `((financial ,(financial) "Οικονομικά")
@@ -107,10 +108,9 @@
 
 (defun logout-menu ()
   (with-html
-    (:ul :id "logout" :class "grid_3 hnavbar"
-         (:li (fmt "~A@~A" (session-value 'user) (machine-instance)))
-         (:li (menu `((logout ,(logout) "Έξοδος"))
-                    :css-class "hnavbar")))))
+    (:p :id "logout"
+        (fmt "~A@~A :: " (session-value 'user) (machine-instance))
+        (:a :href (logout) "Έξοδος"))))
 
 (defun notifications (messages)
   (unless (every #'validp (parameters *page*))

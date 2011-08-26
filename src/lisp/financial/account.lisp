@@ -75,7 +75,7 @@
 ;;; Account pages
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page account/overview ("financial/account")
+(defpage dynamic-page account/overview ("financial/account")
     ((id integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
@@ -103,7 +103,7 @@
                       (display account-tree :selected-id (val id))))))))))
 
 
-(define-dynamic-page account/details ("financial/account/details")
+(defpage dynamic-page account/details ("financial/account/details")
     ((id    integer chk-acc-id)
      (start integer))
   (with-auth ("configuration")
@@ -129,7 +129,7 @@
                                   :start (val start)))))))
         (see-other (notfound)))))
 
-(define-dynamic-page account/print ("financial/account/print")
+(defpage dynamic-page account/print ("financial/account/print")
     ((id integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)

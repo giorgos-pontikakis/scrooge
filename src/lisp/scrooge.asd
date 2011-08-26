@@ -6,33 +6,34 @@
   :depends-on ("veil" "bricks" "mortar" "json")
   :serial t
   :components ((:file "package")
-               (:file "utils")
-               (:file "auth")
                (:file "tables")
+               (:file "utils")
+
                (:file "init")
                (:file "elements")
                (:file "widgets")
-               ;; -- Here come the pages! --
                (:file "errors")
-               (:file "root")
-               ;; config
-               (:file "config/config")
-               (:file "config/bank")
-               (:file "config/tof")
-               (:file "config/city")
-               (:file "config/account")
-               (:file "config/cheque-stran")
-               (:file "config/option")
-               ;; admin
-               (:file "admin/admin")
-               (:file "admin/company")
-               (:file "admin/contact")
-               (:file "admin/project")
-               ;; financial
-               (:file "financial/financial")
-               (:file "financial/tx")
-               (:file "financial/cheque")
-               (:file "financial/account")
-               (:file "financial/cash")
-               (:file "financial/invoice")
+               ;; -- Here come the pages! --
+               ;; (:file "auth")
+               ;; (:file "root")
+               ;; ;; config
+               ;; (:file "config/config")
+               ;; (:file "config/bank")
+               ;; (:file "config/tof")
+               ;; (:file "config/city")
+               ;; (:file "config/account")
+               ;; (:file "config/cheque-stran")
+               ;; (:file "config/option")
+               ;; ;; admin
+               ;; (:file "admin/admin")
+               ;; (:file "admin/company")
+               ;; (:file "admin/contact")
+               ;; (:file "admin/project")
+               ;; ;; financial
+               ;; (:file "financial/financial")
+               ;; (:file "financial/tx")
+               ;; (:file "financial/cheque")
+               ;; (:file "financial/account")
+               ;; (:file "financial/cash")
+               ;; (:file "financial/invoice")
                ))

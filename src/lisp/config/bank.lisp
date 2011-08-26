@@ -97,7 +97,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank ("config/bank")
+(defpage dynamic-page bank ("config/bank")
     ((id     integer chk-bank-id)
      (search string)
      (start  integer))
@@ -137,7 +137,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank/create ("config/bank/create")
+(defpage dynamic-page bank/create ("config/bank/create")
     ((title  string chk-new-bank-title)
      (search string))
   (with-auth ("configuration")
@@ -168,7 +168,7 @@
                      (bank-notifications))
                (footer)))))))
 
-(define-dynamic-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
+(defpage dynamic-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
     ((title  string chk-new-bank-title t)
      (search string))
   (with-auth ("configuration")
@@ -185,7 +185,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank/update ("config/bank/update")
+(defpage dynamic-page bank/update ("config/bank/update")
     ((id     integer chk-bank-id t)
      (title  string  (chk-new-bank-title title id))
      (search string))
@@ -220,7 +220,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
+(defpage dynamic-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
     ((id     integer chk-bank-id t)
      (title  string  (chk-new-bank-title title id) t)
      (search string))
@@ -240,7 +240,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page bank/delete ("config/bank/delete")
+(defpage dynamic-page bank/delete ("config/bank/delete")
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-auth ("configuration")
@@ -272,7 +272,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
+(defpage dynamic-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-auth ("configuration")

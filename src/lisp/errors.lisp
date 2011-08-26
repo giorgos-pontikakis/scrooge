@@ -1,6 +1,9 @@
 (in-package :scrooge)
 
 
+(when (debug-p *scrooge*)
+  (setf *catch-errors-p* nil))
+
 (setf *default-handler* (lambda ()
                           (setf (return-code*) +http-not-found+)))
 

@@ -46,7 +46,7 @@
 ;;; TOF - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
+(defpage dynamic-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
     ((title  string chk-new-tof-title t)
      (search string))
   (with-auth ("configuration")
@@ -57,7 +57,7 @@
           (see-other (tof :id (tof-id (val title)))))
         (see-other (tof/create :title (raw title) :search (raw search))))))
 
-(define-dynamic-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
+(defpage dynamic-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
     ((id     integer chk-tof-id t)
      (title  string (chk-new-tof-title title id) t)
      (search string))
@@ -71,7 +71,7 @@
           (see-other (tof :id (val id) :search (val search))))
         (see-other (tof/update :id (raw id) :title (raw title) :search (raw search))))))
 
-(define-dynamic-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
+(defpage dynamic-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-auth ("configuration")
@@ -139,7 +139,7 @@
 ;;; TOF - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page tof ("config/tof")
+(defpage dynamic-page tof ("config/tof")
     ((id     integer chk-tof-id)
      (search string)
      (start  integer))
@@ -172,7 +172,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page tof/create ("config/tof/create")
+(defpage dynamic-page tof/create ("config/tof/create")
     ((title  string chk-new-tof-title)
      (search string))
   (with-auth ("configuration")
@@ -203,7 +203,7 @@
                      (tof-notifications))
                (footer)))))))
 
-(define-dynamic-page tof/update ("config/tof/update")
+(defpage dynamic-page tof/update ("config/tof/update")
     ((id     integer chk-tof-id                   t)
      (title  string  (chk-new-tof-title title id))
      (search string))
@@ -238,7 +238,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page tof/delete ("config/tof/delete")
+(defpage dynamic-page tof/delete ("config/tof/delete")
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-auth ("configuration")

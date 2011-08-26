@@ -11,7 +11,7 @@
                *expenses-root-account*)
     (see-other (cash-accounts-error-page))))
 
-(define-dynamic-page cash-accounts-error-page ("financial/cash/error")
+(defpage dynamic-page cash-accounts-error-page ("financial/cash/error")
     ()
   (with-document ()
     (:head

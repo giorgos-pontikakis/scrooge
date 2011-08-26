@@ -20,7 +20,7 @@
 ;;; Actions
 ;;; --------------------------------------------------------------------------------
 
-(define-dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
+(defpage dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
                                                            :request-type :post)
     ((search         string)
      (date           date)
@@ -52,7 +52,7 @@
                                        :debit-account (raw debit-account)
                                        :credit-account (raw credit-account))))))
 
-(define-dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
+(defpage dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
                                                            :request-type :post)
     ((search         string)
      (id             integer chk-tx-id t)
@@ -87,7 +87,7 @@
                                        :debit-account (raw debit-account)
                                        :credit-account (raw credit-account))))))
 
-(define-dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
+(defpage dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
                                                            :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
@@ -210,7 +210,7 @@
 ;;; Pages
 ;;; ----------------------------------------------------------------------
 
-(define-dynamic-page transaction ("financial/transaction")
+(defpage dynamic-page transaction ("financial/transaction")
     ((id     integer chk-tx-id)
      (search string)
      (start  integer))
@@ -244,7 +244,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page transaction/create ("financial/transaction/create")
+(defpage dynamic-page transaction/create ("financial/transaction/create")
     ((search         string)
      (date           date)
      (description    string)
@@ -286,7 +286,7 @@
                                                                           amount))))
                (footer)))))))
 
-(define-dynamic-page transaction/update ("financial/transaction/update")
+(defpage dynamic-page transaction/update ("financial/transaction/update")
     ((search         string)
      (id             integer chk-tx-id t)
      (date           date)
@@ -335,7 +335,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page transaction/details ("financial/transaction/details")
+(defpage dynamic-page transaction/details ("financial/transaction/details")
     ((search     string)
      (id         integer chk-tx-id t))
   (with-auth ("configuration")
@@ -364,7 +364,7 @@
                    (error-page)))))
         (see-other (notfound)))))
 
-(define-dynamic-page transaction/delete ("financial/transaction/delete")
+(defpage dynamic-page transaction/delete ("financial/transaction/delete")
     ((id     integer chk-tx-id t)
      (search string))
   (with-auth ("configuration")

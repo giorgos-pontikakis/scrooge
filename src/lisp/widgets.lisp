@@ -15,10 +15,10 @@
 (defclass scrooge-crud-row (crud-row)
   ()
   (:default-initargs :css-delete "attention"
-    :css-selected "selected"
-    :css-selector "selector"
-    :css-payload "payload"
-    :css-controls "controls"))
+                     :css-selected "selected"
+                     :css-selector "selector"
+                     :css-payload "payload"
+                     :css-controls "controls"))
 
 (defmethod key ((item scrooge-crud-row))
   (getf (record item) :id))
@@ -30,12 +30,11 @@
 
 (defclass scrooge-paginator (paginator)
   ()
-  (:default-initargs
-   :delta (get-option "crud-table-num-rows")
-    :body-prev (html () (img "resultset_previous.png"))
-    :body-next (html () (img "resultset_next.png"))
-    :body-prev-inactive (html () (img "resultset_first.png"))
-    :body-next-inactive (html () (img "resultset_last.png"))))
+  (:default-initargs :delta (get-option "crud-table-num-rows")
+                     :body-prev (html () (img "resultset_previous.png"))
+                     :body-next (html () (img "resultset_next.png"))
+                     :body-prev-inactive (html () (img "resultset_first.png"))
+                     :body-next-inactive (html () (img "resultset_last.png"))))
 
 
 

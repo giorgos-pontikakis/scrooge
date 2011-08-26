@@ -46,7 +46,7 @@
 ;;; City - Actions
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page actions/config/city/create ("actions/config/city/create" :request-type :post)
+(defpage dynamic-page actions/config/city/create ("actions/config/city/create" :request-type :post)
     ((title  string chk-new-city-title t)
      (search string))
   (with-auth ("configuration")
@@ -57,7 +57,7 @@
           (see-other (city :id (city-id (val title)))))
         (see-other (city/create :title (raw title) :search (raw search))))))
 
-(define-dynamic-page actions/config/city/update ("actions/config/city/update" :request-type :post)
+(defpage dynamic-page actions/config/city/update ("actions/config/city/update" :request-type :post)
     ((id     integer chk-city-id t)
      (title  string (chk-new-city-title title id) t)
      (search string))
@@ -71,7 +71,7 @@
           (see-other (city :id (val id) :search (val search))))
         (see-other (city/update :id (raw id) :title (raw title) :search (raw search))))))
 
-(define-dynamic-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
+(defpage dynamic-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
     ((id     integer chk-city-id/ref t)
      (search string))
   (with-auth ("configuration")
@@ -138,7 +138,7 @@
 ;;; City - Pages
 ;;; ------------------------------------------------------------
 
-(define-dynamic-page city ("config/city")
+(defpage dynamic-page city ("config/city")
     ((id     integer chk-city-id)
      (search string)
      (start  integer))
@@ -171,7 +171,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page city/create ("config/city/create")
+(defpage dynamic-page city/create ("config/city/create")
     ((title  string chk-new-city-title)
      (search string))
   (with-auth ("configuration")
@@ -202,7 +202,7 @@
                      (city-notifications))
                (footer)))))))
 
-(define-dynamic-page city/update ("config/city/update")
+(defpage dynamic-page city/update ("config/city/update")
     ((id     integer chk-city-id                   t)
      (title  string  (chk-new-city-title title id))
      (search string))
@@ -237,7 +237,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-dynamic-page city/delete ("config/city/delete")
+(defpage dynamic-page city/delete ("config/city/delete")
     ((id integer chk-city-id/ref t)
      (search string))
   (with-auth ("configuration")

@@ -13,7 +13,7 @@
 
 ;;; main page
 
-(define-dynamic-page admin ("admin/") ()
+(defpage dynamic-page admin ("admin/") ()
   (with-auth ("configuration")
     (no-cache)
     (with-document ()

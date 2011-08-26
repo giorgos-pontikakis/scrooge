@@ -22,10 +22,10 @@
                       "attention")))
           params))
 
-(defun collect-params (names)
+(defun collect-params (names &optional (parameters *parameters*))
   (remove-if-not (lambda (p)
                    (member (parameter-name (attributes p)) names))
-                 *parameters*))
+                 parameters))
 
 
 
@@ -45,9 +45,33 @@
   ())
 
 
+;;; Page families
+
+(defclass page-family-mixin ()
+  ((system-parameter-names :reader system-parameter-names)
+   (user-parameter-names   :reader user-parameter-names)
+   (filter-parameter-names :reader filter-parameter-names)
+   (allowed-groups         :reader allowed-groups)))
+
+(flet ((collect-parameters (parameter-names parameters)
+         (remove-if-not (lambda (p)
+                          (member (parameter-name (attributes p))
+                                  parameter-names))
+                        parameters)))
+
+  (defun system-parameters (&optional (page *page*) (parameters *parameters*))
+    (collect-parameters (system-parameter-names page) parameters))
+
+  (defun user-parameters (&optional (page *page*) (parameters *parameters*))
+    (collect-parameters (user-parameter-names page) parameters))
+
+  (defun filter-parameters (&optional (page *page*) (parameters *parameters*))
+    (collect-parameters (filter-parameter-names page) parameters)))
+
+
 ;;; Authentication and page macros
 
-(defun authenticated-p (&rest groups)
+(defun authenticated-p (groups)
   (and *session*  ;; session is valid
        (let ((session-user (session-value 'user)))
          (with-db ()
@@ -57,90 +81,83 @@
                   (or (member "all" groups :test #'string=)
                       (member (authgroup user-dao) groups :test #'string=))))))))
 
-(defmacro with-view-page ((&optional system-params) &body body)
-  `(handler-case
-       (progn
-         (no-cache)
-         (unless (authenticated-p "user" "admin")
-           (error 'authentication-error))
-         ,(when system-params
-            `(unless (every #'validp (funcall #',system-params))
+(defmacro with-view-page (&body body)
+  (with-gensyms (system-params)
+    `(handler-case
+         (progn
+           (no-cache)
+           (unless (authenticated-p (allowed-groups *page*))
+             (error 'authentication-error))
+           (when-let (,system-params (system-parameters))
+             (unless (every #'validp ,system-params)
                (error 'bad-request-error)))
-         (with-db ()
-           ,@body))
-     (bad-request-error ()
-       (setf (return-code*) +http-bad-request+))
-     (authentication-error ()
-       (see-other (login :origin (conc (script-name*) "?" (query-string*)))))
-     (error (c)
-       (if (debug-p (default-acceptor))
-           (signal c)
-           (setf (return-code*) +http-internal-server-error+)))))
+           (with-db ()
+             ,@body))
+       (bad-request-error ()
+         (setf (return-code*) +http-bad-request+))
+       (authentication-error ()
+         (redirect (login :origin (conc (script-name*)
+                                        (if (query-string*) "?" "")
+                                        (query-string*)))
+                   :code +http-temporary-redirect+
+                   :add-session-id nil))
+       (error (c)
+         (if (debug-p *acceptor*)
+             (signal c)
+             (setf (return-code*) +http-internal-server-error+))))))
 
-(defmacro with-controller-page ((view-page &optional system-params user-params) &body body)
-  `(handler-case
-       (progn
-         (no-cache)
-         (unless (authenticated-p "user" "admin")
-           (error 'authentication-error))
-         ,(when system-params
-            `(unless (every #'validp (funcall #',system-params))
+(defmacro with-controller-page (view-page-fn &body body)
+  (with-gensyms (system-params user-params)
+    `(handler-case
+         (progn
+           (no-cache)
+           (unless (authenticated-p '("user" "admin"))
+             (error 'authentication-error))
+           (when-let (,system-params (system-parameters))
+             (unless (every #'validp ,system-params)
                (error 'bad-request-error)))
-         ,(when user-params
-            `(unless (every #'validp (funcall #',user-params))
+           (when-let (,user-params (user-parameters))
+             (unless (every #'validp ,user-params)
                (error 'data-entry-error)))
-         (with-db ()
-           ,@body))
-     (data-entry-error ()
-       (see-other (apply #',view-page (params->plist *parameters* #'raw))))
-     (bad-request-error ()
-       (setf (return-code*) +http-bad-request+))
-     (authentication-error ()
-       (see-other (login :origin (conc (script-name*) "?" (query-string*)))))
-     (error (c)
-       (if (debug-p (default-acceptor))
-           (signal c)
-           (setf (return-code*) +http-internal-server-error+)))))
+           (with-db ()
+             ,@body))
+       (data-entry-error ()
+         (see-other ,(if view-page-fn
+                         (let ((fn-call (ensure-list view-page-fn)))
+                           `(apply #',(first fn-call) (append ',(rest fn-call)
+                                                              (params->plist *parameters* #'raw))))
+                         '(error "Data entry error"))))
+       (bad-request-error ()
+         (setf (return-code*) +http-bad-request+))
+       (authentication-error ()
+         (see-other (login :origin (conc (script-name*)
+                                         (when-let (qs (query-string*))
+                                           (conc "?" qs))))))
+       (error (c)
+         (if (debug-p *acceptor*)
+             (signal c)
+             (setf (return-code*) +http-internal-server-error+))))))
 
-
-
-;;;----------------------------------------------------------------------
-;;; Generic predicate for chk- functions
-;;;----------------------------------------------------------------------
-
-(defun int-5digits-p (num)
-  (and (integerp num)
-       (> num 9999)
-       (<= num 99999)))
-
-(defun valid-tin-p (tin)
-  "Check the taxation identification number (ΑΦΜ)"
-  (flet ((char-parse-integer (d)
-           (- (char-int d) (char-int #\0))))
-    (let* ((len (length tin))
-           (digits (map 'vector #'char-parse-integer
-                        (nreverse (subseq tin 0 (1- len)))))
-           (control-digit (char-parse-integer (elt tin (1- len)))))
-      (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
-                       (for i from 1)
-                       (reducing (* d (expt 2 i))
-                                 by #'+))))
-        (= (mod (mod sum 11)
-                10)
-           control-digit)))))
-
-(defun chk-amount (float)
-  (if (positive-real-p float)
-      nil
-      :non-positive-amount))
-
-(defun chk-amount* (float)
-  "Same as chk-amount but allow null values"
-  (if (or (eql float :null)
-          (positive-real-p float)
-          (zerop float))
-      nil
-      :non-positive-amount))
+(defmacro with-xhr-page (auth-error-message &body body)
+  (with-gensyms (system-params)
+    `(handler-case
+         (progn
+           (no-cache)
+           (unless (authenticated-p (allowed-groups *page*))
+             (error 'authentication-error))
+           (when-let (,system-params (system-parameters))
+             (unless (every #'validp ,system-params)
+               (error 'bad-request-error)))
+           (with-db ()
+             ,@body))
+       (bad-request-error ()
+         (setf (return-code*) +http-bad-request+))
+       (authentication-error ()
+         ,auth-error-message)
+       (error (c)
+         (if (debug-p *acceptor*)
+             (signal c)
+             (setf (return-code*) +http-internal-server-error+))))))
 
 
 
@@ -191,6 +208,27 @@
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun int-5digits-p (num)
+  (and (integerp num)
+       (> num 9999)
+       (<= num 99999)))
+
+(defun valid-tin-p (tin)
+  "Check the taxation identification number (ΑΦΜ)"
+  (flet ((char-parse-integer (d)
+           (- (char-int d) (char-int #\0))))
+    (let* ((len (length tin))
+           (digits (map 'vector #'char-parse-integer
+                        (nreverse (subseq tin 0 (1- len)))))
+           (control-digit (char-parse-integer (elt tin (1- len)))))
+      (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
+                       (for i from 1)
+                       (reducing (* d (expt 2 i))
+                                 by #'+))))
+        (= (mod (mod sum 11)
+                10)
+           control-digit)))))
+
 (defun today ()
   (universal-time-to-timestamp (get-universal-time)))
 
@@ -212,3 +250,17 @@
     (parse-option-dao (get-dao 'option (etypecase id
                                          (symbol (string-downcase id))
                                          (string id))))))
+
+
+(defun chk-amount (float)
+  (if (positive-real-p float)
+      nil
+      :non-positive-amount))
+
+(defun chk-amount* (float)
+  "Same as chk-amount but allow null values"
+  (if (or (eql float :null)
+          (positive-real-p float)
+          (zerop float))
+      nil
+      :non-positive-amount))
