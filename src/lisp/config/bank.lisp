@@ -3,8 +3,22 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Bank - Validation
+;;; Page family & Validation
 ;;; ------------------------------------------------------------
+
+(defclass bank-page (dynamic-page page-family-mixin)
+  ((system-parameter-names
+    :allocation :class
+    :initform '(bank-id))
+   (user-parameter-names
+    :allocation :class
+    :initform '(title))
+   (filter-parameter-names
+    :allocation :class
+    :initform '(search))
+   (allowed-groups
+    :allocation :class
+    :initform '("user" "admin"))))
 
 (defun bank-referenced-p (id)
   (with-db ()
@@ -39,7 +53,6 @@
           (bank-title-exists-p title))
       nil
       :bank-title-unknown))
-
 
 
 

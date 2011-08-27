@@ -1,18 +1,17 @@
 (in-package :scrooge)
 
 
-
 ;;; ----------------------------------------------------------------------
-;;; top scrooge collections
+;;; scrooge collections
 ;;; ----------------------------------------------------------------------
 
-;;; crud-tables
+;;; crud tables with records being daos
 
-(defclass scrooge-crud-table (crud-table)
+(defclass crud-table/dao (crud-table)
   ()
   (:default-initargs :css-class "crud-table"))
 
-(defclass scrooge-crud-row (crud-row)
+(defclass crud-row/dao (crud-row)
   ()
   (:default-initargs :css-delete "attention"
                      :css-selected "selected"
@@ -20,31 +19,57 @@
                      :css-payload "payload"
                      :css-controls "controls"))
 
-(defmethod key ((item scrooge-crud-row))
+(defmethod key ((item crud-row/dao))
+  ;; We assume that the item's record is a dao
+  (let ((rec (record item)))
+    (if (slot-boundp rec 'id)
+        (id rec)
+        nil)))
+
+(defmethod update-item ((table crud-table/dao) &key data index)
+  ;; We assume that the row's record and data are daos
+  (let* ((record (record (nth index (rows table))))
+         (slot-names (mapcar (lambda (slot)
+                               (closer-mop:slot-definition-name slot))
+                             (closer-mop:class-slots (class-of data)))))
+    (mapc (lambda (name)
+            (when (and (slot-boundp data name)
+                       (slot-value data name))
+              (setf (slot-value record name) (slot-value data name))))
+          slot-names)))
+
+
+;;; crud tables with records being plists
+
+(defclass crud-table/plist (crud-table)
+  ()
+  (:default-initargs :css-class "crud-table"))
+
+(defclass crud-row/plist (crud-row)
+  ()
+  (:default-initargs :css-delete "attention"
+                     :css-selected "selected"
+                     :css-selector "selector"
+                     :css-payload "payload"
+                     :css-controls "controls"))
+
+(defmethod key ((item crud-row/plist))
+  ;; We assume that the item's record is a plist
   (getf (record item) :id))
 
-(defmethod update-item ((table crud-table) &key data index)
+(defmethod update-item ((table crud-table/plist) &key data index)
   (let ((row (nth index (rows table))))
     (setf (record row)
           (plist-union data (record row)))))
 
-(defclass scrooge-paginator (paginator)
-  ()
-  (:default-initargs :delta (get-option "crud-table-num-rows")
-                     :body-prev (html () (img "resultset_previous.png"))
-                     :body-next (html () (img "resultset_next.png"))
-                     :body-prev-inactive (html () (img "resultset_first.png"))
-                     :body-next-inactive (html () (img "resultset_last.png"))))
-
-
 
 ;;; crud-trees
 
-(defclass scrooge-crud-tree (crud-tree)
+(defclass crud-tree/plist (crud-tree)
   ()
   (:default-initargs :css-class "crud-tree" :root-parent-key :null))
 
-(defclass scrooge-crud-node (crud-node)
+(defclass crud-node/plist (crud-node)
   ()
   (:default-initargs :css-delete "attention"
     :css-selected "selected"
@@ -53,123 +78,187 @@
     :css-controls "controls"
     :css-indent "indent"))
 
-(defmethod update-item ((tree scrooge-crud-tree) &key data key)
+(defmethod update-item ((tree crud-tree/plist) &key data key)
   (let ((node (find-node (root tree) key)))
     (setf (record node)
           (plist-union data (record node)))))
 
-(defmethod key ((item scrooge-crud-node))
+(defmethod key ((item crud-node/plist))
   (getf (record item) :id))
 
-(defmethod parent-key ((item scrooge-crud-node))
+(defmethod parent-key ((item crud-node/plist))
   (getf (record item) :parent-id))
 
 
 
-;;; ------------------------------------------------------------
-;;; Account tree
-;;; ------------------------------------------------------------
+;; ;;; ----------------------------------------------------------------------
+;; ;;; top scrooge collections
+;; ;;; ----------------------------------------------------------------------
 
-;;; tree
+;; ;;; crud-tables
 
-(defclass account-crud-tree (scrooge-crud-tree)
-  ()
-  (:default-initargs :item-class 'account-crud-node))
+;; (defclass scrooge-crud-table (crud-table)
+;;   ()
+;;   (:default-initargs :css-class "crud-table"))
 
-(defmethod read-records ((tree account-crud-tree))
-  (with-db ()
-    (query (:select 'id 'title 'parent-id
-                    :from 'account
-                    :where (:= 'debit-p (getf (filter tree) :debit-p)))
-           :plists)))
+;; (defclass scrooge-crud-row (crud-row)
+;;   ()
+;;   (:default-initargs :css-delete "attention"
+;;                      :css-selected "selected"
+;;                      :css-selector "selector"
+;;                      :css-payload "payload"
+;;                      :css-controls "controls"))
 
+;; (defmethod key ((item scrooge-crud-row))
+;;   (getf (record item) :id))
 
-;;; nodes
+;; (defmethod update-item ((table crud-table) &key data index)
+;;   (let ((row (nth index (rows table))))
+;;     (setf (record row)
+;;           (plist-union data (record row)))))
 
-(defclass account-crud-node (scrooge-crud-node)
-  ())
-
-(defmethod selector ((node account-crud-node) enabled-p)
-  (let ((id (key node)))
-    (html ()
-      (:a :href (if enabled-p
-                    (account)
-                    (account :id id))
-          (selector-img enabled-p)))))
-
-(defmethod payload ((node account-crud-node) enabled-p)
-  (make-instance 'textbox
-                 :name 'title
-                 :value (getf (record node) :title)
-                 :disabled (not enabled-p)))
-
-(defmethod controls ((node account-crud-node) enabled-p)
-  (let ((id (key node)))
-    (if enabled-p
-        (html ()
-          (:div (display (make-instance 'ok-button) )
-                (display (make-instance 'cancel-button :href (account :id id)))))
-        (list nil nil))))
+;; (defclass scrooge-paginator (paginator)
+;;   ()
+;;   (:default-initargs :delta (get-option "crud-table-num-rows")
+;;                      :body-prev (html () (img "resultset_previous.png"))
+;;                      :body-next (html () (img "resultset_next.png"))
+;;                      :body-prev-inactive (html () (img "resultset_first.png"))
+;;                      :body-next-inactive (html () (img "resultset_last.png"))))
 
 
 
-;;; ----------------------------------------------------------------------
-;;; Account-RO (read only) tree
-;;; ----------------------------------------------------------------------
+;; ;;; crud-trees
 
-(defclass account-ro-tree (account-crud-tree)
-  ((op :initform :read))
-  (:default-initargs :item-class 'account-ro-node))
+;; (defclass scrooge-crud-tree (crud-tree)
+;;   ()
+;;   (:default-initargs :css-class "crud-tree" :root-parent-key :null))
 
-(defclass account-ro-node (account-crud-node)
-  ())
+;; (defclass scrooge-crud-node (crud-node)
+;;   ()
+;;   (:default-initargs :css-delete "attention"
+;;     :css-selected "selected"
+;;     :css-selector "selector"
+;;     :css-payload "payload"
+;;     :css-controls "controls"
+;;     :css-indent "indent"))
 
-(defmethod selector ((node account-ro-node) enabled-p)
-  (let ((id (key node)))
-    (html ()
-      (:a :href
-          (if enabled-p
-              (account/overview)
-              (account/overview :id id))
-          (selector-img enabled-p)))))
+;; (defmethod update-item ((tree scrooge-crud-tree) &key data key)
+;;   (let ((node (find-node (root tree) key)))
+;;     (setf (record node)
+;;           (plist-union data (record node)))))
 
-(defmethod payload ((node account-ro-node) enabled-p)
-  (make-instance 'textbox
-                 :name 'title
-                 :value (getf (record node) :title)
-                 :disabled (not enabled-p)))
+;; (defmethod key ((item scrooge-crud-node))
+;;   (getf (record item) :id))
 
-(defmethod controls ((node account-ro-node) enabled-p)
-  (declare (ignore node enabled-p))
-  (list nil nil))
+;; (defmethod parent-key ((item scrooge-crud-node))
+;;   (getf (record item) :parent-id))
 
 
 
-;;; ----------------------------------------------------------------------
-;;; account-radio tree
-;;; ----------------------------------------------------------------------
+;; ;;; ------------------------------------------------------------
+;; ;;; Account tree
+;; ;;; ------------------------------------------------------------
 
-(defclass account-radio-tree (account-crud-tree)
-  ()
-  (:default-initargs :item-class 'account-radio-node))
+;; ;;; tree
 
-(defclass account-radio-node (account-crud-node)
-  ())
+;; (defclass account-crud-tree (scrooge-crud-tree)
+;;   ()
+;;   (:default-initargs :item-class 'account-crud-node))
 
-(defmethod selector ((node account-radio-node) enabled-p)
-  (let* ((id (key node)))
-    (make-instance 'input-radio
-                   :name 'account-id
-                   :value id
-                   :body nil)))
+;; (defmethod read-records ((tree account-crud-tree))
+;;   (with-db ()
+;;     (query (:select 'id 'title 'parent-id
+;;                     :from 'account
+;;                     :where (:= 'debit-p (getf (filter tree) :debit-p)))
+;;            :plists)))
 
-(defun make-account-radio-tree (revenues-p)
-  (make-instance 'account-radio-tree
-                 :op :read
-                 :root-parent-key (if revenues-p
-                                      *revenues-root-account*
-                                      *expenses-root-account*)
-                 :filter (list :debit-p (not revenues-p))))
+
+;; ;;; nodes
+
+;; (defclass account-crud-node (scrooge-crud-node)
+;;   ())
+
+;; (defmethod selector ((node account-crud-node) enabled-p)
+;;   (let ((id (key node)))
+;;     (html ()
+;;       (:a :href (if enabled-p
+;;                     (account)
+;;                     (account :id id))
+;;           (selector-img enabled-p)))))
+
+;; (defmethod payload ((node account-crud-node) enabled-p)
+;;   (make-instance 'textbox
+;;                  :name 'title
+;;                  :value (getf (record node) :title)
+;;                  :disabled (not enabled-p)))
+
+;; (defmethod controls ((node account-crud-node) enabled-p)
+;;   (let ((id (key node)))
+;;     (if enabled-p
+;;         (html ()
+;;           (:div (display (make-instance 'ok-button) )
+;;                 (display (make-instance 'cancel-button :href (account :id id)))))
+;;         (list nil nil))))
+
+
+
+;; ;;; ----------------------------------------------------------------------
+;; ;;; Account-RO (read only) tree
+;; ;;; ----------------------------------------------------------------------
+
+;; (defclass account-ro-tree (account-crud-tree)
+;;   ((op :initform :read))
+;;   (:default-initargs :item-class 'account-ro-node))
+
+;; (defclass account-ro-node (account-crud-node)
+;;   ())
+
+;; (defmethod selector ((node account-ro-node) enabled-p)
+;;   (let ((id (key node)))
+;;     (html ()
+;;       (:a :href
+;;           (if enabled-p
+;;               (account/overview)
+;;               (account/overview :id id))
+;;           (selector-img enabled-p)))))
+
+;; (defmethod payload ((node account-ro-node) enabled-p)
+;;   (make-instance 'textbox
+;;                  :name 'title
+;;                  :value (getf (record node) :title)
+;;                  :disabled (not enabled-p)))
+
+;; (defmethod controls ((node account-ro-node) enabled-p)
+;;   (declare (ignore node enabled-p))
+;;   (list nil nil))
+
+
+
+;; ;;; ----------------------------------------------------------------------
+;; ;;; account-radio tree
+;; ;;; ----------------------------------------------------------------------
+
+;; (defclass account-radio-tree (account-crud-tree)
+;;   ()
+;;   (:default-initargs :item-class 'account-radio-node))
+
+;; (defclass account-radio-node (account-crud-node)
+;;   ())
+
+;; (defmethod selector ((node account-radio-node) enabled-p)
+;;   (let* ((id (key node)))
+;;     (make-instance 'input-radio
+;;                    :name 'account-id
+;;                    :value id
+;;                    :body nil)))
+
+;; (defun make-account-radio-tree (revenues-p)
+;;   (make-instance 'account-radio-tree
+;;                  :op :read
+;;                  :root-parent-key (if revenues-p
+;;                                       *revenues-root-account*
+;;                                       *expenses-root-account*)
+;;                  :filter (list :debit-p (not revenues-p))))
 
 
 

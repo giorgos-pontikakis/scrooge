@@ -6,16 +6,16 @@
   :depends-on ("veil" "bricks" "mortar" "json")
   :serial t
   :components ((:file "package")
-               (:file "tables")
                (:file "utils")
+               (:file "tables")
 
                (:file "init")
-               (:file "elements")
                (:file "widgets")
                (:file "errors")
                ;; -- Here come the pages! --
-               ;; (:file "auth")
-               ;; (:file "root")
+               (:file "elements")
+               (:file "auth")
+               (:file "root")
                ;; ;; config
                ;; (:file "config/config")
                ;; (:file "config/bank")

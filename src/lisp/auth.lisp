@@ -17,7 +17,7 @@
   (with-db ()
     (let ((user-dao (get-dao 'usr username)))
       (if (and (not (eql password :null))
-               (string= (userpass user-dao)
+               (string= (password user-dao)
                         (md5sum-sequence->string password)))
           nil
           'invalid-password))))
@@ -27,7 +27,8 @@
 ;;; Login and logout
 ;;; ------------------------------------------------------------
 
-(defpage dynamic-page login ("login") (user)
+(defpage dynamic-page login ("login")
+    (user origin)
   (with-document ()
     (:head
      (login-headers)

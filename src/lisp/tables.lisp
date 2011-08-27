@@ -1,6 +1,20 @@
 (in-package :scrooge)
 
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro define-surrogate-key-readers (table (&rest surrogate-key-types) &rest slots)
+    `(progn
+       ,@(mapcar (lambda (slot)
+                   `(defmethod ,slot ,surrogate-key-types
+                      (with-db ()
+                        (,slot (select-dao-unique
+                                ',table
+                                (:and ,@(mapcar (lambda (surrogate-key)
+                                                  `(:= ',surrogate-key ,surrogate-key))
+                                                (mapcar #'first surrogate-key-types))))))))
+                 slots))))
+
+
 ;;; ------------------------------------------------------------
 ;;; Config
 ;;; ------------------------------------------------------------
@@ -22,42 +36,33 @@
   (:keys username))
 
 
-(defclass bank ()
-  ((bank-id :col-type integer :reader   bank-id)
-   (title   :col-type string  :accessor title   :initarg :title))
-  (:metaclass dao-class)
-  (:keys bank-id))
 
-(defmethod bank-id ((title string))
-  (with-db ()
-    (query (:select 'id :from 'bank :where (:= 'title title))
-           :single)))
+(defclass bank ()
+  ((id    :col-type integer :reader   bank-id)
+   (title :col-type string  :accessor title   :initarg :title))
+  (:metaclass dao-class)
+  (:keys id))
+
+(define-surrogate-key-readers bank ((title string)) bank-id)
 
 
 
 (defclass tof ()
-  ((tof-id :col-type integer :reader   tof-id)
-   (title  :col-type string  :accessor title  :initarg :title))
+  ((id    :col-type integer :reader   tof-id)
+   (title :col-type string  :accessor title  :initarg :title))
   (:metaclass dao-class)
-  (:keys tof-id))
+  (:keys id))
 
-(defmethod tof-id ((tof-title string))
-  (with-db ()
-    (query (:select 'tof-id :from 'tof :where (:= 'title tof-title))
-           :single)))
-
+(define-surrogate-key-readers tof ((title string)) tof-id)
 
 
 (defclass city ()
-  ((city-id    :col-type integer :reader   city-id)
+  ((id    :col-type integer :reader   city-id)
    (title :col-type string  :accessor title :initarg :title))
   (:metaclass dao-class)
-  (:keys city-id))
+  (:keys id))
 
-(defmethod city-id ((title string))
-  (with-db ()
-    (query (:select 'city-id :from 'city :where (:= 'title title))
-           :single)))
+(define-surrogate-key-readers city ((title string)) city-id)
 
 
 
@@ -70,7 +75,7 @@
 
 
 (defclass cheque-stran ()
-  ((cheque-stran-id :col-type integer :accessor cheque-stran-id :initarg :id)
+  ((id              :col-type integer :reader   cheque-stran-id)
    (title           :col-type string  :accessor title           :initarg :title)
    (debit-acc-id    :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
    (credit-acc-id   :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id)
@@ -83,32 +88,17 @@
 
 
 (defclass account ()
-  ((account-id         :col-type string  :accessor account-id         :initarg :account-id)
+  ((id         :col-type string  :reader   account-id)
    (title      :col-type string  :accessor title      :initarg :title)
    (debit-p    :col-type boolean :accessor debit-p    :initarg :debit-p)
    (parent-id  :col-type string  :accessor parent-id  :initarg :parent-id)
    (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p)
    (rank       :col-type integer :accessor rank       :initarg :rank))
   (:metaclass dao-class)
-  (:keys account-id))
+  (:keys id))
 
-(defmethod account-id ((title string))
-  (with-db ()
-    (query (:select 'account-id :from 'account :where (:= 'title title))
-           :single)))
-
-(defmethod chequing-p ((title string))
-  (with-db ()
-    (query (:select 'account-id
-                    :from 'account
-                    :where (:and (:= 'title title)
-                                 (:= 'chequing-p t)))
-           :plists)))
-
-(defmethod debit-p ((acc-id integer))
-  (with-db ()
-    (query (:select 'debit-p :from 'account :where (:= 'account-id acc-id))
-           :single)))
+(define-surrogate-key-readers account ((title string))
+  account-id debit-p parent-id chequing-p rank)
 
 
 
@@ -117,7 +107,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass company ()
-  ((company-id :col-type integer :reader   company-id)
+  ((id         :col-type integer :reader   company-id)
    (title      :col-type string  :accessor title      :initarg :title)
    (occupation :col-type string  :accessor occupation :initarg :occupation)
    (tof-id     :col-type integer :accessor tof-id     :initarg :tof-id)
@@ -128,18 +118,15 @@
    (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode)
    (notes      :col-type string  :accessor notes      :initarg :notes))
   (:metaclass dao-class)
-  (:keys company-id))
+  (:keys id))
 
-(defmethod company-id ((title string))
-  (with-db ()
-    (query (:select 'company-id :from 'company
-                    :where (:= 'title title))
-           :single)))
+(define-surrogate-key-readers company ((title string))
+  company-id occupation tof-id tin address city-id pobox zipcode notes)
 
 
 
 (defclass project ()
-  ((project-id  :col-type integer       :reader   project-id)
+  ((id          :col-type integer       :reader   project-id)
    (company-id  :col-type integer       :accessor company-id  :initarg :company-id)
    (description :col-type string        :accessor description :initarg :description)
    (location    :col-type string        :accessor location    :initarg :location)
@@ -151,15 +138,15 @@
    (vat         :col-type (numeric 9 2) :accessor vat         :initarg :vat)
    (notes       :col-type string        :accessor notes       :initarg :notes))
   (:metaclass dao-class)
-  (:keys project-id))
+  (:keys id))
 
 (defclass contact ()
-  ((contact-id :col-type integer :reader   contact-id)
+  ((id         :col-type integer :reader   contact-id)
    (company-id :col-type integer :accessor company-id :initarg :company-id)
    (tag        :col-type string  :accessor tag        :initarg :tag)
    (phone      :col-type string  :accessor phone      :initarg :phone))
   (:metaclass dao-class)
-  (:keys contact-id))
+  (:keys id))
 
 
 
