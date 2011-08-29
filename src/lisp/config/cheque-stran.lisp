@@ -170,7 +170,7 @@
             (navbar spec
                     :id "cheque-stran-filters"
                     :css-class "vnavbar"
-                    :active-page-name (intern (string-upcase cheque-kind)))))))
+                    :active (intern (string-upcase cheque-kind)))))))
 
 
 

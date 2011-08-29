@@ -2,9 +2,12 @@
 
 
 
-;;; config crud rows
+;;; config crud table and row classes
 
-(defclass config-row (crud-row/dao)
+(defclass config-table (scrooge-table/obj)
+  ())
+
+(defclass config-row (scrooge-row/obj)
   ())
 
 (defmethod payload ((row config-row) enabled-p)
@@ -13,24 +16,35 @@
                  :value (title (record row))
                  :disabled (not enabled-p)))
 
+;;; Config utilities
+
+(defun config-data (table-name search)
+  (with-db ()
+    (select-dao table-name (:= 'title (ilike search)))))
+
 
 
 ;;; UI elements
 
-(defun config-navbar (&optional active-page-name)
-  (navbar `((general      ,(config)                           "Γενικά")
+(defun config-navbar (&optional active)
+  (navbar `(#|(general      ,(config)                           "Γενικά")|#
             (city         ,(city)                             "Πόλεις")
             (bank         ,(bank)                             "Τράπεζες")
             (tof          ,(tof)                              "Δ.Ο.Υ.")
-            (account      ,(account)                          "Λογαριασμοί")
-            (cheque-stran ,(config/cheque-stran "receivable") "Επιταγές"))
+            #|(account      ,(account)                          "Λογαριασμοί")|#
+            #|#|(cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")|#|#)
           :css-class "section-navbar hnavbar grid_12"
-          :active-page-name active-page-name))
+          :active active))
 
-
-
-;;; Config utilities
-
-(defun config-data (table-name filter)
-  (with-db ()
-    (select-dao table-name (ilike filter))))
+(defpage dynamic-page config ("config/") ()
+  (with-document ()
+    (:head
+     (:title "Ρυθμίσεις")
+     (config-headers))
+    (:body
+     (:div :id "container" :class "container_12"
+           (header 'config)
+           (config-navbar 'general)
+           (:div :id "bank-window" :class "window grid_10"
+                 (:div :class "title" "Ρυθμίσεις » Γενικά")
+                 "nothing...")))))

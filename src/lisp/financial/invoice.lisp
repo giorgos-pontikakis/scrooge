@@ -226,7 +226,7 @@
             (navbar spec
                     :id "invoice-filters"
                     :css-class "vnavbar"
-                    :active-page-name (intern (string-upcase invoice-kind)))))))
+                    :active (intern (string-upcase invoice-kind)))))))
 
 (defun invoice-menu (invoice-kind id filter disabled)
   (menu (crud-actions-spec (apply #'invoice        invoice-kind :id id filter)

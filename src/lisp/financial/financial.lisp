@@ -3,14 +3,14 @@
 
 ;;; UI elements
 
-(defun financial-navbar (active-page-name)
+(defun financial-navbar (active)
   (navbar `((transaction ,(transaction)          "Συναλλαγές")
             (invoice     ,(invoice "receivable") "Τιμολόγια")
             (cash        ,(cash "revenue")       "Μετρητά")
             (cheque      ,(cheque "receivable")  "Επιταγές")
             (account     ,(account/overview)     "Λογαριασμοί"))
           :css-class "section-navbar hnavbar grid_12"
-          :active-page-name active-page-name))
+          :active active))
 
 
 

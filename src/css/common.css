@@ -6,11 +6,11 @@ a, a:hover img {
 }
 
 body {
-    background-color: #ededed;
+    background-color: #f8f8f8;
     color: #000000;
-    line-height: 1.5;
-    font-size: 12px;
-    font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
+    line-height: 1;
+    font-size: 13px;
+    font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
 }
 
 h1 {
@@ -27,14 +27,14 @@ h3 {
 
 input {
     border: 1px solid #cccccc;
-    padding: 3px 5px 3px 5px;
-    font-size: 12px;
-    font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
+    padding: 2px 5px;
+    font-size: 13px;
+    font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
 }
 
 textarea {
     font-family: "Liberation Mono", "Andale Mono", "Courier New", "monospace";
-    font-size: 12px;
+    font-size: 13px;
     border: 1px solid grey;
     padding: 3px 5px 3px 5px;
 }
@@ -55,21 +55,8 @@ textarea[disabled], textarea[readonly] {
 }
 
 button, select {
-    font-size: 12px;
-    font-family: "Helvetica Neue", "Verdana", "Arial", "Liberation Sans", sans-serif
-}
-
-button {
-    padding: 5px 5px 5px 0px;
-}
-
-button img {
-    padding: 0px 5px;
-    vertical-align: bottom;
-}
-
-select {
-    padding: 5px;
+    font-size: 13px;
+    font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif
 }
 
 select option {
@@ -148,14 +135,18 @@ select[disabled] {
 
 #container {
     height: 100%;
-}
-
-#container {
-    background-color: #FFFFFF;
+    background-color: #ededed;
 }
 
 #footer {
     margin-top: 40px;
+    font-family: 'Courier New','Courier',monospace;
+    text-align: center;
+}
+
+#header {
+    background-color: #104E8B;
+    color: #ffffff;
 }
 
 
@@ -170,10 +161,11 @@ select[disabled] {
 
 .title {
     font-weight: bold;
-    background-color: #4F5C4E;
+    background-color: #104e8b;
     color: white;
     line-height: 26px;
     padding-left: 10px;
+    padding-right: 10px;
 }
 
 
@@ -182,12 +174,56 @@ select[disabled] {
 /* logo */
 /* ---------------------------------------------------------------------- */
 
-#logo h1 {
-    text-align: center;
-    font-weight: bold;
-    font-size: 16px;
+#logo {
+    line-height: 30px;
 }
 
+#logo h1 {
+    font-size: 16px;
+    font-weight: normal;
+    font-family: 'Courier New','Courier',monospace;
+}
+
+#primary-navbar li, #logout li {
+    margin-top: 3px;
+    line-height: 30px;
+}
+
+#primary-navbar li {
+    font-weight: bold;
+}
+
+#primary-navbar a {
+    display: block;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 0px 10px;
+    margin: 0px 1px;
+}
+
+#primary-navbar a:hover {
+    color: #104E8B;
+    background-color: #ededed;
+    border-radius: 4px 4px 0px 0px;
+}
+
+#primary-navbar span, #logout span {
+    color: #882233;
+    background-color: #ededed;
+    padding: 0px 10px;
+    border-radius: 4px 4px 0px 0px;
+}
+
+p#logout  {
+    line-height: 30px;
+    float: right;
+    margin-right: 10px;
+}
+
+p#logout a {
+    text-decoration: underline;
+    color: #ffffff;
+}
 
 
 
@@ -196,19 +232,22 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .data-form fieldset {
-    border: 1px solid grey;
+    border: 1px solid #ccc;
     padding: 10px 20px;
+    margin: 15px 0px;
 }
 
 .data-form legend {
     padding: 0px 10px;
     font-size: 11px;
+    font-weight: normal;
 }
 
 .data-form label {
     display: block;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 12px;
+    margin: 6px 0px 3px 0px;
 }
 
 .data-form input {

@@ -1,17 +1,18 @@
 (in-package :scrooge)
 
 
+
 ;;; ----------------------------------------------------------------------
 ;;; scrooge collections
 ;;; ----------------------------------------------------------------------
 
 ;;; crud tables with records being daos
 
-(defclass crud-table/dao (crud-table)
+(defclass scrooge-table/obj (crud-table/obj)
   ()
   (:default-initargs :css-class "crud-table"))
 
-(defclass crud-row/dao (crud-row)
+(defclass scrooge-row/obj (crud-row)
   ()
   (:default-initargs :css-delete "attention"
                      :css-selected "selected"
@@ -19,33 +20,20 @@
                      :css-payload "payload"
                      :css-controls "controls"))
 
-(defmethod key ((item crud-row/dao))
-  ;; We assume that the item's record is a dao
+(defmethod key ((item scrooge-row/obj))
   (let ((rec (record item)))
     (if (slot-boundp rec 'id)
         (id rec)
         nil)))
 
-(defmethod update-item ((table crud-table/dao) &key data index)
-  ;; We assume that the row's record and data are daos
-  (let* ((record (record (nth index (rows table))))
-         (slot-names (mapcar (lambda (slot)
-                               (closer-mop:slot-definition-name slot))
-                             (closer-mop:class-slots (class-of data)))))
-    (mapc (lambda (name)
-            (when (and (slot-boundp data name)
-                       (slot-value data name))
-              (setf (slot-value record name) (slot-value data name))))
-          slot-names)))
-
 
 ;;; crud tables with records being plists
 
-(defclass crud-table/plist (crud-table)
+(defclass scrooge-table/plist (crud-table/plist)
   ()
   (:default-initargs :css-class "crud-table"))
 
-(defclass crud-row/plist (crud-row)
+(defclass scrooge-row/plist (crud-row)
   ()
   (:default-initargs :css-delete "attention"
                      :css-selected "selected"
@@ -53,14 +41,37 @@
                      :css-payload "payload"
                      :css-controls "controls"))
 
-(defmethod key ((item crud-row/plist))
-  ;; We assume that the item's record is a plist
+(defmethod key ((item scrooge-row/plist))
   (getf (record item) :id))
 
-(defmethod update-item ((table crud-table/plist) &key data index)
-  (let ((row (nth index (rows table))))
-    (setf (record row)
-          (plist-union data (record row)))))
+
+;;; paginators
+
+(defclass scrooge-paginator (paginator)
+  ()
+  (:default-initargs :delta 15
+                     :id "paginator"
+                     :css-class "paginator"))
+
+(defmethod display ((pg paginator) &key (start 0))
+  (let* ((delta (delta pg))
+         (len (length (rows (table pg))))
+         (prev (previous-page-start pg start))
+         (next (next-page-start pg start)))
+    (with-html
+        (:div :class (css-class pg)
+              (fmt "Record ~A–~A from ~A"
+                   (1+ start)
+                   (min (+ start delta) len)
+                   len)
+              (if prev
+                  (htm (:a :href (target-url pg prev)
+                           (img "resultset_previous.png")))
+                  (img "resultset_first.png"))
+              (if next
+                  (htm (:a :href (target-url pg next)
+                           (img "resultset_next.png")))
+                  (img "resultset_last.png"))))))
 
 
 ;;; crud-trees
@@ -91,6 +102,7 @@
 
 
 
+
 ;; ;;; ----------------------------------------------------------------------
 ;; ;;; top scrooge collections
 ;; ;;; ----------------------------------------------------------------------
@@ -116,16 +128,6 @@
 ;;   (let ((row (nth index (rows table))))
 ;;     (setf (record row)
 ;;           (plist-union data (record row)))))
-
-;; (defclass scrooge-paginator (paginator)
-;;   ()
-;;   (:default-initargs :delta (get-option "crud-table-num-rows")
-;;                      :body-prev (html () (img "resultset_previous.png"))
-;;                      :body-next (html () (img "resultset_next.png"))
-;;                      :body-prev-inactive (html () (img "resultset_first.png"))
-;;                      :body-next-inactive (html () (img "resultset_last.png"))))
-
-
 
 ;; ;;; crud-trees
 
@@ -263,7 +265,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; buttons
+;;; row buttons (image without text)
 ;;; ----------------------------------------------------------------------
 
 (defclass ok-button (submit)
@@ -296,24 +298,22 @@
 
 ;;; selector and controls for crud collections
 
-(defmacro define-selector (row-class url)
-  `(defmethod selector ((row ,row-class) enabled-p)
-     (let* ((id (key row))
-            (table (collection row))
-            (filter (filter table))
-            (start (page-start (paginator table) (index row) (start-index table))))
-       (html ()
-         (:a :href (if enabled-p
-                       (apply #',url :start start filter)
-                       (apply #',url :id id filter))
-             (selector-img enabled-p))))))
+(defun simple-selector (row enabled-p url-fn)
+  (let* ((id (key row))
+         (table (collection row))
+         (filter (filter table))
+         (start (page-start (paginator table) (index row) (start-index table))))
+    (html ()
+      (:a :href (if enabled-p
+                    (apply url-fn :start start filter)
+                    (apply url-fn :id id filter))
+          (selector-img enabled-p)))))
 
-(defmacro define-controls (row-class url)
-  `(defmethod controls ((row ,row-class) enabled-p)
-     (let ((id (key row))
-           (table (collection row)))
-       (if enabled-p
-           (list (make-instance 'ok-button)
-                 (make-instance 'cancel-button
-                                :href (apply #',url :id id (filter table))))
-           (list nil nil)))))
+(defun simple-controls (row enabled-p url-fn)
+  (let ((id (key row))
+        (table (collection row)))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (apply url-fn :id id (filter table))))
+        (list nil nil))))

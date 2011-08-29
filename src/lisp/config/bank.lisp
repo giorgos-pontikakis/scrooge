@@ -3,13 +3,13 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Page family & Validation
+;;; Page family
 ;;; ------------------------------------------------------------
 
 (defclass bank-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(bank-id))
+    :initform '(id))
    (user-parameter-names
     :allocation :class
     :initform '(title))
@@ -19,6 +19,12 @@
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Validation
+;;; ------------------------------------------------------------
 
 (defun bank-referenced-p (id)
   (with-db ()
@@ -61,16 +67,16 @@
 ;;; ------------------------------------------------------------
 
 (defun bank-menu (id filter &optional disabled)
-  (menu (crud-actions-spec (apply #'bank :id id filter)
-                           (apply #'bank/create filter)
-                           (apply #'bank/update :id id filter)
-                           (if (or (null id)
-                                   (bank-referenced-p id))
-                               nil
-                               (apply #'bank/delete :id id filter)))
-        :id "bank-actions"
-        :css-class "hmenu actions"
-        :disabled disabled))
+  (anchor-menu (crud-actions-spec (apply #'bank :id id filter)
+                                  (apply #'bank/create filter)
+                                  (apply #'bank/update :id id filter)
+                                  (if (or (null id)
+                                          (bank-referenced-p id))
+                                      nil
+                                      (apply #'bank/delete :id id filter)))
+               :id "bank-actions"
+               :css-class "hmenu actions"
+               :disabled disabled))
 
 (defun bank-notifications ()
   (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
@@ -84,12 +90,11 @@
 
 ;;; table
 
-(defclass bank-table (scrooge-crud-table)
+(defclass bank-table (crud-table/dao)
   ((header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
-   (paginator      :initform (make-instance 'scrooge-paginator
+   (paginator      :initform (make-instance 'bank-paginator
                                             :id "bank-paginator"
-                                            :css-class "paginator"
-                                            :urlfn #'bank)))
+                                            :css-class "paginator")))
   (:default-initargs :id "config-table" :item-class 'bank-row))
 
 (defmethod read-records ((table bank-table))
@@ -101,8 +106,20 @@
 (defclass bank-row (config-row)
   ())
 
-(define-selector bank-row bank)
-(define-controls bank-row bank)
+(defmethod selector ((row bank-row) enabled-p)
+  (simple-selector row enabled-p #'bank))
+
+(defmethod controls ((row bank-row) enabled-p)
+  (simple-controls row enabled-p #'bank))
+
+
+;;; paginator
+
+(defclass bank-paginator (scrooge-paginator)
+  ())
+
+(defmethod target-url ((pg bank-paginator) start)
+  (apply #'bank :start start (filter (table pg))))
 
 
 
@@ -110,39 +127,36 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage dynamic-page bank ("config/bank")
+(defpage bank-page bank ("config/bank")
     ((id     integer chk-bank-id)
      (search string)
      (start  integer))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let* ((filter (params->plist search))
-               (bank-table (make-instance 'bank-table
-                                          :op :read
-                                          :filter filter
-                                          :start-index (val start))))
-          (with-document ()
-            (:head
-             (:title "Τράπεζες")
-             (config-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'config)
-                   (config-navbar 'bank)
-                   (:div :id "bank-window" :class "window grid_10"
-                         (:div :class "title" "Τράπεζες » Κατάλογος")
-                         (bank-menu (val id)
-                                    filter
-                                    (if (val id)
-                                        '(:read)
-                                        '(:read :update :delete)))
-                         (display bank-table
-                                  :selected-id (val id)))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         (searchbox (bank) (val search)))
-                   (footer)))))
-        (see-other (notfound)))))
+  (with-view-page
+    (let* ((filter (params->plist (list search)))
+           (bank-table (make-instance 'bank-table
+                                      :op :read
+                                      :filter filter
+                                      :start-index (val start))))
+      (with-document ()
+        (:head
+         (:title "Τράπεζες")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-navbar 'bank)
+               (:div :id "bank-window" :class "window grid_10"
+                     (:div :class "title" "Τράπεζες » Κατάλογος")
+                     (bank-menu (val id)
+                                filter
+                                (if (val id)
+                                    '(:read)
+                                    '(:read :update :delete)))
+                     (display bank-table
+                              :selected-id (val id)))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (bank) (val search)))
+               (footer)))))))
 
 
 
@@ -150,12 +164,11 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage dynamic-page bank/create ("config/bank/create")
+(defpage bank-page bank/create ("config/bank/create")
     ((title  string chk-new-bank-title)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (let* ((filter (params->plist search))
+  (with-view-page
+    (let* ((filter (params->plist (list search)))
            (bank-table (make-instance 'bank-table
                                       :op :create
                                       :filter filter)))
@@ -181,16 +194,12 @@
                      (bank-notifications))
                (footer)))))))
 
-(defpage dynamic-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
+(defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
     ((title  string chk-new-bank-title t)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (with-db ()
-          (insert-dao (make-instance 'bank :title (val title)))
-          (see-other (bank :id (bank-id (val title)))))
-        (see-other (bank/create :title (raw title) :search (raw search))))))
+  (with-controller-page (bank/create)
+    (insert-dao (make-instance 'bank :title (val title)))
+    (see-other (bank :id (bank-id (val title))))))
 
 
 
@@ -198,54 +207,47 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage dynamic-page bank/update ("config/bank/update")
+(defpage bank-page bank/update ("config/bank/update")
     ((id     integer chk-bank-id t)
      (title  string  (chk-new-bank-title title id))
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let* ((filter (params->plist search))
-               (bank-table (make-instance 'bank-table
-                                          :op :update
-                                          :filter filter)))
-          (with-document ()
-            (:head
-             (:title "Τράπεζα » Επεξεργασία")
-             (config-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'config)
-                   (config-navbar 'bank)
-                   (:div :id "bank-window" :class "window grid_10"
-                         (:div :class "title" "Τράπεζα » Επεξεργασία")
-                         (bank-menu (val id)
-                                    filter
-                                    '(:create :update))
-                         (with-form (actions/config/bank/update :id (val id)
-                                                                :search (val search))
-                           (display bank-table
-                                    :selected-id (val id)
-                                    :selected-data (list :title (val title)))))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         (searchbox (bank) (val search))
-                         (bank-notifications))
-                   (footer)))))
-        (see-other (notfound)))))
+  (with-view-page
+    (let* ((filter (params->plist (list search)))
+           (bank-table (make-instance 'bank-table
+                                      :op :update
+                                      :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Τράπεζα » Επεξεργασία")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-navbar 'bank)
+               (:div :id "bank-window" :class "window grid_10"
+                     (:div :class "title" "Τράπεζα » Επεξεργασία")
+                     (bank-menu (val id)
+                                filter
+                                '(:create :update))
+                     (with-form (actions/config/bank/update :id (val id)
+                                                            :search (val search))
+                       (display bank-table
+                                :selected-id (val id)
+                                :selected-data (list :title (val title)))))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (bank) (val search))
+                     (bank-notifications))
+               (footer)))))))
 
-(defpage dynamic-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
+(defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
     ((id     integer chk-bank-id t)
      (title  string  (chk-new-bank-title title id) t)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (with-db ()
-          (execute (:update 'bank :set
-                            'title (val title)
-                            :where (:= 'id (val id))))
-          (see-other (bank :id (val id) :search (val search))))
-        (see-other (bank/update :id (raw id) :title (raw title) :search (raw search))))))
+  (with-controller-page (bank/update)
+    (execute (:update 'bank :set
+                      'title (val title)
+                      :where (:= 'id (val id))))
+    (see-other (bank :id (val id) :search (val search)))))
 
 
 
@@ -253,45 +255,38 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage dynamic-page bank/delete ("config/bank/delete")
+(defpage bank-page bank/delete ("config/bank/delete")
     ((id     integer chk-bank-id/ref t)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let* ((filter (params->plist search))
-               (bank-table (make-instance 'bank-table
-                                          :op :delete
-                                          :filter filter)))
-          (with-document ()
-            (:head
-             (:title "Τράπεζα » Διαγραφή")
-             (config-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'config)
-                   (config-navbar 'bank)
-                   (:div :id "bank-window" :class "window grid_10"
-                         (:div :class "title" "Τράπεζα » Διαγραφή")
-                         (bank-menu (val id)
-                                    filter
-                                    '(:create :delete))
-                         (with-form (actions/config/bank/delete :id (val id)
-                                                                :search (val search))
-                           (display bank-table
-                                    :selected-id (val id))))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         (searchbox (bank) (val search)))
-                   (footer)))))
-        (see-other (notfound)))))
+  (with-view-page
+    (let* ((filter (params->plist (list search)))
+           (bank-table (make-instance 'bank-table
+                                      :op :delete
+                                      :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Τράπεζα » Διαγραφή")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-navbar 'bank)
+               (:div :id "bank-window" :class "window grid_10"
+                     (:div :class "title" "Τράπεζα » Διαγραφή")
+                     (bank-menu (val id)
+                                filter
+                                '(:create :delete))
+                     (with-form (actions/config/bank/delete :id (val id)
+                                                            :search (val search))
+                       (display bank-table
+                                :selected-id (val id))))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (bank) (val search)))
+               (footer)))))))
 
-(defpage dynamic-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
+(defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
     ((id     integer chk-bank-id/ref t)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (with-db ()
-          (delete-dao (get-dao 'bank (val id)))
-          (see-other (bank :search (val search))))
-        (see-other (notfound)))))
+  (with-controller-page (bank/delete)
+    (delete-dao (get-dao 'bank (val id)))
+    (see-other (bank :search (val search)))))

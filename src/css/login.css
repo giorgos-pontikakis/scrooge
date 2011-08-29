@@ -10,3 +10,7 @@
 #login-error p {
     padding: 10px;
 }
+
+#login-form input {
+    width: 288px;
+}

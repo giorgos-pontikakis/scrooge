@@ -3,11 +3,11 @@
 
 ;;; UI elements
 
-(defun admin-navbar (&optional active-page-name)
+(defun admin-navbar (&optional active)
   (navbar `((company ,(company) "Εταιρίες")
             (project ,(project) "Έργα"))
           :css-class "section-navbar hnavbar grid_12"
-          :active-page-name active-page-name))
+          :active active))
 
 
 

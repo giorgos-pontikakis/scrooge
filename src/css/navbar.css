@@ -1,6 +1,11 @@
 /* ---------------------------------------------------------------------- */
 /* vertical navbars */
 /* ---------------------------------------------------------------------- */
+
+.vnavbar {
+    margin-bottom: 26px;
+}
+
 .vnavbar ul li {
     list-style: none;
 }
@@ -23,8 +28,7 @@
 .vnavbar ul li span {
     display: block;
     padding-left: 10px;
-    color: #ffffff;
-    font-weight: bold;
+    color: #000000;
     background-color: #9DB499;
 }
 
@@ -41,24 +45,6 @@
 
 .hnavbar li a, .hnavbar li span {
     display: block;
-}
-
-#primary-navbar, #logout {
-    position: relative;
-    top: 3px;
-}
-
-#primary-navbar li, #logout li {
-    margin-right: 20px;
-}
-
-#primary-navbar a, #logout a {
-    text-decoration: underline;
-}
-
-#primary-navbar span, #logout span {
-    color: #000;
-    font-weight: bold;
 }
 
 .section-navbar {
@@ -103,8 +89,8 @@
 
 .hmenu li a {
     line-height: 26px;
-    color: #fff;
-    padding: 5px 19px;
+    color: #001122;
+    padding: 5px 15px 5px 19px;
 }
 
 .hmenu li a img {
@@ -114,8 +100,7 @@
 
 
 .actions {
-    background-color: #7B8D78;
-    color: #ffffff;
+    background-color: #bbccdd;
 }
 
 .actions p {

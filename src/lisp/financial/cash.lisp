@@ -222,7 +222,7 @@
             (navbar spec
                     :id "cash-filters"
                     :css-class "vnavbar"
-                    :active-page-name (intern (string-upcase cash-kind)))))))
+                    :active (intern (string-upcase cash-kind)))))))
 
 (defun cash-menu (cash-kind id filter disabled)
   (menu (crud-actions-spec (apply #'cash        cash-kind :id id filter)

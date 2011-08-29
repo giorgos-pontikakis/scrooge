@@ -98,13 +98,13 @@
           (:p "Powered by lisp"))
     (:div :class "clear" "")))
 
-(defun primary-navbar (active-page-name)
-  (navbar `((financial ,(financial) "Οικονομικά")
-            (admin     ,(admin)     "Διαχείριση")
+(defun primary-navbar (active)
+  (navbar `(#|(financial ,(financial) "Οικονομικά")|#
+            #|(admin     ,(admin)     "Διαχείριση")|#
             (config    ,(config)    "Ρυθμίσεις"))
           :id "primary-navbar"
           :css-class "hnavbar grid_6 prefix_1"
-          :active-page-name active-page-name))
+          :active active))
 
 (defun logout-menu ()
   (with-html

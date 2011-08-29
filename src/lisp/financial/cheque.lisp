@@ -204,7 +204,7 @@
             (navbar spec
                     :id "cheque-kind-filter"
                     :css-class "vnavbar"
-                    :active-page-name (intern (string-upcase cheque-kind)))))))
+                    :active (intern (string-upcase cheque-kind)))))))
 
 (defun cheque-status-filters (cheque-kind status search)
   (let ((spec `((nil      ,(cheque cheque-kind :search search) "Όλες")
@@ -218,7 +218,7 @@
             (navbar spec
                     :id "cheque-kind-filter"
                     :css-class "vnavbar"
-                    :active-page-name (intern (string-upcase status)))))))
+                    :active (intern (string-upcase status)))))))
 
 
 

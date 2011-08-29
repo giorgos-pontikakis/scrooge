@@ -20,11 +20,11 @@
 ;;; ------------------------------------------------------------
 
 (defclass option ()
-  ((option-id    :col-type (string 32)  :reader   option-id)
+  ((id           :col-type (string 32)  :reader   option-id)
    (lisp-type    :col-type (string 16)  :reader   lisp-type)
    (config-value :col-type (string 128) :accessor config-value :initarg :config-value))
   (:metaclass dao-class)
-  (:keys option-id))
+  (:keys id))
 
 
 

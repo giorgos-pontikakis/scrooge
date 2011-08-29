@@ -202,7 +202,7 @@
             (navbar spec
                     :id "project-filters"
                     :css-class "vnavbar"
-                    :active-page-name (intern (string-upcase status)))))))
+                    :active (intern (string-upcase status)))))))
 
 
 
