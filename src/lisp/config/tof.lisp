@@ -68,16 +68,16 @@
 
 (defun tof-menu (id filter &optional disabled)
   (with-html
-    (menu (crud-actions-spec (apply #'tof :id id filter)
-                             (apply #'tof/create filter)
-                             (apply #'tof/update :id id filter)
-                             (if (or (null id)
-                                     (tof-referenced-p id))
-                                 nil
-                                 (apply #'tof/delete :id id filter)))
-          :id "tof-actions"
-          :css-class "hmenu actions"
-          :disabled disabled)))
+    (anchor-menu (crud-actions-spec (apply #'tof :id id filter)
+                                    (apply #'tof/create filter)
+                                    (apply #'tof/update :id id filter)
+                                    (if (or (null id)
+                                            (tof-referenced-p id))
+                                        nil
+                                        (apply #'tof/delete :id id filter)))
+                 :id "tof-actions"
+                 :css-class "hmenu actions"
+                 :disabled disabled)))
 
 (defun tof-notifications ()
   (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
@@ -91,12 +91,11 @@
 
 ;;; table
 
-(defclass tof-table (scrooge-crud-table)
+(defclass tof-table (config-table)
   ((header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
-   (paginator      :initform (make-instance 'scrooge-paginator
+   (paginator      :initform (make-instance 'tof-paginator
                                             :id "tof-paginator"
-                                            :css-class "paginator"
-                                            :urlfn #'tof)))
+                                            :css-class "paginator")))
   (:default-initargs :id "config-table" :item-class 'tof-row))
 
 (defmethod read-records ((table tof-table))
@@ -109,10 +108,10 @@
   ())
 
 (defmethod selector ((row tof-row) enabled-p)
-  (simple-selector row #'tof))
+  (simple-selector row enabled-p #'tof))
 
 (defmethod controls ((row tof-row) enabled-p)
-  (simple-controls row #'tof))
+  (simple-controls row enabled-p #'tof))
 
 
 ;;; paginator
@@ -134,7 +133,7 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (tof-table (make-instance 'tof-table
                                      :op :read
                                      :filter filter
@@ -169,7 +168,7 @@
     ((title  string chk-new-tof-title)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (tof-table (make-instance 'tof-table
                                      :op :create
                                      :filter filter)))
@@ -213,7 +212,7 @@
      (title  string  (chk-new-tof-title title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (tof-table (make-instance 'tof-table
                                      :op :update
                                      :filter filter)))
@@ -260,7 +259,7 @@
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (tof-table (make-instance 'tof-table
                                      :op :delete
                                      :filter filter)))

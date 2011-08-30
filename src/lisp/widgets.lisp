@@ -22,9 +22,8 @@
 
 (defmethod key ((item scrooge-row/obj))
   (let ((rec (record item)))
-    (if (slot-boundp rec 'id)
-        (id rec)
-        nil)))
+    (handler-case (dao-keys rec)
+      (unbound-slot () nil))))
 
 
 ;;; crud tables with records being plists

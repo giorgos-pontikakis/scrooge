@@ -90,7 +90,7 @@
 
 ;;; table
 
-(defclass bank-table (crud-table/dao)
+(defclass bank-table (config-table)
   ((header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator      :initform (make-instance 'bank-paginator
                                             :id "bank-paginator"
@@ -132,7 +132,7 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->plist (list search)))
+    (let* ((filter (params->plist (filter-parameters)))
            (bank-table (make-instance 'bank-table
                                       :op :read
                                       :filter filter
@@ -168,7 +168,7 @@
     ((title  string chk-new-bank-title)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (list search)))
+    (let* ((filter (params->plist (filter-parameters)))
            (bank-table (make-instance 'bank-table
                                       :op :create
                                       :filter filter)))
@@ -212,7 +212,7 @@
      (title  string  (chk-new-bank-title title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (list search)))
+    (let* ((filter (params->plist (filter-parameters)))
            (bank-table (make-instance 'bank-table
                                       :op :update
                                       :filter filter)))
@@ -259,7 +259,7 @@
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (list search)))
+    (let* ((filter (params->plist (filter-parameters)))
            (bank-table (make-instance 'bank-table
                                       :op :delete
                                       :filter filter)))

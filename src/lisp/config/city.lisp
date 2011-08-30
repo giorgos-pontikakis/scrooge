@@ -67,16 +67,16 @@
 ;;; ------------------------------------------------------------
 
 (defun city-menu (id filter &optional disabled)
-  (menu (crud-actions-spec (apply #'city :id id filter)
-                           (apply #'city/create filter)
-                           (apply #'city/update :id id filter)
-                           (if (or (null id)
-                                   (city-referenced-p id))
-                               nil
-                               (apply #'city/delete :id id filter)))
-        :id "city-actions"
-        :css-class "hmenu actions"
-        :disabled disabled))
+  (anchor-menu (crud-actions-spec (apply #'city :id id filter)
+                                  (apply #'city/create filter)
+                                  (apply #'city/update :id id filter)
+                                  (if (or (null id)
+                                          (city-referenced-p id))
+                                      nil
+                                      (apply #'city/delete :id id filter)))
+               :id "city-actions"
+               :css-class "hmenu actions"
+               :disabled disabled))
 
 (defun city-notifications ()
   (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
@@ -169,7 +169,7 @@
     ((title  string chk-new-city-title)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (city-table (make-instance 'city-table
                                       :op :create
                                       :filter filter)))
@@ -213,7 +213,7 @@
      (title  string  (chk-new-city-title title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (city-table (make-instance 'city-table
                                       :op :update
                                       :filter filter)))
@@ -260,7 +260,7 @@
     ((id integer chk-city-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist search))
+    (let* ((filter (params->plist (filter-parameters)))
            (city-table (make-instance 'city-table
                                       :op :delete
                                       :filter filter)))
