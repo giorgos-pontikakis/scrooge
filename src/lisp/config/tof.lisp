@@ -96,7 +96,9 @@
    (paginator      :initform (make-instance 'tof-paginator
                                             :id "tof-paginator"
                                             :css-class "paginator")))
-  (:default-initargs :id "config-table" :item-class 'tof-row))
+  (:default-initargs :id "config-table"
+                     :item-class 'tof-row
+                     :record-class 'tof))
 
 (defmethod read-records ((table tof-table))
   (config-data 'tof (getf (filter table) :search)))
@@ -153,7 +155,7 @@
                                (if (val id)
                                    '(:read)
                                    '(:read :update :delete)))
-                     (display tof-table :selected-id (val id)))
+                     (display tof-table :key (val id)))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search)))
                (footer)))))))
@@ -187,8 +189,8 @@
                                '(:create :update :delete))
                      (with-form (actions/config/tof/create :search (val search))
                        (display tof-table
-                                :selected-id nil
-                                :selected-data (list :title (val title)))))
+                                :key nil
+                                :payload (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search))
                      (tof-notifications))
@@ -232,8 +234,8 @@
                      (with-form (actions/config/tof/update :id (val id)
                                                            :filter (val search))
                        (display tof-table
-                                :selected-id (val id)
-                                :selected-data (list :title (val title)))))
+                                :key (val id)
+                                :payload (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search))
                      (tof-notifications))
@@ -279,7 +281,7 @@
                      (with-form (actions/config/tof/delete :id (val id)
                                                            :search (val search))
                        (display tof-table
-                                :selected-id (val id))))
+                                :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search)))
                (footer)))))))

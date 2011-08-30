@@ -95,7 +95,9 @@
    (paginator      :initform (make-instance 'bank-paginator
                                             :id "bank-paginator"
                                             :css-class "paginator")))
-  (:default-initargs :id "config-table" :item-class 'bank-row))
+  (:default-initargs :id "config-table"
+                     :item-class 'bank-row
+                     :record-class 'bank))
 
 (defmethod read-records ((table bank-table))
   (config-data 'bank (getf (filter table) :search)))
@@ -153,7 +155,7 @@
                                     '(:read)
                                     '(:read :update :delete)))
                      (display bank-table
-                              :selected-id (val id)))
+                              :key (val id)))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search)))
                (footer)))))))
@@ -187,8 +189,8 @@
                                 '(:create :update :delete))
                      (with-form (actions/config/bank/create :search (val search))
                        (display bank-table
-                                :selected-id nil
-                                :selected-data (list :title (val title)))))
+                                :key nil
+                                :payload (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search))
                      (bank-notifications))
@@ -232,8 +234,8 @@
                      (with-form (actions/config/bank/update :id (val id)
                                                             :search (val search))
                        (display bank-table
-                                :selected-id (val id)
-                                :selected-data (list :title (val title)))))
+                                :key (val id)
+                                :payload (list :title (val title)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search))
                      (bank-notifications))
@@ -279,7 +281,7 @@
                      (with-form (actions/config/bank/delete :id (val id)
                                                             :search (val search))
                        (display bank-table
-                                :selected-id (val id))))
+                                :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search)))
                (footer)))))))

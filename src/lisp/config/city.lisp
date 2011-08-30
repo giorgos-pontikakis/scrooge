@@ -154,7 +154,7 @@
                                 (if (val id)
                                     '(:read)
                                     '(:read :update :delete)))
-                     (display city-table :selected-id (val id)))
+                     (display city-table :key (val id)))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search)))
                (footer)))))))
@@ -162,7 +162,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; VIEW
+;;; CREATE
 ;;; ------------------------------------------------------------
 
 (defpage city-page city/create ("config/city/create")
@@ -188,8 +188,7 @@
                                 '(:create :update :delete))
                      (with-form (actions/config/city/create :search (val search))
                        (display city-table
-                                :selected-id nil
-                                :selected-data (list :title (val title)))))
+                                :payload (params->plist (user-parameters)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
                      (city-notifications))
@@ -233,8 +232,8 @@
                      (with-form (actions/config/city/update :id (val id)
                                                             :search (val search))
                        (display city-table
-                                :selected-id (val id)
-                                :selected-data (list :title (val title)))))
+                                :key (val id)
+                                :payload (params->plist (user-parameters)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
                      (city-notifications))
@@ -280,7 +279,7 @@
                      (with-form (actions/config/city/delete :id (val id)
                                                             :search (val search))
                        (display city-table
-                                :selected-id (val id))))
+                                :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search)))
                (footer)))))))

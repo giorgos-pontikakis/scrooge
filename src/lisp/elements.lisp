@@ -112,11 +112,11 @@
         (fmt "~A@~A :: " (session-value 'user) (machine-instance))
         (:a :href (logout) "Έξοδος"))))
 
-(defun notifications (messages)
-  (unless (every #'validp (parameters *page*))
+(defun notifications (messages &optional (parameters *parameters*))
+  (unless (every #'validp parameters)
     (with-html
       (:div :id "notifications"
-            (messenger messages (parameters *page*)
+            (messenger messages parameters
                        :css-class "msg-error")))))
 
 
