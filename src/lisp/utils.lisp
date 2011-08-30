@@ -171,26 +171,20 @@
       "%"
       (concatenate 'string "%" filter "%")))
 
-(defmacro define-existence-predicate (name table field)
-  `(defun ,name (,field)
+(defmacro define-existence-predicate (name table primary-key)
+  "Defines a predicate which takes the value of the primary key field and checks
+if it already exists in the database."
+  `(defun ,name (,primary-key)
      (with-db ()
-       (query (:select 1 :from ',table :where (:= ',field ,field)) :single))))
-
-(defmacro define-uniqueness-predicate (name table unique-field id-field)
-  `(defun ,name (,unique-field &optional ,id-field)
-     (with-db ()
-       (not (if ,id-field
-                (query (:select 1
-                                :from ',table
-                                :where (:and (:not (:= ',id-field ,id-field))
-                                             (:= ',unique-field ,unique-field)))
-                       :single)
-                (query (:select 1
-                                :from ',table
-                                :where (:= ',unique-field ,unique-field))
-                       :single))))))
+       (query (:select 1 :from ',table
+               :where (:= ',primary-key ,primary-key))
+              :single))))
 
 (defmacro define-existence-predicate* (name table field primary-key)
+  "Defines a predicate which takes the value of the field and checks if it
+already exists in the database. The predicate also accepts the value of the
+primary key of the database; if given, the record with this primary key value is
+excluded for the search - useful for updates."
   `(defun ,name (,field &optional ,primary-key)
      (with-db ()
        (if ,primary-key
@@ -201,7 +195,6 @@
            (query (:select 1 :from ',table
                    :where (:= ',field ,field))
                   :single)))))
-
 
 
 ;;;----------------------------------------------------------------------

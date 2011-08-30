@@ -35,8 +35,7 @@
                 :column))))
 
 (define-existence-predicate tof-id-exists-p tof id)
-(define-existence-predicate tof-title-exists-p tof title)
-(define-uniqueness-predicate tof-title-unique-p tof title id)
+(define-existence-predicate* tof-title-exists-p tof title id)
 
 (defun chk-tof-id (id)
   (if (tof-id-exists-p id)
@@ -49,9 +48,14 @@
       nil
       :tof-referenced))
 
-(defun chk-new-tof-title (title &optional id)
+(defun chk-tof-title/create (title)
   (cond ((eql :null title) :tof-title-null)
-        ((not (tof-title-unique-p title id)) :tof-title-exists)
+        ((tof-title-exists-p title) :tof-title-exists)
+        (t nil)))
+
+(defun chk-tof-title/update (title id)
+  (cond ((eql :null title) :tof-title-null)
+        ((tof-title-exists-p title id) :tof-title-exists)
         (t nil)))
 
 (defun chk-tof-title (title)
@@ -167,7 +171,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage tof-page tof/create ("config/tof/create")
-    ((title  string chk-new-tof-title)
+    ((title  string chk-tof-title/create)
      (search string))
   (with-view-page
     (let* ((filter (params->plist (filter-parameters)))
@@ -197,11 +201,12 @@
                (footer)))))))
 
 (defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
-    ((title  string chk-new-tof-title t)
+    ((title  string chk-tof-title/create t)
      (search string))
   (with-controller-page (tof/create)
-    (insert-dao (make-instance 'tof :title (val title)))
-    (see-other (tof :id (tof-id (val title))))))
+    (let ((new-tof (make-instance 'tof :title (val title))))
+      (insert-dao new-tof)
+      (see-other (tof :id (tof-id new-tof))))))
 
 
 
@@ -211,7 +216,7 @@
 
 (defpage tof-page tof/update ("config/tof/update")
     ((id     integer chk-tof-id                   t)
-     (title  string  (chk-new-tof-title title id))
+     (title  string  (chk-tof-title/update title id))
      (search string))
   (with-view-page
     (let* ((filter (params->plist (filter-parameters)))
@@ -243,7 +248,7 @@
 
 (defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
     ((id     integer chk-tof-id t)
-     (title  string (chk-new-tof-title title id) t)
+     (title  string (chk-tof-title/update title id) t)
      (search string))
   (with-controller-page (tof/update)
     (execute (:update 'tof :set

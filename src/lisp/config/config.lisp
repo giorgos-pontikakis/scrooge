@@ -20,7 +20,7 @@
 
 (defun config-data (table-name search)
   (with-db ()
-    (select-dao table-name (:ilike 'title (ilike search)))))
+    (select-dao table-name (:ilike 'title (ilike search)) 'title)))
 
 
 

@@ -34,9 +34,8 @@
                          :where (:= 'bank-id id))
                 :column))))
 
-(define-existence-predicate bank-id-exists-p bank id)
-(define-existence-predicate bank-title-exists-p bank title)
-(define-uniqueness-predicate bank-title-unique-p bank title id)
+(define-existence-predicate  bank-id-exists-p bank id)
+(define-existence-predicate* bank-title-exists-p bank title id)
 
 (defun chk-bank-id (id)
   (if (bank-id-exists-p id)
@@ -49,9 +48,14 @@
       nil
       :bank-referenced))
 
-(defun chk-new-bank-title (title &optional id)
+(defun chk-bank-title/create (title)
   (cond ((eql :null title) :bank-title-null)
-        ((not (bank-title-unique-p title id)) :bank-title-exists)
+        ((bank-title-exists-p title) :bank-title-exists)
+        (t nil)))
+
+(defun chk-bank-title/update (title id)
+  (cond ((eql :null title) :bank-title-null)
+        ((bank-title-exists-p title id) :bank-title-exists)
         (t nil)))
 
 (defun chk-bank-title (title)
@@ -167,7 +171,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage bank-page bank/create ("config/bank/create")
-    ((title  string chk-new-bank-title)
+    ((title  string chk-bank-title/create)
      (search string))
   (with-view-page
     (let* ((filter (params->plist (filter-parameters)))
@@ -197,11 +201,12 @@
                (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
-    ((title  string chk-new-bank-title t)
+    ((title  string chk-bank-title/create t)
      (search string))
   (with-controller-page (bank/create)
-    (insert-dao (make-instance 'bank :title (val title)))
-    (see-other (bank :id (bank-id (val title))))))
+    (let ((new-bank (make-instance 'bank :title (val title))))
+     (insert-dao new-bank)
+     (see-other (bank :id (bank-id new-bank))))))
 
 
 
@@ -211,7 +216,7 @@
 
 (defpage bank-page bank/update ("config/bank/update")
     ((id     integer chk-bank-id t)
-     (title  string  (chk-new-bank-title title id))
+     (title  string  (chk-bank-title/update title id))
      (search string))
   (with-view-page
     (let* ((filter (params->plist (filter-parameters)))
@@ -243,7 +248,7 @@
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
     ((id     integer chk-bank-id t)
-     (title  string  (chk-new-bank-title title id) t)
+     (title  string  (chk-bank-title/update title id) t)
      (search string))
   (with-controller-page (bank/update)
     (execute (:update 'bank :set

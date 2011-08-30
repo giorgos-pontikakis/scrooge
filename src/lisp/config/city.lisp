@@ -35,8 +35,7 @@
                 :column))))
 
 (define-existence-predicate city-id-exists-p city id)
-(define-existence-predicate city-title-exists-p city title)
-(define-uniqueness-predicate city-title-unique-p city title id)
+(define-existence-predicate* city-title-exists-p city title id)
 
 (defun chk-city-id (id)
   (if (city-id-exists-p id)
@@ -49,9 +48,14 @@
       nil
       :city-referenced))
 
-(defun chk-new-city-title (title &optional id)
+(defun chk-city-title/create (title)
   (cond ((eql :null title) :city-title-null)
-        ((not (city-title-unique-p title id)) :city-title-exists)
+        ((city-title-exists-p title) :city-title-exists)
+        (t nil)))
+
+(defun chk-city-title/update (title id)
+  (cond ((eql :null title) :city-title-null)
+        ((city-title-exists-p title id) :city-title-exists)
         (t nil)))
 
 (defun chk-city-title (title)
@@ -166,7 +170,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage city-page city/create ("config/city/create")
-    ((title  string chk-new-city-title)
+    ((title  string chk-city-title/create)
      (search string))
   (with-view-page
     (let* ((filter (params->plist (filter-parameters)))
@@ -195,11 +199,12 @@
                (footer)))))))
 
 (defpage city-page actions/config/city/create ("actions/config/city/create" :request-type :post)
-    ((title  string chk-new-city-title t)
+    ((title  string chk-city-title/create t)
      (search string))
   (with-controller-page (city/create)
-    (insert-dao (make-instance 'city :title (val title)))
-    (see-other (city :id (city-id (val title))))))
+    (let ((new-city (make-instance 'city :title (val title))))
+      (insert-dao new-city)
+      (see-other (city :id (city-id new-city))))))
 
 
 
@@ -209,7 +214,7 @@
 
 (defpage city-page city/update ("config/city/update")
     ((id     integer chk-city-id                   t)
-     (title  string  (chk-new-city-title title id))
+     (title  string  (chk-city-title/update title id))
      (search string))
   (with-view-page
     (let* ((filter (params->plist (filter-parameters)))
@@ -241,7 +246,7 @@
 
 (defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
     ((id     integer chk-city-id t)
-     (title  string (chk-new-city-title title id) t)
+     (title  string (chk-city-title/update title id) t)
      (search string))
   (with-controller-page (city/update)
     (execute (:update 'city :set
