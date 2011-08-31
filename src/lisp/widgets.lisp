@@ -6,13 +6,14 @@
 ;;; scrooge collections
 ;;; ----------------------------------------------------------------------
 
-;;; crud tables with records being daos
 
-(defclass scrooge-table/obj (crud-table/obj)
+(defclass scrooge-table (crud-table)
   ()
   (:default-initargs :css-class "crud-table"))
 
-(defclass scrooge-row/obj (crud-row)
+;;; crud rows with records being daos
+
+(defclass scrooge-row/obj (crud-row/obj)
   ()
   (:default-initargs :css-delete "attention"
                      :css-selected "selected"
@@ -26,11 +27,7 @@
       (unbound-slot () nil))))
 
 
-;;; crud tables with records being plists
-
-(defclass scrooge-table/plist (crud-table/plist)
-  ()
-  (:default-initargs :css-class "crud-table"))
+;;; rows with records being plists
 
 (defclass scrooge-row/plist (crud-row)
   ()
@@ -75,11 +72,11 @@
 
 ;;; crud-trees
 
-(defclass crud-tree/plist (crud-tree)
+(defclass scrooge-tree (crud-tree)
   ()
   (:default-initargs :css-class "crud-tree" :root-parent-key :null))
 
-(defclass crud-node/plist (crud-node)
+(defclass scrooge-node/plist (crud-node/plist)
   ()
   (:default-initargs :css-delete "attention"
     :css-selected "selected"
@@ -88,15 +85,11 @@
     :css-controls "controls"
     :css-indent "indent"))
 
-(defmethod update-item ((tree crud-tree/plist) &key data key)
-  (let ((node (find-node (root tree) key)))
-    (setf (record node)
-          (plist-union data (record node)))))
 
-(defmethod key ((item crud-node/plist))
+(defmethod key ((item scrooge-node/plist))
   (getf (record item) :id))
 
-(defmethod parent-key ((item crud-node/plist))
+(defmethod parent-key ((item scrooge-node/plist))
   (getf (record item) :parent-id))
 
 

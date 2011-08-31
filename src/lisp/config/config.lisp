@@ -4,7 +4,7 @@
 
 ;;; config crud table and row classes
 
-(defclass config-table (scrooge-table/obj)
+(defclass config-table (scrooge-table)
   ())
 
 (defclass config-row (scrooge-row/obj)

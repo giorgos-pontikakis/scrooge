@@ -11,7 +11,7 @@
                      :filter-parameter-names ()))
 
 
-;;; --- login --------------------
+;;; --- Home --------------------
 
 (defpage root-page home ("") ()
   (with-view-page
