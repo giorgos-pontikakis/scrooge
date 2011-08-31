@@ -5,7 +5,7 @@ case $# in
     1)
         project_name=scrooge
         project_root="www/scrooge"
-        deps="src/lisputils src/veil src/bricks"
+        deps="src/lisputils src/veil src/bricks src/mortar"
 
         repository=$1
         user=`whoami`
