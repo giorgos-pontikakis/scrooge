@@ -59,10 +59,9 @@
         (t nil)))
 
 (defun chk-bank-title (title)
-  (if (or (eql :null title)
-          (bank-title-exists-p title))
-      nil
-      :bank-title-unknown))
+  (cond ((eql :null title) :bank-title-null)
+        ((not (bank-title-exists-p title)) :bank-title-unknown)
+        (t nil)))
 
 
 

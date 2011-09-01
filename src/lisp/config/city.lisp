@@ -59,10 +59,9 @@
         (t nil)))
 
 (defun chk-city-title (title)
-  (if (or (eql :null title)
-          (city-title-exists-p title))
-      nil
-      :city-title-unknown))
+  (cond ((eql :null title) :city-title-null)
+        ((not (city-title-exists-p title)) :city-title-unknown)
+        (t nil)))
 
 
 
