@@ -21,7 +21,7 @@
                (:file "config/bank")
                (:file "config/tof")
                (:file "config/city")
-               ;; (:file "config/account")
+               (:file "config/account")
                ;; (:file "config/cheque-stran")
                ;; (:file "config/option")
                ;; ;; admin

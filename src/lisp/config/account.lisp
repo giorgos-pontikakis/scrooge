@@ -9,13 +9,13 @@
 (defclass account-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(id parent-id debit-p))
    (user-parameter-names
     :allocation :class
-    :initform '(title))
+    :initform '(title chequing-p))
    (filter-parameter-names
     :allocation :class
-    :initform '(search))
+    :initform '(debit-p))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))))
@@ -62,7 +62,7 @@
       :acc-referenced
       nil))
 
-(defun chk-acc-title/create (title &optional id)
+(defun chk-acc-title/create (title)
   (cond ((eql :null title) :account-title-null)
         ((acc-title-exists-p title) :account-title-exists)
         (t nil)))
@@ -101,15 +101,16 @@
 
 (defun account-crud-menu (id debitp &optional disabled)
   (let ((prefix (if debitp "debit" "credit")))
-    (menu (crud-actions-spec (account :id id)
-                             (account/create :debitp debitp :parent-id id)
-                             (account/update :id id)
-                             (if (or (null id) (acc-referenced-p id))
-                                 nil
-                                 (account/delete :id id)))
-          :id (conc prefix "-account-actions")
-          :css-class "hmenu actions"
-          :disabled disabled)))
+    (anchor-menu (crud-actions-spec (account :id id)
+                                    (account/create :debitp debitp :parent-id id)
+                                    (account/update :id id)
+                                    (if (or (null id)
+                                            (acc-referenced-p id))
+                                        nil
+                                        (account/delete :id id)))
+                 :id (conc prefix "-account-actions")
+                 :css-class "hmenu actions"
+                 :disabled disabled)))
 
 (defun config-account-data-form (op &key id data styles)
   (let ((disabled (eql op :details))
@@ -134,6 +135,54 @@
                       (progn
                         (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
                         (cancel-button (account :id id) :body "Άκυρο"))))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Account tree
+;;; ------------------------------------------------------------
+
+;;; tree
+
+(defclass account-tree (scrooge-tree)
+  ()
+  (:default-initargs :item-class 'account-node
+                     :record-class 'plist))
+
+(defmethod read-records ((tree account-tree))
+  (with-db ()
+    (query (:select 'id 'title 'parent-id
+                    :from 'account
+                    :where (:= 'debit-p (getf (filter tree) :debit-p)))
+           :plists)))
+
+
+;;; nodes
+
+(defclass account-node (scrooge-node/plist)
+  ())
+
+(defmethod selector ((node account-node) selected-p)
+  (let ((id (key node)))
+    (html ()
+      (:a :href (if selected-p
+                    (account)
+                    (account :id id))
+          (selector-img selected-p)))))
+
+(defmethod payload ((node account-node) enabled-p)
+  (make-instance 'textbox
+                 :name 'title
+                 :value (getf (record node) :title)
+                 :disabled (not enabled-p)))
+
+(defmethod controls ((node account-node) controls-p)
+  (let ((id (key node)))
+    (if controls-p
+        (html ()
+          (:div (display (make-instance 'ok-button))
+                (display (make-instance 'cancel-button :href (account :id id)))))
+        (list nil nil))))
 
 
 
@@ -166,38 +215,35 @@
 
 (defpage account-page account ("config/account")
     ((id integer chk-acc-id))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Λογαριασμοί")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-navbar 'account)
-                 (iter
-                   (for flag in (list t nil))
-                   (for flagged-id-debit-p  = (and (val id)
-                                                   (eql flag (debit-p (val id)))))
-                   (for div-id in '("debit-accounts" "credit-accounts"))
-                   (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                   (for account-tree = (make-instance 'account-crud-tree
-                                                      :op :read
-                                                      :filter `(:debit-p ,flag)))
-                   (htm
-                    (:div :id div-id :class "window grid_6"
-                          (:div :class "title" (str window-title))
-                          (account-crud-menu (if flagged-id-debit-p
-                                                 (val id)
-                                                 (key (root account-tree)))
-                                             flag
-                                             (if flagged-id-debit-p
-                                                 '(:read)
-                                                 '(:read :update :delete)))
-                          (display account-tree :selected-id (val id) :hide-root-p t)))))))
-        (see-other (notfound)))))
+  (with-view-page
+    (with-document ()
+      (:head
+       (:title "Λογαριασμοί")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-navbar 'account)
+             (iter
+               (for debit-p in (list t nil))
+               (for id-debit-p  = (and (val id)
+                                       (eql debit-p (get-dao 'account (val id)))))
+               (for div-id in '("debit-accounts" "credit-accounts"))
+               (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+               (for account-tree = (make-instance 'account-tree
+                                                  :op :read
+                                                  :filter `(:debit-p ,debit-p)))
+               (htm
+                (:div :id div-id :class "window grid_6"
+                      (:div :class "title" (str window-title))
+                      (account-crud-menu (if id-debit-p
+                                             (val id)
+                                             (key (root account-tree)))
+                                         debit-p
+                                         (if id-debit-p
+                                             '(:read)
+                                             '(:read :update :delete)))
+                      (display account-tree :key (val id) :hide-root-p t)))))))))
 
 
 
@@ -210,31 +256,28 @@
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-acc-title/create)
      (chequing-p   boolean))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (and (validp parent-id) (validp debitp))
-        (with-document ()
-          (:head
-           (:title "Λογαριασμός » Δημιουργία")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-navbar 'account)
-                 (:div :class "window grid_6"
-                       (:div :class "title" "Λογαριασμός » Δημιουργία")
-                       (account-crud-menu (val parent-id)
-                                          debitp
-                                          '(:create :update :delete))
-                       (with-form (actions/config/account/create :parent-id (or (val parent-id)
-                                                                                )
-                                                                 :debitp (val debitp))
-                         (config-account-data-form :create
-                                                   :data (params->plist parent-id
-                                                                        title
-                                                                        chequing-p)
-                                                   :styles (params->styles title)))))))
-        (see-other (notfound)))))
+  (with-view-page
+    (with-document ()
+      (:head
+       (:title "Λογαριασμός » Δημιουργία")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-navbar 'account)
+             (:div :class "window grid_6"
+                   (:div :class "title" "Λογαριασμός » Δημιουργία")
+                   (account-crud-menu (val parent-id)
+                                      debitp
+                                      '(:create :update :delete))
+                   (with-form (actions/config/account/create :parent-id (or (val parent-id)
+                                                                            )
+                                                             :debitp (val debitp))
+                     (config-account-data-form :create
+                                               :data (params->plist parent-id
+                                                                    title
+                                                                    chequing-p)
+                                               :styles (params->styles title)))))))))
 
 (defpage account-page actions/config/account/create ("actions/config/account/create"
                                                      :request-type :post)
@@ -242,25 +285,15 @@
      (title     string  chk-acc-title/create t)
      (debitp    boolean (chk-debitp debitp parent-id))
      (chequing-p   boolean))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (with-db ()
-          (let ((new-dao (make-instance 'account
-                                        :parent-id (or (val parent-id) :null)
-                                        :title (val title)
-                                        :debit-p (val debitp)
-                                        :chequing-p (val chequing-p))))
-            (insert-dao new-dao)
-            (see-other (account :id (id new-dao)))))
-        (if (and (validp parent-id) (validp debitp))
-            ;; input error - go back to create page
-            (see-other (account/create :parent-id (raw parent-id)
-                                       :title (raw title)
-                                       :debitp (raw debitp)
-                                       :chequing-p (raw chequing-p)))
-            ;; tampered URL - abort
-            (see-other (notfound))))))
+  (with-controller-page (account/create)
+    (with-db ()
+      (let ((new-dao (make-instance 'account
+                                    :parent-id (or (val parent-id) :null)
+                                    :title (val title)
+                                    :debit-p (val debitp)
+                                    :chequing-p (val chequing-p))))
+        (insert-dao new-dao)
+        (see-other (account :id (id new-dao)))))))
 
 
 
@@ -272,53 +305,41 @@
     ((id      integer chk-acc-id t)
      (title   string  (chk-acc-title/update title id))
      (chequing-p boolean (chk-chequing-p chequing-p id)))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (with-document ()
-          (:head
-           (:title "Λογαριασμός » Επεξεργασία")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-navbar 'account)
-                 (:div :class "window grid_6"
-                       (:div :class "title" "Λογαριασμός » Επεξεργασία")
-                       (account-crud-menu (val id)
-                                          (debit-p (with-db ()
-                                                     (get-dao 'account (val id))))
-                                          '(:create :update :delete))
-                       (with-form (actions/config/account/update :id (val id))
-                         (config-account-data-form :update
-                                                   :id (val id)
-                                                   :data (plist-union
-                                                          (params->plist title
-                                                                         chequing-p)
-                                                          (account-record (val id)))
-                                                   :styles (params->styles title)))))))
-        (see-other (notfound)))))
-
+  (with-view-page
+    (with-document ()
+      (:head
+       (:title "Λογαριασμός » Επεξεργασία")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-navbar 'account)
+             (:div :class "window grid_6"
+                   (:div :class "title" "Λογαριασμός » Επεξεργασία")
+                   (account-crud-menu (val id)
+                                      (debit-p (with-db ()
+                                                 (get-dao 'account (val id))))
+                                      '(:create :update :delete))
+                   (with-form (actions/config/account/update :id (val id))
+                     (config-account-data-form :update
+                                               :id (val id)
+                                               :data (plist-union
+                                                      (params->plist title
+                                                                     chequing-p)
+                                                      (account-record (val id)))
+                                               :styles (params->styles title)))))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
                                                      :request-type :post)
     ((id         integer chk-acc-id                     t)
      (title      string  (chk-acc-title/update title id)   t)
      (chequing-p boolean (chk-chequing-p chequing-p id)))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (with-db ()
-          (execute (:update 'account :set
-                            :title (val title)
-                            :chequing-p (val chequing-p)
-                            :where (:= 'id (val id))))
-          (see-other (account :id (val id))))
-        (if (validp id)
-            ;; user error -  go back to update page
-            (see-other (account/update :id (raw id) :title (raw title)))
-            ;; tampered URL - abort
-            (see-other (notfound))))))
+  (with-controller-page (account/update)
+    (execute (:update 'account :set
+                      :title (val title)
+                      :chequing-p (val chequing-p)
+                      :where (:= 'id (val id))))
+    (see-other (account :id (val id)))))
 
 
 
@@ -338,25 +359,25 @@
              (header 'config)
              (config-navbar 'account)
              (iter
-               (for flag in (list t nil))
-               (for flagged-id-debit-p  = (eql flag (debit-p (val id))))
+               (for debit-p in (list t nil))
+               (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val id)))))
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-crud-tree
-                                                  :op (if flagged-id-debit-p
+                                                  :op (if id-debit-p
                                                           :delete
                                                           :read)
-                                                  :filter `(:debit-p ,flag)))
+                                                  :filter `(:debit-p ,debit-p)))
                (htm
                 (:div :id div-id :class "window grid_6"
                       (:div :class "title" (str window-title))
                       (account-crud-menu (val id)
-                                         flag
-                                         (if flagged-id-debit-p
+                                         debit-p
+                                         (if id-debit-p
                                              '(:delete)
                                              '(:create :update :delete)))
                       (with-form (actions/config/account/delete :id (val id))
-                        (display account-tree :selected-id (val id) :hide-root-p t))))))))))
+                        (display account-tree :key (val id) :hide-root-p t))))))))))
 
 (defpage account-page actions/config/account/delete ("actions/config/account/delete"
                                                      :request-type :post)
