@@ -10,7 +10,7 @@
   ((system-parameter-names
     :allocation :class
     :initform '(tof-id))
-   (user-parameter-names
+   (payload-parameter-names
     :allocation :class
     :initform '(title))
    (filter-parameter-names

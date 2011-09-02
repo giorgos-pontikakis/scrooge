@@ -14,7 +14,7 @@
                   (funcall fn param)))
           params))
 
-(defun params->styles (&rest params)
+(defun params->styles (params)
   (mapcan (lambda (param)
             (list (parameter-key (attributes param))
                   (if (validp param)
@@ -48,10 +48,10 @@
 ;;; Page families
 
 (defclass page-family-mixin ()
-  ((system-parameter-names :reader system-parameter-names)
-   (user-parameter-names   :reader user-parameter-names)
-   (filter-parameter-names :reader filter-parameter-names)
-   (allowed-groups         :reader allowed-groups)))
+  ((system-parameter-names  :reader system-parameter-names)
+   (payload-parameter-names :reader payload-parameter-names)
+   (filter-parameter-names  :reader filter-parameter-names)
+   (allowed-groups          :reader allowed-groups)))
 
 (flet ((collect-parameters (parameter-names parameters)
          (remove-if-not (lambda (p)
@@ -62,8 +62,8 @@
   (defun system-parameters (&optional (page *page*) (parameters *parameters*))
     (collect-parameters (system-parameter-names page) parameters))
 
-  (defun user-parameters (&optional (page *page*) (parameters *parameters*))
-    (collect-parameters (user-parameter-names page) parameters))
+  (defun payload-parameters (&optional (page *page*) (parameters *parameters*))
+    (collect-parameters (payload-parameter-names page) parameters))
 
   (defun filter-parameters (&optional (page *page*) (parameters *parameters*))
     (collect-parameters (filter-parameter-names page) parameters)))
@@ -107,7 +107,7 @@
              (setf (return-code*) +http-internal-server-error+))))))
 
 (defmacro with-controller-page (view-page-fn &body body)
-  (with-gensyms (system-params user-params)
+  (with-gensyms (system-params payload-params)
     `(handler-case
          (progn
            (no-cache)
@@ -116,8 +116,8 @@
            (when-let (,system-params (system-parameters))
              (unless (every #'validp ,system-params)
                (error 'bad-request-error)))
-           (when-let (,user-params (user-parameters))
-             (unless (every #'validp ,user-params)
+           (when-let (,payload-params (payload-parameters))
+             (unless (every #'validp ,payload-params)
                (error 'data-entry-error)))
            (with-db ()
              ,@body))

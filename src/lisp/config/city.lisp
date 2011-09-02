@@ -10,7 +10,7 @@
   ((system-parameter-names
     :allocation :class
     :initform '(city-id))
-   (user-parameter-names
+   (payload-parameter-names
     :allocation :class
     :initform '(title))
    (filter-parameter-names
@@ -191,7 +191,7 @@
                                 '(:create :update :delete))
                      (with-form (actions/config/city/create :search (val search))
                        (display city-table
-                                :payload (params->plist (user-parameters)))))
+                                :payload (params->plist (payload-parameters)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
                      (city-notifications))
@@ -237,7 +237,7 @@
                                                             :search (val search))
                        (display city-table
                                 :key (val id)
-                                :payload (params->plist (user-parameters)))))
+                                :payload (params->plist (payload-parameters)))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
                      (city-notifications))

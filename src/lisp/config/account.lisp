@@ -10,7 +10,7 @@
   ((system-parameter-names
     :allocation :class
     :initform '(id parent-id debit-p))
-   (user-parameter-names
+   (payload-parameter-names
     :allocation :class
     :initform '(title chequing-p))
    (filter-parameter-names
@@ -112,16 +112,19 @@
                  :css-class "hmenu actions"
                  :disabled disabled)))
 
-(defun config-account-data-form (op &key id data styles)
-  (let ((disabled (eql op :details))
-        (dependent-tx-p (if id (ref-transactions id) nil)))
+(defun config-account-data-form (op &key key payload)
+  (let ((dependent-tx-p (if key (ref-transactions key) nil))
+        (data (if (member op (list :detail :update))
+                  (plist-union (params->plist payload)
+                               (account-record key))
+                  (params->plist payload)))
+        (styles (params->styles payload)))
     (with-html
       (:div :id "config-account-data-form" :class "data-form"
             (:div :class "data-form-first"
                   (label 'title "Τίτλος")
                   (input-text 'title
                               :value (getf data :title)
-                              :disabled disabled
                               :css-class (getf styles :title)))
             (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
                             :css-class "inline"
@@ -129,12 +132,8 @@
                             :disabled dependent-tx-p
                             :readonly dependent-tx-p)
             (:div :class "data-form-buttons"
-                  (if disabled
-                      (cancel-button (account :id id)
-                                     :body "Επιστροφή στον Κατάλογο Λογαριασμών")
-                      (progn
-                        (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                        (cancel-button (account :id id) :body "Άκυρο"))))))))
+                  (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                  (cancel-button (account :id key) :body "Άκυρο"))))))
 
 
 
@@ -226,24 +225,25 @@
              (config-navbar 'account)
              (iter
                (for debit-p in (list t nil))
-               (for id-debit-p  = (and (val id)
-                                       (eql debit-p (get-dao 'account (val id)))))
                (for div-id in '("debit-accounts" "credit-accounts"))
+               (for id-debit-p = (and (suppliedp id)
+                                      (eql debit-p (debit-p (get-dao 'account (val id))))))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-tree
                                                   :op :read
                                                   :filter `(:debit-p ,debit-p)))
-               (htm
-                (:div :id div-id :class "window grid_6"
-                      (:div :class "title" (str window-title))
-                      (account-crud-menu (if id-debit-p
-                                             (val id)
-                                             (key (root account-tree)))
-                                         debit-p
-                                         (if id-debit-p
-                                             '(:read)
-                                             '(:read :update :delete)))
-                      (display account-tree :key (val id) :hide-root-p t)))))))))
+               (let ()
+                 (htm
+                  (:div :id div-id :class "window grid_6"
+                        (:div :class "title" (str window-title))
+                        (account-crud-menu (if id-debit-p
+                                               (val id)
+                                               (key (root account-tree)))
+                                           debit-p
+                                           (if id-debit-p
+                                               '(:read)
+                                               '(:read :update :delete)))
+                        (display account-tree :key (val id) :hide-root-p t))))))))))
 
 
 
@@ -274,10 +274,7 @@
                                                                             )
                                                              :debitp (val debitp))
                      (config-account-data-form :create
-                                               :data (params->plist parent-id
-                                                                    title
-                                                                    chequing-p)
-                                               :styles (params->styles title)))))))))
+                                               :payload (payload-parameters)))))))))
 
 (defpage account-page actions/config/account/create ("actions/config/account/create"
                                                      :request-type :post)
@@ -293,7 +290,7 @@
                                     :debit-p (val debitp)
                                     :chequing-p (val chequing-p))))
         (insert-dao new-dao)
-        (see-other (account :id (id new-dao)))))))
+        (see-other (account :id (account-id new-dao)))))))
 
 
 
@@ -322,12 +319,8 @@
                                       '(:create :update :delete))
                    (with-form (actions/config/account/update :id (val id))
                      (config-account-data-form :update
-                                               :id (val id)
-                                               :data (plist-union
-                                                      (params->plist title
-                                                                     chequing-p)
-                                                      (account-record (val id)))
-                                               :styles (params->styles title)))))))))
+                                               :key (val id)
+                                               :payload (payload-parameters)))))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
                                                      :request-type :post)
@@ -363,7 +356,7 @@
                (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val id)))))
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-               (for account-tree = (make-instance 'account-crud-tree
+               (for account-tree = (make-instance 'account-tree
                                                   :op (if id-debit-p
                                                           :delete
                                                           :read)

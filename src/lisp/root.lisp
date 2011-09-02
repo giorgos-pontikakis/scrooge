@@ -3,11 +3,11 @@
 
 (defclass root-page (dynamic-page page-family-mixin)
   ((system-parameter-names :initarg  :system-parameter-names)
-   (user-parameter-names   :initarg  :user-parameter-names)
+   (payload-parameter-names   :initarg  :payload-parameter-names)
    (filter-parameter-names :initarg  :filter-parameter-names)
    (allowed-groups         :initform '("user" "admin")))
   (:default-initargs :system-parameter-names ()
-                     :user-parameter-names ()
+                     :payload-parameter-names ()
                      :filter-parameter-names ()))
 
 
