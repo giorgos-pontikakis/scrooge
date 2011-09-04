@@ -94,7 +94,7 @@
    (from-status     :col-type string  :accessor from-status     :initarg :from-status)
    (to-status       :col-type string  :accessor to-status       :initarg :to-status))
   (:metaclass dao-class)
-  (:keys cheque-stran-id))
+  (:keys id))
 
 
 
