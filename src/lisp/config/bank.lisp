@@ -103,7 +103,7 @@
   (:default-initargs :id "config-table"
                      :item-class 'bank-row))
 
-(defmethod read-records ((table bank-table))
+(defmethod get-records ((table bank-table))
   (config-data 'bank (getf (filter table) :search)))
 
 

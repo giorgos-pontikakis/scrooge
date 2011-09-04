@@ -104,7 +104,7 @@
   (:default-initargs :id "config-table"
                      :item-class 'tof-row))
 
-(defmethod read-records ((table tof-table))
+(defmethod get-records ((table tof-table))
   (config-data 'tof (getf (filter table) :search)))
 
 

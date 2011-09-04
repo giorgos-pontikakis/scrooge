@@ -136,7 +136,7 @@
           (lambda (&rest args)
             (apply #'cash cash-kind args)))))
 
-(defmethod read-records ((table cash-tx-table))
+(defmethod get-records ((table cash-tx-table))
   (flet ((cash-kind-account (cash-kind)
            (cond ((string-equal cash-kind "revenue") 'debit-acc-id)
                  ((string-equal cash-kind "expense") 'credit-acc-id)

@@ -215,7 +215,7 @@
 
 
 
-(defmethod read-records ((table cheque-stran-table))
+(defmethod get-records ((table cheque-stran-table))
   (let ((payable-p (string= (subpage table) "payable")))
     (with-db ()
       (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title

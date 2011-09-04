@@ -141,7 +141,7 @@
           (lambda (&rest args)
             (apply #'invoice invoice-kind args)))))
 
-(defmethod read-records ((table invoice-tx-table))
+(defmethod get-records ((table invoice-tx-table))
   (flet ((invoice-kind-account (invoice-kind)
            (cond ((string-equal invoice-kind "receivable") `(debit-acc-id ,*invoice-receivable-account*))
                  ((string-equal invoice-kind "payable") `(credit-acc-id ,*invoice-payable-account*))

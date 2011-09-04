@@ -167,7 +167,7 @@
                                             :urlfn #'transaction)))
   (:default-initargs :item-class 'tx-row))
 
-(defmethod read-records ((table tx-table))
+(defmethod get-records ((table tx-table))
   (let* ((search (getf (filter table) :search))
          (base-query `(:select tx.id
                                (:as tx-date date)

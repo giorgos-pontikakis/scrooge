@@ -237,7 +237,7 @@
                                             :urlfn #'project)))
   (:default-initargs :item-class 'project-row :id "project-table"))
 
-(defmethod read-records ((table project-table))
+(defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
          (status (getf (filter table) :status))
          (base-query `(:select project.id (:as company.title company)

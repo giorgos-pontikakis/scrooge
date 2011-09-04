@@ -11,20 +11,20 @@
       ""
       "attention"))
 
-(defun params->plist (params &optional (fn #'val))
+(defun params->plist (fn params)
   (mapcan (lambda (param)
             (list (parameter-key (attributes param))
                   (funcall fn param)))
           params))
 
 (defun params->payload ()
-  (params->plist (payload-parameters) #'val))
+  (params->plist #'val (payload-parameters)))
 
 (defun params->styles ()
-  (params->plist (payload-parameters) #'sty))
+  (params->plist #'sty (payload-parameters)))
 
 (defun params->filter ()
-  (params->plist (filter-parameters) #'val))
+  (params->plist #'val (filter-parameters)))
 
 
 
@@ -134,7 +134,7 @@
          (see-other ,(if view-page-fn
                          (let ((fn-call (ensure-list view-page-fn)))
                            `(apply #',(first fn-call) (append ',(rest fn-call)
-                                                              (params->plist *parameters* #'raw))))
+                                                              (params->plist #'raw *parameters*))))
                          '(error "Data entry error"))))
        (bad-request-error ()
          (setf (return-code*) +http-bad-request+))

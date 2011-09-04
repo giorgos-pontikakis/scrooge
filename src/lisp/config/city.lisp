@@ -103,7 +103,7 @@
   (:default-initargs :id "config-table"
                      :item-class 'city-row))
 
-(defmethod read-records ((table city-table))
+(defmethod get-records ((table city-table))
   (config-data 'city (getf (filter table) :search)))
 
 

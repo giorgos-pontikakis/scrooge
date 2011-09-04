@@ -262,7 +262,7 @@
           (lambda (&rest args)
             (apply #'cheque cheque-kind args)))))
 
-(defmethod read-records ((table cheque-table))
+(defmethod get-records ((table cheque-table))
   (let* ((search (getf (filter table) :search))
          (status (getf (filter table) :status))
          (payable-p (string= (subpage table) "payable"))

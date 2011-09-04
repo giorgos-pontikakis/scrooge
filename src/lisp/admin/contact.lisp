@@ -34,7 +34,7 @@
    (company-id     :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'contact-row :id "contact-table"))
 
-(defmethod read-records ((table contact-table))
+(defmethod get-records ((table contact-table))
   (with-db ()
     (query (:order-by (:select (:as 'id 'contact-id) 'tag 'phone
                        :from 'contact

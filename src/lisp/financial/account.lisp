@@ -15,7 +15,7 @@
    (op :initform :read))
   (:default-initargs :item-class 'account-tx-row))
 
-(defmethod read-records ((table account-tx-table))
+(defmethod get-records ((table account-tx-table))
   (let ((account-id (filter table)))
     (with-db ()
       (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)

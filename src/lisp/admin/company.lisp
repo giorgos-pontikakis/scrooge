@@ -218,7 +218,7 @@
                                             :css-class "paginator")))
   (:default-initargs :item-class 'company-row :id "company-table"))
 
-(defmethod read-records ((table company-table))
+(defmethod get-records ((table company-table))
   (let* ((search (getf (filter table) :search))
          (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin

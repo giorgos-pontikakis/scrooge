@@ -129,7 +129,7 @@
   ()
   (:default-initargs :item-class 'account-node))
 
-(defmethod read-records ((tree account-tree))
+(defmethod get-records ((tree account-tree))
   (with-db ()
     (query (:select 'id 'title 'parent-id
             :from 'account
