@@ -6,7 +6,7 @@
 ;;; tx-ro (read only) table
 ;;; ----------------------------------------------------------------------
 
-(defclass account-tx-table (scrooge-crud-table)
+(defclass account-tx-table (scrooge-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
@@ -28,7 +28,7 @@
              :plists))))
 
 
-(defclass account-tx-row (scrooge-crud-row)
+(defclass account-tx-row (scrooge-row/plist)
   ())
 
 (defmethod selector ((row account-tx-row) enabled-p)

@@ -18,7 +18,12 @@
     :initform '(search))
    (allowed-groups
     :allocation :class
-    :initform '("user" "admin"))))
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
+                        :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))))
 
 
 
@@ -30,8 +35,8 @@
   (with-db ()
     (and id
          (query (:select 'id
-                         :from 'cheque
-                         :where (:= 'bank-id id))
+                 :from 'cheque
+                 :where (:= 'bank-id id))
                 :column))))
 
 (define-existence-predicate  bank-id-exists-p bank id)
@@ -59,9 +64,10 @@
         (t nil)))
 
 (defun chk-bank-title (title)
-  (cond ((eql :null title) :bank-title-null)
-        ((not (bank-title-exists-p title)) :bank-title-unknown)
-        (t nil)))
+  (if (or (eql :null title)
+          (bank-title-exists-p title))
+      nil
+      :tof-title-unknown))
 
 
 
@@ -81,10 +87,6 @@
                :css-class "hmenu actions"
                :disabled disabled))
 
-(defun bank-notifications ()
-  (notifications '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
-                           :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη.")))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -99,8 +101,7 @@
                                             :id "bank-paginator"
                                             :css-class "paginator")))
   (:default-initargs :id "config-table"
-                     :item-class 'bank-row
-                     :record-class 'bank))
+                     :item-class 'bank-row))
 
 (defmethod read-records ((table bank-table))
   (config-data 'bank (getf (filter table) :search)))
@@ -109,13 +110,13 @@
 ;;; rows
 
 (defclass bank-row (config-row)
-  ())
+  ((record-class :allocation :class :initform 'bank)))
 
-(defmethod selector ((row bank-row) enabled-p)
-  (simple-selector row enabled-p #'bank))
+(defmethod selector ((row bank-row) selected-p)
+  (simple-selector row selected-p #'bank))
 
-(defmethod controls ((row bank-row) enabled-p)
-  (simple-controls row enabled-p #'bank))
+(defmethod controls ((row bank-row) controls-p)
+  (simple-controls row controls-p #'bank))
 
 
 ;;; paginator
@@ -137,7 +138,7 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :read
                                       :filter filter
@@ -173,7 +174,7 @@
     ((title  string chk-bank-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :create
                                       :filter filter)))
@@ -190,22 +191,22 @@
                      (bank-menu nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/config/bank/create :search (val search))
+                     (with-form (actions/bank/create :search (val search))
                        (display bank-table
                                 :key nil
-                                :payload (list :title (val title)))))
+                                :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search))
-                     (bank-notifications))
+                     (notifications))
                (footer)))))))
 
-(defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
+(defpage bank-page actions/bank/create ("actions/bank/create" :request-type :post)
     ((title  string chk-bank-title/create t)
      (search string))
   (with-controller-page (bank/create)
     (let ((new-bank (make-instance 'bank :title (val title))))
-     (insert-dao new-bank)
-     (see-other (bank :id (bank-id new-bank))))))
+      (insert-dao new-bank)
+      (see-other (bank :id (bank-id new-bank))))))
 
 
 
@@ -218,7 +219,7 @@
      (title  string  (chk-bank-title/update title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :update
                                       :filter filter)))
@@ -235,17 +236,17 @@
                      (bank-menu (val id)
                                 filter
                                 '(:create :update))
-                     (with-form (actions/config/bank/update :id (val id)
-                                                            :search (val search))
+                     (with-form (actions/bank/update :id (val id)
+                                                     :search (val search))
                        (display bank-table
                                 :key (val id)
-                                :payload (list :title (val title)))))
+                                :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search))
-                     (bank-notifications))
+                     (notifications))
                (footer)))))))
 
-(defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
+(defpage bank-page actions/bank/update ("actions/bank/update" :request-type :post)
     ((id     integer chk-bank-id t)
      (title  string  (chk-bank-title/update title id) t)
      (search string))
@@ -265,7 +266,7 @@
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :delete
                                       :filter filter)))
@@ -282,15 +283,15 @@
                      (bank-menu (val id)
                                 filter
                                 '(:create :delete))
-                     (with-form (actions/config/bank/delete :id (val id)
-                                                            :search (val search))
+                     (with-form (actions/bank/delete :id (val id)
+                                                     :search (val search))
                        (display bank-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (bank) (val search)))
                (footer)))))))
 
-(defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
+(defpage bank-page actions/bank/delete ("actions/bank/delete" :request-type :post)
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-controller-page (bank/delete)

@@ -55,8 +55,8 @@
 ;;; Cheque state transitions - actions
 ;;; ------------------------------------------------------------
 
-(define-regex-page actions/config/cheque-stran/create
-    (("actions/config/cheque-stran/" (cheque-kind "(receivable|payable)") "/create")
+(define-regex-page actions/cheque-stran/create
+    (("actions/cheque-stran/" (cheque-kind "(receivable|payable)") "/create")
      :request-type :post)
     ((title          string chk-cheque-stran-title)
      (debit-account  string chk-acc-title)
@@ -86,8 +86,8 @@
                                                :from-status (raw from-status)
                                                :to-status (raw to-status))))))
 
-(define-regex-page actions/config/cheque-stran/update
-    (("actions/config/cheque-stran/" (cheque-kind "(receivable|payable)") "/update")
+(define-regex-page actions/cheque-stran/update
+    (("actions/cheque-stran/" (cheque-kind "(receivable|payable)") "/update")
      :request-type :post)
     ((id             integer chk-cheque-stran-id t)
      (title          string  chk-cheque-stran-title)
@@ -118,8 +118,8 @@
                                                :from-status (raw from-status)
                                                :to-status (raw to-status))))))
 
-(define-regex-page actions/config/cheque-stran/delete
-    (("actions/config/cheque-stran/" (cheque-kind "(receivable|payable)") "/delete")
+(define-regex-page actions/cheque-stran/delete
+    (("actions/cheque-stran/" (cheque-kind "(receivable|payable)") "/delete")
      :request-type :post)
     ((id integer chk-cheque-stran-id t))
   (with-auth ("configuration")
@@ -205,7 +205,7 @@
 
 ;;; table
 
-(defclass cheque-stran-table (scrooge-crud-table)
+(defclass cheque-stran-table (scrooge-table)
   ((subpage        :accessor subpage :initarg :subpage)
    (header-labels  :initform '("" "<br />Περιγραφή"
                                "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
@@ -238,7 +238,7 @@
 
 ;;; rows
 
-(defclass cheque-stran-row (scrooge-crud-row)
+(defclass cheque-stran-row (scrooge-row/plist)
   ())
 
 (defmethod selector ((row cheque-stran-row) enabled-p)
@@ -348,11 +348,11 @@
                                       cheque-kind
                                       '(:create :update :delete))
                    (cheque-stran-notifications)
-                   (with-form (actions/config/cheque-stran/create cheque-kind)
+                   (with-form (actions/cheque-stran/create cheque-kind)
                      (cheque-stran-data-form cheque-kind
                                              :create
                                              :id nil
-                                             :data (params->plist title
+                                             :data (params->payload title
                                                                       debit-account
                                                                       credit-account
                                                                       from-status
@@ -390,12 +390,12 @@
                                             cheque-kind
                                             '(:create :update))
                          (cheque-stran-notifications)
-                         (with-form (actions/config/cheque-stran/update cheque-kind :id (val id))
+                         (with-form (actions/cheque-stran/update cheque-kind :id (val id))
                            (cheque-stran-data-form cheque-kind
                                                    :update
                                                    :id (val id)
                                                    :data (plist-union
-                                                          (params->plist title
+                                                          (params->payload title
                                                                              debit-account
                                                                              credit-account
                                                                              from-status
@@ -432,7 +432,7 @@
                          (cheque-stran-menu (val id)
                                             cheque-kind
                                             '(:create :delete))
-                         (with-form (actions/config/cheque-stran/delete cheque-kind
+                         (with-form (actions/cheque-stran/delete cheque-kind
                                                                         :id (val id))
                            (display cheque-stran-table
                                     :selected-id (val id))))

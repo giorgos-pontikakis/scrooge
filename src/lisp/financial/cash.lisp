@@ -255,7 +255,7 @@
     (no-cache)
     (check-cash-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((filter (params->plist search))
+        (let* ((filter (params->payload search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Κατάλογος"))
                (cash-tx-table (make-instance 'cash-tx-table
                                              :id "cash-tx-table"
@@ -298,7 +298,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-cash-accounts)
-    (let ((filter (params->plist search))
+    (let ((filter (params->payload search))
           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -318,7 +318,7 @@
                      (with-form (actions/financial/cash/create cash-kind :search (val search))
                        (cash-data-form cash-kind :create
                                        :filter filter
-                                       :data (params->plist date
+                                       :data (params->payload date
                                                                 company
                                                                 description
                                                                 amount
@@ -340,7 +340,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-cash-accounts)
-    (let ((filter (params->plist search))
+    (let ((filter (params->payload search))
           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Επεξεργασία"))
           (acc-keyword (if (string-equal cash-kind "expense") :debit-acc-id :credit-acc-id)))
       (with-document ()
@@ -363,7 +363,7 @@
                        (cash-data-form cash-kind :update
                                        :id (val id)
                                        :filter filter
-                                       :data (plist-union (params->plist date
+                                       :data (plist-union (params->payload date
                                                                              company
                                                                              description
                                                                              amount)
@@ -385,7 +385,7 @@
     (no-cache)
     (check-cash-accounts)
     (if (validp id)
-        (let* ((filter (params->plist search))
+        (let* ((filter (params->payload search))
                (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Διαγραφή"))
                (cash-tx-table (make-instance 'cash-tx-table
                                              :op :delete

@@ -5,7 +5,7 @@
 
 (defun admin-navbar (&optional active)
   (navbar `((company ,(company) "Εταιρίες")
-            (project ,(project) "Έργα"))
+            #|(project ,(project) "Έργα")|#)
           :css-class "section-navbar hnavbar grid_12"
           :active active))
 
@@ -13,9 +13,8 @@
 
 ;;; main page
 
-(defpage dynamic-page admin ("admin/") ()
-  (with-auth ("configuration")
-    (no-cache)
+(defpage root-page admin ("admin/") ()
+  (with-view-page
     (with-document ()
       (:head
        (:title "Οικονομικά")

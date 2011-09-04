@@ -52,7 +52,7 @@
 ;;; Actions
 ;;; ----------------------------------------------------------------------
 
-(defpage dynamic-page actions/admin/project/create ("actions/admin/project/create"
+(defpage dynamic-page actions/project/create ("actions/project/create"
                                                    :request-type :post)
     ((search      string)
      (company     string chk-company-title*)
@@ -95,7 +95,7 @@
                                    :status (raw status)
                                    :notes (raw notes))))))
 
-(defpage dynamic-page actions/admin/project/update ("actions/admin/project/update"
+(defpage dynamic-page actions/project/update ("actions/project/update"
                                                    :request-type :post)
     ((search      string)
      (id          integer chk-project-id)
@@ -140,7 +140,7 @@
                                    :status (raw status)
                                    :notes (raw notes))))))
 
-(defpage dynamic-page actions/admin/project/delete ("actions/admin/project/delete"
+(defpage dynamic-page actions/project/delete ("actions/project/delete"
                                                    :request-type :post)
     ((id     integer chk-project-id)
      (search string)
@@ -229,7 +229,7 @@
 
 ;;; table
 
-(defclass project-table (scrooge-crud-table)
+(defclass project-table (scrooge-table)
   ((header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "project-paginator"
@@ -277,7 +277,7 @@
 
 ;;; rows
 
-(defclass project-row (scrooge-crud-row)
+(defclass project-row (scrooge-row/plist)
   ())
 
 (define-selector project-row project)
@@ -307,7 +307,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter  (params->plist search status))
+        (let* ((filter  (params->payload search status))
                (project-table (make-instance 'project-table
                                              :op :read
                                              :filter filter)))
@@ -349,7 +349,7 @@
      (notes       string))
   (with-auth ("configuration")
     (no-cache)
-    (let ((filter (params->plist search status)))
+    (let ((filter (params->payload search status)))
       (with-document ()
         (:head
          (:title "Έργο » Δημιουργία")
@@ -364,10 +364,10 @@
                                    filter
                                    '(:details :create :update :delete))
                      (project-notifications))
-               (with-form (actions/admin/project/create :search (val search))
+               (with-form (actions/project/create :search (val search))
                  (project-data-form :create
                                     :filter filter
-                                    :data (plist-union (params->plist company
+                                    :data (plist-union (params->payload company
                                                                           description
                                                                           location
                                                                           price
@@ -406,7 +406,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (params->plist status search)))
+        (let ((filter (params->payload status search)))
           (with-document ()
             (:head
              (:title "Έργο » Επεξεργασία")
@@ -421,11 +421,11 @@
                                        filter
                                        '(:create :update))
                          (project-notifications))
-                   (with-form (actions/admin/project/update :id (val id) :search (val search))
+                   (with-form (actions/project/update :id (val id) :search (val search))
                      (project-data-form :update
                                         :id (val id)
                                         :filter filter
-                                        :data (plist-union (params->plist company
+                                        :data (plist-union (params->payload company
                                                                               description
                                                                               location
                                                                               price
@@ -456,7 +456,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (params->plist status search)))
+        (let ((filter (params->payload status search)))
           (with-document ()
             (:head
              (:title "Έργο » Λεπτομέρειες")
@@ -483,7 +483,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (params->plist search status))
+        (let* ((filter (params->payload search status))
                (project-table (make-instance 'project-table
                                              :op :delete
                                              :filter filter)))
@@ -500,7 +500,7 @@
                          (project-menu (val id)
                                        filter
                                        '(:read :delete))
-                         (with-form (actions/admin/project/delete :id (val id)
+                         (with-form (actions/project/delete :id (val id)
                                                                   :search (val search)
                                                                   :status (val status))
                            (display project-table

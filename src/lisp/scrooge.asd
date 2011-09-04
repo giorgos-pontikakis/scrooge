@@ -25,9 +25,9 @@
                ;; (:file "config/cheque-stran")
                ;; (:file "config/option")
                ;; ;; admin
-               ;; (:file "admin/admin")
-               ;; (:file "admin/company")
-               ;; (:file "admin/contact")
+               (:file "admin/admin")
+               (:file "admin/company")
+               (:file "admin/contact")
                ;; (:file "admin/project")
                ;; ;; financial
                ;; (:file "financial/financial")

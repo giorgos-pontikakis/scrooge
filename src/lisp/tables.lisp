@@ -14,6 +14,10 @@
                                                 (mapcar #'first surrogate-key-types))))))))
                  slots))))
 
+(defgeneric get-record (type primary-key)
+  (:documentation "Modeled after get-dao, but it should return a plist"))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Config
@@ -45,6 +49,8 @@
 
 (define-surrogate-key-readers bank ((title string)) bank-id)
 
+(defmethod bank-id ((title (eql :null)))
+  :null)
 
 
 (defclass tof ()
@@ -55,6 +61,9 @@
 
 (define-surrogate-key-readers tof ((title string)) tof-id)
 
+(defmethod tof-id ((title (eql :null)))
+  :null)
+
 
 (defclass city ()
   ((id    :col-type integer :reader   city-id)
@@ -64,6 +73,8 @@
 
 (define-surrogate-key-readers city ((title string)) city-id)
 
+(defmethod city-id ((title (eql :null)))
+  :null)
 
 
 (defclass cheque-status ()
@@ -92,13 +103,11 @@
    (title      :col-type string  :accessor title      :initarg :title)
    (debit-p    :col-type boolean :accessor debit-p    :initarg :debit-p)
    (parent-id  :col-type string  :accessor parent-id  :initarg :parent-id)
-   (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p)
-   (rank       :col-type integer :accessor rank       :initarg :rank))
+   (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p))
   (:metaclass dao-class)
   (:keys id))
 
-(define-surrogate-key-readers account ((title string))
-  account-id debit-p parent-id chequing-p rank)
+(define-surrogate-key-readers account ((title string)) account-id)
 
 
 
@@ -120,8 +129,7 @@
   (:metaclass dao-class)
   (:keys id))
 
-(define-surrogate-key-readers company ((title string))
-  company-id occupation tof-id tin address city-id pobox zipcode notes)
+(define-surrogate-key-readers company ((title string)) company-id)
 
 
 

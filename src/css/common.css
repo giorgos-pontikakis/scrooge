@@ -111,7 +111,7 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .indent {
-    margin-left: 25px;
+    padding-left: 25px;
 }
 
 .invisible {

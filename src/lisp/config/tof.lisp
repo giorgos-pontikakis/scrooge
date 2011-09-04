@@ -18,7 +18,12 @@
     :initform '(search))
    (allowed-groups
     :allocation :class
-    :initform '("user" "admin"))))
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
+                        :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη."))))))
 
 
 
@@ -30,8 +35,8 @@
   (with-db ()
     (and id
          (query (:select 'id
-                         :from 'company
-                         :where (:= 'tof-id id))
+                 :from 'company
+                 :where (:= 'tof-id id))
                 :column))))
 
 (define-existence-predicate tof-id-exists-p tof id)
@@ -59,9 +64,10 @@
         (t nil)))
 
 (defun chk-tof-title (title)
-  (cond ((eql :null title) :tof-title-null)
-        ((not (tof-title-exists-p title)) :tof-title-unknown)
-        (t nil)))
+  (if (or (eql :null title)
+          (tof-title-exists-p title))
+      nil
+      :tof-title-unknown))
 
 
 
@@ -82,10 +88,6 @@
                  :css-class "hmenu actions"
                  :disabled disabled)))
 
-(defun tof-notifications ()
-  (notifications '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
-                           :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη.")))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -100,8 +102,7 @@
                                             :id "tof-paginator"
                                             :css-class "paginator")))
   (:default-initargs :id "config-table"
-                     :item-class 'tof-row
-                     :record-class 'tof))
+                     :item-class 'tof-row))
 
 (defmethod read-records ((table tof-table))
   (config-data 'tof (getf (filter table) :search)))
@@ -110,7 +111,7 @@
 ;; rows
 
 (defclass tof-row (config-row)
-  ())
+  ((record-class :allocation :class :initform 'tof)))
 
 (defmethod selector ((row tof-row) enabled-p)
   (simple-selector row enabled-p #'tof))
@@ -138,7 +139,7 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (tof-table (make-instance 'tof-table
                                      :op :read
                                      :filter filter
@@ -173,7 +174,7 @@
     ((title  string chk-tof-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (tof-table (make-instance 'tof-table
                                      :op :create
                                      :filter filter)))
@@ -190,16 +191,16 @@
                      (tof-menu nil
                                filter
                                '(:create :update :delete))
-                     (with-form (actions/config/tof/create :search (val search))
+                     (with-form (actions/tof/create :search (val search))
                        (display tof-table
                                 :key nil
-                                :payload (list :title (val title)))))
+                                :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search))
-                     (tof-notifications))
+                     (notifications))
                (footer)))))))
 
-(defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
+(defpage tof-page actions/tof/create ("actions/tof/create" :request-type :post)
     ((title  string chk-tof-title/create t)
      (search string))
   (with-controller-page (tof/create)
@@ -218,7 +219,7 @@
      (title  string  (chk-tof-title/update title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (tof-table (make-instance 'tof-table
                                      :op :update
                                      :filter filter)))
@@ -235,17 +236,17 @@
                      (tof-menu (val id)
                                filter
                                '(:create :update))
-                     (with-form (actions/config/tof/update :id (val id)
-                                                           :filter (val search))
+                     (with-form (actions/tof/update :id (val id)
+                                                    :filter (val search))
                        (display tof-table
                                 :key (val id)
-                                :payload (list :title (val title)))))
+                                :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search))
-                     (tof-notifications))
+                     (notifications))
                (footer)))))))
 
-(defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
+(defpage tof-page actions/tof/update ("actions/tof/update" :request-type :post)
     ((id     integer chk-tof-id t)
      (title  string (chk-tof-title/update title id) t)
      (search string))
@@ -265,7 +266,7 @@
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (tof-table (make-instance 'tof-table
                                      :op :delete
                                      :filter filter)))
@@ -282,15 +283,15 @@
                      (tof-menu (val id)
                                filter
                                '(:create :delete))
-                     (with-form (actions/config/tof/delete :id (val id)
-                                                           :search (val search))
+                     (with-form (actions/tof/delete :id (val id)
+                                                    :search (val search))
                        (display tof-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tof) (val search)))
                (footer)))))))
 
-(defpage tof-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
+(defpage tof-page actions/tof/delete ("actions/tof/delete" :request-type :post)
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-controller-page (tof/delete)

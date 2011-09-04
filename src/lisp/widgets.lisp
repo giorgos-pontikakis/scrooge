@@ -3,9 +3,8 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; scrooge collections
+;;; Tables
 ;;; ----------------------------------------------------------------------
-
 
 (defclass scrooge-table (crud-table)
   ()
@@ -29,7 +28,7 @@
 
 ;;; rows with records being plists
 
-(defclass scrooge-row/plist (crud-row)
+(defclass scrooge-row/plist (crud-row/plist)
   ()
   (:default-initargs :css-delete "attention"
                      :css-selected "selected"
@@ -41,7 +40,7 @@
   (getf (record item) :id))
 
 
-;;; paginators
+;;; paginator
 
 (defclass scrooge-paginator (paginator)
   ()
@@ -70,11 +69,38 @@
                   (img "resultset_last.png"))))))
 
 
-;;; crud-trees
+;;; ----------------------------------------------------------------------
+;;; Tables
+;;; ----------------------------------------------------------------------
 
 (defclass scrooge-tree (crud-tree)
   ()
   (:default-initargs :css-class "crud-tree" :root-parent-key :null))
+
+
+;;; crud tree with records being daos
+
+(defclass scrooge-node/obj (crud-node/obj)
+  ()
+  (:default-initargs :css-delete "attention"
+    :css-selected "selected"
+    :css-selector "selector"
+    :css-payload "payload"
+    :css-controls "controls"
+    :css-indent "indent"))
+
+(defmethod key ((item scrooge-row/obj))
+  (let ((rec (record item)))
+    (handler-case (first (dao-keys rec))
+      (unbound-slot () nil))))
+
+(defmethod parent-key ((item scrooge-row/obj))
+  (let ((rec (record item)))
+    (handler-case (parent-id rec)
+      (unbound-slot () nil))))
+
+
+;;; crud tree with records being plists
 
 (defclass scrooge-node/plist (crud-node/plist)
   ()
@@ -85,7 +111,6 @@
     :css-controls "controls"
     :css-indent "indent"))
 
-
 (defmethod key ((item scrooge-node/plist))
   (getf (record item) :id))
 
@@ -94,59 +119,84 @@
 
 
 
+;;; ----------------------------------------------------------------------
+;;; row buttons (image without text)
+;;; ----------------------------------------------------------------------
 
-;; ;;; ----------------------------------------------------------------------
-;; ;;; top scrooge collections
-;; ;;; ----------------------------------------------------------------------
+(defclass ok-button (submit)
+  ()
+  (:default-initargs :body (html ()
+                             (img "tick.png"))))
 
-;; ;;; crud-tables
+(defun ok-button (&rest instance-initargs)
+  (display (apply #'make-instance 'ok-button instance-initargs )))
 
-;; (defclass scrooge-crud-table (crud-table)
-;;   ()
-;;   (:default-initargs :css-class "crud-table"))
+(defclass cancel-button (widget)
+  ((href :accessor href :initarg :href)
+   (body :accessor body :initarg :body))
+  (:default-initargs :body (html ()
+                             (img "cancel.png"))))
 
-;; (defclass scrooge-crud-row (crud-row)
-;;   ()
-;;   (:default-initargs :css-delete "attention"
-;;                      :css-selected "selected"
-;;                      :css-selector "selector"
-;;                      :css-payload "payload"
-;;                      :css-controls "controls"))
+(defmethod display ((cancel-button cancel-button) &key)
+  (with-html
+    (:a :id (id cancel-button)
+        :class (css-class cancel-button)
+        :href (href cancel-button)
+        (display (body cancel-button)))))
 
-;; (defmethod key ((item scrooge-crud-row))
-;;   (getf (record item) :id))
+(defun cancel-button (href &rest instance-initargs)
+  (display (apply #'make-instance 'cancel-button
+                  :href href
+                  instance-initargs)))
 
-;; (defmethod update-item ((table crud-table) &key data index)
-;;   (let ((row (nth index (rows table))))
-;;     (setf (record row)
-;;           (plist-union data (record row)))))
 
-;; ;;; crud-trees
 
-;; (defclass scrooge-crud-tree (crud-tree)
-;;   ()
-;;   (:default-initargs :css-class "crud-tree" :root-parent-key :null))
+;;; ------------------------------------------------------------
+;;; Data Forms
+;;; ------------------------------------------------------------
 
-;; (defclass scrooge-crud-node (crud-node)
-;;   ()
-;;   (:default-initargs :css-delete "attention"
-;;     :css-selected "selected"
-;;     :css-selector "selector"
-;;     :css-payload "payload"
-;;     :css-controls "controls"
-;;     :css-indent "indent"))
+(defclass crud-form (widget)
+  ((op           :accessor op           :initarg :op)
+   (cancel-url   :accessor cancel-url   :initarg :cancel-url)
+   (record       :accessor record       :initarg :record)))
 
-;; (defmethod update-item ((tree scrooge-crud-tree) &key data key)
-;;   (let ((node (find-node (root tree) key)))
-;;     (setf (record node)
-;;           (plist-union data (record node)))))
+(defclass crud-form/plist (crud-form record/plist-mixin)
+  ())
 
-;; (defmethod key ((item scrooge-crud-node))
-;;   (getf (record item) :id))
+(defclass crud-form/obj (crud-form record/obj-mixin)
+  ())
 
-;; (defmethod parent-key ((item scrooge-crud-node))
-;;   (getf (record item) :parent-id))
+(defmethod display :before ((form crud-form) &key payload)
+  (when (eql (op form) :create)
+    (setf (record form) (make-record form payload)))
+  (when (eql (op form) :update)
+    (update-record form payload)))
 
+
+
+;;; ------------------------------------------------------------
+;;; selector and controls for crud collections
+;;; ------------------------------------------------------------
+
+(defun simple-selector (row enabled-p url-fn)
+  (let* ((id (key row))
+         (table (collection row))
+         (filter (filter table))
+         (start (page-start (paginator table) (index row) (start-index table))))
+    (html ()
+      (:a :href (if enabled-p
+                    (apply url-fn :start start filter)
+                    (apply url-fn :id id filter))
+          (selector-img enabled-p)))))
+
+(defun simple-controls (row enabled-p url-fn)
+  (let ((id (key row))
+        (table (collection row)))
+    (if enabled-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (apply url-fn :id id (filter table))))
+        (list nil nil))))
 
 
 
@@ -207,59 +257,3 @@
 ;;                                       *revenues-root-account*
 ;;                                       *expenses-root-account*)
 ;;                  :filter (list :debit-p (not revenues-p))))
-
-
-
-;;; ----------------------------------------------------------------------
-;;; row buttons (image without text)
-;;; ----------------------------------------------------------------------
-
-(defclass ok-button (submit)
-  ()
-  (:default-initargs :body (html ()
-                             (img "tick.png"))))
-
-(defun ok-button (&rest instance-initargs)
-  (display (apply #'make-instance 'ok-button instance-initargs )))
-
-(defclass cancel-button (widget)
-  ((href :accessor href :initarg :href)
-   (body :accessor body :initarg :body))
-  (:default-initargs :body (html ()
-                             (img "cancel.png"))))
-
-(defmethod display ((cancel-button cancel-button) &key)
-  (with-html
-    (:a :id (id cancel-button)
-        :class (css-class cancel-button)
-        :href (href cancel-button)
-        (display (body cancel-button)))))
-
-(defun cancel-button (href &rest instance-initargs)
-  (display (apply #'make-instance 'cancel-button
-                  :href href
-                  instance-initargs)))
-
-
-
-;;; selector and controls for crud collections
-
-(defun simple-selector (row enabled-p url-fn)
-  (let* ((id (key row))
-         (table (collection row))
-         (filter (filter table))
-         (start (page-start (paginator table) (index row) (start-index table))))
-    (html ()
-      (:a :href (if enabled-p
-                    (apply url-fn :start start filter)
-                    (apply url-fn :id id filter))
-          (selector-img enabled-p)))))
-
-(defun simple-controls (row enabled-p url-fn)
-  (let ((id (key row))
-        (table (collection row)))
-    (if enabled-p
-        (list (make-instance 'ok-button)
-              (make-instance 'cancel-button
-                             :href (apply url-fn :id id (filter table))))
-        (list nil nil))))

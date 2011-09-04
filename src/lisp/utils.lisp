@@ -3,10 +3,13 @@
 
 
 ;;; ------------------------------------------------------------
-;;; PARAMETER UTILITIES
+;;; HTTP-PARAMETER UTILITIES
 ;;; ------------------------------------------------------------
 
-;;; Parameter utilites
+(defun sty (http-parameter)
+  (if (validp http-parameter)
+      ""
+      "attention"))
 
 (defun params->plist (params &optional (fn #'val))
   (mapcan (lambda (param)
@@ -14,18 +17,14 @@
                   (funcall fn param)))
           params))
 
-(defun params->styles (params)
-  (mapcan (lambda (param)
-            (list (parameter-key (attributes param))
-                  (if (validp param)
-                      ""
-                      "attention")))
-          params))
+(defun params->payload ()
+  (params->plist (payload-parameters) #'val))
 
-(defun collect-params (names &optional (parameters *parameters*))
-  (remove-if-not (lambda (p)
-                   (member (parameter-name (attributes p)) names))
-                 parameters))
+(defun params->styles ()
+  (params->plist (payload-parameters) #'sty))
+
+(defun params->filter ()
+  (params->plist (filter-parameters) #'val))
 
 
 
@@ -47,6 +46,15 @@
 
 ;;; Page families
 
+(defclass root-page (dynamic-page page-family-mixin)
+  ((system-parameter-names :initarg  :system-parameter-names)
+   (user-parameter-names   :initarg  :user-parameter-names)
+   (filter-parameter-names :initarg  :filter-parameter-names)
+   (allowed-groups         :initform '("user" "admin")))
+  (:default-initargs :system-parameter-names ()
+                     :user-parameter-names ()
+                     :filter-parameter-names ()))
+
 (defclass page-family-mixin ()
   ((system-parameter-names  :reader system-parameter-names)
    (payload-parameter-names :reader payload-parameter-names)
@@ -67,6 +75,7 @@
 
   (defun filter-parameters (&optional (page *page*) (parameters *parameters*))
     (collect-parameters (filter-parameter-names page) parameters)))
+
 
 
 ;;; Authentication and page macros

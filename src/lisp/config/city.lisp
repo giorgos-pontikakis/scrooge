@@ -18,7 +18,12 @@
     :initform '(search))
    (allowed-groups
     :allocation :class
-    :initform '("user" "admin"))))
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform '((title (:city-title-null "Το όνομα πόλης είναι κενό."
+                        :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη."))))))
 
 
 
@@ -30,8 +35,8 @@
   (with-db ()
     (and id
          (query (:select 'id
-                         :from 'company
-                         :where (:= 'city-id id))
+                 :from 'company
+                 :where (:= 'city-id id))
                 :column))))
 
 (define-existence-predicate city-id-exists-p city id)
@@ -59,9 +64,10 @@
         (t nil)))
 
 (defun chk-city-title (title)
-  (cond ((eql :null title) :city-title-null)
-        ((not (city-title-exists-p title)) :city-title-unknown)
-        (t nil)))
+  (if (or (eql :null title)
+          (city-title-exists-p title))
+      nil
+      :tof-title-unknown))
 
 
 
@@ -81,10 +87,6 @@
                :css-class "hmenu actions"
                :disabled disabled))
 
-(defun city-notifications ()
-  (notifications '((title (:city-title-null "Το όνομα πόλης είναι κενό."
-                           :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη.")))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -99,8 +101,7 @@
                                             :id "city-paginator"
                                             :css-class "paginator")))
   (:default-initargs :id "config-table"
-                     :item-class 'city-row
-                     :record-class 'city))
+                     :item-class 'city-row))
 
 (defmethod read-records ((table city-table))
   (config-data 'city (getf (filter table) :search)))
@@ -109,7 +110,7 @@
 ;;; rows
 
 (defclass city-row (config-row)
-  ())
+  ((record-class :allocation :class :initform 'city)))
 
 (defmethod selector ((row city-row) enabled-p)
   (simple-selector row enabled-p #'city))
@@ -137,7 +138,7 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :read
                                       :filter filter
@@ -172,7 +173,7 @@
     ((title  string chk-city-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :create
                                       :filter filter)))
@@ -189,15 +190,15 @@
                      (city-menu nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/config/city/create :search (val search))
+                     (with-form (actions/city/create :search (val search))
                        (display city-table
-                                :payload (params->plist (payload-parameters)))))
+                                :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
-                     (city-notifications))
+                     (notifications))
                (footer)))))))
 
-(defpage city-page actions/config/city/create ("actions/config/city/create" :request-type :post)
+(defpage city-page actions/city/create ("actions/city/create" :request-type :post)
     ((title  string chk-city-title/create t)
      (search string))
   (with-controller-page (city/create)
@@ -216,7 +217,7 @@
      (title  string  (chk-city-title/update title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :update
                                       :filter filter)))
@@ -233,17 +234,17 @@
                      (city-menu (val id)
                                 filter
                                 '(:create :update))
-                     (with-form (actions/config/city/update :id (val id)
-                                                            :search (val search))
+                     (with-form (actions/city/update :id (val id)
+                                                     :search (val search))
                        (display city-table
                                 :key (val id)
-                                :payload (params->plist (payload-parameters)))))
+                                :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search))
-                     (city-notifications))
+                     (notifications))
                (footer)))))))
 
-(defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
+(defpage city-page actions/city/update ("actions/city/update" :request-type :post)
     ((id     integer chk-city-id t)
      (title  string (chk-city-title/update title id) t)
      (search string))
@@ -260,10 +261,10 @@
 ;;; ------------------------------------------------------------
 
 (defpage city-page city/delete ("config/city/delete")
-    ((id integer chk-city-id/ref t)
+    ((id     integer chk-city-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->plist (filter-parameters)))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :delete
                                       :filter filter)))
@@ -280,15 +281,15 @@
                      (city-menu (val id)
                                 filter
                                 '(:create :delete))
-                     (with-form (actions/config/city/delete :id (val id)
-                                                            :search (val search))
+                     (with-form (actions/city/delete :id (val id)
+                                                     :search (val search))
                        (display city-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (city) (val search)))
                (footer)))))))
 
-(defpage city-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
+(defpage city-page actions/city/delete ("actions/city/delete" :request-type :post)
     ((id     integer chk-city-id/ref t)
      (search string))
   (with-controller-page (city/delete)

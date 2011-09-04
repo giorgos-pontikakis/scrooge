@@ -36,15 +36,16 @@
           :css-class "section-navbar hnavbar grid_12"
           :active active))
 
-(defpage dynamic-page config ("config/") ()
-  (with-document ()
-    (:head
-     (:title "Ρυθμίσεις")
-     (config-headers))
-    (:body
-     (:div :id "container" :class "container_12"
-           (header 'config)
-           (config-navbar 'general)
-           (:div :id "bank-window" :class "window grid_10"
-                 (:div :class "title" "Ρυθμίσεις » Γενικά")
-                 "nothing...")))))
+(defpage root-page config ("config/") ()
+  (with-view-page
+    (with-document ()
+      (:head
+       (:title "Ρυθμίσεις")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-navbar 'general)
+             (:div :id "bank-window" :class "window grid_10"
+                   (:div :class "title" "Ρυθμίσεις » Γενικά")
+                   "nothing..."))))))

@@ -259,7 +259,7 @@
     (no-cache)
     (check-invoice-accounts)
     (if (every #'validp (parameters *page*))
-        (let* ((filter (params->plist search))
+        (let* ((filter (params->payload search))
                (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Κατάλογος"))
                (invoice-tx-table (make-instance 'invoice-tx-table
                                                 :id "invoice-tx-table"
@@ -302,7 +302,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-invoice-accounts)
-    (let ((filter (params->plist search))
+    (let ((filter (params->payload search))
           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -322,7 +322,7 @@
                      (with-form (actions/financial/invoice/create invoice-kind :search (val search))
                        (invoice-data-form invoice-kind :create
                                           :filter filter
-                                          :data (params->plist date
+                                          :data (params->payload date
                                                                    company
                                                                    description
                                                                    amount
@@ -344,7 +344,7 @@
   (with-auth ("configuration")
     (no-cache)
     (check-invoice-accounts)
-    (let ((filter (params->plist search))
+    (let ((filter (params->payload search))
           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Επεξεργασία"))
           (acc-keyword (if (string-equal invoice-kind "payable") :debit-acc-id :credit-acc-id)))
       (with-document ()
@@ -367,7 +367,7 @@
                        (invoice-data-form invoice-kind :update
                                           :id (val id)
                                           :filter filter
-                                          :data (plist-union (params->plist date
+                                          :data (plist-union (params->payload date
                                                                                 company
                                                                                 description
                                                                                 amount)
@@ -388,7 +388,7 @@
     (no-cache)
     (check-invoice-accounts)
     (if (validp id)
-        (let* ((filter (params->plist search))
+        (let* ((filter (params->payload search))
                (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Διαγραφή"))
                (invoice-tx-table (make-instance 'invoice-tx-table
                                                 :op :delete

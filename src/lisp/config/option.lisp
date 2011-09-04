@@ -23,7 +23,7 @@
 ;;; Option - Actions
 ;;; ----------------------------------------------------------------------
 
-(defpage dynamic-page actions/config/update ("actions/config/update" :request-type :post)
+(defpage dynamic-page actions/update ("actions/update" :request-type :post)
     ((cash-account               string  chk-acc-title*)
      (revenues-root-account      string  chk-acc-title*)
      (expenses-root-account      string  chk-acc-title*)
@@ -160,10 +160,10 @@
              (:div :id "config-window" :class "window grid_12"
                    (:div :class "title" "Ρυθμίσεις » Επεξεργασία")
                    (option-menu '(:update))
-                   (with-form (actions/config/update)
+                   (with-form (actions/update)
                      (option-form :update
                                   :data (plist-union
-                                         (apply #'params->plist (parameters *page*))
+                                         (apply #'params->payload (parameters *page*))
                                          (option-record))
                                   :styles (apply #'params->styles (parameters *page*)))))
              (footer))))))

@@ -100,7 +100,7 @@
 
 (defun primary-navbar (active)
   (navbar `(#|(financial ,(financial) "Οικονομικά")|#
-            #|(admin     ,(admin)     "Διαχείριση")|#
+            (admin     ,(admin)     "Διαχείριση")
             (config    ,(config)    "Ρυθμίσεις"))
           :id "primary-navbar"
           :css-class "hnavbar grid_6 prefix_1"
@@ -112,11 +112,11 @@
         (fmt "~A@~A :: " (session-value 'user) (machine-instance))
         (:a :href (logout) "Έξοδος"))))
 
-(defun notifications (messages &optional (parameters *parameters*))
+(defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)
     (with-html
       (:div :id "notifications"
-            (messenger messages parameters
+            (messenger (messages page) parameters
                        :css-class "msg-error")))))
 
 

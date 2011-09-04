@@ -159,7 +159,7 @@
 
 ;;; table
 
-(defclass tx-table (scrooge-crud-table)
+(defclass tx-table (scrooge-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
@@ -189,7 +189,7 @@
 
 ;;; rows
 
-(defclass tx-row (scrooge-crud-row)
+(defclass tx-row (scrooge-row/plist)
   ())
 
 (define-selector tx-row transaction)
@@ -217,7 +217,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (params->plist search))
+        (let* ((filter (params->payload search))
                (tx-table (make-instance 'tx-table
                                         :op :read
                                         :filter filter)))
@@ -254,7 +254,7 @@
      (credit-account string  chk-acc-title-nc))
   (with-auth ("configuration")
     (no-cache)
-    (let ((filter (params->plist search)))
+    (let ((filter (params->payload search)))
       (with-document ()
         (:head
          (:title "Συναλλαγές » Δημιουργία")
@@ -272,7 +272,7 @@
                      (with-form (actions/financial/transaction/create)
                        (transaction-data-form :create
                                               :filter filter
-                                              :data (params->plist date
+                                              :data (params->payload date
                                                                        company
                                                                        description
                                                                        debit-account
@@ -298,7 +298,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (params->plist search)))
+        (let ((filter (params->payload search)))
           (with-document ()
             (:head
              (:title "Συναλλαγή » Επεξεργασία")
@@ -319,7 +319,7 @@
                                                   :id (val id)
                                                   :filter filter
                                                   :data (plist-union
-                                                         (params->plist date
+                                                         (params->payload date
                                                                             company
                                                                             description
                                                                             debit-account
@@ -341,7 +341,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let ((filter (params->plist search)))
+        (let ((filter (params->payload search)))
           (with-document ()
             (:head
              (:title "Συναλλαγή » Λεπτομέρειες")
@@ -370,7 +370,7 @@
   (with-auth ("configuration")
     (no-cache)
     (if (validp id)
-        (let* ((filter (params->plist search))
+        (let* ((filter (params->payload search))
                (tx-table (make-instance 'tx-table
                                         :op :delete
                                         :filter filter)))
