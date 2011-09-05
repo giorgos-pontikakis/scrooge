@@ -4,4 +4,5 @@ database=scrooge
 project_root="www/scrooge"
 
 echo Attempting to restore postgresql database $database
-psql $database < $HOME/$project_root/db_dumps/$database.sql >/dev/null
+dropdb $database
+psql -f $HOME/$project_root/db_dumps/$database.sql template1
