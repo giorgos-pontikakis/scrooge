@@ -146,7 +146,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass company-form (crud-form/plist)
-  ((record-class :allocation :class :initform 'company)))
+  ())
 
 (defmethod display ((form company-form) &key styles)
   (let ((disabled (eql (op form) :read))
@@ -396,7 +396,7 @@
                            (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))
                (footer)))))))
 
-(defpage company-page actions/company/create ("actions/company/create"
+(defpage company-page actions/company/create ("actions/admin/company/create"
                                               :request-type :post)
     ((search     string)
      (title      string  chk-company-title/create)
@@ -482,7 +482,7 @@
                               :key (val contact-id)))
                (footer)))))))
 
-(defpage company-page actions/company/update ("actions/company/update"
+(defpage company-page actions/company/update ("actions/admin/company/update"
                                               :request-type :post)
     ((search     string)
      (id         integer chk-company-id)
@@ -546,7 +546,7 @@
                      (searchbox (company) (val search)))
                (footer)))))))
 
-(defpage company-page actions/company/delete ("actions/company/delete"
+(defpage company-page actions/company/delete ("actions/admin/company/delete"
                                               :request-type :post)
     ((id     integer chk-company-id)
      (search string))
