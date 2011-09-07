@@ -27,6 +27,11 @@
 ;;; Globals
 ;;; ------------------------------------------------------------
 
+(defparameter *project-statuses* (lists->alist
+                                  (with-db ()
+                                    (query (:select 'id 'description
+                                                    :from 'project-status)))))
+
 (defparameter *default-project-status* "quoted")
 (defparameter *default-cheque-status* "pending")
 ;; (defparameter *cheque-statuses*

@@ -12,10 +12,10 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(title occupation tof tin address city pobox zipcode notes))
+    :initform '(company description location price vat status quote-date start-date end-date notes))
    (filter-parameter-names
     :allocation :class
-    :initform '(search))
+    :initform '(search status))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -46,9 +46,9 @@
       (start-date  (:parse-error
                     "Η ημερομηνία έναρξης είναι άκυρη."
                     :start-date-null
-                    "Η ημερομηνία έναρξης είναι κενή ενώ το έργο έχει αρχίσει."
+                    "Η ημερομηνία έναρξης είναι κενή ενώ το έργο είναι σε εξέλιξη."
                     :start-date-nonnull
-                    "Η ημερομηνία έναρξης δεν είναι κενή ενώ το έργο δεν έχει αρχίσει."))
+                    "Η ημερομηνία έναρξης δεν είναι κενή ενώ για το έργο έχει ξεκινήσει."))
       (end-date    (:parse-error
                     "Η ημερομηνία ολοκλήρωσης είναι άκυρη."
                     :end-date-null
@@ -119,14 +119,14 @@
 ;;; ------------------------------------------------------------
 
 (defun project-menu (id filter &optional disabled)
-  (menu (crud+details-actions-spec (apply #'project :id id filter)
-                                   (apply #'project/create filter)
-                                   (apply #'project/details :id id filter)
-                                   (apply #'project/update :id id filter)
-                                   (apply #'project/delete :id id filter))
-        :id "project-actions"
-        :css-class "hmenu actions"
-        :disabled disabled))
+  (anchor-menu (crud+details-actions-spec (apply #'project :id id filter)
+                                          (apply #'project/create filter)
+                                          (apply #'project/details :id id filter)
+                                          (apply #'project/update :id id filter)
+                                          (apply #'project/delete :id id filter))
+               :id "project-actions"
+               :css-class "hmenu actions"
+               :disabled disabled))
 
 (defun project-filters (status search)
   (let ((spec `((nil      ,(project :search search)                    "Όλα")
@@ -150,17 +150,17 @@
 ;;; ------------------------------------------------------------
 
 (defclass project-form (crud-form/plist)
-  ((record-class :allocation class :initform 'project)))
+  ())
 
 
 (defmethod display ((form project-form) &key styles)
-  (let ((disabled (eql (op form) :details))
+  (let ((disabled (eql (op form) :view))
         (record (record form)))
     (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
                (input-text name
-                           :value (slot-value record name)
+                           :value (getf record (make-keyword name))
                            :disabled disabled
                            :css-class (conc (getf styles (make-keyword name))
                                             " " extra-styles)))))
@@ -170,10 +170,7 @@
                     (label-input-text 'description "Περιγραφή"))
               (:div :class "grid_2 omega project-data-form-title"
                     (label 'status "Κατάσταση")
-                    (dropdown 'status
-                              (with-db ()
-                                (query (:select 'description 'id
-                                                :from 'project-status)))
+                    (dropdown 'status *project-statuses*
                               :selected (or (getf record :status) *default-project-status*)
                               :disabled disabled))
               (:div :class "grid_5 alpha project-data-form-subtitle"
@@ -232,10 +229,9 @@
 
 (defclass project-table (scrooge-table)
   ((header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
-   (paginator      :initform (make-instance 'scrooge-paginator
+   (paginator      :initform (make-instance 'project-paginator
                                             :id "project-paginator"
-                                            :css-class "paginator"
-                                            :urlfn #'project)))
+                                            :css-class "paginator")))
   (:default-initargs :item-class 'project-row :id "project-table"))
 
 (defmethod get-records ((table project-table))
@@ -297,6 +293,15 @@
             '(description location company))))
 
 
+;;; paginator
+
+(defclass project-paginator (scrooge-paginator)
+  ())
+
+(defmethod target-url ((pg project-paginator) start)
+  (apply #'project :start start (filter (table pg))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; VIEW
@@ -308,10 +313,11 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->payload))
+    (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
                                          :op :read
-                                         :filter filter)))
+                                         :filter filter
+                                         :start-index (val start))))
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")
@@ -328,7 +334,7 @@
                                        '(:read)
                                        '(:read :details :update :delete)))
                      (display project-table
-                              :selected-id (val id)
+                              :key (val id)
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (project :status (val status)) (val search))
@@ -340,7 +346,7 @@
      (status string)
      (id     integer chk-project-id t))
   (with-view-page
-    (let* ((filter (params->payload))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :view
                                         :record (get-record 'project (val id))
@@ -379,7 +385,7 @@
      (end-date    date  (chk-end-date end-date status))
      (notes       string))
   (with-view-page
-    (let* ((filter (params->payload))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :create
                                         :record nil
@@ -452,7 +458,7 @@
      (end-date    date  (chk-end-date end-date status))
      (notes       string))
   (with-view-page
-    (let* ((filter (params->payload))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :update
                                         :record (get-record 'project (val id))
@@ -517,7 +523,7 @@
      (search string)
      (status string))
   (with-view-page ()
-    (let* ((filter (params->payload))
+    (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
                                          :op :delete
                                          :filter filter)))
@@ -538,7 +544,7 @@
                                                         :search (val search)
                                                         :status (val status))
                        (display project-table
-                                :selected-id (val id))))
+                                :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (project :status (val status)) (val search))
                      (project-filters (val status) (val search)))

@@ -5,7 +5,7 @@
 
 (defun admin-navbar (&optional active)
   (navbar `((company ,(company) "Εταιρίες")
-            #|(project ,(project) "Έργα")|#)
+            (project ,(project) "Έργα"))
           :css-class "section-navbar hnavbar grid_12"
           :active active))
 

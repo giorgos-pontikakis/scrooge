@@ -210,6 +210,12 @@ excluded for the search - useful for updates."
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun lists->alist (lists)
+  (mapcar (lambda (list)
+            (cons (car list)
+                  (cadr list)))
+          lists))
+
 (defun int-5digits-p (num)
   (and (integerp num)
        (> num 9999)
