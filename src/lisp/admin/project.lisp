@@ -166,41 +166,48 @@
                            :css-class (conc (getf styles (make-keyword name))
                                             " " extra-styles)))))
       (with-html
-        (:div :id "project-data-form" :class "data-form grid_8"
-              (:div :class "grid_5 alpha project-data-form-title"
-                    (label-input-text 'description "Περιγραφή"))
-              (:div :class "grid_2 omega project-data-form-title"
-                    (label 'status "Κατάσταση")
-                    (dropdown 'status *project-statuses*
-                              :selected (or (getf record :status) *default-project-status*)
-                              :disabled disabled))
-              (:div :class "grid_5 alpha project-data-form-subtitle"
-                    (label-input-text 'location "Τοποθεσία")
+        (:div :class "data-form project-form grid_6"
+              (:div :class "data-form-title"
+                    (label-input-text 'description "Περιγραφή")
                     (label-input-text 'company "Εταιρία" "ac-company"))
-              (:div :class "grid_4 alpha project-data-form-details"
+              (:div :class "grid_3 alpha project-form-details"
                     (:fieldset
                      (:legend "Οικονομικά")
-                     (:ul (:li (label-input-text 'price "Τιμή"))
-                          (:li (label-input-text 'vat "Φ.Π.Α.")))))
-              (:div :class "grid_4 omega project-data-form-details"
+                     (:ul
+                      (:li (label 'status "Κατάσταση")
+                           (dropdown 'status *project-statuses*
+                                     :selected (or (getf record :status)
+                                                   *default-project-status*)
+                                     :disabled disabled))
+                      (:li (label-input-text 'price
+                                             "Τιμή"))
+                      (:li (label-input-text 'vat
+                                             "Φ.Π.Α.")))))
+              (:div :class "grid_3 omega project-form-details"
                     (:fieldset
                      (:legend "Χρονοδιάγραμμα")
-                     (:ul (:li (label-input-text 'quote-date "Ημερομηνία προσφοράς" "datepicker"))
-                          (:li (label-input-text 'start-date "Ημερομηνία έναρξης" "datepicker"))
-                          (:li (label-input-text 'end-date "Ημερομηνία ολοκλήρωσης" "datepicker"))))))
-        (:div :id "project-notes" :class "data-form grid_4"
-              (:div :class "project-data-form-title"
+                     (:ul
+                      (:li (label-input-text 'quote-date
+                                             "Ημερομηνία προσφοράς"
+                                             "datepicker"))
+                      (:li (label-input-text 'start-date
+                                             "Ημερομηνία έναρξης"
+                                             "datepicker"))
+                      (:li (label-input-text 'end-date
+                                             "Ημερομηνία ολοκλήρωσης"
+                                             "datepicker")))))
+              (:div :class "clear" "")
+              (:div :id "project-notes"
                     (label 'notes "Σημειώσεις")
-                    (:textarea :name 'notes
-                               :cols 38 :rows 22 :disabled disabled
-                               (str (lisp->html (or (getf record :notes) :null))))))
-        (:div :class "grid_8 data-form-buttons"
-              (if disabled
-                  (cancel-button (cancel-url form)
-                                 :body "Επιστροφή στον Κατάλογο Έργων")
-                  (progn
-                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+                    (:textarea :name 'notes :disabled disabled
+                               (str (lisp->html (or (getf record :notes) :null)))))
+              (:div :class "data-form-buttons"
+                    (if disabled
+                        (cancel-button (cancel-url form)
+                                       :body "Επιστροφή στον Κατάλογο Έργων")
+                        (progn
+                          (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                          (cancel-button (cancel-url form) :body "Άκυρο")))))))))
 
 
 
@@ -364,8 +371,9 @@
                      (:p :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
                                    filter
-                                   '(:details :create)))
-               (display project-form :payload (get-record 'project (val id)))))))))
+                                   '(:details :create))
+                     (display project-form :payload (get-record 'project (val id))))
+               (footer)))))))
 
 
 

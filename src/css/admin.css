@@ -1,14 +1,9 @@
 /* ---------------------------------------------------------------------- */
-/* company-data-form */
+/* Company Form */
 /* ---------------------------------------------------------------------- */
 
-.company-form-no-fieldset {
-    margin-top: 10px;
-    padding-left: 20px;
-}
-
-.company-data input, .company-data-form-title input {
-    width: 406px
+.company-form input  {
+    width: 406px;
 }
 
 #tin {
@@ -49,40 +44,47 @@
     width: 187px;
 }
 
-#company-window textarea {
+#company-notes {
+    margin-left: 20px;
+}
+
+#company-notes textarea {
     width: 408px;
     height: 150px;
 }
 
-/* ---------------------------------------------------------------------- */
-/* project data form */
-/* ---------------------------------------------------------------------- */
-
-.project-data-form-title {
-    padding-top: 20px;
-}
-
-.project-data-form-title input {
-    width: 368px;
-}
-
-.project-data-form-subtitle {
-    margin: 0px 0px 20px 0px;
-}
-
-.project-data-form-subtitle input {
-    width: 368px;
-}
-
-.project-data-form-details input {
-    width: 246px;
-}
-
 
 
 /* ---------------------------------------------------------------------- */
-/* contact table */
+/* Project Form */
 /* ---------------------------------------------------------------------- */
+
+.project-form input {
+    width: 406px;
+}
+
+.project-form-details input {
+    width: 168px;
+}
+
+#project-notes {
+    margin-left: 20px;
+}
+
+#project-notes textarea {
+    width: 408px;
+    height: 200px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Contact Table */
+/* ---------------------------------------------------------------------- */
+
+#contact-table {
+    margin-top: 20px;
+}
 
 #contact-table td.payload {
     width: 185px;

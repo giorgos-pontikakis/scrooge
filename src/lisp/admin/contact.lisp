@@ -29,7 +29,7 @@
 ;;; table
 
 (defclass contact-table (scrooge-table)
-  ((header-labels  :initform '("" ""))
+  ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'contact-row :id "contact-table"))

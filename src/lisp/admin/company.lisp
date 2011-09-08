@@ -160,22 +160,28 @@
                            :css-class (conc (getf styles (make-keyword name))
                                             " " extra-styles)))))
       (with-html
-        (:div :class "data-form company-data"
-              (:div :class "company-form-no-fieldset"
+        (:div :class "data-form company-form"
+              (:div :class "data-form-title"
                     (label-input-text 'title "Επωνυμία" "ac-company"))
               (:fieldset
                (:legend "Φορολογικά στοιχεία")
-               (:div :class "company-data-full" (label-input-text 'occupation "Επάγγελμα"))
-               (:div :id "tin" :class "company-data-half" (label-input-text 'tin "Α.Φ.Μ."))
-               (:div :id "tof-div" :class "company-data-half"
+               (label-input-text 'occupation
+                                 "Επάγγελμα")
+               (:div :id "tin"
+                     (label-input-text 'tin "Α.Φ.Μ."))
+               (:div :id "tof-div"
                      (label-input-text 'tof "Δ.Ο.Υ." "ac-tof")))
               (:fieldset
                (:legend "Διεύθυνση")
-               (:div :id "address" (label-input-text 'address "Οδός"))
-               (:div :id "city" (label-input-text 'city "Πόλη" "ac-city"))
-               (:div :id "zipcode" (label-input-text 'zipcode "Ταχυδρομικός κωδικός"))
-               (:div :id "pobox" (label-input-text 'pobox "Ταχυδρομική θυρίδα")))
-              (:div :class "company-form-no-fieldset"
+               (:div :id "address"
+                     (label-input-text 'address "Οδός"))
+               (:div :id "city"
+                     (label-input-text 'city "Πόλη" "ac-city"))
+               (:div :id "zipcode"
+                     (label-input-text 'zipcode "Ταχυδρομικός κωδικός"))
+               (:div :id "pobox"
+                     (label-input-text 'pobox "Ταχυδρομική θυρίδα")))
+              (:div :id "company-notes"
                     (label 'notes "Σημειώσεις")
                     (:textarea :name 'notes :disabled disabled
                                (str (lisp->html (or (getf record :notes) :null))))))
