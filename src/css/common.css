@@ -56,7 +56,8 @@ textarea[disabled], textarea[readonly] {
 
 button, select {
     font-size: 13px;
-    font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif
+    font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
+    line-height: 26px;
 }
 
 select option {
@@ -260,5 +261,10 @@ p#logout a {
 }
 
 .data-form-first, .data-form-buttons {
-    margin-top: 20px;
+    margin: 20px 0px 0px 20px;
+}
+
+.data-form-buttons a {
+    padding: 0px 0px 0px 15px;
+    text-decoration: underline;
 }

@@ -177,8 +177,7 @@
                (:div :id "pobox" (label-input-text 'pobox "Ταχυδρομική θυρίδα")))
               (:div :class "company-form-no-fieldset"
                     (label 'notes "Σημειώσεις")
-                    (:textarea :name 'notes
-                               :cols 56 :rows 10 :disabled disabled
+                    (:textarea :name 'notes :disabled disabled
                                (str (lisp->html (or (getf record :notes) :null))))))
         (:div :class "data-form-buttons"
               (if disabled
@@ -348,7 +347,8 @@
                                        '(:read)
                                        '(:read :update :delete)))
                      (display contact-table
-                              :key (val contact-id)))))))))
+                              :key (val contact-id)))
+               (footer)))))))
 
 
 
