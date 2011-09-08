@@ -11,14 +11,14 @@
 }
 
 .vnavbar ul li {
-    background-color: #7b8d78;
+    background-color: #bbccdd;
     line-height: 26px;
 }
 
 .vnavbar ul li a {
     display: block;
     padding-left: 10px;
-    color: #ffffff;
+    color: #000000;
 }
 
 .vnavbar ul li a:hover {
@@ -28,8 +28,9 @@
 .vnavbar ul li span {
     display: block;
     padding-left: 10px;
-    color: #000000;
-    background-color: #9DB499;
+    color: maroon;
+    font-weight: bold;
+    background-color: #bbccdd;
 }
 
 

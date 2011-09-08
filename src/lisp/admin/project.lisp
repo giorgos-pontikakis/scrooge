@@ -141,7 +141,8 @@
             (navbar spec
                     :id "project-filters"
                     :css-class "vnavbar"
-                    :active (intern (string-upcase status)))))))
+                    :active status
+                    :test #'string-equal)))))
 
 
 
