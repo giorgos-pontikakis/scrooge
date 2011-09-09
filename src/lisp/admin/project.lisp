@@ -445,7 +445,7 @@
                                        :status (val status)
                                        :notes (val notes))))
       (insert-dao new-project)
-      (see-other (project :id (id new-project) :status (val status))))))
+      (see-other (project :id (project-id new-project) :status (val status))))))
 
 
 
