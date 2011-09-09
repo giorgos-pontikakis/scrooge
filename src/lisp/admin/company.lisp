@@ -457,7 +457,7 @@
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
-                                         :op :details
+                                         :op :read
                                          :company-id (val id))))
       (with-document ()
         (:head

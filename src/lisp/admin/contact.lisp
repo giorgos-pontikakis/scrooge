@@ -87,7 +87,7 @@
 ;;; ------------------------------------------------------------
 
 (defun contact-menu (id contact-id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'company/update
+  (anchor-menu (crud-actions-spec (apply #'company/details
                                          :id id
                                          :contact-id contact-id
                                          filter)
@@ -150,16 +150,18 @@
 
 (defpage contact-page actions/contact/create ("actions/contact/create"
                                               :request-type :post)
-    ((id integer chk-company-id)
-     (tag string)
-     (phone string))
+    ((search string)
+     (id     integer chk-company-id)
+     (tag    string)
+     (phone  string))
   (with-controller-page (contact/create)
     (let ((new-contact (make-instance 'contact
                                       :company-id (val id)
                                       :tag (val tag)
                                       :phone (val phone))))
       (insert-dao new-contact)
-      (see-other (company/details :id (val id) :contact-id (contact-id new-contact))))))
+      (see-other (apply #'company/details :id (val id) :contact-id (contact-id new-contact)
+                        (params->filter))))))
 
 
 
@@ -207,16 +209,18 @@
 
 (defpage contact-page actions/contact/update ("actions/contact/update"
                                               :request-type :post)
-    ((id integer chk-company-id)
+    ((search     string)
+     (id         integer chk-company-id)
      (contact-id integer (chk-contact-id id contact-id))
-     (tag string)
-     (phone string))
+     (tag        string)
+     (phone      string))
   (with-controller-page (contact/update)
     (execute (:update 'contact :set
                       'tag (val tag)
                       'phone (val phone)
                       :where (:= 'id (val contact-id))))
-    (see-other (company/details :id (val id) :contact-id (val contact-id)))))
+    (see-other (apply #'company/details :id (val id) :contact-id (val contact-id)
+                      (params->filter)))))
 
 
 
@@ -266,8 +270,10 @@
 
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
                                               :request-type :post)
-    ((id integer chk-company-id)
+    ((search     string)
+     (id         integer chk-company-id)
      (contact-id integer (chk-contact-id id contact-id)))
   (with-controller-page (contact/delete)
     (delete-dao (get-dao 'contact (val contact-id)))
-    (see-other (company/details :id (val id)))))
+    (see-other (apply #'company/details :id (val id)
+                      (params->filter)))))

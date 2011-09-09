@@ -15,7 +15,7 @@
     :initform '(tag amount))
    (filter-parameter-names
     :allocation :class
-    :initform '(search))
+    :initform '(search status))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))))
@@ -73,8 +73,8 @@
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (project/update :id (project-id table)
-                                                   :bill-id bill-id)))
+                             :href (project/details :id (project-id table)
+                                                    :bill-id bill-id)))
         (list nil nil))))
 
 (defmethod key ((item bill-row))
@@ -87,7 +87,7 @@
 ;;; ------------------------------------------------------------
 
 (defun bill-menu (id bill-id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'project/update
+  (anchor-menu (crud-actions-spec (apply #'project/details
                                          :id id
                                          :bill-id bill-id
                                          filter)
@@ -113,8 +113,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/create ("project/details/bill/create")
-    ((search     string)
-     (id         integer chk-project-id t))
+    ((search string)
+     (status string)
+     (id     integer chk-project-id t))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -133,13 +134,13 @@
                (header 'admin)
                (admin-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Εταιρία » Λεπτομέρειες")
+                     (:div :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
                                    filter
                                    '(:details :create))
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Δημιουργία")
+                     (:div :class "title" "Κοστολόγηση » Δημιουργία κόστους")
                      (bill-menu (val id)
                                 nil
                                 filter
@@ -150,8 +151,10 @@
 
 (defpage bill-page actions/bill/create ("actions/bill/create"
                                         :request-type :post)
-    ((id integer chk-project-id)
-     (tag string)
+    ((search string)
+     (status string)
+     (id     integer chk-project-id)
+     (tag    string)
      (amount string))
   (with-controller-page (bill/create)
     (let ((new-bill (make-instance 'bill
@@ -159,7 +162,8 @@
                                    :tag (val tag)
                                    :amount (val amount))))
       (insert-dao new-bill)
-      (see-other (project/details :id (val id) :bill-id (bill-id new-bill))))))
+      (see-other (apply #'project/details :id (val id) :bill-id (bill-id new-bill)
+                        (params->filter))))))
 
 
 
@@ -168,8 +172,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/update ("project/details/bill/update")
-    ((search     string)
-     (id         integer chk-project-id t)
+    ((search  string)
+     (status  string)
+     (id      integer chk-project-id t)
      (bill-id integer))
   (with-view-page
     (let* ((filter (params->filter))
@@ -182,20 +187,20 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+         (:title "Επεξεργασία Έργος > Επεξεργασία Επαφής")
          (admin-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'admin)
                (admin-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Εταιρία » Λεπτομέρειες")
+                     (:div :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
                                    filter
                                    '(:details :create))
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Επεξεργασία")
+                     (:div :class "title" "Κοστολόγηση » Επεξεργασία κόστους")
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
@@ -207,16 +212,19 @@
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
                                         :request-type :post)
-    ((id integer chk-project-id)
+    ((search  string)
+     (status  string)
+     (id      integer chk-project-id)
      (bill-id integer (chk-bill-id id bill-id))
-     (tag string)
-     (amount string))
+     (tag     string)
+     (amount  string))
   (with-controller-page (bill/update)
     (execute (:update 'bill :set
                       'tag (val tag)
                       'amount (val amount)
                       :where (:= 'id (val bill-id))))
-    (see-other (project/details :id (val id) :bill-id (val bill-id)))))
+    (see-other (apply #'project/details :id (val id) :bill-id (val bill-id)
+                      (params->filter)))))
 
 
 
@@ -225,8 +233,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/delete ("project/details/bill/delete")
-    ((search     string)
-     (id         integer chk-project-id t)
+    ((search  string)
+     (status  string)
+     (id      integer chk-project-id t)
      (bill-id integer))
   (with-view-page
     (let* ((filter (params->filter))
@@ -239,20 +248,20 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+         (:title "Επεξεργασία Επαφής")
          (admin-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'admin)
                (admin-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Εταιρία » Λεπτομέρειες")
+                     (:div :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
                                    filter
                                    '(:details :create))
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Διαγραφή")
+                     (:div :class "title" "Κοστολόγηση » Διαγραφή κόστους")
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
@@ -266,8 +275,11 @@
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"
                                         :request-type :post)
-    ((id integer chk-project-id)
+    ((search string)
+     (status string)
+     (id      integer chk-project-id)
      (bill-id integer (chk-bill-id id bill-id)))
   (with-controller-page (bill/delete)
     (delete-dao (get-dao 'bill (val bill-id)))
-    (see-other (project/details :id (val id)))))
+    (see-other (apply #'project/details :id (val id)
+                      (params->filter)))))

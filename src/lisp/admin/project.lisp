@@ -161,7 +161,7 @@
 
 
 (defmethod display ((form project-form) &key styles)
-  (let ((disabled (eql (op form) :view))
+  (let ((disabled (eql (op form) :read))
         (record (record form)))
     (flet ((label-input-text (name label &optional extra-styles)
              (with-html
@@ -356,20 +356,19 @@
                (footer)))))))
 
 (defpage project-page project/details ("admin/project/details")
-    ((search string)
-     (status string)
-     (id     integer chk-project-id t)
+    ((search  string)
+     (status  string)
+     (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id)))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :view
+                                        :op :read
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :read
-                                      :record (get-record 'bill (val id))
-                                      :cancel-url (apply #'project :id (val id) filter))))
+                                      :project-id (val id))))
       (with-document ()
         (:head
          (:title "Έργο » Λεπτομέρειες")
@@ -378,14 +377,14 @@
          (:div :id "container" :class "container_12"
                (header 'admin)
                (admin-navbar 'project)
-               (:div :id "project-window" :class "window grid_12"
+               (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
                                    filter
                                    '(:details :create))
                      (display project-form :payload (get-record 'project (val id))))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Λογαριασμός » Κατάλογος")
+                     (:div :class "title" "Κοστολόγηση")
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
@@ -433,10 +432,10 @@
                      (project-menu nil
                                    filter
                                    '(:details :create :update :delete))
-                     (notifications))
-               (with-form (actions/project/create :search (val search))
-                 (display project-form :payload (params->payload)
-                                       :styles (params->styles)))
+                     (notifications)
+                     (with-form (actions/project/create :search (val search))
+                       (display project-form :payload (params->payload)
+                                             :styles (params->styles))))
                (footer)))))))
 
 (defpage project-page actions/project/create ("actions/admin/project/create"
@@ -477,6 +476,7 @@
 (defpage project-page project/update ("admin/project/update")
     ((search      string)
      (id          integer chk-project-id)
+     (bill-id     integer (chk-bill-id id bill-id))
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description id))
      (location    string)
@@ -492,7 +492,10 @@
            (project-form (make-instance 'project-form
                                         :op :update
                                         :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter))))
+                                        :cancel-url (apply #'project :id (val id) filter)))
+           (bill-table (make-instance 'bill-table
+                                      :op :read
+                                      :project-id (val id))))
       (with-document ()
         (:head
          (:title "Έργο » Επεξεργασία")
@@ -501,15 +504,25 @@
          (:div :id "container" :class "container_12"
                (header 'admin)
                (admin-navbar 'project)
-               (:div :id "project-window" :class "window grid_12"
+               (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Έργο » Επεξεργασία")
                      (project-menu (val id)
                                    filter
                                    '(:create :update))
-                     (notifications))
-               (with-form (actions/project/update :id (val id) :search (val search))
-                 (display project-form :payload (params->payload)
-                                       :styles (params->styles)))
+                     (notifications)
+                     (with-form (actions/project/update :id (val id) :search (val search))
+                       (display project-form :payload (params->payload)
+                                             :styles (params->styles))))
+               (:div :id "bill-window" :class "window grid_6"
+                     (:div :class "title" "Κοστολόγηση")
+                     (bill-menu (val id)
+                                (val bill-id)
+                                filter
+                                (if (val bill-id)
+                                    '(:read)
+                                    '(:read :update :delete)))
+                     (display bill-table
+                              :key (val bill-id)))
                (footer)))))))
 
 (defpage project-page actions/project/update ("actions/admin/project/update"

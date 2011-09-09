@@ -57,9 +57,9 @@
 }
 
 .crud-table td, .crud-table th  {
-    line-height: 20px;
+    line-height: 22px;
     text-align: left;
-    padding: 6px 5px;
+    padding: 3px 5px;
 }
 
 .crud-table td input {
@@ -92,6 +92,7 @@
 td.selector, td.controls {
     width: 18px !important;
 }
+
 .selector, .controls {
     padding: 0px;
     text-align: center;

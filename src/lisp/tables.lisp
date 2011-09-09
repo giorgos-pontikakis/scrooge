@@ -148,11 +148,20 @@
   (:metaclass dao-class)
   (:keys id))
 
+
 (defclass contact ()
   ((id         :col-type integer :reader   contact-id)
    (company-id :col-type integer :accessor company-id :initarg :company-id)
    (tag        :col-type string  :accessor tag        :initarg :tag)
    (phone      :col-type string  :accessor phone      :initarg :phone))
+  (:metaclass dao-class)
+  (:keys id))
+
+(defclass bill ()
+  ((id         :col-type integer :reader   bill-id)
+   (project-id :col-type integer :accessor project-id :initarg :project-id)
+   (tag        :col-type string  :accessor tag        :initarg :tag)
+   (amount     :col-type string  :accessor amount     :initarg :amount))
   (:metaclass dao-class)
   (:keys id))
 

@@ -56,6 +56,23 @@
 
 
 /* ---------------------------------------------------------------------- */
+/* Contact Table */
+/* ---------------------------------------------------------------------- */
+
+#contact-table {
+    margin-top: 20px;
+}
+
+#contact-table td.payload {
+    width: 185px;
+}
+
+#contact-table td.payload input {
+    width: 160px;
+}
+
+
+/* ---------------------------------------------------------------------- */
 /* Project Form */
 /* ---------------------------------------------------------------------- */
 
@@ -77,19 +94,18 @@
 }
 
 
-
 /* ---------------------------------------------------------------------- */
-/* Contact Table */
+/* Bill Table */
 /* ---------------------------------------------------------------------- */
 
-#contact-table {
+#bill-table {
     margin-top: 20px;
 }
 
-#contact-table td.payload {
+#bill-table td.payload {
     width: 185px;
 }
 
-#contact-table td.payload input {
+#bill-table td.payload input {
     width: 160px;
 }
