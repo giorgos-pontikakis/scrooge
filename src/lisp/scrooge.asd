@@ -29,6 +29,7 @@
                (:file "admin/company")
                (:file "admin/contact")
                (:file "admin/project")
+               (:file "admin/bill")
                ;; ;; financial
                ;; (:file "financial/financial")
                ;; (:file "financial/tx")

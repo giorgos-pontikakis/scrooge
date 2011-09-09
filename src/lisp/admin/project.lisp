@@ -63,6 +63,7 @@
 ;;; ----------------------------------------------------------------------
 
 (define-existence-predicate project-id-exists-p project id)
+(define-existence-predicate bill-id-exists-p bill id)
 (define-existence-predicate* project-description-exists-p project description id)
 
 (defun chk-project-id (id)
@@ -112,6 +113,11 @@
         (t
          nil)))
 
+(defun chk-bill-id (project-id bill-id)
+  (if (and (project-id-exists-p project-id)
+           (bill-id-exists-p bill-id))
+      nil
+      :bill-id-invalid))
 
 
 ;;; ------------------------------------------------------------
@@ -352,13 +358,18 @@
 (defpage project-page project/details ("admin/project/details")
     ((search string)
      (status string)
-     (id     integer chk-project-id t))
+     (id     integer chk-project-id t)
+     (bill-id integer (chk-bill-id id bill-id)))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :view
                                         :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter))))
+                                        :cancel-url (apply #'project :id (val id) filter)))
+           (bill-table (make-instance 'bill-table
+                                      :op :read
+                                      :record (get-record 'bill (val id))
+                                      :cancel-url (apply #'project :id (val id) filter))))
       (with-document ()
         (:head
          (:title "Έργο » Λεπτομέρειες")
@@ -373,6 +384,16 @@
                                    filter
                                    '(:details :create))
                      (display project-form :payload (get-record 'project (val id))))
+               (:div :id "bill-window" :class "window grid_6"
+                     (:div :class "title" "Λογαριασμός » Κατάλογος")
+                     (bill-menu (val id)
+                                (val bill-id)
+                                filter
+                                (if (val bill-id)
+                                    '(:read)
+                                    '(:read :update :delete)))
+                     (display bill-table
+                              :key (val bill-id)))
                (footer)))))))
 
 
