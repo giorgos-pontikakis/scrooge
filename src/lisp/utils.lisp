@@ -261,7 +261,8 @@ excluded for the search - useful for updates."
 
 
 (defun chk-amount (float)
-  (if (positive-real-p float)
+  (if (or (positive-real-p float)
+          (zerop float))
       nil
       :non-positive-amount))
 

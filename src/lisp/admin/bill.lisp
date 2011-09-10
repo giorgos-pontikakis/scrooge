@@ -115,7 +115,9 @@
 (defpage bill-page bill/create ("project/details/bill/create")
     ((search string)
      (status string)
-     (id     integer chk-project-id t))
+     (id     integer chk-project-id t)
+     (tag    string)
+     (amount float   chk-amount*))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -127,7 +129,7 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Επαφές » Δημιουργία")
+         (:title "Κοστολόγηση » Δημιουργία")
          (admin-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -140,11 +142,11 @@
                                    '(:details :create))
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση » Δημιουργία κόστους")
+                     (:div :class "title" "Κοστολόγηση » Δημιουργία")
                      (bill-menu (val id)
                                 nil
                                 filter
-                                '(:details :create :update :delete))
+                                '(:create :update :delete))
                      (with-form (actions/bill/create :id (val id))
                        (display bill-table)))
                (footer)))))))
@@ -155,7 +157,7 @@
      (status string)
      (id     integer chk-project-id)
      (tag    string)
-     (amount string))
+     (amount float   chk-amount*))
   (with-controller-page (bill/create)
     (let ((new-bill (make-instance 'bill
                                    :project-id (val id)
@@ -174,8 +176,10 @@
 (defpage bill-page bill/update ("project/details/bill/update")
     ((search  string)
      (status  string)
-     (id      integer chk-project-id t)
-     (bill-id integer))
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t)
+     (tag     string)
+     (amount  float   chk-amount*))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -204,7 +208,7 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                '(:create :update))
+                                '(:read :update))
                      (with-form (actions/bill/update :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))
@@ -214,10 +218,10 @@
                                         :request-type :post)
     ((search  string)
      (status  string)
-     (id      integer chk-project-id)
-     (bill-id integer (chk-bill-id id bill-id))
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t)
      (tag     string)
-     (amount  string))
+     (amount  float   chk-amount*))
   (with-controller-page (bill/update)
     (execute (:update 'bill :set
                       'tag (val tag)
@@ -235,8 +239,8 @@
 (defpage bill-page bill/delete ("project/details/bill/delete")
     ((search  string)
      (status  string)
-     (id      integer chk-project-id t)
-     (bill-id integer))
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -265,9 +269,7 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                (if (val bill-id)
-                                    '(:details)
-                                    '(:details :update :delete)))
+                                '(:read :delete))
                      (with-form (actions/bill/delete :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))
@@ -277,8 +279,8 @@
                                         :request-type :post)
     ((search string)
      (status string)
-     (id      integer chk-project-id)
-     (bill-id integer (chk-bill-id id bill-id)))
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t))
   (with-controller-page (bill/delete)
     (delete-dao (get-dao 'bill (val bill-id)))
     (see-other (apply #'project/details :id (val id)

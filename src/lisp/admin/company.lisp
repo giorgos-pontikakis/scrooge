@@ -345,7 +345,7 @@
                                    '(:details :create))
                      (display company-form))
                (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Κατάλογος")
+                     (:div :class "title" "Επαφές")
                      (contact-menu (val id)
                                    (val contact-id)
                                    filter

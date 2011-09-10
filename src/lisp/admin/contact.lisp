@@ -113,8 +113,10 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage contact-page contact/create ("company/details/contact/create")
-    ((search     string)
-     (id         integer chk-company-id t))
+    ((search string)
+     (id     integer chk-company-id t)
+     (tag    string)
+     (phone  string))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -143,7 +145,7 @@
                      (contact-menu (val id)
                                    nil
                                    filter
-                                   '(:details :create :update :delete))
+                                   '(:create :update :delete))
                      (with-form (actions/contact/create :id (val id))
                        (display contact-table)))
                (footer)))))))
@@ -171,8 +173,10 @@
 
 (defpage contact-page contact/update ("company/details/contact/update")
     ((search     string)
-     (id         integer chk-company-id t)
-     (contact-id integer))
+     (id         integer chk-company-id                 t)
+     (contact-id integer (chk-contact-id id contact-id) t)
+     (tag        string)
+     (phone      string))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -201,7 +205,7 @@
                      (contact-menu (val id)
                                    (val contact-id)
                                    filter
-                                   '(:create :update))
+                                   '(:read :update))
                      (with-form (actions/contact/update :id (val id)
                                                         :contact-id (val contact-id))
                        (display contact-table :key (val contact-id))))
@@ -210,8 +214,8 @@
 (defpage contact-page actions/contact/update ("actions/contact/update"
                                               :request-type :post)
     ((search     string)
-     (id         integer chk-company-id)
-     (contact-id integer (chk-contact-id id contact-id))
+     (id         integer chk-company-id                 t)
+     (contact-id integer (chk-contact-id id contact-id) t)
      (tag        string)
      (phone      string))
   (with-controller-page (contact/update)
@@ -230,8 +234,8 @@
 
 (defpage contact-page contact/delete ("company/details/contact/delete")
     ((search     string)
-     (id         integer chk-company-id t)
-     (contact-id integer))
+     (id         integer chk-company-id                 t)
+     (contact-id integer (chk-contact-id id contact-id) t))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -260,9 +264,7 @@
                      (contact-menu (val id)
                                    (val contact-id)
                                    filter
-                                   (if (val contact-id)
-                                       '(:details)
-                                       '(:details :update :delete)))
+                                   '(:read :delete))
                      (with-form (actions/contact/delete :id (val id)
                                                         :contact-id (val contact-id))
                        (display contact-table :key (val contact-id))))
@@ -271,8 +273,8 @@
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
                                               :request-type :post)
     ((search     string)
-     (id         integer chk-company-id)
-     (contact-id integer (chk-contact-id id contact-id)))
+     (id         integer chk-company-id                 t)
+     (contact-id integer (chk-contact-id id contact-id) t))
   (with-controller-page (contact/delete)
     (delete-dao (get-dao 'contact (val contact-id)))
     (see-other (apply #'company/details :id (val id)
