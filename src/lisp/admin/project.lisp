@@ -15,7 +15,7 @@
     :initform '(company description location price vat status quote-date start-date end-date notes))
    (filter-parameter-names
     :allocation :class
-    :initform '(search status))
+    :initform '(search cstatus))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -134,20 +134,20 @@
                :css-class "hmenu actions"
                :disabled disabled))
 
-(defun project-filters (status search)
+(defun project-filters (cstatus search)
   (let ((spec `((nil      ,(project :search search)                    "Όλα")
-                (quoted   ,(project :search search :status "quoted")   "Προσφορές")
-                (ongoing  ,(project :search search :status "ongoing")  "Σε εξέλιξη")
-                (finished ,(project :search search :status "finished") "Ολοκληρωμένα")
-                (archived ,(project :search search :status "archived") "Αρχειοθετημένα")
-                (canceled ,(project :search search :status "canceled") "Άκυρα"))))
+                (quoted   ,(project :search search :cstatus "quoted")   "Προσφορές")
+                (ongoing  ,(project :search search :cstatus "ongoing")  "Σε εξέλιξη")
+                (finished ,(project :search search :cstatus "finished") "Ολοκληρωμένα")
+                (archived ,(project :search search :cstatus "archived") "Αρχειοθετημένα")
+                (canceled ,(project :search search :cstatus "canceled") "Άκυρα"))))
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Κατάσταση")
             (navbar spec
                     :id "project-filters"
                     :css-class "vnavbar"
-                    :active status
+                    :active cstatus
                     :test #'string-equal)))))
 
 
@@ -250,7 +250,7 @@
 
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
-         (status (getf (filter table) :status))
+         (cstatus (getf (filter table) :cstatus))
          (base-query `(:select project.id (:as company.title company)
                                project.description location
                                project.notes
@@ -264,21 +264,21 @@
                   (:ilike project.location ,(ilike search))
                   (:ilike project.notes ,(ilike search)))
             where-terms))
-    (when status
-      (push `(:= project.status ,status)
+    (when cstatus
+      (push `(:= project.status ,cstatus)
             where-terms))
-    (let* ((composite-query (if (or search status)
+    (let* ((composite-query (if (or search cstatus)
                                 (append base-query
                                         `(:where (:and ,@where-terms)))
                                 base-query))
            (final-query `(:order-by ,composite-query
                                     (:desc
-                                     ,(cond ((member status
+                                     ,(cond ((member cstatus
                                                      (list "quoted" nil) :test #'string=)
                                              'quote-date)
-                                            ((string= status "ongoing")
+                                            ((string= cstatus "ongoing")
                                              'start-date)
-                                            ((member status
+                                            ((member cstatus
                                                      (list "finished" "archived") :test #'string=)
                                              'end-date))))))
       (with-db ()
@@ -322,10 +322,10 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project ("admin/project")
-    ((id     integer chk-project-id)
-     (status string)
-     (search string)
-     (start  integer))
+    ((id      integer chk-project-id)
+     (cstatus string)
+     (search  string)
+     (start   integer))
   (with-view-page
     (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
@@ -345,19 +345,19 @@
                      (project-menu (val id)
                                    filter
                                    (if (val id)
-                                       '(:read)
+                                       '(:read :update)
                                        '(:read :details :update :delete)))
                      (display project-table
                               :key (val id)
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (project :status (val status)) (val search))
-                     (project-filters (val status) (val search)))
+                     (searchbox (project :cstatus (val cstatus)) (val search))
+                     (project-filters (val cstatus) (val search)))
                (footer)))))))
 
 (defpage project-page project/details ("admin/project/details")
     ((search  string)
-     (status  string)
+     (cstatus string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id)))
   (with-view-page
@@ -381,7 +381,7 @@
                      (:p :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
                                    filter
-                                   '(:details :create))
+                                   '(:details))
                      (display project-form :payload (get-record 'project (val id))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
@@ -403,15 +403,16 @@
 
 (defpage project-page project/create ("admin/project/create")
     ((search      string)
-     (company     string  chk-company-title*)
-     (description string  chk-project-description/create)
+     (cstatus     string)
+     (company     string chk-company-title*)
+     (description string chk-project-description/create)
      (location    string)
-     (price       float chk-amount*)
-     (vat         float chk-amount*)
+     (price       float  chk-amount*)
+     (vat         float  chk-amount*)
      (status      string)
-     (quote-date  date  (chk-quote-date quote-date status))
-     (start-date  date  (chk-start-date start-date status))
-     (end-date    date  (chk-end-date end-date status))
+     (quote-date  date   (chk-quote-date quote-date status))
+     (start-date  date   (chk-start-date start-date status))
+     (end-date    date   (chk-end-date end-date status))
      (notes       string))
   (with-view-page
     (let* ((filter (params->filter))
@@ -433,7 +434,7 @@
                                    filter
                                    '(:details :create :update :delete))
                      (notifications)
-                     (with-form (actions/project/create :search (val search))
+                     (with-form (actions/project/create :search (val search) :cstatus (val cstatus))
                        (display project-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
@@ -441,15 +442,16 @@
 (defpage project-page actions/project/create ("actions/admin/project/create"
                                               :request-type :post)
     ((search      string)
+     (cstatus     string)
      (company     string chk-company-title)
      (description string chk-project-description/create)
      (location    string)
-     (price       float chk-amount*)
-     (vat         float chk-amount*)
+     (price       float  chk-amount*)
+     (vat         float  chk-amount*)
      (status      string)
-     (quote-date  date  (chk-quote-date quote-date status))
-     (start-date  date  (chk-start-date start-date status))
-     (end-date    date  (chk-end-date end-date status))
+     (quote-date  date   (chk-quote-date quote-date status))
+     (start-date  date   (chk-start-date start-date status))
+     (end-date    date   (chk-end-date end-date status))
      (notes       string))
   (with-controller-page (project/create)
     (let* ((company-id (company-id (val company)))
@@ -465,7 +467,8 @@
                                        :status (val status)
                                        :notes (val notes))))
       (insert-dao new-project)
-      (see-other (project :id (project-id new-project) :status (val status))))))
+      (see-other (apply #'project :id (project-id new-project)
+                        (params->filter))))))
 
 
 
@@ -475,6 +478,7 @@
 
 (defpage project-page project/update ("admin/project/update")
     ((search      string)
+     (cstatus     string)
      (id          integer chk-project-id)
      (bill-id     integer (chk-bill-id id bill-id))
      (company     string  chk-company-title)
@@ -492,7 +496,7 @@
            (project-form (make-instance 'project-form
                                         :op :update
                                         :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter)))
+                                        :cancel-url (apply #'project/details :id (val id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :read
                                       :project-id (val id))))
@@ -528,6 +532,7 @@
 (defpage project-page actions/project/update ("actions/admin/project/update"
                                               :request-type :post)
     ((search      string)
+     (cstatus     string)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description id))
@@ -553,7 +558,8 @@
                         'status (val status)
                         'notes (val notes)
                         :where (:= 'id (val id))))
-      (see-other (project :id (val id) :status (val status))))))
+      (see-other (apply #'project/details :id (val id)
+                        (params->filter))))))
 
 
 
@@ -562,9 +568,9 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/delete ("admin/project/delete")
-    ((id     integer chk-project-id t)
-     (search string)
-     (status string))
+    ((id      integer chk-project-id t)
+     (search  string)
+     (cstatus string))
   (with-view-page ()
     (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
@@ -585,19 +591,19 @@
                                    '(:read :delete))
                      (with-form (actions/project/delete :id (val id)
                                                         :search (val search)
-                                                        :status (val status))
+                                                        :cstatus (val cstatus))
                        (display project-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (project :status (val status)) (val search))
-                     (project-filters (val status) (val search)))
+                     (searchbox (project :cstatus (val cstatus)) (val search))
+                     (project-filters (val cstatus) (val search)))
                (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/admin/project/delete"
                                                    :request-type :post)
-    ((id     integer chk-project-id)
-     (search string)
-     (status string))
+    ((id      integer chk-project-id)
+     (search  string)
+     (cstatus string))
   (with-controller-page (project/delete)
     (delete-dao (get-dao 'project (val id)))
-    (see-other (project :search (val search) :status (val status)))))
+    (see-other (apply #'project (params->filter)))))

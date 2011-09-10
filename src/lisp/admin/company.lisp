@@ -308,7 +308,7 @@
                      (company-menu (val id)
                                    filter
                                    (if (val id)
-                                       '(:read)
+                                       '(:read :update)
                                        '(:read :details :update :delete)))
                      (display company-table
                               :key (val id)
@@ -342,7 +342,7 @@
                      (:div :class "title" "Εταιρία » Λεπτομέρειες")
                      (company-menu (val id)
                                    filter
-                                   '(:details :create))
+                                   '(:details))
                      (display company-form))
                (:div :id "contact-window" :class "window grid_6"
                      (:div :class "title" "Επαφές")
@@ -455,7 +455,7 @@
            (company-form (make-instance 'company-form
                                         :op :update
                                         :record (get-record 'company (val id))
-                                        :cancel-url (apply #'company :id (val id) filter)))
+                                        :cancel-url (apply #'company/details :id (val id) filter)))
            (contact-table (make-instance 'contact-table
                                          :op :read
                                          :company-id (val id))))
