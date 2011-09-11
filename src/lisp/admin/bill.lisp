@@ -36,10 +36,10 @@
 
 (defmethod get-records ((table bill-table))
   (with-db ()
-    (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount
+    (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
                        :from 'bill
                        :where (:= 'project-id (project-id table)))
-                      'tag)
+                      'rank)
            :plists)))
 
 
@@ -87,24 +87,61 @@
 ;;; ------------------------------------------------------------
 
 (defun bill-menu (id bill-id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'project/details
-                                         :id id
-                                         :bill-id bill-id
-                                         filter)
-                                  (apply #'bill/create
-                                         :id id
-                                         filter)
-                                  (apply #'bill/update
-                                         :id id
-                                         :bill-id bill-id
-                                         filter)
-                                  (apply #'bill/delete
-                                         :id id
-                                         :bill-id bill-id
-                                         filter))
-               :id "bill-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+  (with-html
+    (menu `((:create ,(html ()
+                        (:a :class "create"
+                            :href (apply #'bill/create :id id filter)
+                            "Δημιουργία")))
+            (:update ,(html ()
+                        (:a :class "update"
+                            :href (apply #'bill/update :id id :bill-id bill-id filter)
+                            "Επεξεργασία")))
+            (:delete ,(html ()
+                        (:a :class "delete"
+                            :href (apply #'bill/delete :id id :bill-id bill-id filter)
+                            "Διαγραφή")))
+            (:rank-inc ,(make-instance 'form
+                                       :action (action/bill/rank-inc)
+                                       :reqtype :post
+                                       :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                                       :body (make-instance 'submit
+                                                            :body "Πάνω" :css-class "up")))
+            (:rank-dec ,(make-instance 'form
+                                       :action (action/bill/rank-dec)
+                                       :reqtype :post
+                                       :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                                       :body (make-instance 'submit
+                                                            :body "Κάτω" :css-class "down"))))
+          :css-class "hmenu actions"
+          :disabled disabled)))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; RANKS
+;;; ----------------------------------------------------------------------
+
+(defpage bill-page action/bill/rank-inc ("action/bill/rank-inc" :request-type :post)
+    ((search  string)
+     (cstatus string)
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t))
+  (with-controller-page nil
+    (swap-ranks (get-dao 'bill (val bill-id)) +1)
+    (see-other (apply #'project/details :id (val id)
+                                        :bill-id (val bill-id)
+                                        (params->filter)))))
+
+(defpage bill-page action/bill/rank-dec ("action/bill/rank-dec" :request-type :post)
+    ((search  string)
+     (cstatus string)
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t))
+  (with-controller-page nil
+    (swap-ranks (get-dao 'bill (val bill-id)) -1)
+    (see-other (apply #'project/details :id (val id)
+                                        :bill-id (val bill-id)
+                                        (params->filter)))))
 
 
 
@@ -146,23 +183,25 @@
                      (bill-menu (val id)
                                 nil
                                 filter
-                                '(:create :update :delete))
+                                '(:create :update :delete :rank-inc :rank-dec))
                      (with-form (actions/bill/create :id (val id))
-                       (display bill-table)))
+                       (display bill-table))
+                     (footer))
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create"
                                         :request-type :post)
-    ((search string)
+    ((search  string)
      (cstatus string)
-     (id     integer chk-project-id)
-     (tag    string)
-     (amount float   chk-amount*))
+     (id      integer chk-project-id)
+     (tag     string)
+     (amount  float   chk-amount*))
   (with-controller-page (bill/create)
     (let ((new-bill (make-instance 'bill
                                    :project-id (val id)
                                    :tag (val tag)
                                    :amount (val amount))))
+      (setf (rank new-bill) (1+ (max-rank new-bill)))
       (insert-dao new-bill)
       (see-other (apply #'project/details :id (val id) :bill-id (bill-id new-bill)
                         (params->filter))))))
@@ -174,12 +213,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/update ("project/details/bill/update")
-    ((search  string)
+    ((search   string)
      (cstatus  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t)
-     (tag     string)
-     (amount  float   chk-amount*))
+     (id       integer chk-project-id           t)
+     (bill-id  integer (chk-bill-id id bill-id) t)
+     (tag      string)
+     (amount   float   chk-amount*))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -208,7 +247,7 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                '(:read :update))
+                                '(:update :rank-inc :rank-dec))
                      (with-form (actions/bill/update :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))
@@ -269,7 +308,7 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                '(:read :delete))
+                                '(:delete :rank-inc :rank-dec))
                      (with-form (actions/bill/delete :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))
@@ -282,6 +321,9 @@
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id) t))
   (with-controller-page (bill/delete)
-    (delete-dao (get-dao 'bill (val bill-id)))
+    (with-transaction ()
+      (let ((dao  (get-dao 'bill (val bill-id))))
+        (shift-higher-rank-daos dao -1)
+        (delete-dao dao)))
     (see-other (apply #'project/details :id (val id)
                       (params->filter)))))

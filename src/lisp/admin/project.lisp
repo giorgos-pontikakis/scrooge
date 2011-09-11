@@ -388,9 +388,9 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                (if (val bill-id)
+                                (if (suppliedp bill-id)
                                     '(:read)
-                                    '(:read :update :delete)))
+                                    '(:read :update :delete :rank-inc :rank-dec)))
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))

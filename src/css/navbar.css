@@ -88,6 +88,28 @@
     line-height: 26px;
 }
 
+.hmenu li form {
+    display: inline;
+    line-height: 26px;
+}
+
+.hmenu li button {
+    border: none;
+    color: #001122;
+    padding: 0px 12px 0px 15px;
+}
+
+.hmenu li button:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.hmenu li button:disabled {
+    color: grey;
+    text-decoration: none;
+    cursor: default;
+}
+
 .hmenu li a {
     line-height: 26px;
     color: #001122;
