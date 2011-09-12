@@ -87,33 +87,39 @@
 ;;; ------------------------------------------------------------
 
 (defun contact-menu (id contact-id filter &optional disabled)
-  (with-html
-    (menu `((:create ,(html ()
-                        (:a :class "create"
-                            :href (apply #'contact/create :id id filter)
-                            "Δημιουργία")))
-            (:update ,(html ()
-                        (:a :class "update"
-                            :href (apply #'contact/update :id id :contact-id contact-id filter)
-                            "Επεξεργασία")))
-            (:delete ,(html ()
-                        (:a :class "delete"
-                            :href (apply #'contact/delete :id id :contact-id contact-id filter)
-                            "Διαγραφή")))
-            (:rank-up ,(make-instance 'form
-                                       :action (action/contact/rank-dec)
-                                       :reqtype :post
-                                       :hidden `(:id ,id :contact-id ,contact-id ,@filter)
-                                       :body (make-instance 'submit
-                                                            :body "Πάνω" :css-class "up")))
-            (:rank-down ,(make-instance 'form
-                                       :action (action/contact/rank-inc)
-                                       :reqtype :post
-                                       :hidden `(:id ,id :contact-id ,contact-id ,@filter)
-                                       :body (make-instance 'submit
-                                                            :body "Κάτω" :css-class "down"))))
-          :css-class "hmenu actions"
-          :disabled disabled)))
+  (if (every (lambda (i)
+               (member i disabled))
+             '(:create :update :delete :rank-up :rank-down))
+      (with-html
+        (:div :class "hmenu actions"
+              (:p :class "invisible" "No available action.")))
+      (with-html
+        (menu `((:create ,(html ()
+                            (:a :class "create"
+                                :href (apply #'contact/create :id id filter)
+                                "Δημιουργία")))
+                (:update ,(html ()
+                            (:a :class "update"
+                                :href (apply #'contact/update :id id :contact-id contact-id filter)
+                                "Επεξεργασία")))
+                (:delete ,(html ()
+                            (:a :class "delete"
+                                :href (apply #'contact/delete :id id :contact-id contact-id filter)
+                                "Διαγραφή")))
+                (:rank-up ,(make-instance 'form
+                                          :action (action/contact/rank-dec)
+                                          :reqtype :post
+                                          :hidden `(:id ,id :contact-id ,contact-id ,@filter)
+                                          :body (make-instance 'submit
+                                                               :body "Πάνω" :css-class "up")))
+                (:rank-down ,(make-instance 'form
+                                            :action (action/contact/rank-inc)
+                                            :reqtype :post
+                                            :hidden `(:id ,id :contact-id ,contact-id ,@filter)
+                                            :body (make-instance 'submit
+                                                                 :body "Κάτω" :css-class "down"))))
+              :css-class "hmenu actions"
+              :disabled disabled))))
 
 
 
@@ -124,22 +130,22 @@
 (defpage contact-page action/contact/rank-inc ("action/contact/rank-inc" :request-type :post)
     ((search     string)
      (cstatus    string)
-     (id         integer chk-project-id                 t)
+     (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
   (with-controller-page nil
     (swap-ranks (get-dao 'contact (val contact-id)) +1)
-    (see-other (apply #'project/details :id (val id)
+    (see-other (apply #'company/details :id (val id)
                                         :contact-id (val contact-id)
                                         (params->filter)))))
 
 (defpage contact-page action/contact/rank-dec ("action/contact/rank-dec" :request-type :post)
     ((search     string)
      (cstatus    string)
-     (id         integer chk-project-id                 t)
+     (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
   (with-controller-page nil
     (swap-ranks (get-dao 'contact (val contact-id)) -1)
-    (see-other (apply #'project/details :id (val id)
+    (see-other (apply #'company/details :id (val id)
                                         :contact-id (val contact-id)
                                         (params->filter)))))
 

@@ -125,7 +125,7 @@ select[disabled] {
 }
 
 .invisible {
-    display: none;
+    visibility: hidden;
 }
 
 .inline {

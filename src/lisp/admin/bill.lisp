@@ -18,7 +18,12 @@
     :initform '(search cstatus))
    (allowed-groups
     :allocation :class
-    :initform '("user" "admin"))))
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform '((amount (:non-positive-amount  "Το κόστος πρέπει να είναι θετικός αριθμός"
+                         :parse-error  "Το κόστος περιέχει άκυρους χαρακτήρες"))))))
 
 
 
@@ -87,33 +92,39 @@
 ;;; ------------------------------------------------------------
 
 (defun bill-menu (id bill-id filter &optional disabled)
-  (with-html
-    (menu `((:create ,(html ()
-                        (:a :class "create"
-                            :href (apply #'bill/create :id id filter)
-                            "Δημιουργία")))
-            (:update ,(html ()
-                        (:a :class "update"
-                            :href (apply #'bill/update :id id :bill-id bill-id filter)
-                            "Επεξεργασία")))
-            (:delete ,(html ()
-                        (:a :class "delete"
-                            :href (apply #'bill/delete :id id :bill-id bill-id filter)
-                            "Διαγραφή")))
-            (:rank-up ,(make-instance 'form
-                                       :action (action/bill/rank-dec)
-                                       :reqtype :post
-                                       :hidden `(:id ,id :bill-id ,bill-id ,@filter)
-                                       :body (make-instance 'submit
-                                                            :body "Πάνω" :css-class "up")))
-            (:rank-down ,(make-instance 'form
-                                       :action (action/bill/rank-inc)
-                                       :reqtype :post
-                                       :hidden `(:id ,id :bill-id ,bill-id ,@filter)
-                                       :body (make-instance 'submit
-                                                            :body "Κάτω" :css-class "down"))))
-          :css-class "hmenu actions"
-          :disabled disabled)))
+  (if (every (lambda (i)
+               (member i disabled))
+             '(:create :update :delete :rank-up :rank-down))
+      (with-html
+        (:div :class "hmenu actions"
+              (:p :class "invisible" "No available action.")))
+      (with-html
+        (menu `((:create ,(html ()
+                            (:a :class "create"
+                                :href (apply #'bill/create :id id filter)
+                                "Δημιουργία")))
+                (:update ,(html ()
+                            (:a :class "update"
+                                :href (apply #'bill/update :id id :bill-id bill-id filter)
+                                "Επεξεργασία")))
+                (:delete ,(html ()
+                            (:a :class "delete"
+                                :href (apply #'bill/delete :id id :bill-id bill-id filter)
+                                "Διαγραφή")))
+                (:rank-up ,(make-instance 'form
+                                          :action (action/bill/rank-dec)
+                                          :reqtype :post
+                                          :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                                          :body (make-instance 'submit
+                                                               :body "Πάνω" :css-class "up")))
+                (:rank-down ,(make-instance 'form
+                                            :action (action/bill/rank-inc)
+                                            :reqtype :post
+                                            :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                                            :body (make-instance 'submit
+                                                                 :body "Κάτω" :css-class "down"))))
+              :css-class "hmenu actions"
+              :disabled disabled))))
 
 
 
@@ -184,9 +195,10 @@
                                 nil
                                 filter
                                 '(:create :update :delete :rank-up :rank-down))
+                     (notifications)
                      (with-form (actions/bill/create :id (val id))
-                       (display bill-table))
-                     (footer))
+                       (display bill-table
+                                :payload (params->payload))))
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
@@ -249,7 +261,8 @@
                                 '(:update :rank-up :rank-down))
                      (with-form (actions/bill/update :id (val id)
                                                      :bill-id (val bill-id))
-                       (display bill-table :key (val bill-id))))
+                       (display bill-table :key (val bill-id)
+                                           :payload (params->payload))))
                (footer)))))))
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
