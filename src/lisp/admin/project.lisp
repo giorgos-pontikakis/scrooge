@@ -242,7 +242,7 @@
 ;;; table
 
 (defclass project-table (scrooge-table)
-  ((header-labels  :initform '("" "Περιγραφή" "Τοποθεσία" "Εταιρία"))
+  ((header-labels  :initform '("" "Περιγραφή" "Εταιρία" "Τιμή"))
    (paginator      :initform (make-instance 'project-paginator
                                             :id "project-paginator"
                                             :css-class "paginator")))
@@ -251,7 +251,7 @@
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
          (cstatus (getf (filter table) :cstatus))
-         (base-query `(:select project.id project.description location project.notes
+         (base-query `(:select project.id project.description project.notes price
                                (:as company.id company-id) (:as company.title company)
                                :from project
                                :left-join 'company
@@ -260,7 +260,7 @@
     (when search
       (push `(:or (:ilike project.description ,(ilike search))
                   (:ilike company.title ,(ilike search))
-                  (:ilike project.location ,(ilike search))
+                  (:ilike project.price ,(ilike search))
                   (:ilike project.notes ,(ilike search)))
             where-terms))
     (when cstatus
@@ -298,16 +298,14 @@
 
 (defmethod payload ((row project-row) enabled-p)
   (let ((record (record row)))
-    (append (mapcar (lambda (name)
-                      (make-instance 'textbox
-                                     :name name
-                                     :value (getf record (make-keyword name))
-                                     :disabled (not enabled-p)))
-                    '(description location))
-            (list
-             (html ()
-               (:a :href (company/details :id (getf record :company-id))
-                   (str (getf record :company))))))))
+    (list
+     (html ()
+       (str (lisp->html (getf record :description))))
+     (html ()
+       (:a :href (company/details :id (getf record :company-id))
+           (str (getf record :company))))
+     (html ()
+       (str (lisp->html (getf record :price)))))))
 
 
 ;;; paginator
