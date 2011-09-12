@@ -2,100 +2,62 @@
 
 
 
-;;; --------------------------------------------------------------------------------
+;;; ----------------------------------------------------------------------
+;;; Page family
+;;; ----------------------------------------------------------------------
+
+(defclass company-page (dynamic-page page-family-mixin)
+  ((system-parameter-names
+    :allocation :class
+    :initform '(id))
+   (payload-parameter-names
+    :allocation :class
+    :initform '(date company description debit-account credit-account amount))
+   (filter-parameter-names
+    :allocation :class
+    :initform '(search))
+   (allowed-groups
+    :allocation :class
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform
+    '((company
+       (:company-title-unknown
+        "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+      (amount
+       (:non-positive-amount
+        "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
+        :parse-error
+        "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+      (debit-account
+       (:account-title-null
+        "Ο λογαριασμός χρέωσης είναι κενός"
+        :account-title-unknown
+        "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
+      (credit-account
+       (:account-title-null
+        "Ο λογαριασμός πίστωσης είναι κενός"
+        :account-title-unknown
+        "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
+      (date
+       (:parse-error
+        "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
+
+
+
+;;; ----------------------------------------------------------------------
 ;;; Validation
-;;; --------------------------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 
 (define-existence-predicate tx-id-exists-p tx id)
-(define-uniqueness-predicate tx-description-unique-p tx description id)
+(define-existence-predicate* tx-description-exists-p tx description id)
 
 (defun chk-tx-id (id)
   (if (tx-id-exists-p id)
       nil
       :tx-id-unknown))
-
-
-
-;;; --------------------------------------------------------------------------------
-;;; Actions
-;;; --------------------------------------------------------------------------------
-
-(defpage dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
-                                                           :request-type :post)
-    ((search         string)
-     (date           date)
-     (description    string)
-     (company        string  chk-company-title*)
-     (amount         float   chk-amount)
-     (debit-account  string  chk-acc-title-nc)
-     (credit-account string  chk-acc-title-nc))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
-               (debit-acc-id (account-id (val debit-account)))
-               (credit-acc-id (account-id (val credit-account)))
-               (new-tx (make-instance 'tx
-                                      :tx-date (val date)
-                                      :description (val description)
-                                      :company-id company-id
-                                      :amount (val amount)
-                                      :credit-acc-id credit-acc-id
-                                      :debit-acc-id debit-acc-id)))
-          (with-db ()
-            (insert-dao new-tx)
-            (see-other (transaction :id (id new-tx) :search (val search)))))
-        (see-other (transaction/create :date (raw date)
-                                       :description (raw description)
-                                       :company (raw company)
-                                       :amount (raw amount)
-                                       :debit-account (raw debit-account)
-                                       :credit-account (raw credit-account))))))
-
-(defpage dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
-                                                           :request-type :post)
-    ((search         string)
-     (id             integer chk-tx-id t)
-     (date           date)
-     (description    string)
-     (company        string  chk-company-title*)
-     (amount         float   chk-amount)
-     (debit-account  string  chk-acc-title-nc)
-     (credit-account string  chk-acc-title-nc))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (every #'validp (parameters *page*))
-        (let ((company-id (company-id (val company))) ;; using val (accept null values)
-              (debit-acc-id (account-id (val debit-account)))
-              (credit-acc-id (account-id (val credit-account))))
-          (with-db ()
-            (execute (:update 'tx :set
-                              'tx-date (val date)
-                              'description (val description)
-                              'company-id company-id
-                              'amount (val amount)
-                              'debit-acc-id debit-acc-id
-                              'credit-acc-id credit-acc-id
-                              :where (:= 'id (val id))))
-            (see-other (transaction :id (val id)))))
-        (see-other (transaction/update :search (raw search)
-                                       :id (raw id)
-                                       :date (raw date)
-                                       :description (raw description)
-                                       :company (raw company)
-                                       :amount (raw amount)
-                                       :debit-account (raw debit-account)
-                                       :credit-account (raw credit-account))))))
-
-(defpage dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
-                                                           :request-type :post)
-    ((id     integer chk-tx-id t)
-     (search string))
-  (if (validp id)
-      (with-db ()
-        (delete-dao (get-dao 'tx (val id)))
-        (see-other (transaction :search (val search))))
-      (see-other (notfound))))
 
 
 
@@ -115,14 +77,7 @@
 
 (defun transaction-notifications ()
   (notifications
-   '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-     (debit-account (:account-title-null "Ο λογαριασμός χρέωσης είναι κενός"
-                     :account-title-unknown "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
-     (credit-account (:account-title-null "Ο λογαριασμός πίστωσης είναι κενός"
-                      :account-title-unknown "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
-     (date (:parse-error "Η ημερομηνία της συναλλαγής είναι άκυρη")))))
+   ))
 
 
 
@@ -192,7 +147,11 @@
 (defclass tx-row (scrooge-row/plist)
   ())
 
-(define-selector tx-row transaction)
+(defmethod selector ((row tx-row) selected-p)
+  (simple-selector row selected-p #'transaction))
+
+(defmethod controls ((row tx-row) controls-p)
+  (simple-controls row controls-p #'transaction))
 
 (defmethod payload ((row tx-row) enabled-p)
   (let ((record (record row)))
@@ -203,46 +162,108 @@
                              :disabled (not enabled-p)))
             '(date company description amount))))
 
-(define-controls tx-row transaction)
 
 
 ;;; ----------------------------------------------------------------------
-;;; Pages
+;;; Transaction form
+;;; ----------------------------------------------------------------------
+
+(defclass tx-form (crud-form/plist)
+  ())
+
+(defmethod display ((form tx-form) &key styles)
+           (let ((disabled (eql (op form) :details))
+                 (record (record form)))
+             (flet ((label-input-text (name label &optional extra-styles)
+                      (with-html
+                        (label name label)
+                        (input-text name
+                                    :value (getf record (make-keyword name))
+                                    :disabled disabled
+                                    :css-class (conc (getf styles (make-keyword name))
+                                                     " " extra-styles)))))
+               (with-html
+                 (:div :class "data-form tx-form"
+                       (label-input-text 'date "Ημερομηνία" "datepicker")
+                       (label-input-text 'company "Εταιρία" "ac-company")
+                       (label-input-text 'description "Περιγραφή")
+                       (label-input-text 'debit-account-nonchequing "Λογαριασμός χρέωσης"
+                                         "ac-nonchequing-account")
+                       (label-input-text 'credit-account-nonchequing "Λογαριασμός πίστωσης"
+                                         "ac-nonchequing-account")
+                       (label-input-text 'amount "Ποσόν"))
+                 (:div :class "data-form-buttons"
+                       (if disabled
+                           (cancel-button (cancel-url form)
+                                          :body "Επιστροφή στον Κατάλογο Συναλλαγών")
+                           (progn
+                             (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                             (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; VIEW
 ;;; ----------------------------------------------------------------------
 
 (defpage dynamic-page transaction ("financial/transaction")
     ((id     integer chk-tx-id)
      (search string)
      (start  integer))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let* ((filter (params->payload search))
-               (tx-table (make-instance 'tx-table
-                                        :op :read
-                                        :filter filter)))
-          (with-document ()
-            (:head
-             (:title "Συναλλαγές")
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'transaction)
-                   (:div :class "window grid_10"
-                         (:div :class "title" "Συναλλαγές » Κατάλογος")
-                         (transaction-menu (val id)
-                                           filter
-                                           (if (val id)
-                                               '(:read)
-                                               '(:read :details :update :delete)))
-                         (display tx-table
-                                  :selected-id (val id)
-                                  :start (val start)))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         (searchbox (transaction) (val search)))
-                   (footer)))))
-        (see-other (notfound)))))
+  (with-view-page
+    (let* ((filter (params->filter))
+           (tx-table (make-instance 'tx-table
+                                    :op :read
+                                    :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγές")
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'transaction)
+               (:div :class "window grid_10"
+                     (:div :class "title" "Συναλλαγές » Κατάλογος")
+                     (transaction-menu (val id)
+                                       filter
+                                       (if (val id)
+                                           '(:read)
+                                           '(:read :details :update :delete)))
+                     (display tx-table
+                              :selected-id (val id)
+                              :start (val start)))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (transaction) (val search)))
+               (footer)))))))
+
+(defpage dynamic-page transaction/details ("financial/transaction/details")
+    ((search     string)
+     (id         integer chk-tx-id t))
+  (with-view-page
+    (let ((filter (params->filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγή » Λεπτομέρειες")
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'transaction)
+               (:div :class "window grid_12"
+                     (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
+                     (transaction-menu (val id)
+                                       filter
+                                       '(:details :create))
+                     (display transaction-form :payload (tx-record (val id))))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     "")))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; CREATE
+;;; ----------------------------------------------------------------------
 
 (defpage dynamic-page transaction/create ("financial/transaction/create")
     ((search         string)
@@ -252,9 +273,8 @@
      (amount         float   chk-amount)
      (debit-account  string  chk-acc-title-nc)
      (credit-account string  chk-acc-title-nc))
-  (with-auth ("configuration")
-    (no-cache)
-    (let ((filter (params->payload search)))
+  (with-view-page
+    (let ((filter (params->filter)))
       (with-document ()
         (:head
          (:title "Συναλλαγές » Δημιουργία")
@@ -270,21 +290,38 @@
                                        '(:details :create :update :delete))
                      (transaction-notifications)
                      (with-form (actions/financial/transaction/create)
-                       (transaction-data-form :create
-                                              :filter filter
-                                              :data (params->payload date
-                                                                       company
-                                                                       description
-                                                                       debit-account
-                                                                       credit-account
-                                                                       amount)
-                                              :styles (params->styles date
-                                                                          company
-                                                                          description
-                                                                          debit-account
-                                                                          credit-account
-                                                                          amount))))
+                       (display transaction-form :payload (params->payload)
+                                                 :styles (params->styles))))
                (footer)))))))
+
+(defpage dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
+                                                           :request-type :post)
+    ((search         string)
+     (date           date)
+     (description    string)
+     (company        string  chk-company-title*)
+     (amount         float   chk-amount)
+     (debit-account  string  chk-acc-title-nc)
+     (credit-account string  chk-acc-title-nc))
+  (with-controller-page (transaction/create)
+    (let* ((company-id (company-id (val company)))
+           (debit-acc-id (account-id (val debit-account)))
+           (credit-acc-id (account-id (val credit-account)))
+           (new-tx (make-instance 'tx
+                                  :tx-date (val date)
+                                  :description (val description)
+                                  :company-id company-id
+                                  :amount (val amount)
+                                  :credit-acc-id credit-acc-id
+                                  :debit-acc-id debit-acc-id)))
+      (insert-dao new-tx)
+      (see-other (transaction :id (id new-tx) :search (val search))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; UPDATE
+;;; ----------------------------------------------------------------------
 
 (defpage dynamic-page transaction/update ("financial/transaction/update")
     ((search         string)
@@ -295,131 +332,93 @@
      (amount         float   chk-amount)
      (debit-account  string  chk-acc-title-nc)
      (credit-account string  chk-acc-title-nc))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let ((filter (params->payload search)))
-          (with-document ()
-            (:head
-             (:title "Συναλλαγή » Επεξεργασία")
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'transaction)
-                   (:div :class "window grid_12"
-                         (:div :class "title" "Συναλλαγή » Επεξεργασία")
-                         (transaction-menu (val id)
-                                           filter
-                                           '(:create :update))
-                         (transaction-notifications)
-                         (with-form (actions/financial/transaction/update :id (val id)
-                                                                          :search (val search))
-                           (transaction-data-form :update
-                                                  :id (val id)
-                                                  :filter filter
-                                                  :data (plist-union
-                                                         (params->payload date
-                                                                            company
-                                                                            description
-                                                                            debit-account
-                                                                            credit-account
-                                                                            amount)
-                                                         (tx-record (val id)))
-                                                  :styles (params->styles date
-                                                                              company
-                                                                              description
-                                                                              debit-account
-                                                                              credit-account
-                                                                              amount))))
-                   (footer)))))
-        (see-other (notfound)))))
+  (with-view-page
+    (let ((filter (params->filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγή » Επεξεργασία")
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'transaction)
+               (:div :class "window grid_12"
+                     (:div :class "title" "Συναλλαγή » Επεξεργασία")
+                     (transaction-menu (val id)
+                                       filter
+                                       '(:create :update))
+                     (transaction-notifications)
+                     (with-form (actions/financial/transaction/update :id (val id)
+                                                                      :search (val search))
+                       (transaction-data-form :update
+                                              :id (val id)
+                                              :filter filter
+                                              :data (params->payload)
+                                              :styles (params->styles))))
+               (footer)))))))
 
-(defpage dynamic-page transaction/details ("financial/transaction/details")
-    ((search     string)
-     (id         integer chk-tx-id t))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let ((filter (params->payload search)))
-          (with-document ()
-            (:head
-             (:title "Συναλλαγή » Λεπτομέρειες")
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'transaction)
-                   (:div :class "window grid_12"
-                         (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
-                         (transaction-menu (val id)
-                                           filter
-                                           '(:details :create))
-                         (transaction-data-form :details
-                                                :filter filter
-                                                :id (val id)
-                                                :data (tx-record (val id))))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         "")
-                   (error-page)))))
-        (see-other (notfound)))))
+(defpage dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
+                                                           :request-type :post)
+    ((search         string)
+     (id             integer chk-tx-id t)
+     (date           date)
+     (description    string)
+     (company        string  chk-company-title*)
+     (amount         float   chk-amount)
+     (debit-account  string  chk-acc-title-nc)
+     (credit-account string  chk-acc-title-nc))
+  (with-controller-page (transaction/update)
+    (let ((company-id (company-id (val company)))
+          (debit-acc-id (account-id (val debit-account)))
+          (credit-acc-id (account-id (val credit-account))))
+      (execute (:update 'tx :set
+                        'tx-date (val date)
+                        'description (val description)
+                        'company-id company-id
+                        'amount (val amount)
+                        'debit-acc-id debit-acc-id
+                        'credit-acc-id credit-acc-id
+                        :where (:= 'id (val id))))
+      (see-other (transaction :id (val id))))))
+
+
+
+;;; -----------------------------------------------------------------------
+;;; DELETE
+;;; -----------------------------------------------------------------------
 
 (defpage dynamic-page transaction/delete ("financial/transaction/delete")
     ((id     integer chk-tx-id t)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (if (validp id)
-        (let* ((filter (params->payload search))
-               (tx-table (make-instance 'tx-table
-                                        :op :delete
-                                        :filter filter)))
-          (with-document ()
-            (:head
-             (:title "Συναλλαγή » Διαγραφή")
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'transaction)
-                   (:div :class "window grid_10"
-                         (:div :class "title" "Συναλλαγή » Διαγραφή")
-                         (transaction-menu (val id)
-                                           filter
-                                           '(:create :delete))
-                         (with-form (actions/financial/transaction/delete :id (val id)
-                                                                          :search (val search))
-                           (display tx-table :selected-id (val id))))
-                   (:div :id "sidebar" :class "sidebar `grid_2"
-                         (searchbox (transaction) (val search)))
-                   (footer)))))
-        (see-other (notfound)))))
+  (with-view-page
+    (let* ((filter (params->filter))
+           (tx-table (make-instance 'tx-table
+                                    :op :delete
+                                    :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγή » Διαγραφή")
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'transaction)
+               (:div :class "window grid_10"
+                     (:div :class "title" "Συναλλαγή » Διαγραφή")
+                     (transaction-menu (val id)
+                                       filter
+                                       '(:create :delete))
+                     (with-form (actions/financial/transaction/delete :id (val id)
+                                                                      :search (val search))
+                       (display tx-table :selected-id (val id))))
+               (:div :id "sidebar" :class "sidebar `grid_2"
+                     (searchbox (transaction) (val search)))
+               (footer)))))))
 
-(defun transaction-data-form (op &key filter id data styles)
-  (let ((disabled (eql op :details)))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf data (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :id "transaction-data-form" :class "data-form"
-              (:div :id "transaction-description" :class "grid_12 alpha"
-                    (label-input-text 'date "Ημερομηνία" "datepicker")
-                    (label-input-text 'company "Εταιρία" "ac-company")
-                    (label-input-text 'description "Περιγραφή")
-                    (label-input-text 'debit-account-nonchequing "Λογαριασμός χρέωσης"
-                                      "ac-nonchequing-account")
-                    (label-input-text 'credit-account-nonchequing "Λογαριασμός πίστωσης"
-                                      "ac-nonchequing-account")
-                    (label-input-text 'amount "Ποσόν")))
-        (:div :class "grid_12 data-form-buttons"
-              (if disabled
-                  (cancel-button (apply #'transaction :id id filter)
-                                 :body "Επιστροφή στον Κατάλογο Συναλλαγών")
-                  (progn
-                    (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (apply #'transaction :id id filter) :body "Άκυρο"))))))))
+(defpage dynamic-page actions/financial/tx/delete ("actions/financial/transaction/delete"
+                                                           :request-type :post)
+    ((id     integer chk-tx-id t)
+     (search string))
+  (with-controller-page (tx/delete)
+    (delete-dao (get-dao 'tx (val id)))
+    (see-other (transaction :search (val search)))))

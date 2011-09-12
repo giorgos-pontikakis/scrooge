@@ -31,8 +31,8 @@
                (:file "admin/project")
                (:file "admin/bill")
                ;; ;; financial
-               ;; (:file "financial/financial")
-               ;; (:file "financial/tx")
+               (:file "financial/financial")
+               (:file "financial/tx")
                ;; (:file "financial/cheque")
                ;; (:file "financial/account")
                ;; (:file "financial/cash")

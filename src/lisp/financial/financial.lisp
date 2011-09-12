@@ -5,10 +5,10 @@
 
 (defun financial-navbar (active)
   (navbar `((transaction ,(transaction)          "Συναλλαγές")
-            (invoice     ,(invoice "receivable") "Τιμολόγια")
-            (cash        ,(cash "revenue")       "Μετρητά")
-            (cheque      ,(cheque "receivable")  "Επιταγές")
-            (account     ,(account/overview)     "Λογαριασμοί"))
+            #|(invoice     ,(invoice "receivable") "Τιμολόγια")|#
+            #|(cash        ,(cash "revenue")       "Μετρητά")|#
+            #|(cheque      ,(cheque "receivable")  "Επιταγές")|#
+            #|(account     ,(account/overview)     "Λογαριασμοί")|#)
           :css-class "section-navbar hnavbar grid_12"
           :active active))
 
@@ -16,9 +16,8 @@
 
 ;;; main page
 
-(defpage dynamic-page financial ("financial/") ()
-  (with-auth ("configuration")
-    (no-cache)
+(defpage root-page financial ("financial/") ()
+  (with-view-page
     (with-document ()
       (:head
        (:title "Οικονομικά")

@@ -17,7 +17,7 @@
   (with-view-page
     (with-document ()
       (:head
-       (:title "Οικονομικά")
+       (:title "Διαχείριση")
        (global-headers))
       (:body
        (:div :id "container" :class "container_12"

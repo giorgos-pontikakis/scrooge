@@ -395,10 +395,6 @@
                      (with-form (actions/company/create :search (val search))
                        (display company-form :payload (params->payload)
                                              :styles (params->styles))))
-               #|(:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές")
-                     (:div :class "hmenu actions"
-                           (:p "Προς το παρόν δεν μπορείτε να δημιουργήσετε επαφές.<br />Ολοκληρώστε πρώτα τη δημιουργία της εταιρίας.")))|#
                (footer)))))))
 
 (defpage company-page actions/company/create ("actions/admin/company/create"
