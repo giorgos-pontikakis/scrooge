@@ -1,0 +1,15 @@
+* FUNCTIONALITY
+** IMPROVEMENTS
+*** Projects should not be archivable without a price
+*** Links from project catalogue to company catalogue and vice versa
+*** Create-company-link from create-project page
+*** Autocomplete in older entries, e.g. occupation for companies
+*** Mark chequing accounts specially (asterisk?)
+* CODE
+** IDEAS
+*** Ιδιαίτερος συμβολισμός για ό,τι χρησιμοποιεί *page* ή *parameters*
+*** Transfer params->plist and page-family stuff to mortar
+** CHECKS
+*** Check daos in accounts
+** IMPROVEMENTS
+*** Introduce styles for brick collections, just like forms
