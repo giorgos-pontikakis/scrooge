@@ -189,8 +189,7 @@
                      (footer))
                (footer)))))))
 
-(defpage bill-page actions/bill/create ("actions/bill/create"
-                                        :request-type :post)
+(defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
     ((search  string)
      (cstatus string)
      (id      integer chk-project-id)

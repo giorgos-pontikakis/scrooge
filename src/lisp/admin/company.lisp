@@ -351,7 +351,7 @@
                                    filter
                                    (if (val contact-id)
                                        '(:read)
-                                       '(:read :update :delete)))
+                                       '(:read :update :delete :rank-up :rank-down)))
                      (display contact-table
                               :key (val contact-id)))
                (footer)))))))
