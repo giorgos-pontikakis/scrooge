@@ -51,3 +51,10 @@
             (write-json (coerce results 'vector)))
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
             "[]")))))
+
+;; (defpage root-page autocomplete/occupation ("autocomplete/occupation"
+;;                                             :content-type "text/plain"
+;;                                             :system-parameter-names '(term))
+;;     ((term string nil t))
+;;   (with-xhr-page (autocomplete-xhr-auth-error)
+;;     (let ((results (query (:select :distinct)))))))

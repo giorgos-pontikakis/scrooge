@@ -1,9 +1,7 @@
 * FUNCTIONALITY
 ** IMPROVEMENTS
 *** Projects should not be archivable without a price
-*** Links from project catalogue to company catalogue and vice versa
 *** Create-company-link from create-project page
-*** Autocomplete in older entries, e.g. occupation for companies
 *** Mark chequing accounts specially (asterisk?)
 * CODE
 ** IDEAS

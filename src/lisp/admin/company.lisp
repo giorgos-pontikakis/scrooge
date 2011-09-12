@@ -165,8 +165,7 @@
                     (label-input-text 'title "Επωνυμία" "ac-company"))
               (:fieldset
                (:legend "Φορολογικά στοιχεία")
-               (label-input-text 'occupation
-                                 "Επάγγελμα")
+               (label-input-text 'occupation "Επάγγελμα" "ac-occupation")
                (:div :id "tin"
                      (label-input-text 'tin "Α.Φ.Μ."))
                (:div :id "tof-div"

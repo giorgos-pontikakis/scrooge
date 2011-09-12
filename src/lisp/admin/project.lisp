@@ -251,9 +251,8 @@
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
          (cstatus (getf (filter table) :cstatus))
-         (base-query `(:select project.id (:as company.title company)
-                               project.description location
-                               project.notes
+         (base-query `(:select project.id project.description location project.notes
+                               (:as company.id company-id) (:as company.title company)
                                :from project
                                :left-join 'company
                                :on (:= project.company-id company.id)))
@@ -299,12 +298,16 @@
 
 (defmethod payload ((row project-row) enabled-p)
   (let ((record (record row)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled (not enabled-p)))
-            '(description location company))))
+    (append (mapcar (lambda (name)
+                      (make-instance 'textbox
+                                     :name name
+                                     :value (getf record (make-keyword name))
+                                     :disabled (not enabled-p)))
+                    '(description location))
+            (list
+             (html ()
+               (:a :href (company/details :id (getf record :company-id))
+                   (str (getf record :company))))))))
 
 
 ;;; paginator

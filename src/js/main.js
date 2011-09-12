@@ -11,7 +11,8 @@ function applyDatepicker () {
 function applyAutocomplete () {
     var id, table, col, source;
     var options = {minLength: 2};
-    var autocompleteIDs = ["company", "tof", "city", "bank", "account", "nonchequing-account"] ;
+    var autocompleteIDs = ["company", "tof", "city", "bank", "account", 
+                           ["occupation", "company", "occupation"], "nonchequing-account"] ;
     for ( var i = 0; i < autocompleteIDs.length; i++) {
         if ((typeof autocompleteIDs[i]) === "string") {
             table = autocompleteIDs[i];
