@@ -100,14 +100,14 @@
                         (:a :class "delete"
                             :href (apply #'bill/delete :id id :bill-id bill-id filter)
                             "Διαγραφή")))
-            (:rank-inc ,(make-instance 'form
-                                       :action (action/bill/rank-inc)
+            (:rank-up ,(make-instance 'form
+                                       :action (action/bill/rank-dec)
                                        :reqtype :post
                                        :hidden `(:id ,id :bill-id ,bill-id ,@filter)
                                        :body (make-instance 'submit
                                                             :body "Πάνω" :css-class "up")))
-            (:rank-dec ,(make-instance 'form
-                                       :action (action/bill/rank-dec)
+            (:rank-down ,(make-instance 'form
+                                       :action (action/bill/rank-inc)
                                        :reqtype :post
                                        :hidden `(:id ,id :bill-id ,bill-id ,@filter)
                                        :body (make-instance 'submit
@@ -183,7 +183,7 @@
                      (bill-menu (val id)
                                 nil
                                 filter
-                                '(:create :update :delete :rank-inc :rank-dec))
+                                '(:create :update :delete :rank-up :rank-down))
                      (with-form (actions/bill/create :id (val id))
                        (display bill-table))
                      (footer))
@@ -247,7 +247,7 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                '(:update :rank-inc :rank-dec))
+                                '(:update :rank-up :rank-down))
                      (with-form (actions/bill/update :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))
@@ -308,7 +308,7 @@
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
-                                '(:delete :rank-inc :rank-dec))
+                                '(:delete :rank-up :rank-down))
                      (with-form (actions/bill/delete :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))

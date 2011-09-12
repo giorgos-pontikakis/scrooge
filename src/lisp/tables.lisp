@@ -213,14 +213,14 @@
                        :from 'bill
                        :where (:= 'project-id (project-id dao)))
                       :column)))
-    (if ranks (reduce #'max ranks) 1)))
+    (if ranks (reduce #'max ranks) 0)))
 
 (defmethod max-rank ((dao contact))
   (let ((ranks (query (:select 'rank
                        :from 'contact
                        :where (:= 'company-id (company-id dao)))
                       :column)))
-    (if ranks (reduce #'max ranks) 1)))
+    (if ranks (reduce #'max ranks) 0)))
 
 
 
@@ -269,9 +269,9 @@
    "Given a dao, select another dao which has rank different by delta."))
 
 (defmethod dao-neighbour ((dao bill) delta)
-  (select-dao-unique 'bill (:and (:= 'id (bill-id dao))
+  (select-dao-unique 'bill (:and (:= 'project-id (project-id dao))
                                  (:= 'rank (+ (rank dao) delta)))))
 
 (defmethod dao-neighbour ((dao contact) delta)
-  (select-dao-unique 'contact (:and (:= 'id (contact-id dao))
-                                        (:= 'rank (+ (rank dao) delta)))))
+  (select-dao-unique 'contact (:and (:= 'company-id (company-id dao))
+                                    (:= 'rank (+ (rank dao) delta)))))

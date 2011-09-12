@@ -172,7 +172,7 @@
                            :css-class (conc (getf styles (make-keyword name))
                                             " " extra-styles)))))
       (with-html
-        (:div :class "data-form project-form grid_6"
+        (:div :class "data-form project-form"
               (:div :class "data-form-title"
                     (label-input-text 'description "Περιγραφή")
                     (label-input-text 'company "Εταιρία" "ac-company"))
@@ -390,7 +390,7 @@
                                 filter
                                 (if (suppliedp bill-id)
                                     '(:read)
-                                    '(:read :update :delete :rank-inc :rank-dec)))
+                                    '(:read :update :delete :rank-up :rank-down)))
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))
