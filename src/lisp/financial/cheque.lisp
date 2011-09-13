@@ -44,110 +44,7 @@
 ;;; Actions
 ;;; --------------------------------------------------------------------------------
 
-(define-regex-page actions/financial/cheque/create
-    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/create") :request-type :post)
-  ((search     string)
-   (bank       string  chk-bank-title)
-   (company    string  chk-company-title t)
-   (due-date   date    chk-date          t)
-   (amount     float   chk-amount        t)
-   (status     string  chk-cheque-status t)
-   (account-id integer chk-acc-id        t))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-cheque-accounts)
-    (if (every #'validp (parameters *page*))
-        (let* ((bank-id (bank-id (val bank)))
-               (company-id (company-id (val company)))
-               (new-cheque (make-instance 'cheque
-                                          :bank-id bank-id
-                                          :company-id company-id
-                                          :due-date (val due-date)
-                                          :amount (val amount)
-                                          :status (val status)
-                                          :payable-p (string= cheque-kind "payable"))))
-          (with-db ()
-            (with-transaction ()
-              (insert-dao new-cheque)
-              (let* ((debit-acc-id (if (string-equal cheque-kind "receivable")
-                                       *cheque-receivable-account*
-                                       (val account-id)))
-                     (credit-acc-id (if (string-equal cheque-kind "receivable")
-                                        (val account-id)
-                                        *cheque-payable-account*))
-                     (new-tx (make-instance 'tx
-                                            :tx-date (today)
-                                            :description (format nil "Auto-tx for new cheque ~A"
-                                                                 (id new-cheque))
-                                            :company-id company-id
-                                            :amount (val amount)
-                                            :credit-acc-id credit-acc-id
-                                            :debit-acc-id debit-acc-id
-                                            :cheque-id (id new-cheque))))
-                (insert-dao new-tx)))
-            (see-other (cheque cheque-kind :id (id new-cheque) :status (val status)))))
-        (see-other (cheque/create cheque-kind
-                                  :search (raw search)
-                                  :bank (raw bank)
-                                  :company (raw company)
-                                  :due-date (raw due-date)
-                                  :amount (raw amount)
-                                  :status (raw status)
-                                  :account-id (raw account-id))))))
 
-(define-regex-page actions/financial/cheque/update
-    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/update") :request-type :post)
-  ((search     string)
-   (id         integer chk-cheque-id     t)
-   (bank       string  chk-bank-title)
-   (company    string  chk-company-title t)
-   (due-date   date    chk-date          t)
-   (amount     float   chk-amount        t)
-   (status     string  chk-cheque-status t)
-   (account-id integer chk-acc-id        t))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-cheque-accounts)
-    (if (every #'validp (parameters *page*))
-        (let* ((bank-id (bank-id (val bank)))
-               (company-id (company-id (val company)))
-               (debit-acc-id (if (string-equal cheque-kind "receivable")
-                                 *cheque-receivable-account*
-                                 (val account-id)))
-               (credit-acc-id (if (string-equal cheque-kind "receivable")
-                                  (val account-id)
-                                  *cheque-payable-account*)))
-          (with-db ()
-            (with-transaction ()
-              (let* ((cheque-dao (get-dao 'cheque (val id)))
-                     (new-tx (if (string= status (status cheque-dao))
-                                 nil
-                                 (make-instance 'tx
-                                                :tx-date (today)
-                                                :description (conc "auto-tx for updated cheque "
-                                                                   (id cheque-dao))
-                                                :company-id company-id
-                                                :amount (val amount)
-                                                :credit-acc-id credit-acc-id
-                                                :debit-acc-id debit-acc-id
-                                                :cheque-id (id cheque-dao)))))
-                (setf (bank-id cheque-dao) bank-id
-                      (company-id cheque-dao) company-id
-                      (due-date cheque-dao) (val due-date)
-                      (amount cheque-dao) (val amount)
-                      (status cheque-dao) (val status))
-                (update-dao cheque-dao)
-                (insert-dao new-tx))))
-          (see-other (cheque cheque-kind :id (val id) :status (val status))))
-        (see-other (cheque/update cheque-kind
-                                  :search (raw search)
-                                  :id (raw id)
-                                  :bank (raw bank)
-                                  :company (raw company)
-                                  :due-date (raw due-date)
-                                  :amount (raw amount)
-                                  :status (raw status)
-                                  :account-id (raw account-id))))))
 
 (define-regex-page actions/financial/cheque/delete
     (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/delete") :request-type :post)
@@ -333,7 +230,60 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Pages
+;;; VIEW
+;;; ------------------------------------------------------------
+
+(defun cheque-data-form (cheque-kind op &key filter id data styles)
+  (let* ((revenues-p (string-equal cheque-kind "receivable"))
+         (disabled (eql op :details))
+         (tree (if (eql op :create)
+                   (make-account-radio-tree revenues-p)
+                   nil)))
+    (when (eql op :create)
+      (push (root (make-instance 'account-radio-tree
+                                 :root-key (if revenues-p
+                                               *invoice-receivable-account*
+                                               *invoice-payable-account*)
+                                 :filter (list :debit-p revenues-p)))
+            (children (root tree))))
+    (flet ((label-input-text (name label &optional extra-styles)
+             (with-html
+               (label name label)
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
+      (with-html
+        (:div :id "cheque-data-form" :class "data-form"
+              (:div :class "grid_6"
+                    (:div :class "data-form-first"
+                          (label-input-text 'company "Εταιρία" "ac-company"))
+                    (label-input-text 'bank "Τράπεζα" "ac-bank")
+                    (label-input-text 'due-date "Ημερομηνία πληρωμής" "datepicker")
+                    (label-input-text 'amount "Ποσό")
+                    (label 'status "Κατάσταση")
+                    (dropdown 'status
+                              *cheque-statuses*
+                              :selected (or (getf data :status) *default-cheque-status*)
+                              :disabled disabled)
+                    (:div :class "data-form-buttons"
+                          (if disabled
+                              (cancel-button (apply #'cheque cheque-kind :id id filter)
+                                             :body "Επιστροφή στον Κατάλογο Επιταγών")
+                              (progn
+                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (cancel-button (apply #'cheque cheque-kind :id id filter)
+                                               :body "Άκυρο")))))
+              (:div :class "grid_6 data-form-first"
+                    (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
+                    ;; Display the tree. If needed, preselect the first account of the tree.
+                    (display tree :selected-id (or (getf data :account-id)
+                                                   (key (first (children (root tree))))))))))))
+
+
+;;; ------------------------------------------------------------
+;;; VIEW
 ;;; ------------------------------------------------------------
 
 (define-regex-page cheque (("financial/cheque/" (cheque-kind "(receivable|payable)")))
@@ -378,6 +328,96 @@
                          (cheque-status-filters cheque-kind (val status) (val search)))
                    (footer)))))
         (see-other (notfound)))))
+
+(define-regex-page cheque/details (("financial/cheque/" (cheque-kind "(receivable|payable)") "/details"))
+  ((search string)
+   (status string)
+   (id     integer chk-cheque-id t))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cheque-accounts)
+    (if (validp id)
+        (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Λεπτομέρειες"))
+              (filter (params->payload status search)))
+          (with-document ()
+            (:head
+             (:title (str page-title))
+             (financial-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header 'financial)
+                   (financial-navbar 'cheque)
+                   (:div :class "window grid_12"
+                         (:div :class "title" (str page-title))
+                         (cheque-menu cheque-kind
+                                      (val id)
+                                      filter
+                                      '(:details :create)))
+                   (cheque-data-form cheque-kind :details
+                                     :filter filter
+                                     :id (val id)
+                                     :data (cheque-record (val id)))))))
+        (see-other (error-page)))))
+
+(define-regex-page actions/financial/cheque/update
+    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/update") :request-type :post)
+  ((search     string)
+   (id         integer chk-cheque-id     t)
+   (bank       string  chk-bank-title)
+   (company    string  chk-company-title t)
+   (due-date   date    chk-date          t)
+   (amount     float   chk-amount        t)
+   (status     string  chk-cheque-status t)
+   (account-id integer chk-acc-id        t))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cheque-accounts)
+    (if (every #'validp (parameters *page*))
+        (let* ((bank-id (bank-id (val bank)))
+               (company-id (company-id (val company)))
+               (debit-acc-id (if (string-equal cheque-kind "receivable")
+                                 *cheque-receivable-account*
+                                 (val account-id)))
+               (credit-acc-id (if (string-equal cheque-kind "receivable")
+                                  (val account-id)
+                                  *cheque-payable-account*)))
+          (with-db ()
+            (with-transaction ()
+              (let* ((cheque-dao (get-dao 'cheque (val id)))
+                     (new-tx (if (string= status (status cheque-dao))
+                                 nil
+                                 (make-instance 'tx
+                                                :tx-date (today)
+                                                :description (conc "auto-tx for updated cheque "
+                                                                   (id cheque-dao))
+                                                :company-id company-id
+                                                :amount (val amount)
+                                                :credit-acc-id credit-acc-id
+                                                :debit-acc-id debit-acc-id
+                                                :cheque-id (id cheque-dao)))))
+                (setf (bank-id cheque-dao) bank-id
+                      (company-id cheque-dao) company-id
+                      (due-date cheque-dao) (val due-date)
+                      (amount cheque-dao) (val amount)
+                      (status cheque-dao) (val status))
+                (update-dao cheque-dao)
+                (insert-dao new-tx))))
+          (see-other (cheque cheque-kind :id (val id) :status (val status))))
+        (see-other (cheque/update cheque-kind
+                                  :search (raw search)
+                                  :id (raw id)
+                                  :bank (raw bank)
+                                  :company (raw company)
+                                  :due-date (raw due-date)
+                                  :amount (raw amount)
+                                  :status (raw status)
+                                  :account-id (raw account-id))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; VIEW
+;;; ------------------------------------------------------------
 
 (define-regex-page cheque/create (("financial/cheque/" (cheque-kind  "(receivable|payable)") "/create"))
   ((search     string)
@@ -475,35 +515,11 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(define-regex-page cheque/details (("financial/cheque/" (cheque-kind "(receivable|payable)") "/details"))
-  ((search string)
-   (status string)
-   (id     integer chk-cheque-id t))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-cheque-accounts)
-    (if (validp id)
-        (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Λεπτομέρειες"))
-              (filter (params->payload status search)))
-          (with-document ()
-            (:head
-             (:title (str page-title))
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'cheque)
-                   (:div :class "window grid_12"
-                         (:div :class "title" (str page-title))
-                         (cheque-menu cheque-kind
-                                      (val id)
-                                      filter
-                                      '(:details :create)))
-                   (cheque-data-form cheque-kind :details
-                                     :filter filter
-                                     :id (val id)
-                                     :data (cheque-record (val id)))))))
-        (see-other (error-page)))))
+
+
+;;; ------------------------------------------------------------
+;;; DELETE
+;;; ------------------------------------------------------------
 
 (define-regex-page cheque/delete (("financial/cheque/" (cheque-kind "(receivable|payable)") "/delete"))
   ((search string)
@@ -548,50 +564,54 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(defun cheque-data-form (cheque-kind op &key filter id data styles)
-  (let* ((revenues-p (string-equal cheque-kind "receivable"))
-         (disabled (eql op :details))
-         (tree (if (eql op :create)
-                   (make-account-radio-tree revenues-p)
-                   nil)))
-    (when (eql op :create)
-      (push (root (make-instance 'account-radio-tree
-                                 :root-key (if revenues-p
-                                               *invoice-receivable-account*
-                                               *invoice-payable-account*)
-                                 :filter (list :debit-p revenues-p)))
-            (children (root tree))))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf data (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :id "cheque-data-form" :class "data-form"
-              (:div :class "grid_6"
-                    (:div :class "data-form-first"
-                          (label-input-text 'company "Εταιρία" "ac-company"))
-                    (label-input-text 'bank "Τράπεζα" "ac-bank")
-                    (label-input-text 'due-date "Ημερομηνία πληρωμής" "datepicker")
-                    (label-input-text 'amount "Ποσό")
-                    (label 'status "Κατάσταση")
-                    (dropdown 'status
-                              *cheque-statuses*
-                              :selected (or (getf data :status) *default-cheque-status*)
-                              :disabled disabled)
-                    (:div :class "data-form-buttons"
-                          (if disabled
-                              (cancel-button (apply #'cheque cheque-kind :id id filter)
-                                             :body "Επιστροφή στον Κατάλογο Επιταγών")
-                              (progn
-                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                                (cancel-button (apply #'cheque cheque-kind :id id filter)
-                                               :body "Άκυρο")))))
-              (:div :class "grid_6 data-form-first"
-                    (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
-                    ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :selected-id (or (getf data :account-id)
-                                                   (key (first (children (root tree))))))))))))
+
+(define-regex-page actions/financial/cheque/create
+    (("actions/financial/cheque/" (cheque-kind "(receivable|payable)") "/create") :request-type :post)
+  ((search     string)
+   (bank       string  chk-bank-title)
+   (company    string  chk-company-title t)
+   (due-date   date    chk-date          t)
+   (amount     float   chk-amount        t)
+   (status     string  chk-cheque-status t)
+   (account-id integer chk-acc-id        t))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cheque-accounts)
+    (if (every #'validp (parameters *page*))
+        (let* ((bank-id (bank-id (val bank)))
+               (company-id (company-id (val company)))
+               (new-cheque (make-instance 'cheque
+                                          :bank-id bank-id
+                                          :company-id company-id
+                                          :due-date (val due-date)
+                                          :amount (val amount)
+                                          :status (val status)
+                                          :payable-p (string= cheque-kind "payable"))))
+          (with-db ()
+            (with-transaction ()
+              (insert-dao new-cheque)
+              (let* ((debit-acc-id (if (string-equal cheque-kind "receivable")
+                                       *cheque-receivable-account*
+                                       (val account-id)))
+                     (credit-acc-id (if (string-equal cheque-kind "receivable")
+                                        (val account-id)
+                                        *cheque-payable-account*))
+                     (new-tx (make-instance 'tx
+                                            :tx-date (today)
+                                            :description (format nil "Auto-tx for new cheque ~A"
+                                                                 (id new-cheque))
+                                            :company-id company-id
+                                            :amount (val amount)
+                                            :credit-acc-id credit-acc-id
+                                            :debit-acc-id debit-acc-id
+                                            :cheque-id (id new-cheque))))
+                (insert-dao new-tx)))
+            (see-other (cheque cheque-kind :id (id new-cheque) :status (val status)))))
+        (see-other (cheque/create cheque-kind
+                                  :search (raw search)
+                                  :bank (raw bank)
+                                  :company (raw company)
+                                  :due-date (raw due-date)
+                                  :amount (raw amount)
+                                  :status (raw status)
+                                  :account-id (raw account-id))))))

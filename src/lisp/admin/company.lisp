@@ -510,7 +510,8 @@
                         'zipcode (val zipcode)
                         'notes (val notes)
                         :where (:= 'id (val id))))
-      (see-other (company :id (val id))))))
+      (see-other (apply #'company/details :id (val id)
+                        (params->filter))))))
 
 
 

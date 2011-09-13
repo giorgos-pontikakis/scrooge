@@ -51,6 +51,12 @@
 (define-existence-predicate  acc-id-exists-p account id)
 (define-existence-predicate* acc-title-exists-p account title id)
 
+(defun nc-acc-title-exists-p (title)
+  (query (:select 1 :from 'account
+          :where (:and (:= 'title title)
+                       (:= 'chequing-p nil)))
+         :single))
+
 (defun chk-parent-acc-id (val)
   (if (or (null val) (acc-id-exists-p val))
       nil
@@ -80,6 +86,11 @@
 (defun chk-acc-title (title)
   (cond ((eql title :null) :account-title-null)
         ((not (acc-title-exists-p title)) :account-title-unknown)
+        (t nil)))
+
+(defun chk-nc-acc-title (title)
+  (cond ((eql title :null) :account-title-null)
+        ((not (nc-acc-title-exists-p title)) :account-title-unknown)
         (t nil)))
 
 (defun chk-debitp (debitp id)

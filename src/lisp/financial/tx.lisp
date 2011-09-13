@@ -241,7 +241,11 @@
     ((search     string)
      (id         integer chk-tx-id t))
   (with-view-page
-    (let ((filter (params->filter)))
+    (let* ((filter (params->filter))
+           (transaction-form (make-instance 'transaction-form
+                                            :op :read
+                                            :record (get-record 'transaction (val id))
+                                            :cancel-url (apply #'transaction :id (val id) filter))))
       (with-document ()
         (:head
          (:title "Συναλλαγή » Λεπτομέρειες")
@@ -271,10 +275,14 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-acc-title-nc)
-     (credit-account string  chk-acc-title-nc))
+     (debit-account  string  chk-nc-acc-title)
+     (credit-account string  chk-nc-acc-title))
   (with-view-page
-    (let ((filter (params->filter)))
+    (let* ((filter (params->filter))
+           (transaction-form (make-instance 'transaction-form
+                                            :op :create
+                                            :record nil
+                                            :cancel-url (apply #'transaction filter))))
       (with-document ()
         (:head
          (:title "Συναλλαγές » Δημιουργία")
@@ -301,8 +309,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-acc-title-nc)
-     (credit-account string  chk-acc-title-nc))
+     (debit-account  string  chk-nc-acc-title)
+     (credit-account string  chk-nc-acc-title))
   (with-controller-page (transaction/create)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (account-id (val debit-account)))
@@ -330,10 +338,14 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-acc-title-nc)
-     (credit-account string  chk-acc-title-nc))
+     (debit-account  string  chk-nc-acc-title)
+     (credit-account string  chk-nc-acc-title))
   (with-view-page
-    (let ((filter (params->filter)))
+    (let* ((filter (params->filter))
+           (transaction-form (make-instance 'transaction-form
+                                            :op :update
+                                            :record (get-record 'transaction (val id))
+                                            :cancel-url (apply #'transaction filter))))
       (with-document ()
         (:head
          (:title "Συναλλαγή » Επεξεργασία")
@@ -350,11 +362,8 @@
                      (transaction-notifications)
                      (with-form (actions/financial/transaction/update :id (val id)
                                                                       :search (val search))
-                       (transaction-data-form :update
-                                              :id (val id)
-                                              :filter filter
-                                              :data (params->payload)
-                                              :styles (params->styles))))
+                       (display transaction-form :payload (params->payload)
+                                                 :styles (params->styles))))
                (footer)))))))
 
 (defpage dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
@@ -365,8 +374,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-acc-title-nc)
-     (credit-account string  chk-acc-title-nc))
+     (debit-account  string  chk-nc-acc-title)
+     (credit-account string  chk-nc-acc-title))
   (with-controller-page (transaction/update)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (account-id (val debit-account)))
@@ -415,10 +424,11 @@
                      (searchbox (transaction) (val search)))
                (footer)))))))
 
-(defpage dynamic-page actions/financial/tx/delete ("actions/financial/transaction/delete"
-                                                           :request-type :post)
+(defpage dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
+                                                            :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
-  (with-controller-page (tx/delete)
+  (with-controller-page (transaction/delete)
     (delete-dao (get-dao 'tx (val id)))
     (see-other (transaction :search (val search)))))
+1
