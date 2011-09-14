@@ -228,7 +228,7 @@
          (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
-                               address
+                               address occupation
                                (:as city.title city-name)
                                :distinct
                        :from company
@@ -244,6 +244,7 @@
                                                     (:ilike tin ,ilike-term)
                                                     (:ilike address ,ilike-term)
                                                     (:ilike city.title ,ilike-term)
+                                                    (:ilike occupation ,ilike-term)
                                                     (:ilike company.notes ,ilike-term)
                                                     (:ilike contact.tag ,ilike-term))))
                               base-query))
