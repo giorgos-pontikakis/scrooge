@@ -2,6 +2,35 @@
 
 
 ;;; ----------------------------------------------------------------------
+;;; Page family
+;;; ----------------------------------------------------------------------
+
+(defclass cash-page (regex-page page-family-mixin)
+  ((system-parameter-names
+    :allocation :class
+    :initform '(id))
+   (payload-parameter-names
+    :allocation :class
+    :initform '(date transaction description debit-account credit-account amount))
+   (filter-parameter-names
+    :allocation :class
+    :initform '(search))
+   (allowed-groups
+    :allocation :class
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform
+    '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+      (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
+               :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+      (account-id (:acc-id-null "Δεν έχετε επιλέξει λογαριασμό"))
+      (date (:parse-error "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
+
+
+
+;;; ----------------------------------------------------------------------
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
@@ -11,7 +40,7 @@
                *expenses-root-account*)
     (see-other (cash-accounts-error-page))))
 
-(defpage dynamic-page cash-accounts-error-page ("financial/cash/error")
+(defpage dynamic-page cash-accounts-error-page ("cash/error")
     ()
   (with-document ()
     (:head
@@ -23,99 +52,6 @@
      (:div :id "body"
            (:div :id "body" :class "summary"
                  (:p "Δεν έχετε ορίσει στις ρυθμίσεις είτε τον λογαριασμό μετρητών, είτε το λογαριασμό ρίζας εσόδων, ή το λογαριασμό ρίζας εξόδων."))))))
-
-;;; ----------------------------------------------------------------------
-;;; Actions
-;;; ----------------------------------------------------------------------
-
-(define-regex-page actions/financial/cash/create
-    (("actions/financial/cash/" (cash-kind "(expense|revenue)") "/create") :request-type :post)
-    ((search      string)
-     (date        date)
-     (company     string  chk-company-title*)
-     (description string)
-     (amount      float   chk-amount)
-     (account-id  integer chk-acc-id t))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-cash-accounts)
-    (if (every #'validp (parameters *page*))
-        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
-               (debit-acc-id (if (string-equal cash-kind "revenue")
-                                 *cash-account*
-                                 (val account-id)))
-               (credit-acc-id (if (string-equal cash-kind "revenue")
-                                  (val account-id)
-                                  *cash-account*))
-               (new-tx (make-instance 'tx
-                                      :tx-date (val date)
-                                      :description (val description)
-                                      :company-id company-id
-                                      :amount (val amount)
-                                      :credit-acc-id credit-acc-id
-                                      :debit-acc-id debit-acc-id)))
-          (with-db ()
-            (insert-dao new-tx)
-            (see-other (cash cash-kind :id (id new-tx) :search (val search)))))
-        (see-other (cash/create cash-kind
-                                :date (raw date)
-                                :description (raw description)
-                                :company (raw company)
-                                :amount (raw amount)
-                                :account-id (raw account-id)
-                                :search (raw search))))))
-
-(define-regex-page actions/financial/cash/update
-    (("actions/financial/cash/" (cash-kind "(expense|revenue)") "/update") :request-type :post)
-    ((search      string)
-     (id          integer chk-tx-id t)
-     (date        date)
-     (description string)
-     (company     string  chk-company-title*)
-     (amount      float   chk-amount)
-     (account-id  integer chk-acc-id))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-cash-accounts)
-    (if (every #'validp (parameters *page*))
-        (let ((company-id (company-id (val company))) ;; using val (accept null values)
-              (debit-acc-id (if (string-equal cash-kind "revenue")
-                                *cash-account*
-                                (val account-id)))
-              (credit-acc-id (if (string-equal cash-kind "revenue")
-                                 (val account-id)
-                                 *cash-account*)))
-          (with-db ()
-            (execute (:update 'tx :set
-                              'tx-date (val date)
-                              'description (val description)
-                              'company-id company-id
-                              'amount (val amount)
-                              'debit-acc-id debit-acc-id
-                              'credit-acc-id credit-acc-id
-                              :where (:= 'id (val id))))
-            (see-other (cash cash-kind :id (val id)))))
-        (see-other (cash/update cash-kind
-                                :search (raw search)
-                                :id (raw id)
-                                :date (raw date)
-                                :description (raw description)
-                                :company (raw company)
-                                :amount (raw amount)
-                                :account-id (raw account-id))))))
-
-(define-regex-page actions/financial/cash/delete
-    (("actions/financial/cash/" (cash-kind "(expense|revenue)") "/delete") :request-type :post)
-    ((id     integer chk-tx-id t)
-     (search string))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-cash-accounts)
-    (if (validp id)
-        (with-db ()
-          (delete-dao (get-dao 'tx (val id)))
-          (see-other (cash cash-kind :search (val search))))
-        (see-other (notfound)))))
 
 
 
@@ -233,21 +169,58 @@
         :css-class "hmenu actions"
         :disabled disabled))
 
-(defun cash-notifications ()
-  (notifications
-   '((company (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-     (account-id (:acc-id-null "Δεν έχετε επιλέξει λογαριασμό"))
-     (date (:parse-error "Η ημερομηνία της συναλλαγής είναι άκυρη")))))
+
+
+;;; ------------------------------------------------------------
+;;; Cash form
+;;; ------------------------------------------------------------
+
+(defun cash-data-form (cash-kind op &key id data styles filter)
+  (let* ((revenues-p (string-equal cash-kind "revenue"))
+         (disabled (eql op :details))
+         (tree (make-account-radio-tree revenues-p)))
+    (push (root (make-instance 'account-radio-tree
+                               :root-key (if revenues-p
+                                             *invoice-receivable-account*
+                                             *invoice-payable-account*)
+                               :filter (list :debit-p revenues-p)))
+          (children (root tree)))
+    (flet ((label-input-text (name label &optional extra-styles)
+             (with-html
+               (label name label)
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
+      (with-html
+        (:div :id "cash-data-form" :class "data-form"
+              (:div :class "grid_6 alpha"
+                    (label-input-text 'date "Ημερομηνία" "datepicker")
+                    (label-input-text 'description "Περιγραφή")
+                    (label-input-text 'company "Εταιρία" "ac-company")
+                    (label-input-text 'amount "Ποσό")
+                    (:div :class "data-form-buttons"
+                          (if disabled
+                              (cancel-button (apply #'cash cash-kind :id id filter)
+                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
+                              (progn
+                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (cancel-button (apply #'cash cash-kind :id id filter)
+                                               :body "Άκυρο")))))
+              (:div :class "grid_6 omega"
+                    (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
+                    ;; Display the tree. If needed, preselect the first account of the tree.
+                    (display tree :selected-id (or (getf data :account-id)
+                                                   (key (first (children (root tree))))))))))))
 
 
 
 ;;; ------------------------------------------------------------
-;;; Pages
+;;; VIEW
 ;;; ------------------------------------------------------------
 
-(define-regex-page cash (("financial/cash/" (cash-kind "(expense|revenue)")))
+(defpage cash-page cash (("cash/" (cash-kind "(expense|revenue)")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
@@ -288,7 +261,7 @@
                    (footer)))))
         (see-other (notfound)))))
 
-(define-regex-page cash/create (("financial/cash/" (cash-kind "(expense|revenue)") "/create"))
+(defpage cash-page cash/create (("cash/" (cash-kind "(expense|revenue)") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
@@ -315,7 +288,7 @@
                                 filter
                                 '(:create :update :delete))
                      (cash-notifications)
-                     (with-form (actions/financial/cash/create cash-kind :search (val search))
+                     (with-form (actions/cash/create cash-kind :search (val search))
                        (cash-data-form cash-kind :create
                                        :filter filter
                                        :data (params->payload date
@@ -329,7 +302,50 @@
                                                                    amount))))
                (footer)))))))
 
-(define-regex-page cash/update (("financial/cash/" (cash-kind "(expense|revenue)") "/update"))
+(defpage cash-page actions/cash/create
+    (("actions/cash/" (cash-kind "(expense|revenue)") "/create") :request-type :post)
+    ((search      string)
+     (date        date)
+     (company     string  chk-company-title*)
+     (description string)
+     (amount      float   chk-amount)
+     (account-id  integer chk-acc-id t))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cash-accounts)
+    (if (every #'validp (parameters *page*))
+        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
+               (debit-acc-id (if (string-equal cash-kind "revenue")
+                                 *cash-account*
+                                 (val account-id)))
+               (credit-acc-id (if (string-equal cash-kind "revenue")
+                                  (val account-id)
+                                  *cash-account*))
+               (new-tx (make-instance 'tx
+                                      :tx-date (val date)
+                                      :description (val description)
+                                      :company-id company-id
+                                      :amount (val amount)
+                                      :credit-acc-id credit-acc-id
+                                      :debit-acc-id debit-acc-id)))
+          (with-db ()
+            (insert-dao new-tx)
+            (see-other (cash cash-kind :id (id new-tx) :search (val search)))))
+        (see-other (cash/create cash-kind
+                                :date (raw date)
+                                :description (raw description)
+                                :company (raw company)
+                                :amount (raw amount)
+                                :account-id (raw account-id)
+                                :search (raw search))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; UPDATE
+;;; ----------------------------------------------------------------------
+
+(defpage cash-page cash/update (("cash/" (cash-kind "(expense|revenue)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -357,7 +373,7 @@
                                 nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/financial/cash/update cash-kind
+                     (with-form (actions/cash/update cash-kind
                                                                :id (val id)
                                                                :search (val search))
                        (cash-data-form cash-kind :update
@@ -377,10 +393,54 @@
                                                                    account-id))))
                (footer)))))))
 
+(defpage cash-page actions/cash/update
+    (("actions/cash/" (cash-kind "(expense|revenue)") "/update") :request-type :post)
+    ((search      string)
+     (id          integer chk-tx-id t)
+     (date        date)
+     (description string)
+     (company     string  chk-company-title*)
+     (amount      float   chk-amount)
+     (account-id  integer chk-acc-id))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cash-accounts)
+    (if (every #'validp (parameters *page*))
+        (let ((company-id (company-id (val company))) ;; using val (accept null values)
+              (debit-acc-id (if (string-equal cash-kind "revenue")
+                                *cash-account*
+                                (val account-id)))
+              (credit-acc-id (if (string-equal cash-kind "revenue")
+                                 (val account-id)
+                                 *cash-account*)))
+          (with-db ()
+            (execute (:update 'tx :set
+                              'tx-date (val date)
+                              'description (val description)
+                              'company-id company-id
+                              'amount (val amount)
+                              'debit-acc-id debit-acc-id
+                              'credit-acc-id credit-acc-id
+                              :where (:= 'id (val id))))
+            (see-other (cash cash-kind :id (val id)))))
+        (see-other (cash/update cash-kind
+                                :search (raw search)
+                                :id (raw id)
+                                :date (raw date)
+                                :description (raw description)
+                                :company (raw company)
+                                :amount (raw amount)
+                                :account-id (raw account-id))))))
 
-(define-regex-page cash/delete (("financial/cash/" (cash-kind "(expense|revenue)") "/delete"))
-    ((id     integer chk-project-id t)
-     (search string))
+
+
+;;; ----------------------------------------------------------------------
+;;; DELETE
+;;; ----------------------------------------------------------------------
+
+(defpage cash-page cash/delete (("cash/" (cash-kind "(expense|revenue)") "/delete"))
+  ((id     integer chk-project-id t)
+   (search string))
   (with-auth ("configuration")
     (no-cache)
     (check-cash-accounts)
@@ -405,7 +465,7 @@
                                     (val id)
                                     filter
                                     '(:read :delete))
-                         (with-form (actions/financial/cash/delete cash-kind
+                         (with-form (actions/cash/delete cash-kind
                                                                    :id (val id)
                                                                    :search (val search))
                            (display cash-tx-table
@@ -416,41 +476,15 @@
                    (footer)))))
         (see-other (error-page)))))
 
-(defun cash-data-form (cash-kind op &key id data styles filter)
-  (let* ((revenues-p (string-equal cash-kind "revenue"))
-         (disabled (eql op :details))
-         (tree (make-account-radio-tree revenues-p)))
-    (push (root (make-instance 'account-radio-tree
-                               :root-key (if revenues-p
-                                             *invoice-receivable-account*
-                                             *invoice-payable-account*)
-                               :filter (list :debit-p revenues-p)))
-          (children (root tree)))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf data (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :id "cash-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
-                    (label-input-text 'date "Ημερομηνία" "datepicker")
-                    (label-input-text 'description "Περιγραφή")
-                    (label-input-text 'company "Εταιρία" "ac-company")
-                    (label-input-text 'amount "Ποσό")
-                    (:div :class "data-form-buttons"
-                          (if disabled
-                              (cancel-button (apply #'cash cash-kind :id id filter)
-                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
-                              (progn
-                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                                (cancel-button (apply #'cash cash-kind :id id filter)
-                                               :body "Άκυρο")))))
-              (:div :class "grid_6 omega"
-                    (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
-                    ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :selected-id (or (getf data :account-id)
-                                                   (key (first (children (root tree))))))))))))
+(defpage cash-page actions/cash/delete
+    (("actions/cash/" (cash-kind "(expense|revenue)") "/delete") :request-type :post)
+    ((id     integer chk-tx-id t)
+     (search string))
+  (with-auth ("configuration")
+    (no-cache)
+    (check-cash-accounts)
+    (if (validp id)
+        (with-db ()
+          (delete-dao (get-dao 'tx (val id)))
+          (see-other (cash cash-kind :search (val search))))
+        (see-other (notfound)))))

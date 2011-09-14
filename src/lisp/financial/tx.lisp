@@ -6,13 +6,13 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass company-page (dynamic-page page-family-mixin)
+(defclass transaction-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date company description debit-account credit-account amount))
+    :initform '(date transaction description debit-account credit-account amount))
    (filter-parameter-names
     :allocation :class
     :initform '(search))
@@ -96,14 +96,14 @@
                     'tx.debit-acc-id
                     'tx.credit-acc-id
                     'amount
-                    :from 'tx
-                    :left-join 'company
-                    :on (:= 'tx.company-id 'company.id)
-                    :left-join (:as 'account 'debit-account)
-                    :on (:= 'debit-account.id 'debit-acc-id)
-                    :left-join (:as 'account 'credit-account)
-                    :on (:= 'credit-account.id 'credit-acc-id)
-                    :where (:= 'tx.id id))
+            :from 'tx
+            :left-join 'company
+            :on (:= 'tx.company-id 'company.id)
+            :left-join (:as 'account 'debit-account)
+            :on (:= 'debit-account.id 'debit-acc-id)
+            :left-join (:as 'account 'credit-account)
+            :on (:= 'credit-account.id 'credit-acc-id)
+            :where (:= 'tx.id id))
            :plist)))
 
 
@@ -128,9 +128,9 @@
                                (:as tx-date date)
                                (:as company.title company)
                                description amount
-                               :from tx
-                               :left-join company
-                               :on (:= tx.company-id company.id)))
+                       :from tx
+                       :left-join company
+                       :on (:= tx.company-id company.id)))
          (composite-query (if search
                               (append base-query
                                       `(:where (:or (:ilike description ,(ilike search))
@@ -172,33 +172,33 @@
   ())
 
 (defmethod display ((form tx-form) &key styles)
-           (let ((disabled (eql (op form) :details))
-                 (record (record form)))
-             (flet ((label-input-text (name label &optional extra-styles)
-                      (with-html
-                        (label name label)
-                        (input-text name
-                                    :value (getf record (make-keyword name))
-                                    :disabled disabled
-                                    :css-class (conc (getf styles (make-keyword name))
-                                                     " " extra-styles)))))
-               (with-html
-                 (:div :class "data-form tx-form"
-                       (label-input-text 'date "Ημερομηνία" "datepicker")
-                       (label-input-text 'company "Εταιρία" "ac-company")
-                       (label-input-text 'description "Περιγραφή")
-                       (label-input-text 'debit-account-nonchequing "Λογαριασμός χρέωσης"
-                                         "ac-nonchequing-account")
-                       (label-input-text 'credit-account-nonchequing "Λογαριασμός πίστωσης"
-                                         "ac-nonchequing-account")
-                       (label-input-text 'amount "Ποσόν"))
-                 (:div :class "data-form-buttons"
-                       (if disabled
-                           (cancel-button (cancel-url form)
-                                          :body "Επιστροφή στον Κατάλογο Συναλλαγών")
-                           (progn
-                             (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                             (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+  (let ((disabled (eql (op form) :details))
+        (record (record form)))
+    (flet ((label-input-text (name label &optional extra-styles)
+             (with-html
+               (label name label)
+               (input-text name
+                           :value (getf record (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
+      (with-html
+        (:div :class "data-form tx-form"
+              (label-input-text 'date "Ημερομηνία" "datepicker")
+              (label-input-text 'company "Εταιρία" "ac-company")
+              (label-input-text 'description "Περιγραφή")
+              (label-input-text 'debit-account-nonchequing "Λογαριασμός χρέωσης"
+                                "ac-nonchequing-account")
+              (label-input-text 'credit-account-nonchequing "Λογαριασμός πίστωσης"
+                                "ac-nonchequing-account")
+              (label-input-text 'amount "Ποσόν"))
+        (:div :class "data-form-buttons"
+              (if disabled
+                  (cancel-button (cancel-url form)
+                                 :body "Επιστροφή στον Κατάλογο Συναλλαγών")
+                  (progn
+                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (cancel-url form) :body "Άκυρο"))))))))
 
 
 
@@ -206,7 +206,7 @@
 ;;; VIEW
 ;;; ----------------------------------------------------------------------
 
-(defpage dynamic-page transaction ("financial/transaction")
+(defpage dynamic-page transaction ("transaction")
     ((id     integer chk-tx-id)
      (search string)
      (start  integer))
@@ -237,7 +237,7 @@
                      (searchbox (transaction) (val search)))
                (footer)))))))
 
-(defpage dynamic-page transaction/details ("financial/transaction/details")
+(defpage dynamic-page transaction/details ("transaction/details")
     ((search     string)
      (id         integer chk-tx-id t))
   (with-view-page
@@ -269,7 +269,7 @@
 ;;; CREATE
 ;;; ----------------------------------------------------------------------
 
-(defpage dynamic-page transaction/create ("financial/transaction/create")
+(defpage dynamic-page transaction/create ("transaction/create")
     ((search         string)
      (date           date)
      (description    string)
@@ -297,13 +297,13 @@
                                        filter
                                        '(:details :create :update :delete))
                      (transaction-notifications)
-                     (with-form (actions/financial/transaction/create)
+                     (with-form (actions/transaction/create)
                        (display transaction-form :payload (params->payload)
                                                  :styles (params->styles))))
                (footer)))))))
 
-(defpage dynamic-page actions/financial/transaction/create ("actions/financial/transaction/create"
-                                                           :request-type :post)
+(defpage dynamic-page actions/transaction/create ("actions/transaction/create"
+                                                  :request-type :post)
     ((search         string)
      (date           date)
      (description    string)
@@ -331,7 +331,7 @@
 ;;; UPDATE
 ;;; ----------------------------------------------------------------------
 
-(defpage dynamic-page transaction/update ("financial/transaction/update")
+(defpage dynamic-page transaction/update ("transaction/update")
     ((search         string)
      (id             integer chk-tx-id t)
      (date           date)
@@ -360,14 +360,14 @@
                                        filter
                                        '(:create :update))
                      (transaction-notifications)
-                     (with-form (actions/financial/transaction/update :id (val id)
-                                                                      :search (val search))
+                     (with-form (actions/transaction/update :id (val id)
+                                                            :search (val search))
                        (display transaction-form :payload (params->payload)
                                                  :styles (params->styles))))
                (footer)))))))
 
-(defpage dynamic-page actions/financial/transaction/update ("actions/financial/transaction/update"
-                                                           :request-type :post)
+(defpage dynamic-page actions/transaction/update ("actions/transaction/update"
+                                                  :request-type :post)
     ((search         string)
      (id             integer chk-tx-id t)
      (date           date)
@@ -396,7 +396,7 @@
 ;;; DELETE
 ;;; -----------------------------------------------------------------------
 
-(defpage dynamic-page transaction/delete ("financial/transaction/delete")
+(defpage dynamic-page transaction/delete ("transaction/delete")
     ((id     integer chk-tx-id t)
      (search string))
   (with-view-page
@@ -417,18 +417,17 @@
                      (transaction-menu (val id)
                                        filter
                                        '(:create :delete))
-                     (with-form (actions/financial/transaction/delete :id (val id)
-                                                                      :search (val search))
+                     (with-form (actions/transaction/delete :id (val id)
+                                                            :search (val search))
                        (display tx-table :selected-id (val id))))
                (:div :id "sidebar" :class "sidebar `grid_2"
                      (searchbox (transaction) (val search)))
                (footer)))))))
 
-(defpage dynamic-page actions/financial/transaction/delete ("actions/financial/transaction/delete"
-                                                            :request-type :post)
+(defpage dynamic-page actions/transaction/delete ("actions/transaction/delete"
+                                                  :request-type :post)
     ((id     integer chk-tx-id t)
      (search string))
   (with-controller-page (transaction/delete)
     (delete-dao (get-dao 'tx (val id)))
     (see-other (transaction :search (val search)))))
-1
