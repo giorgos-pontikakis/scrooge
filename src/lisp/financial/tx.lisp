@@ -231,7 +231,7 @@
                                            '(:read)
                                            '(:read :details :update :delete)))
                      (display tx-table
-                              :selected-id (val id)
+                              :key (val id)
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (transaction) (val search)))
@@ -419,7 +419,7 @@
                                        '(:create :delete))
                      (with-form (actions/transaction/delete :id (val id)
                                                             :search (val search))
-                       (display tx-table :selected-id (val id))))
+                       (display tx-table :key (val id))))
                (:div :id "sidebar" :class "sidebar `grid_2"
                      (searchbox (transaction) (val search)))
                (footer)))))))

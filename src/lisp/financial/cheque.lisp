@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date transaction description debit-account credit-account amount))
+    :initform '(bank due-date company amount status account-id))
    (filter-parameter-names
     :allocation :class
     :initform '(search))
@@ -23,14 +23,22 @@
     :allocation :class
     :reader messages
     :initform
-    '((due-date (:date-null "Η ημερομηνία είναι κενή"
-                 :parse-error "Η ημερομηνία της επιταγής είναι άκυρη"))
-      (bank (:bank-title-null "Το όνομα της τράπεζας είναι κενό."
-             :bank-title-unknown "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
-      (company (:company-title-null "Το όνομα της εταιρίας είναι κενό"
-                :company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-      (amount (:non-positive-amount  "Το ποσό της επιταγής πρέπει να είναι θετικός αριθμός"
-               :parse-error  "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες"))))))
+    '((due-date (:date-null
+                 "Η ημερομηνία είναι κενή"
+                 :parse-error
+                 "Η ημερομηνία της επιταγής είναι άκυρη"))
+      (bank (:bank-title-null
+             "Το όνομα της τράπεζας είναι κενό."
+             :bank-title-unknown
+             "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
+      (company (:company-title-null
+                "Το όνομα της εταιρίας είναι κενό"
+                :company-title-unknown
+                "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+      (amount (:non-positive-amount
+               "Το ποσό της επιταγής πρέπει να είναι θετικός αριθμός"
+               :parse-error
+               "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες"))))))
 
 
 
@@ -45,11 +53,11 @@
                *expenses-root-account*)
     (see-other (cheque-accounts-error-page))))
 
-(defpage dynamic-page cheque-accounts-error-page ("financial/cash/error")
+(defpage dynamic-page cheque-accounts-error-page ("cheque/error")
     ()
   (with-document ()
     (:head
-     (:title "Cash accounts error")
+     (:title "Cheque accounts error")
      (error-headers))
     (:body
      (:div :id "header"
@@ -297,7 +305,7 @@
      (id     integer chk-cheque-id))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((filter (params->payload status search))
+    (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
@@ -337,7 +345,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Λεπτομέρειες"))
-          (filter (params->payload status search)))
+          (filter (params->filter)))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -373,7 +381,7 @@
      (account-id integer chk-acc-id))
   (with-view-page
     (check-cheque-accounts)
-    (let ((filter (params->payload search status))
+    (let ((filter (params->filter))
           (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -465,7 +473,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Επεξεργασία"))
-          (filter (params->payload status search)))
+          (filter (params->filter)))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -557,42 +565,39 @@
      (id     integer chk-cheque-id t))
   (with-view-page
     (check-cheque-accounts)
-    (if (validp id)
-        (let* ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Διαγραφή"))
-               (filter (params->payload status search))
-               (cheque-table (make-instance 'cheque-table
-                                            :op :delete
-                                            :subpage cheque-kind
-                                            :id "cheque-table"
-                                            :filter filter)))
-          (with-document ()
-            (:head
-             (:title (str page-title))
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'cheque)
-                   (:div :class "window"
-                         (:div :class "window grid_10"
-                               (:div :class "title" (str page-title))
-                               (cheque-menu cheque-kind
-                                            (val id)
-                                            filter
-                                            '(:read :create :delete))
-                               (with-form (actions/cheque/delete cheque-kind
-                                                                 :id (val id)
-                                                                 :search (val search)
-                                                                 :status (val status))
-                                 (display cheque-table
-                                          :selected-id (val id))))
-                         (:div :id "sidebar" :class "sidebar grid_2"
-                               (searchbox (cheque cheque-kind) (val search))
-                               (cheque-filters cheque-kind)
-                               (cheque-status-filters cheque-kind (val status) (val search))))
-                   (footer)))))
-        (see-other (error-page)))))
-
+    (let* ((page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Διαγραφή"))
+           (filter (params->filter))
+           (cheque-table (make-instance 'cheque-table
+                                        :op :delete
+                                        :subpage cheque-kind
+                                        :id "cheque-table"
+                                        :filter filter)))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'cheque)
+               (:div :class "window"
+                     (:div :class "window grid_10"
+                           (:div :class "title" (str page-title))
+                           (cheque-menu cheque-kind
+                                        (val id)
+                                        filter
+                                        '(:read :create :delete))
+                           (with-form (actions/cheque/delete cheque-kind
+                                                             :id (val id)
+                                                             :search (val search)
+                                                             :status (val status))
+                             (display cheque-table
+                                      :selected-id (val id))))
+                     (:div :id "sidebar" :class "sidebar grid_2"
+                           (searchbox (cheque cheque-kind) (val search))
+                           (cheque-filters cheque-kind)
+                           (cheque-status-filters cheque-kind (val status) (val search))))
+               (footer)))))))
 
 (defpage cheque-page actions/cheque/delete
     (("actions/cheque/" (cheque-kind "(receivable|payable)") "/delete") :request-type :post)
