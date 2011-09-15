@@ -15,7 +15,7 @@
     :initform '(tag amount))
    (filter-parameter-names
     :allocation :class
-    :initform '(search cstatus))
+    :initform '(search cstate))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -134,7 +134,7 @@
 
 (defpage bill-page action/bill/rank-inc ("action/bill/rank-inc" :request-type :post)
     ((search  string)
-     (cstatus string)
+     (cstate  string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id) t))
   (with-controller-page nil
@@ -145,7 +145,7 @@
 
 (defpage bill-page action/bill/rank-dec ("action/bill/rank-dec" :request-type :post)
     ((search  string)
-     (cstatus string)
+     (cstate  string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id) t))
   (with-controller-page nil
@@ -162,7 +162,7 @@
 
 (defpage bill-page bill/create ("project/details/bill/create")
     ((search string)
-     (cstatus string)
+     (cstate string)
      (id     integer chk-project-id t)
      (tag    string)
      (amount float   chk-amount*))
@@ -202,11 +202,11 @@
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
-    ((search  string)
-     (cstatus string)
-     (id      integer chk-project-id)
-     (tag     string)
-     (amount  float   chk-amount*))
+    ((search string)
+     (cstate string)
+     (id     integer chk-project-id)
+     (tag    string)
+     (amount float   chk-amount*))
   (with-controller-page (bill/create)
     (let ((new-bill (make-instance 'bill
                                    :project-id (val id)
@@ -224,12 +224,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/update ("project/details/bill/update")
-    ((search   string)
-     (cstatus  string)
-     (id       integer chk-project-id           t)
-     (bill-id  integer (chk-bill-id id bill-id) t)
-     (tag      string)
-     (amount   float   chk-amount*))
+    ((search  string)
+     (cstate  string)
+     (id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id id bill-id) t)
+     (tag     string)
+     (amount  float   chk-amount*))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -268,7 +268,7 @@
 (defpage bill-page actions/bill/update ("actions/bill/update"
                                         :request-type :post)
     ((search  string)
-     (cstatus  string)
+     (cstate  string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id) t)
      (tag     string)
@@ -289,7 +289,7 @@
 
 (defpage bill-page bill/delete ("project/details/bill/delete")
     ((search  string)
-     (cstatus  string)
+     (cstate  string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id) t))
   (with-view-page
@@ -328,8 +328,8 @@
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"
                                         :request-type :post)
-    ((search string)
-     (cstatus string)
+    ((search  string)
+     (cstate  string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id) t))
   (with-controller-page (bill/delete)

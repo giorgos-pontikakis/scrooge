@@ -15,7 +15,7 @@
     :initform '(date company description amount))
    (filter-parameter-names
     :allocation :class
-    :initform '(search status))
+    :initform '(search state))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))

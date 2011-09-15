@@ -23,15 +23,6 @@
 ;;; Config
 ;;; ------------------------------------------------------------
 
-(defclass option ()
-  ((id           :col-type (string 32)  :reader   option-id)
-   (lisp-type    :col-type (string 16)  :reader   lisp-type)
-   (config-value :col-type (string 128) :accessor config-value :initarg :config-value))
-  (:metaclass dao-class)
-  (:keys id))
-
-
-
 (defclass usr ()
   ((username  :col-type (string 128) :accessor username  :initarg :username)
    (password  :col-type (string 128) :accessor password  :initarg :password)
@@ -77,26 +68,11 @@
   :null)
 
 
-(defclass cheque-status ()
-  ((status      :col-type string :reader   status)
-   (description :col-type string :accessor description :initarg :description))
-  (:metaclass dao-class)
-  (:keys status))
-
-
-
-(defclass cheque-stran ()
-  ((id              :col-type integer :reader   cheque-stran-id)
-   (title           :col-type string  :accessor title           :initarg :title)
-   (debit-acc-id    :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
-   (credit-acc-id   :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id)
-   (payable-p       :col-type boolean :accessor payable-p       :initarg :payable-p)
-   (from-status     :col-type string  :accessor from-status     :initarg :from-status)
-   (to-status       :col-type string  :accessor to-status       :initarg :to-status))
+(defclass account-role ()
+  ((id         :col-type (string 32) :reader   id)
+   (account-id :col-type integer     :accessor account-id :initarg :account-id))
   (:metaclass dao-class)
   (:keys id))
-
-
 
 (defclass account ()
   ((id         :col-type string  :reader   account-id)
@@ -133,6 +109,23 @@
 
 
 
+(defclass project-state ()
+  ((state       :col-type string :reader   state)
+   (description :col-type string :accessor description :initarg :description))
+  (:metaclass dao-class)
+  (:keys state))
+
+(defclass project-event ()
+  ((id              :col-type integer :reader   project-event-id)
+   (title           :col-type string  :accessor title           :initarg :title)
+   (debit-acc-id    :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
+   (credit-acc-id   :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id)
+   (payable-p       :col-type boolean :accessor payable-p       :initarg :payable-p)
+   (from-state      :col-type string  :accessor from-state     :initarg :from-state)
+   (to-state        :col-type string  :accessor to-state       :initarg :to-state))
+  (:metaclass dao-class)
+  (:keys id))
+
 (defclass project ()
   ((id          :col-type integer       :reader   project-id)
    (company-id  :col-type integer       :accessor company-id  :initarg :company-id)
@@ -142,7 +135,7 @@
    (quote-date  :col-type date          :accessor quote-date  :initarg :quote-date)
    (start-date  :col-type date          :accessor start-date  :initarg :start-date)
    (end-date    :col-type date          :accessor end-date    :initarg :end-date)
-   (status      :col-type string        :accessor status      :initarg :status)
+   (state       :col-type string        :accessor state       :initarg :state)
    (vat         :col-type (numeric 9 2) :accessor vat         :initarg :vat)
    (notes       :col-type string        :accessor notes       :initarg :notes))
   (:metaclass dao-class)
@@ -173,16 +166,34 @@
 ;;; Financial
 ;;; ------------------------------------------------------------
 
+(defclass cheque-state ()
+  ((state       :col-type string :reader   state)
+   (description :col-type string :accessor description :initarg :description))
+  (:metaclass dao-class)
+  (:keys state))
+
+(defclass cheque-event ()
+  ((id              :col-type integer :reader   cheque-event-id)
+   (title           :col-type string  :accessor title           :initarg :title)
+   (debit-acc-id    :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
+   (credit-acc-id   :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id)
+   (payable-p       :col-type boolean :accessor payable-p       :initarg :payable-p)
+   (from-state      :col-type string  :accessor from-state     :initarg :from-state)
+   (to-state        :col-type string  :accessor to-state       :initarg :to-state))
+  (:metaclass dao-class)
+  (:keys id))
+
 (defclass cheque ()
   ((cheque-id  :col-type integer       :reader   cheque-id)
    (bank-id    :col-type string        :accessor bank-id    :initarg :bank-id)
    (company-id :col-type integer       :accessor company-id :initarg :company-id)
    (due-date   :col-type date          :accessor due-date   :initarg :due-date)
    (amount     :col-type (numeric 9 2) :accessor amount     :initarg :amount)
-   (status     :col-type string        :accessor status     :initarg :status)
+   (state      :col-type string        :accessor state     :initarg :state)
    (payable-p  :col-type boolean       :accessor payable-p  :initarg :payable-p))
   (:metaclass dao-class)
   (:keys cheque-id))
+
 
 (defclass tx ()
   ((tx-id         :col-type integer       :reader   tx-id)

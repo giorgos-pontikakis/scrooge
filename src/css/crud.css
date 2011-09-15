@@ -5,7 +5,7 @@
 .crud-tree {
     clear: both;
     padding-top: 10px;
-    line-height: 26px;
+    line-height: 22px;
     background-color: #ededed;
 }
 
@@ -23,7 +23,7 @@
 }
 
 .crud-tree .controls button {
-    width: 22px !important;
+    width: 26px !important;
 }
 
 .crud-tree li.selected, .crud-tree li.selected {

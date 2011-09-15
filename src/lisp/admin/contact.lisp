@@ -129,7 +129,7 @@
 
 (defpage contact-page action/contact/rank-inc ("action/contact/rank-inc" :request-type :post)
     ((search     string)
-     (cstatus    string)
+     (cstate     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
   (with-controller-page nil
@@ -140,7 +140,7 @@
 
 (defpage contact-page action/contact/rank-dec ("action/contact/rank-dec" :request-type :post)
     ((search     string)
-     (cstatus    string)
+     (cstate     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
   (with-controller-page nil

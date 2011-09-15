@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(bank due-date company amount status account-id))
+    :initform '(bank due-date company amount state account-id))
    (filter-parameter-names
     :allocation :class
     :initform '(search))
@@ -114,19 +114,19 @@
                     :css-class "vnavbar"
                     :active (intern (string-upcase cheque-kind)))))))
 
-(defun cheque-status-filters (cheque-kind status search)
+(defun cheque-state-filters (cheque-kind state search)
   (let ((spec `((nil      ,(cheque cheque-kind :search search) "Όλες")
-                (pending  ,(cheque cheque-kind :search search :status "pending")  "Σε εκκρεμότητα")
-                (paid     ,(cheque cheque-kind :search search :status "paid")     "Πληρωμένες")
-                (bounced  ,(cheque cheque-kind :search search :status "bounced")  "Ακάλυπτες")
-                (returned ,(cheque cheque-kind :search search :status "returned") "Επιστραμμένες"))))
+                (pending  ,(cheque cheque-kind :search search :state "pending")  "Σε εκκρεμότητα")
+                (paid     ,(cheque cheque-kind :search search :state "paid")     "Πληρωμένες")
+                (bounced  ,(cheque cheque-kind :search search :state "bounced")  "Ακάλυπτες")
+                (returned ,(cheque cheque-kind :search search :state "returned") "Επιστραμμένες"))))
     (with-html
-      (:div :id "status-filters" :class "filters"
+      (:div :id "state-filters" :class "filters"
             (:p :class "title" "Κατάσταση")
             (navbar spec
                     :id "cheque-kind-filter"
                     :css-class "vnavbar"
-                    :active (intern (string-upcase status)))))))
+                    :active (intern (string-upcase state)))))))
 
 
 
@@ -172,7 +172,7 @@
 
 (defmethod get-records ((table cheque-table))
   (let* ((search (getf (filter table) :search))
-         (status (getf (filter table) :status))
+         (state (getf (filter table) :state))
          (payable-p (string= (subpage table) "payable"))
          (base-query `(:select cheque.id (:as bank.title bank)
                                due-date (:as company.title company) amount payable-p
@@ -186,8 +186,8 @@
       (push `(:or (:ilike company.title ,(ilike search))
                   (:ilike bank.title ,(ilike search)))
             where-terms))
-    (when status
-      (push `(:= cheque.status ,status)
+    (when state
+      (push `(:= cheque.state ,state)
             where-terms))
     (let* ((composite-query (append base-query
                                     `(:where (:and (:= cheque.payable-p ,payable-p)
@@ -273,10 +273,10 @@
                     (label-input-text 'bank "Τράπεζα" "ac-bank")
                     (label-input-text 'due-date "Ημερομηνία πληρωμής" "datepicker")
                     (label-input-text 'amount "Ποσό")
-                    (label 'status "Κατάσταση")
-                    (dropdown 'status
-                              *cheque-statuses*
-                              :selected (or (getf data :status) *default-cheque-status*)
+                    (label 'state "Κατάσταση")
+                    (dropdown 'state
+                              *cheque-states*
+                              :selected (or (getf data :state) *default-cheque-state*)
                               :disabled disabled)
                     (:div :class "data-form-buttons"
                           (if disabled
@@ -300,7 +300,7 @@
 
 (defpage cheque-page cheque (("cheque/" (cheque-kind "(receivable|payable)")))
     ((search string)
-     (status string)
+     (state string)
      (start  integer)
      (id     integer chk-cheque-id))
   (with-view-page
@@ -335,12 +335,12 @@
                (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (cheque cheque-kind) (val search))
                      (cheque-filters cheque-kind)
-                     (cheque-status-filters cheque-kind (val status) (val search)))
+                     (cheque-state-filters cheque-kind (val state) (val search)))
                (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (cheque-kind "(receivable|payable)") "/details"))
     ((search string)
-     (status string)
+     (state string)
      (id     integer chk-cheque-id t))
   (with-view-page
     (check-cheque-accounts)
@@ -377,7 +377,7 @@
      (due-date   date    chk-date)
      (company    string  chk-company-title)
      (amount     float   chk-amount)
-     (status     string  chk-cheque-status)
+     (state     string  chk-cheque-state)
      (account-id integer chk-acc-id))
   (with-view-page
     (check-cheque-accounts)
@@ -404,13 +404,13 @@
                                                           company
                                                           due-date
                                                           amount
-                                                          status
+                                                          state
                                                           account-id)
                                    :styles (params->styles bank
                                                            company
                                                            due-date
                                                            amount
-                                                           status
+                                                           state
                                                            account-id)))
                (footer)))))))
 
@@ -421,7 +421,7 @@
      (company    string  chk-company-title t)
      (due-date   date    chk-date          t)
      (amount     float   chk-amount        t)
-     (status     string  chk-cheque-status t)
+     (state     string  chk-cheque-state t)
      (account-id integer chk-acc-id        t))
   (with-controller-page (cheque/create)
     (check-cheque-accounts)
@@ -432,7 +432,7 @@
                                       :company-id company-id
                                       :due-date (val due-date)
                                       :amount (val amount)
-                                      :status (val status)
+                                      :state (val state)
                                       :payable-p (string= cheque-kind "payable"))))
       (with-db ()
         (with-transaction ()
@@ -453,7 +453,7 @@
                                         :debit-acc-id debit-acc-id
                                         :cheque-id (id new-cheque))))
             (insert-dao new-tx)))
-        (see-other (cheque cheque-kind :id (id new-cheque) :status (val status)))))))
+        (see-other (cheque cheque-kind :id (id new-cheque) :state (val state)))))))
 
 
 
@@ -467,7 +467,7 @@
      (bank       string  chk-bank-title)
      (company    string  chk-company-title)
      (due-date   date    chk-date)
-     (status     string  chk-cheque-status)
+     (state     string  chk-cheque-state)
      (amount     float   chk-amount)
      (account-id integer chk-acc-id))
   (with-view-page
@@ -499,14 +499,14 @@
                                                                        company
                                                                        due-date
                                                                        amount
-                                                                       status
+                                                                       state
                                                                        account-id)
                                                       (cheque-record (val id)))
                                    :styles (params->styles bank
                                                            company
                                                            due-date
                                                            amount
-                                                           status
+                                                           state
                                                            account-id)))
                (footer)))))))
 
@@ -518,7 +518,7 @@
      (company    string  chk-company-title t)
      (due-date   date    chk-date          t)
      (amount     float   chk-amount        t)
-     (status     string  chk-cheque-status t)
+     (state     string  chk-cheque-state t)
      (account-id integer chk-acc-id        t))
   (with-controller-page (cheque/update)
     (check-cheque-accounts)
@@ -533,7 +533,7 @@
       (with-db ()
         (with-transaction ()
           (let* ((cheque-dao (get-dao 'cheque (val id)))
-                 (new-tx (if (string= status (status cheque-dao))
+                 (new-tx (if (string= state (state cheque-dao))
                              nil
                              (make-instance 'tx
                                             :tx-date (today)
@@ -548,10 +548,10 @@
                   (company-id cheque-dao) company-id
                   (due-date cheque-dao) (val due-date)
                   (amount cheque-dao) (val amount)
-                  (status cheque-dao) (val status))
+                  (state cheque-dao) (val state))
             (update-dao cheque-dao)
             (insert-dao new-tx))))
-      (see-other (cheque cheque-kind :id (val id) :status (val status))))))
+      (see-other (cheque cheque-kind :id (val id) :state (val state))))))
 
 
 
@@ -561,7 +561,7 @@
 
 (defpage cheque-page cheque/delete (("cheque/" (cheque-kind "(receivable|payable)") "/delete"))
     ((search string)
-     (status string)
+     (state string)
      (id     integer chk-cheque-id t))
   (with-view-page
     (check-cheque-accounts)
@@ -590,21 +590,21 @@
                            (with-form (actions/cheque/delete cheque-kind
                                                              :id (val id)
                                                              :search (val search)
-                                                             :status (val status))
+                                                             :state (val state))
                              (display cheque-table
                                       :selected-id (val id))))
                      (:div :id "sidebar" :class "sidebar grid_2"
                            (searchbox (cheque cheque-kind) (val search))
                            (cheque-filters cheque-kind)
-                           (cheque-status-filters cheque-kind (val status) (val search))))
+                           (cheque-state-filters cheque-kind (val state) (val search))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/delete
     (("actions/cheque/" (cheque-kind "(receivable|payable)") "/delete") :request-type :post)
     ((search string)
-     (status string)
+     (state string)
      (id     integer chk-cheque-id t))
   (with-controller-page ()
     (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val id)))
-    (see-other (cheque cheque-kind :search (val search) :status (val status)))))
+    (see-other (cheque cheque-kind :search (val search) :state (val state)))))

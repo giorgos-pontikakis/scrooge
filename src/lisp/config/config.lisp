@@ -27,25 +27,11 @@
 ;;; UI elements
 
 (defun config-navbar (&optional active)
-  (navbar `(#|(general      ,(config)                           "Γενικά")|#
-            (city         ,(city)                             "Πόλεις")
-            (bank         ,(bank)                             "Τράπεζες")
-            (tof          ,(tof)                              "Δ.Ο.Υ.")
-            (account      ,(account)                          "Λογαριασμοί")
-            #|#|(cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")|#|#)
+  (navbar `((city         ,(city)         "Πόλεις")
+            (bank         ,(bank)         "Τράπεζες")
+            (tof          ,(tof)          "Δ.Ο.Υ.")
+            (account      ,(account)      "Λογαριασμοί")
+            (account-role ,(config/account-role) "Ρόλοι Λογαριασμών")
+            #|(cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")|#)
           :css-class "section-navbar hnavbar grid_12"
           :active active))
-
-(defpage root-page config ("config/") ()
-  (with-view-page
-    (with-document ()
-      (:head
-       (:title "Ρυθμίσεις")
-       (config-headers))
-      (:body
-       (:div :id "container" :class "container_12"
-             (header 'config)
-             (config-navbar 'general)
-             (:div :id "bank-window" :class "window grid_10"
-                   (:div :class "title" "Ρυθμίσεις » Γενικά")
-                   "nothing..."))))))

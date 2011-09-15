@@ -5,3 +5,11 @@
 #account-tree input {
     width: 50%;
 }
+
+#account-role-table td.payload {
+    width: 380px;
+}
+
+#account-role-table td.payload input{
+    width: 360px;
+}

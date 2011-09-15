@@ -23,7 +23,7 @@
                (:file "config/city")
                (:file "config/account")
                ;; (:file "config/cheque-stran")
-               ;; (:file "config/option")
+               (:file "config/option")
                ;; ;; admin
                (:file "admin/admin")
                (:file "admin/company")
@@ -32,9 +32,9 @@
                (:file "admin/bill")
                ;; ;; financial
                (:file "financial/financial")
-               (:file "financial/tx")
-               (:file "financial/cash")
-               (:file "financial/invoice")
+               ;; (:file "financial/tx")
+               ;; (:file "financial/cash")
+               ;; (:file "financial/invoice")
                ;; (:file "financial/cheque")
                ;; (:file "financial/account")
                ))

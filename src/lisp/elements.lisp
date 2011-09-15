@@ -100,8 +100,8 @@
 
 (defun primary-navbar (active)
   (navbar `(#|(financial ,(financial) "Οικονομικά")|#
-            (admin     ,(admin)     "Διαχείριση")
-            (config    ,(config)    "Ρυθμίσεις"))
+            (admin     ,(admin) "Διαχείριση")
+            (config    ,(city)  "Ρυθμίσεις"))
           :id "primary-navbar"
           :css-class "hnavbar grid_6 prefix_1"
           :active active))

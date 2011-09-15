@@ -12,10 +12,10 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(company description location price vat status quote-date start-date end-date notes))
+    :initform '(company description location price vat state quote-date start-date end-date notes))
    (filter-parameter-names
     :allocation :class
-    :initform '(search cstatus))
+    :initform '(search cstate))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -86,28 +86,28 @@
         ((not (project-description-exists-p description)) :project-description-unknown)
         (t nil)))
 
-(defun chk-quote-date (date status)
-  (cond ((and (member status (list "quoted" "ongoing" "finished" "archived") :test #'string=)
+(defun chk-quote-date (date state)
+  (cond ((and (member state (list "quoted" "ongoing" "finished" "archived") :test #'string=)
               (eql date :null))
          :quote-date-null)
         (t
          nil)))
 
-(defun chk-start-date (date status)
-  (cond ((and (member status (list "ongoing" "finished" "archived") :test #'string=)
+(defun chk-start-date (date state)
+  (cond ((and (member state (list "ongoing" "finished" "archived") :test #'string=)
               (eql date :null))
          :start-date-null)
-        ((and (not (member status (list "ongoing" "finished" "archived") :test #'string=))
+        ((and (not (member state (list "ongoing" "finished" "archived") :test #'string=))
               (not (eql date :null)))
          :start-date-nonnull)
         (t
          nil)))
 
-(defun chk-end-date (date status)
-  (cond ((and (member status (list "finished" "archived") :test #'string=)
+(defun chk-end-date (date state)
+  (cond ((and (member state (list "finished" "archived") :test #'string=)
               (eql date :null))
          :end-date-null)
-        ((and (not (member status (list "finished" "archived") :test #'string=))
+        ((and (not (member state (list "finished" "archived") :test #'string=))
               (not (eql date :null)))
          :end-date-nonnull)
         (t
@@ -134,20 +134,20 @@
                :css-class "hmenu actions"
                :disabled disabled))
 
-(defun project-filters (cstatus search)
+(defun project-filters (cstate search)
   (let ((spec `((nil      ,(project :search search)                    "Όλα")
-                (quoted   ,(project :search search :cstatus "quoted")   "Προσφορές")
-                (ongoing  ,(project :search search :cstatus "ongoing")  "Σε εξέλιξη")
-                (finished ,(project :search search :cstatus "finished") "Ολοκληρωμένα")
-                (archived ,(project :search search :cstatus "archived") "Αρχειοθετημένα")
-                (canceled ,(project :search search :cstatus "canceled") "Άκυρα"))))
+                (quoted   ,(project :search search :cstate "quoted")   "Προσφορές")
+                (ongoing  ,(project :search search :cstate "ongoing")  "Σε εξέλιξη")
+                (finished ,(project :search search :cstate "finished") "Ολοκληρωμένα")
+                (archived ,(project :search search :cstate "archived") "Αρχειοθετημένα")
+                (canceled ,(project :search search :cstate "canceled") "Άκυρα"))))
     (with-html
       (:div :id "filters" :class "filters"
             (:p :class "title" "Κατάσταση")
             (navbar spec
                     :id "project-filters"
                     :css-class "vnavbar"
-                    :active cstatus
+                    :active cstate
                     :test #'string-equal)))))
 
 
@@ -180,10 +180,10 @@
                     (:fieldset
                      (:legend "Οικονομικά")
                      (:ul
-                      (:li (label 'status "Κατάσταση")
-                           (dropdown 'status *project-statuses*
-                                     :selected (or (getf record :status)
-                                                   *default-project-status*)
+                      (:li (label 'state "Κατάσταση")
+                           (dropdown 'state *project-states*
+                                     :selected (or (getf record :state)
+                                                   *default-project-state*)
                                      :disabled disabled))
                       (:li (label-input-text 'price
                                              "Τιμή"))
@@ -225,12 +225,12 @@
   (declare (ignore type))
   (with-db ()
     (query (:select 'project.id (:as 'company.title 'company)
-                    'description 'location 'status 'quote-date
+                    'description 'location 'state 'quote-date
                     'start-date 'end-date 'price 'vat 'project.notes
-                    :from 'project
-                    :left-join 'company
-                    :on (:= 'project.company-id 'company.id)
-                    :where (:= 'project.id id))
+            :from 'project
+            :left-join 'company
+            :on (:= 'project.company-id 'company.id)
+            :where (:= 'project.id id))
            :plist)))
 
 
@@ -250,7 +250,7 @@
 
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
-         (cstatus (getf (filter table) :cstatus))
+         (cstate (getf (filter table) :cstate))
          (base-query `(:select project.id project.description project.notes price
                                (:as company.id company-id) (:as company.title company)
                                :from project
@@ -263,21 +263,21 @@
                   (:ilike project.price ,(ilike search))
                   (:ilike project.notes ,(ilike search)))
             where-terms))
-    (when cstatus
-      (push `(:= project.status ,cstatus)
+    (when cstate
+      (push `(:= project.state ,cstate)
             where-terms))
-    (let* ((composite-query (if (or search cstatus)
+    (let* ((composite-query (if (or search cstate)
                                 (append base-query
                                         `(:where (:and ,@where-terms)))
                                 base-query))
            (final-query `(:order-by ,composite-query
                                     (:desc
-                                     ,(cond ((member cstatus
+                                     ,(cond ((member cstate
                                                      (list "quoted" nil) :test #'string=)
                                              'quote-date)
-                                            ((string= cstatus "ongoing")
+                                            ((string= cstate "ongoing")
                                              'start-date)
-                                            ((member cstatus
+                                            ((member cstate
                                                      (list "finished" "archived") :test #'string=)
                                              'end-date))))))
       (with-db ()
@@ -323,10 +323,10 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project ("admin/project")
-    ((id      integer chk-project-id)
-     (cstatus string)
-     (search  string)
-     (start   integer))
+    ((id     integer chk-project-id)
+     (cstate string)
+     (search string)
+     (start  integer))
   (with-view-page
     (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
@@ -352,13 +352,13 @@
                               :key (val id)
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (project :cstatus (val cstatus)) (val search))
-                     (project-filters (val cstatus) (val search)))
+                     (searchbox (project :cstate (val cstate)) (val search))
+                     (project-filters (val cstate) (val search)))
                (footer)))))))
 
 (defpage project-page project/details ("admin/project/details")
     ((search  string)
-     (cstatus string)
+     (cstate  string)
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id)))
   (with-view-page
@@ -404,16 +404,16 @@
 
 (defpage project-page project/create ("admin/project/create")
     ((search      string)
-     (cstatus     string)
+     (cstate      string)
      (company     string chk-company-title*)
      (description string chk-project-description/create)
      (location    string)
      (price       float  chk-amount*)
      (vat         float  chk-amount*)
-     (status      string)
-     (quote-date  date   (chk-quote-date quote-date status))
-     (start-date  date   (chk-start-date start-date status))
-     (end-date    date   (chk-end-date end-date status))
+     (state       string)
+     (quote-date  date   (chk-quote-date quote-date state))
+     (start-date  date   (chk-start-date start-date state))
+     (end-date    date   (chk-end-date end-date state))
      (notes       string))
   (with-view-page
     (let* ((filter (params->filter))
@@ -435,7 +435,7 @@
                                    filter
                                    '(:details :create :update :delete))
                      (notifications)
-                     (with-form (actions/project/create :search (val search) :cstatus (val cstatus))
+                     (with-form (actions/project/create :search (val search) :cstate (val cstate))
                        (display project-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
@@ -443,16 +443,16 @@
 (defpage project-page actions/project/create ("actions/admin/project/create"
                                               :request-type :post)
     ((search      string)
-     (cstatus     string)
+     (cstate      string)
      (company     string chk-company-title)
      (description string chk-project-description/create)
      (location    string)
      (price       float  chk-amount*)
      (vat         float  chk-amount*)
-     (status      string)
-     (quote-date  date   (chk-quote-date quote-date status))
-     (start-date  date   (chk-start-date start-date status))
-     (end-date    date   (chk-end-date end-date status))
+     (state       string)
+     (quote-date  date   (chk-quote-date quote-date state))
+     (start-date  date   (chk-start-date start-date state))
+     (end-date    date   (chk-end-date end-date state))
      (notes       string))
   (with-controller-page (project/create)
     (let* ((company-id (company-id (val company)))
@@ -465,7 +465,7 @@
                                        :quote-date (val quote-date)
                                        :start-date (val start-date)
                                        :end-date (val end-date)
-                                       :status (val status)
+                                       :state (val state)
                                        :notes (val notes))))
       (insert-dao new-project)
       (see-other (apply #'project :id (project-id new-project)
@@ -479,18 +479,18 @@
 
 (defpage project-page project/update ("admin/project/update")
     ((search      string)
-     (cstatus     string)
+     (cstate      string)
      (id          integer chk-project-id)
      (bill-id     integer (chk-bill-id id bill-id))
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description id))
      (location    string)
-     (price       float chk-amount*)
-     (vat         float chk-amount*)
-     (status      string)
-     (quote-date  date  (chk-quote-date quote-date status))
-     (start-date  date  (chk-start-date start-date status))
-     (end-date    date  (chk-end-date end-date status))
+     (price       float   chk-amount*)
+     (vat         float   chk-amount*)
+     (state       string)
+     (quote-date  date    (chk-quote-date quote-date state))
+     (start-date  date    (chk-start-date start-date state))
+     (end-date    date    (chk-end-date end-date state))
      (notes       string))
   (with-view-page
     (let* ((filter (params->filter))
@@ -533,17 +533,17 @@
 (defpage project-page actions/project/update ("actions/admin/project/update"
                                               :request-type :post)
     ((search      string)
-     (cstatus     string)
+     (cstate      string)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description id))
      (location    string)
-     (price       float chk-amount*)
-     (vat         float chk-amount*)
-     (status      string)
-     (quote-date  date  (chk-quote-date quote-date status))
-     (start-date  date  (chk-start-date start-date status))
-     (end-date    date  (chk-end-date end-date status))
+     (price       float   chk-amount*)
+     (vat         float   chk-amount*)
+     (state       string)
+     (quote-date  date    (chk-quote-date quote-date state))
+     (start-date  date    (chk-start-date start-date state))
+     (end-date    date    (chk-end-date end-date state))
      (notes       string))
   (with-controller-page (project/update)
     (let ((company-id (company-id (val company))))
@@ -556,7 +556,7 @@
                         'quote-date (val quote-date)
                         'start-date (val start-date)
                         'end-date (val end-date)
-                        'status (val status)
+                        'state (val state)
                         'notes (val notes)
                         :where (:= 'id (val id))))
       (see-other (apply #'project/details :id (val id)
@@ -569,10 +569,10 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/delete ("admin/project/delete")
-    ((id      integer chk-project-id t)
-     (search  string)
-     (cstatus string))
-  (with-view-page ()
+    ((id     integer chk-project-id t)
+     (search string)
+     (cstate string))
+  (with-view-page
     (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
                                          :op :delete
@@ -592,19 +592,19 @@
                                    '(:read :delete))
                      (with-form (actions/project/delete :id (val id)
                                                         :search (val search)
-                                                        :cstatus (val cstatus))
+                                                        :cstate (val cstate))
                        (display project-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (project :cstatus (val cstatus)) (val search))
-                     (project-filters (val cstatus) (val search)))
+                     (searchbox (project :cstate (val cstate)) (val search))
+                     (project-filters (val cstate) (val search)))
                (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/admin/project/delete"
-                                                   :request-type :post)
-    ((id      integer chk-project-id)
-     (search  string)
-     (cstatus string))
+                                              :request-type :post)
+    ((id     integer chk-project-id)
+     (search string)
+     (cstate string))
   (with-controller-page (project/delete)
     (delete-dao (get-dao 'project (val id)))
     (see-other (apply #'project (params->filter)))))

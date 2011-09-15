@@ -27,19 +27,23 @@
 ;;; Globals
 ;;; ------------------------------------------------------------
 
-(defparameter *project-statuses* (lists->alist
-                                  (with-db ()
-                                    (query (:select 'id 'description
-                                                    :from 'project-status)))))
+(defparameter *project-states* (lists->alist
+                                (with-db ()
+                                  (query (:select 'id 'description
+                                                  :from 'project-state)))))
 
-(defparameter *default-project-status* "quoted")
-(defparameter *default-cheque-status* "pending")
-;; (defparameter *cheque-statuses*
-;;   (load-time-value
-;;    (with-db ()
-;;      (query (:select 'description 'id
-;;                      :from 'cheque-status))))
-;;   "Label-value alist indended for use with dropdown lists")
+(defparameter *cheque-states*
+  (lists->alist
+   (with-db ()
+     (query (:select 'id 'description
+                     :from 'cheque-state)))))
+
+
+
+(defparameter *default-project-state* "quoted")
+(defparameter *default-cheque-state* "pending")
+
+
 
 ;; ;; cash
 ;; (defparameter *cash-account* (get-option "cash-account"))
