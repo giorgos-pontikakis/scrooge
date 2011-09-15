@@ -283,8 +283,12 @@
      (account-id  integer chk-acc-id))
   (with-view-page
     (check-cash-accounts)
-    (let ((filter (params->filter))
-          (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Δημιουργία")))
+    (let* ((filter (params->filter))
+           (cash-form (make-instance 'cash-form
+                                     :op :create
+                                     :record nil
+                                     :cancel-url (apply #'cash filter)))
+           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Δημιουργία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -349,9 +353,13 @@
      (account-id  integer chk-acc-id))
   (with-view-page
     (check-cash-accounts)
-    (let ((filter (params->filter))
-          (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Επεξεργασία"))
-          (acc-keyword (if (string-equal cash-kind "expense") :debit-acc-id :credit-acc-id)))
+    (let* ((filter (params->filter))
+           (cash-form (make-instance 'cash-form
+                                     :op :update
+                                     :record (get-record 'cash (val id))
+                                     :cancel-url (apply #'cash filter)))
+           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Επεξεργασία"))
+           (acc-keyword (if (string-equal cash-kind "expense") :debit-acc-id :credit-acc-id)))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -384,7 +392,6 @@
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
   (with-controller-page (cash/update)
-    (no-cache)
     (check-cash-accounts)
     (let ((company-id (company-id (val company))) ;; using val (accept null values)
           (debit-acc-id (if (string-equal cash-kind "revenue")

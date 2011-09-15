@@ -41,14 +41,14 @@
 ;;                      :from 'cheque-status))))
 ;;   "Label-value alist indended for use with dropdown lists")
 
-;; ;; invoices
-;; (defparameter *invoice-receivable-account* (get-option "invoice-receivable-account"))
-;; (defparameter *invoice-payable-account* (get-option "invoice-payable-account"))
-
 ;; ;; cash
 ;; (defparameter *cash-account* (get-option "cash-account"))
 ;; (defparameter *revenues-root-account* (get-option "revenues-root-account"))
 ;; (defparameter *expenses-root-account* (get-option "expenses-root-account"))
+
+;; ;; invoices
+;; (defparameter *invoice-receivable-account* (get-option "invoice-receivable-account"))
+;; (defparameter *invoice-payable-account* (get-option "invoice-payable-account"))
 
 ;; ;; cheques
 ;; (defparameter *cheque-receivable-account* (get-option "cheque-receivable-account"))

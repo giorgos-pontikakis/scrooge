@@ -33,8 +33,8 @@
                ;; ;; financial
                (:file "financial/financial")
                (:file "financial/tx")
+               (:file "financial/cash")
+               (:file "financial/invoice")
                ;; (:file "financial/cheque")
-               ;; (:file "financial/cash")
-               ;; (:file "financial/invoice")
                ;; (:file "financial/account")
                ))

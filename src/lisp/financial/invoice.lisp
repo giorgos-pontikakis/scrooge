@@ -3,6 +3,40 @@
 
 
 ;;; ----------------------------------------------------------------------
+;;; Page family
+;;; ----------------------------------------------------------------------
+
+(defclass invoice-page (regex-page page-family-mixin)
+  ((system-parameter-names
+    :allocation :class
+    :initform '(id))
+   (payload-parameter-names
+    :allocation :class
+    :initform '(date company description amount))
+   (filter-parameter-names
+    :allocation :class
+    :initform '(search status))
+   (allowed-groups
+    :allocation :class
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform
+    '((company (:company-title-unknown
+                "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+      (amount (:non-positive-amount
+               "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
+               :parse-error
+               "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+      (account-id (:acc-id-null
+                   "Δεν έχετε επιλέξει λογαριασμό"))
+      (date (:parse-error
+             "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
+
+
+
+;;; ----------------------------------------------------------------------
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
@@ -13,7 +47,7 @@
                *expenses-root-account*)
     (see-other (invoice-accounts-error-page))))
 
-(defpage dynamic-page invoice-accounts-error-page ("financial/invoice/error")
+(defpage dynamic-page invoice-accounts-error-page ("invoice/error")
     ()
   (with-document ()
     (:head
@@ -29,99 +63,44 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Actions
+;;; Invoice form
 ;;; ----------------------------------------------------------------------
 
-(define-regex-page actions/financial/invoice/create
-    (("actions/financial/invoice/" (invoice-kind "(receivable|payable)") "/create")
-     :request-type :post)
-    ((search      string)
-     (date        date)
-     (company     string  chk-company-title*)
-     (description string)
-     (amount      float   chk-amount)
-     (account-id  integer chk-acc-id t))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-invoice-accounts)
-    (if (every #'validp (parameters *page*))
-        (let* ((company-id (company-id (val company))) ;; using val (accept null values)
-               (debit-acc-id (if (string-equal invoice-kind "receivable")
-                                 *invoice-receivable-account*
-                                 (val account-id)))
-               (credit-acc-id (if (string-equal invoice-kind "receivable")
-                                  (val account-id)
-                                  *invoice-payable-account*))
-               (new-tx (make-instance 'tx
-                                      :tx-date (val date)
-                                      :description (val description)
-                                      :company-id company-id
-                                      :amount (val amount)
-                                      :credit-acc-id credit-acc-id
-                                      :debit-acc-id debit-acc-id)))
-          (with-db ()
-            (insert-dao new-tx)
-            (see-other (invoice invoice-kind :id (id new-tx) :search (val search)))))
-        (see-other (invoice/create invoice-kind
-                                   :date (raw date)
-                                   :description (raw description)
-                                   :company (raw company)
-                                   :amount (raw amount)
-                                   :account-id (raw account-id)
-                                   :search (raw search))))))
+(defclass invoice-form (crud-form/plist)
+  ())
 
-(define-regex-page actions/financial/invoice/update
-    (("actions/financial/invoice/" (invoice-kind "(receivable|payable)") "/update")
-     :request-type :post)
-    ((search      string)
-     (id          integer chk-tx-id t)
-     (date        date)
-     (description string)
-     (company     string  chk-company-title*)
-     (amount      float   chk-amount)
-     (account-id  integer chk-acc-id))
-  (with-auth ("configuration")
-    (no-cache)
-    (check-invoice-accounts)
-    (if (every #'validp (parameters *page*))
-        (let ((company-id (company-id (val company))) ;; using val (accept null values)
-              (debit-acc-id (if (string-equal invoice-kind "receivable")
-                                *invoice-receivable-account*
-                                (val account-id)))
-              (credit-acc-id (if (string-equal invoice-kind "receivable")
-                                 (val account-id)
-                                 *invoice-payable-account*)))
-          (with-db ()
-            (execute (:update 'tx :set
-                              'tx-date (val date)
-                              'description (val description)
-                              'company-id company-id
-                              'amount (val amount)
-                              'debit-acc-id debit-acc-id
-                              'credit-acc-id credit-acc-id
-                              :where (:= 'id (val id))))
-            (see-other (invoice invoice-kind :id (val id)))))
-        (see-other (invoice/update invoice-kind
-                                   :search (raw search)
-                                   :id (raw id)
-                                   :date (raw date)
-                                   :description (raw description)
-                                   :company (raw company)
-                                   :amount (raw amount)
-                                   :account-id (raw account-id))))))
-
-(define-regex-page actions/financial/invoice/delete
-    (("actions/financial/invoice/" (invoice-kind "(receivable|payable)") "/delete") :request-type :post)
-    ((id     integer chk-tx-id t)
-     (search string))
-  (with-auth ("configuration")
-    (check-invoice-accounts)
-    (if (validp id)
-        (with-db ()
-          (delete-dao (get-dao 'tx (val id)))
-          (see-other (invoice invoice-kind :search (val search))))
-        (see-other (notfound)))))
-
+(defun invoice-data-form (invoice-kind op &key id data styles filter)
+  (let ((disabled (eql op :details))
+        (record (record form))
+        (tree (make-account-radio-tree (string-equal invoice-kind "receivable"))))
+    (flet ((label-input-text (name label &optional extra-styles)
+             (with-html
+               (label name label)
+               (input-text name
+                           :value (getf data (make-keyword name))
+                           :disabled disabled
+                           :css-class (conc (getf styles (make-keyword name))
+                                            " " extra-styles)))))
+      (with-html
+        (:div :id "invoice-data-form" :class "data-form"
+              (:div :class "grid_6 alpha"
+                    (label-input-text 'date "Ημερομηνία" "datepicker")
+                    (label-input-text 'description "Περιγραφή")
+                    (label-input-text 'company "Εταιρία" "ac-company")
+                    (label-input-text 'amount "Ποσό")
+                    (:div :class "data-form-buttons"
+                          (if disabled
+                              (cancel-button (cancel-url form)
+                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
+                              (progn
+                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
+                                (cancel-button (cancel-url form)
+                                               :body "Άκυρο")))))
+              (:div :class "grid_6 omega"
+                    (label 'account "Λογαριασμός")
+                    ;; Display the tree. If needed, preselect the first account of the tree.
+                    (display tree :selected-id (or (getf data :account-id)
+                                                   (key (first (children (root tree))))))))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -237,72 +216,66 @@
         :css-class "hmenu actions"
         :disabled disabled))
 
-(defun invoice-notifications ()
-  (notifications
-   '((company  (:company-title-unknown "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-     (amount (:non-positive-amount  "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-              :parse-error  "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-     (account-id (:acc-id-null "Δεν έχετε επιλέξει λογαριασμό"))
-     (date (:parse-error "Η ημερομηνία της συναλλαγής είναι άκυρη")))))
-
 
 
 ;;; ------------------------------------------------------------
-;;; Pages
+;;; VIEW
 ;;; ------------------------------------------------------------
 
-(define-regex-page invoice (("financial/invoice/" (invoice-kind "(receivable|payable)")))
+(defpage invoice-page invoice (("invoice/" (invoice-kind "(receivable|payable)")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
-  (with-auth ("configuration")
-    (no-cache)
+  (with-view-page
     (check-invoice-accounts)
-    (if (every #'validp (parameters *page*))
-        (let* ((filter (params->payload search))
-               (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Κατάλογος"))
-               (invoice-tx-table (make-instance 'invoice-tx-table
-                                                :id "invoice-tx-table"
-                                                :subpage invoice-kind
-                                                :op :read
-                                                :filter filter)))
-          (with-document ()
-            (:head
-             (:title (str page-title))
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'invoice)
-                   (:div :class "window grid_10"
-                         (:div :class "title" (str page-title))
-                         (invoice-menu invoice-kind
-                                       (val id)
-                                       filter
-                                       (if (val id)
-                                           '(:read)
-                                           '(:read :details :update :delete)))
-                         (display invoice-tx-table
-                                  :selected-id (val id)
-                                  :selected-data nil
-                                  :start (val start)))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         (searchbox (invoice invoice-kind) (val search))
-                         (invoice-filters invoice-kind (val search)))
-                   (footer)))))
-        (see-other (notfound)))))
+    (let* ((filter (params->filter))
+           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Κατάλογος"))
+           (invoice-tx-table (make-instance 'invoice-tx-table
+                                            :id "invoice-tx-table"
+                                            :subpage invoice-kind
+                                            :op :read
+                                            :filter filter)))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'invoice)
+               (:div :class "window grid_10"
+                     (:div :class "title" (str page-title))
+                     (invoice-menu invoice-kind
+                                   (val id)
+                                   filter
+                                   (if (val id)
+                                       '(:read)
+                                       '(:read :details :update :delete)))
+                     (display invoice-tx-table
+                              :selected-id (val id)
+                              :selected-data nil
+                              :start (val start)))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (invoice invoice-kind) (val search))
+                     (invoice-filters invoice-kind (val search)))
+               (footer)))))))
 
-(define-regex-page invoice/create (("financial/invoice/" (invoice-kind  "(receivable|payable)") "/create"))
+
+
+;;; ------------------------------------------------------------
+;;; CREATE
+;;; ------------------------------------------------------------
+
+(defpage invoice-page invoice/create (("invoice/" (invoice-kind  "(receivable|payable)") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
-  (with-auth ("configuration")
-    (no-cache)
+  (with-view-page
     (check-invoice-accounts)
-    (let ((filter (params->payload search))
+    (let ((filter (params->filter))
           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -319,21 +292,49 @@
                                    filter
                                    '(:create :update :delete))
                      (invoice-notifications)
-                     (with-form (actions/financial/invoice/create invoice-kind :search (val search))
+                     (with-form (actions/invoice/create invoice-kind :search (val search))
                        (invoice-data-form invoice-kind :create
                                           :filter filter
-                                          :data (params->payload date
-                                                                   company
-                                                                   description
-                                                                   amount
-                                                                   account-id)
-                                          :styles (params->styles date
-                                                                      company
-                                                                      description
-                                                                      amount))))
+                                          :data (params->payload)
+                                          :styles (params->styles))))
                (footer)))))))
 
-(define-regex-page invoice/update (("financial/invoice/" (invoice-kind "(receivable|payable)") "/update"))
+(defpage invoice-page actions/invoice/create
+    (("actions/invoice/" (invoice-kind "(receivable|payable)") "/create")
+     :request-type :post)
+    ((search      string)
+     (date        date)
+     (company     string  chk-company-title*)
+     (description string)
+     (amount      float   chk-amount)
+     (account-id  integer chk-acc-id t))
+  (with-controller-page (invoice/update)
+    (check-invoice-accounts)
+    (let* ((company-id (company-id (val company))) ;; using val (accept null values)
+           (debit-acc-id (if (string-equal invoice-kind "receivable")
+                             *invoice-receivable-account*
+                             (val account-id)))
+           (credit-acc-id (if (string-equal invoice-kind "receivable")
+                              (val account-id)
+                              *invoice-payable-account*))
+           (new-tx (make-instance 'tx
+                                  :tx-date (val date)
+                                  :description (val description)
+                                  :company-id company-id
+                                  :amount (val amount)
+                                  :credit-acc-id credit-acc-id
+                                  :debit-acc-id debit-acc-id)))
+      (insert-dao new-tx)
+      (see-other (invoice invoice-kind :id (id new-tx) :search (val search))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; UPDATE
+;;; ------------------------------------------------------------
+
+(defpage invoice-page invoice/update
+    (("invoice/" (invoice-kind "(receivable|payable)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -341,10 +342,9 @@
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
-  (with-auth ("configuration")
-    (no-cache)
+  (with-view-page
     (check-invoice-accounts)
-    (let ((filter (params->payload search))
+    (let ((filter (params->filter))
           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Επεξεργασία"))
           (acc-keyword (if (string-equal invoice-kind "payable") :debit-acc-id :credit-acc-id)))
       (with-document ()
@@ -361,92 +361,98 @@
                                    nil
                                    filter
                                    '(:create :update :delete))
-                     (with-form (actions/financial/invoice/update invoice-kind
+                     (with-form (actions/invoice/update invoice-kind
                                                                   :id (val id)
                                                                   :search (val search))
                        (invoice-data-form invoice-kind :update
                                           :id (val id)
                                           :filter filter
-                                          :data (plist-union (params->payload date
-                                                                                company
-                                                                                description
-                                                                                amount)
-                                                             (subst :account-id
-                                                                    acc-keyword
-                                                                    (tx-record (val id))))
-                                          :styles (params->styles date
-                                                                      company
-                                                                      description
-                                                                      amount
-                                                                      account-id))))
+                                          :data (params->payload)
+                                          :styles (params->styles))))
                (footer)))))))
 
-(define-regex-page invoice/delete (("financial/invoice/" (invoice-kind "(receivable|payable)") "/delete"))
+(defpage invoice-page actions/invoice/update
+    (("actions/invoice/" (invoice-kind "(receivable|payable)") "/update") :request-type :post)
+    ((search      string)
+     (id          integer chk-tx-id t)
+     (date        date)
+     (description string)
+     (company     string  chk-company-title*)
+     (amount      float   chk-amount)
+     (account-id  integer chk-acc-id))
+  (with-view-page
+    (check-invoice-accounts)
+    (let ((company-id (company-id (val company))) ;; using val (accept null values)
+          (debit-acc-id (if (string-equal invoice-kind "receivable")
+                            *invoice-receivable-account*
+                            (val account-id)))
+          (credit-acc-id (if (string-equal invoice-kind "receivable")
+                             (val account-id)
+                             *invoice-payable-account*)))
+      (execute (:update 'tx :set
+                        'tx-date (val date)
+                        'description (val description)
+                        'company-id company-id
+                        'amount (val amount)
+                        'debit-acc-id debit-acc-id
+                        'credit-acc-id credit-acc-id
+                        :where (:= 'id (val id))))
+      (see-other (invoice invoice-kind :id (val id))))))
+
+
+
+;;; ------------------------------------------------------------
+;;; DELETE
+;;; ------------------------------------------------------------
+
+(defpage invoice-page invoice/delete
+    (("invoice/" (invoice-kind "(receivable|payable)") "/delete"))
     ((id     integer chk-project-id t)
      (search string))
-  (with-auth ("configuration")
-    (no-cache)
+  (with-view-page
     (check-invoice-accounts)
-    (if (validp id)
-        (let* ((filter (params->payload search))
-               (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Διαγραφή"))
-               (invoice-tx-table (make-instance 'invoice-tx-table
-                                                :op :delete
-                                                :subpage invoice-kind
-                                                :filter filter)))
-          (with-document ()
-            (:head
-             (:title (str page-title))
-             (financial-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'invoice)
-                   (:div :id "invoice-window" :class "window grid_10"
-                         (:div :class "title" (str page-title))
-                         (invoice-menu invoice-kind
-                                       (val id)
-                                       filter
-                                       '(:read :delete))
-                         (with-form (actions/financial/invoice/delete invoice-kind
-                                                                      :id (val id)
-                                                                      :search (val search))
-                           (display invoice-tx-table
-                                    :selected-id (val id))))
-                   (:div :id "sidebar" :class "sidebar grid_2"
-                         (searchbox (invoice invoice-kind) (val search))
-                         (invoice-filters invoice-kind (val search)))
-                   (footer)))))
-        (see-other (error-page)))))
+    (let* ((filter (params->filter))
+           (page-title (conc "Τιμολόγια » " (invoice-kind-label invoice-kind) " » Διαγραφή"))
+           (invoice-tx-table (make-instance 'invoice-tx-table
+                                            :op :delete
+                                            :subpage invoice-kind
+                                            :filter filter)))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (financial-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'financial)
+               (financial-navbar 'invoice)
+               (:div :id "invoice-window" :class "window grid_10"
+                     (:div :class "title" (str page-title))
+                     (invoice-menu invoice-kind
+                                   (val id)
+                                   filter
+                                   '(:read :delete))
+                     (with-form (actions/invoice/delete invoice-kind
+                                                        :id (val id)
+                                                        :search (val search))
+                       (display invoice-tx-table
+                                :selected-id (val id))))
+               (:div :id "sidebar" :class "sidebar grid_2"
+                     (searchbox (invoice invoice-kind) (val search))
+                     (invoice-filters invoice-kind (val search)))
+               (footer)))))))
 
-(defun invoice-data-form (invoice-kind op &key id data styles filter)
-  (let ((disabled (eql op :details))
-        (tree (make-account-radio-tree (string-equal invoice-kind "receivable"))))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf data (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :id "invoice-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
-                    (label-input-text 'date "Ημερομηνία" "datepicker")
-                    (label-input-text 'description "Περιγραφή")
-                    (label-input-text 'company "Εταιρία" "ac-company")
-                    (label-input-text 'amount "Ποσό")
-                    (:div :class "data-form-buttons"
-                          (if disabled
-                              (cancel-button (apply #'invoice invoice-kind :id id filter)
-                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
-                              (progn
-                                (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία"))
-                                (cancel-button (apply #'invoice invoice-kind :id id filter)
-                                               :body "Άκυρο")))))
-              (:div :class "grid_6 omega"
-                    (label 'account "Λογαριασμός")
-                    ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :selected-id (or (getf data :account-id)
-                                                   (key (first (children (root tree))))))))))))
+(defpage invoice-page actions/invoice/delete
+    (("actions/invoice/" (invoice-kind "(receivable|payable)") "/delete") :request-type :post)
+    ((id     integer chk-tx-id t)
+     (search string))
+  (with-controller-page (invoice/delete)
+    (check-invoice-accounts)
+    (delete-dao (get-dao 'tx (val id)))
+    (see-other (invoice invoice-kind :search (val search)))))
+
+
+;;; UPDATE WTF
+;; (plist-union (params->payload)
+;;              (subst :account-id
+;;                     acc-keyword
+;;                     (tx-record (val id))))

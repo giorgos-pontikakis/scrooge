@@ -23,7 +23,7 @@
 }
 
 .crud-tree .controls button {
-    width: 26px !important;
+    width: 22px !important;
 }
 
 .crud-tree li.selected, .crud-tree li.selected {
@@ -74,7 +74,7 @@
 
 .paginator {
     padding: 15px 0px 5px 0px;
-    text-align:right;
+    text-align: right;
     font-size: 11px;
 }
 

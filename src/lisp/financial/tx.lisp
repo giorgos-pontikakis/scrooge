@@ -275,8 +275,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-nc-acc-title)
-     (credit-account string  chk-nc-acc-title))
+     (debit-account  string  chk-non-chq-acc-title)
+     (credit-account string  chk-non-chq-acc-title))
   (with-view-page
     (let* ((filter (params->filter))
            (transaction-form (make-instance 'transaction-form
@@ -309,8 +309,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-nc-acc-title)
-     (credit-account string  chk-nc-acc-title))
+     (debit-account  string  chk-non-chq-acc-title)
+     (credit-account string  chk-non-chq-acc-title))
   (with-controller-page (transaction/create)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (account-id (val debit-account)))
@@ -338,8 +338,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-nc-acc-title)
-     (credit-account string  chk-nc-acc-title))
+     (debit-account  string  chk-non-chq-acc-title)
+     (credit-account string  chk-non-chq-acc-title))
   (with-view-page
     (let* ((filter (params->filter))
            (transaction-form (make-instance 'transaction-form
@@ -374,8 +374,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-nc-acc-title)
-     (credit-account string  chk-nc-acc-title))
+     (debit-account  string  chk-non-chq-acc-title)
+     (credit-account string  chk-non-chq-acc-title))
   (with-controller-page (transaction/update)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (account-id (val debit-account)))
