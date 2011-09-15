@@ -32,9 +32,9 @@
                (:file "admin/bill")
                ;; ;; financial
                (:file "financial/financial")
-               ;; (:file "financial/tx")
-               ;; (:file "financial/cash")
-               ;; (:file "financial/invoice")
+               (:file "financial/tx")
+               (:file "financial/cash")
+               (:file "financial/invoice")
                ;; (:file "financial/cheque")
                ;; (:file "financial/account")
                ))

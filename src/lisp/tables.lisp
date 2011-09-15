@@ -69,8 +69,9 @@
 
 
 (defclass account-role ()
-  ((id         :col-type (string 32) :reader   id)
-   (account-id :col-type integer     :accessor account-id :initarg :account-id))
+  ((id          :col-type (string 32)  :reader   id)
+   (description :col-type (string 100) :reader   description)
+   (account-id  :col-type integer      :accessor account-id  :initarg :account-id))
   (:metaclass dao-class)
   (:keys id))
 

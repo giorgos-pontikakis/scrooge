@@ -41,10 +41,10 @@
 ;;; ----------------------------------------------------------------------
 
 (defun check-invoice-accounts ()
-  (unless (and *invoice-receivable-account*
-               *invoice-payable-account*
-               *revenues-root-account*
-               *expenses-root-account*)
+  (unless (and *invoice-receivable-acc-id*
+               *invoice-payable-acc-id*
+               *revenues-root-acc-id*
+               *expenses-root-acc-id*)
     (see-other (invoice-accounts-error-page))))
 
 (defpage dynamic-page invoice-accounts-error-page ("invoice/error")
@@ -122,8 +122,8 @@
 
 (defmethod get-records ((table invoice-tx-table))
   (flet ((invoice-kind-account (invoice-kind)
-           (cond ((string-equal invoice-kind "receivable") `(debit-acc-id ,*invoice-receivable-account*))
-                 ((string-equal invoice-kind "payable") `(credit-acc-id ,*invoice-payable-account*))
+           (cond ((string-equal invoice-kind "receivable") `(debit-acc-id ,*invoice-receivable-acc-id*))
+                 ((string-equal invoice-kind "payable") `(credit-acc-id ,*invoice-payable-acc-id*))
                  (t (error "internal error in invoice-kind-account")))))
     (let* ((search (getf (filter table) :search))
            (invoice-kind (subpage table))
@@ -312,11 +312,11 @@
     (check-invoice-accounts)
     (let* ((company-id (company-id (val company))) ;; using val (accept null values)
            (debit-acc-id (if (string-equal invoice-kind "receivable")
-                             *invoice-receivable-account*
+                             *invoice-receivable-acc-id*
                              (val account-id)))
            (credit-acc-id (if (string-equal invoice-kind "receivable")
                               (val account-id)
-                              *invoice-payable-account*))
+                              *invoice-payable-acc-id*))
            (new-tx (make-instance 'tx
                                   :tx-date (val date)
                                   :description (val description)
@@ -384,11 +384,11 @@
     (check-invoice-accounts)
     (let ((company-id (company-id (val company))) ;; using val (accept null values)
           (debit-acc-id (if (string-equal invoice-kind "receivable")
-                            *invoice-receivable-account*
+                            *invoice-receivable-acc-id*
                             (val account-id)))
           (credit-acc-id (if (string-equal invoice-kind "receivable")
                              (val account-id)
-                             *invoice-payable-account*)))
+                             *invoice-payable-acc-id*)))
       (execute (:update 'tx :set
                         'tx-date (val date)
                         'description (val description)

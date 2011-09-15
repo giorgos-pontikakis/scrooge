@@ -47,10 +47,10 @@
 ;;; --------------------------------------------------------------------------------
 
 (defun check-cheque-accounts ()
-  (unless (and *cheque-receivable-account*
-               *cheque-payable-account*
-               *revenues-root-account*
-               *expenses-root-account*)
+  (unless (and *cheque-receivable-acc-id*
+               *cheque-payable-acc-id*
+               *revenues-root-acc-id*
+               *expenses-root-acc-id*)
     (see-other (cheque-accounts-error-page))))
 
 (defpage dynamic-page cheque-accounts-error-page ("cheque/error")
@@ -253,8 +253,8 @@
     (when (eql op :create)
       (push (root (make-instance 'account-radio-tree
                                  :root-key (if revenues-p
-                                               *invoice-receivable-account*
-                                               *invoice-payable-account*)
+                                               *invoice-receivable-acc-id*
+                                               *invoice-payable-acc-id*)
                                  :filter (list :debit-p revenues-p)))
             (children (root tree))))
     (flet ((label-input-text (name label &optional extra-styles)
@@ -438,11 +438,11 @@
         (with-transaction ()
           (insert-dao new-cheque)
           (let* ((debit-acc-id (if (string-equal cheque-kind "receivable")
-                                   *cheque-receivable-account*
+                                   *cheque-receivable-acc-id*
                                    (val account-id)))
                  (credit-acc-id (if (string-equal cheque-kind "receivable")
                                     (val account-id)
-                                    *cheque-payable-account*))
+                                    *cheque-payable-acc-id*))
                  (new-tx (make-instance 'tx
                                         :tx-date (today)
                                         :description (format nil "Auto-tx for new cheque ~A"
@@ -525,11 +525,11 @@
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
            (debit-acc-id (if (string-equal cheque-kind "receivable")
-                             *cheque-receivable-account*
+                             *cheque-receivable-acc-id*
                              (val account-id)))
            (credit-acc-id (if (string-equal cheque-kind "receivable")
                               (val account-id)
-                              *cheque-payable-account*)))
+                              *cheque-payable-acc-id*)))
       (with-db ()
         (with-transaction ()
           (let* ((cheque-dao (get-dao 'cheque (val id)))

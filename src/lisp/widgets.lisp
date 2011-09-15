@@ -255,6 +255,6 @@
 ;;   (make-instance 'account-radio-tree
 ;;                  :op :read
 ;;                  :root-parent-key (if revenues-p
-;;                                       *revenues-root-account*
-;;                                       *expenses-root-account*)
+;;                                       *revenues-root-acc-id*
+;;                                       *expenses-root-acc-id*)
 ;;                  :filter (list :debit-p (not revenues-p))))

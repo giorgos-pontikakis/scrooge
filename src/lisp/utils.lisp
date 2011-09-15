@@ -253,13 +253,6 @@ excluded for the search - useful for updates."
           (funcall (parse-config-fn (lisp-type option-dao))
                    config-value)))))
 
-(defun get-option (id)
-  (with-db ()
-    (parse-option-dao (get-dao 'option (etypecase id
-                                         (symbol (string-downcase id))
-                                         (string id))))))
-
-
 (defun chk-amount (float)
   (if (or (positive-real-p float)
           (zerop float))

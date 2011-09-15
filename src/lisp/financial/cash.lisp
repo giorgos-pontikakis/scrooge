@@ -41,9 +41,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defun check-cash-accounts ()
-  (unless (and *cash-account*
-               *revenues-root-account*
-               *expenses-root-account*)
+  (unless (and *cash-acc-id*
+               *revenues-root-acc-id*
+               *expenses-root-acc-id*)
     (see-other (cash-accounts-error-page))))
 
 (defpage dynamic-page cash-accounts-error-page ("cash/error")
@@ -95,11 +95,11 @@
            (composite-query
             (if search
                 (append base-query
-                        `(:where (:and (:= ,(cash-kind-account cash-kind) ,*cash-account*)
+                        `(:where (:and (:= ,(cash-kind-account cash-kind) ,*cash-acc-id*)
                                        (:or (:ilike description ,(ilike search))
                                             (:ilike company.title ,(ilike search))))))
                 (append base-query
-                        `(:where (:or (:= ,(cash-kind-account cash-kind) ,*cash-account*))))))
+                        `(:where (:or (:= ,(cash-kind-account cash-kind) ,*cash-acc-id*))))))
            (final-query `(:order-by ,composite-query (:desc date))))
       (with-db ()
         (query (sql-compile final-query)
@@ -191,8 +191,8 @@
          (tree (make-account-radio-tree revenues-p)))
     (push (root (make-instance 'account-radio-tree
                                :root-key (if revenues-p
-                                             *invoice-receivable-account*
-                                             *invoice-payable-account*)
+                                             *invoice-receivable-acc-id*
+                                             *invoice-payable-acc-id*)
                                :filter (list :debit-p revenues-p)))
           (children (root tree)))
     (flet ((label-input-text (name label &optional extra-styles)
@@ -321,11 +321,11 @@
     (check-cash-accounts)
     (let* ((company-id (company-id (val company))) ;; using val (accept null values)
            (debit-acc-id (if (string-equal cash-kind "revenue")
-                             *cash-account*
+                             *cash-acc-id*
                              (val account-id)))
            (credit-acc-id (if (string-equal cash-kind "revenue")
                               (val account-id)
-                              *cash-account*))
+                              *cash-acc-id*))
            (new-tx (make-instance 'tx
                                   :tx-date (val date)
                                   :description (val description)
@@ -395,11 +395,11 @@
     (check-cash-accounts)
     (let ((company-id (company-id (val company))) ;; using val (accept null values)
           (debit-acc-id (if (string-equal cash-kind "revenue")
-                            *cash-account*
+                            *cash-acc-id*
                             (val account-id)))
           (credit-acc-id (if (string-equal cash-kind "revenue")
                              (val account-id)
-                             *cash-account*)))
+                             *cash-acc-id*)))
       (execute (:update 'tx :set
                         'tx-date (val date)
                         'description (val description)

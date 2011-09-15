@@ -99,7 +99,7 @@
     (:div :class "clear" "")))
 
 (defun primary-navbar (active)
-  (navbar `(#|(financial ,(financial) "Οικονομικά")|#
+  (navbar `((financial ,(tx)    "Οικονομικά")
             (admin     ,(admin) "Διαχείριση")
             (config    ,(city)  "Ρυθμίσεις"))
           :id "primary-navbar"

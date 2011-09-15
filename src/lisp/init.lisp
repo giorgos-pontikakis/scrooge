@@ -44,16 +44,21 @@
 (defparameter *default-cheque-state* "pending")
 
 
-
-;; ;; cash
-;; (defparameter *cash-account* (get-option "cash-account"))
-;; (defparameter *revenues-root-account* (get-option "revenues-root-account"))
-;; (defparameter *expenses-root-account* (get-option "expenses-root-account"))
-
-;; ;; invoices
-;; (defparameter *invoice-receivable-account* (get-option "invoice-receivable-account"))
-;; (defparameter *invoice-payable-account* (get-option "invoice-payable-account"))
-
-;; ;; cheques
-;; (defparameter *cheque-receivable-account* (get-option "cheque-receivable-account"))
-;; (defparameter *cheque-payable-account* (get-option "cheque-payable-account"))
+(with-db ()
+  ;; cash
+  (defparameter *cash-acc-id*
+    (account-id (get-dao 'account-role "cash-account")))
+  (defparameter *revenues-root-acc-id*
+    (account-id (get-dao 'account-role "revenues-root-account")))
+  (defparameter *expenses-root-acc-id*
+    (account-id (get-dao 'account-role "expenses-root-account")))
+  ;; invoices
+  (defparameter *invoice-receivable-acc-id*
+    (account-id (get-dao 'account-role "invoice-receivable-account")))
+  (defparameter *invoice-payable-acc-id*
+    (account-id (get-dao 'account-role "invoice-payable-account")))
+  ;; cheques
+  (defparameter *cheque-receivable-acc-id*
+    (account-id (get-dao 'account-role "cheque-receivable-account")))
+  (defparameter *cheque-payable-acc-id*
+    (account-id  (get-dao 'account-role "cheque-payable-account"))))

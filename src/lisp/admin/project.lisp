@@ -215,12 +215,6 @@
                           (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
                           (cancel-button (cancel-url form) :body "Άκυρο")))))))))
 
-
-
-;;; ------------------------------------------------------------
-;;; Database interface
-;;; ------------------------------------------------------------
-
 (defmethod get-record ((type (eql 'project)) id)
   (declare (ignore type))
   (with-db ()

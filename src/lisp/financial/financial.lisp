@@ -4,9 +4,9 @@
 ;;; UI elements
 
 (defun financial-navbar (active)
-  (navbar `((transaction ,(transaction)          "Συναλλαγές")
-            #|(invoice     ,(invoice "receivable") "Τιμολόγια")|#
-            #|(cash        ,(cash "revenue")       "Μετρητά")|#
+  (navbar `((tx ,(tx)          "Συναλλαγές")
+            (cash        ,(cash "revenue")       "Μετρητά")
+            (invoice     ,(invoice "receivable") "Τιμολόγια")
             #|(cheque      ,(cheque "receivable")  "Επιταγές")|#
             #|(account     ,(account/overview)     "Λογαριασμοί")|#)
           :css-class "section-navbar hnavbar grid_12"
