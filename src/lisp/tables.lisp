@@ -84,6 +84,9 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defmethod account-id ((title (eql :null)))
+  :null)
+
 (define-surrogate-key-readers account ((title string)) account-id)
 
 

@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date description company amount debit-account credit-account))
+    :initform '(date description company amount non-chq-debit-acc non-chq-credit-acc))
    (filter-parameter-names
     :allocation :class
     :initform '(search))
@@ -31,12 +31,12 @@
         "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
         :parse-error
         "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-      (debit-account
+      (non-chq-debit-acc
        (:account-title-null
         "Ο λογαριασμός χρέωσης είναι κενός"
         :account-title-unknown
         "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
-      (credit-account
+      (non-chq-credit-acc
        (:account-title-null
         "Ο λογαριασμός πίστωσης είναι κενός"
         :account-title-unknown
@@ -78,7 +78,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Tx form
+;;; TX form
 ;;; ----------------------------------------------------------------------
 
 (defclass tx-form (crud-form/plist)
@@ -100,10 +100,8 @@
               (label-input-text 'date "Ημερομηνία" "datepicker")
               (label-input-text 'company "Εταιρία" "ac-company")
               (label-input-text 'description "Περιγραφή")
-              (label-input-text 'debit-account-nonchequing "Λογαριασμός χρέωσης"
-                                "ac-nonchequing-account")
-              (label-input-text 'credit-account-nonchequing "Λογαριασμός πίστωσης"
-                                "ac-nonchequing-account")
+              (label-input-text 'non-chq-debit-acc "Λογαριασμός χρέωσης" "ac-non-chq-account")
+              (label-input-text 'non-chq-credit-acc "Λογαριασμός πίστωσης" "ac-non-chq-account")
               (label-input-text 'amount "Ποσόν"))
         (:div :class "data-form-buttons"
               (if disabled
@@ -120,25 +118,25 @@
                     (:as 'tx-date 'date)
                     (:as 'company.title 'company)
                     'description
-                    (:as 'debit-account.title 'debit-account-nonchequing)
-                    (:as 'credit-account.title 'credit-account-nonchequing)
+                    (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
+                    (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
                     'tx.debit-acc-id
                     'tx.credit-acc-id
                     'amount
             :from 'tx
             :left-join 'company
             :on (:= 'tx.company-id 'company.id)
-            :left-join (:as 'account 'debit-account)
-            :on (:= 'debit-account.id 'debit-acc-id)
-            :left-join (:as 'account 'credit-account)
-            :on (:= 'credit-account.id 'credit-acc-id)
+            :left-join (:as 'account 'non-chq-debit-acc)
+            :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
+            :left-join (:as 'account 'non-chq-credit-acc)
+            :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
             :where (:= 'tx.id id))
            :plist)))
 
 
 
 ;;; ----------------------------------------------------------------------
-;;; Tx table
+;;; TX table
 ;;; ----------------------------------------------------------------------
 
 ;;; table
@@ -257,7 +255,7 @@
                      (tx-menu (val id)
                               filter
                               '(:details :create))
-                     (display tx-form :payload (tx-record (val id))))
+                     (display tx-form :payload (get-record 'tx (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      "")))))))
 
@@ -273,8 +271,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-non-chq-acc-title)
-     (credit-account string  chk-non-chq-acc-title))
+     (non-chq-debit-acc  string  chk-non-chq-acc-title)
+     (non-chq-credit-acc string  chk-non-chq-acc-title))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-form (make-instance 'tx-form
@@ -307,12 +305,13 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-non-chq-acc-title)
-     (credit-account string  chk-non-chq-acc-title))
+     (non-chq-debit-acc  string  chk-non-chq-acc-title)
+     (non-chq-credit-acc string  chk-non-chq-acc-title))
+  (break)
   (with-controller-page (tx/create)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (account-id (val debit-account)))
-           (credit-acc-id (account-id (val credit-account)))
+           (debit-acc-id (account-id (val non-chq-debit-acc)))
+           (credit-acc-id (account-id (val non-chq-credit-acc)))
            (new-tx (make-instance 'tx
                                   :tx-date (val date)
                                   :description (val description)
@@ -336,8 +335,8 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-non-chq-acc-title)
-     (credit-account string  chk-non-chq-acc-title))
+     (non-chq-debit-acc  string  chk-non-chq-acc-title)
+     (non-chq-credit-acc string  chk-non-chq-acc-title))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-form (make-instance 'tx-form
@@ -372,12 +371,12 @@
      (description    string)
      (company        string  chk-company-title*)
      (amount         float   chk-amount)
-     (debit-account  string  chk-non-chq-acc-title)
-     (credit-account string  chk-non-chq-acc-title))
+     (non-chq-debit-acc  string  chk-non-chq-acc-title)
+     (non-chq-credit-acc string  chk-non-chq-acc-title))
   (with-controller-page (tx/update)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (account-id (val debit-account)))
-          (credit-acc-id (account-id (val credit-account))))
+          (debit-acc-id (account-id (val non-chq-debit-acc)))
+          (credit-acc-id (account-id (val non-chq-credit-acc))))
       (execute (:update 'tx :set
                         'tx-date (val date)
                         'description (val description)

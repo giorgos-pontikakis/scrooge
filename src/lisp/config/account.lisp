@@ -52,16 +52,18 @@
 (define-existence-predicate* acc-title-exists-p account title id)
 
 (defun chq-acc-title-exists-p (title)
-  (query (:select 1 :from 'account
-          :where (:and (:= 'title title)
-                       (:= 'chequing-p t)))
-         :single))
+  (with-db ()
+    (query (:select 1 :from 'account
+            :where (:and (:= 'title title)
+                         (:= 'chequing-p t)))
+           :single)))
 
 (defun non-chq-acc-title-exists-p (title)
-  (query (:select 1 :from 'account
-          :where (:and (:= 'title title)
-                       (:= 'chequing-p nil)))
-         :single))
+  (with-db ()
+    (query (:select 1 :from 'account
+            :where (:and (:= 'title title)
+                         (:= 'chequing-p nil)))
+           :single)))
 
 (defun chk-parent-acc-id (val)
   (if (or (null val) (acc-id-exists-p val))

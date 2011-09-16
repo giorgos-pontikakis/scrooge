@@ -3,6 +3,15 @@
 database=scrooge
 project_root="www/scrooge"
 
-echo Attempting to restore postgresql database $database
+echo Backing up current postgresql database $database
+pg_dump --create -f $HOME/$project_root/db_dumps/$database.$(date +%F_%H:%M:%S).sql $database
+
+echo Attempting to drop postgresql database $database
 dropdb $database
-psql -f $HOME/$project_root/db_dumps/$database.sql template1
+if [[ $? -eq 0 ]]
+then
+    echo Attempting to restore postgresql database $database
+    psql -f $HOME/$project_root/db_dumps/$database.sql template1
+else
+    echo "ABORT: Error while droping current database."
+fi
