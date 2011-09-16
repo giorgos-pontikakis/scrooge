@@ -66,25 +66,22 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass cash-tx-table (tx-table)
-  ((subpage :accessor subpage :initarg :subpage)
+  ((kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :id "cash-tx-paginator"
                                        :css-class "paginator")))
   (:default-initargs :item-class 'cash-tx-row))
 
-(defmethod initialize-instance :after ((table cash-tx-table) &key)
-  (let ((cash-kind (subpage table)))
-    (setf (urlfn (paginator table))
-          (lambda (&rest args)
-            (apply #'cash cash-kind args)))))
-
 (defmethod get-records ((table cash-tx-table))
-  (flet ((cash-kind-account (cash-kind)
-           (cond ((string-equal cash-kind "revenue") 'debit-acc-id)
-                 ((string-equal cash-kind "expense") 'credit-acc-id)
-                 (t (error "internal error in cash-kind-account")))))
+  (flet ((acc-kind (kind)
+           (cond ((string-equal kind "revenue")
+                  'debit-acc-id)
+                 ((string-equal kind "expense")
+                  'credit-acc-id)
+                 (t
+                  (error "internal error in acc-kind")))))
     (let* ((search (getf (filter table) :search))
-           (cash-kind (subpage table))
+           (kind (kind table))
            (base-query `(:select tx.id
                                  (:as tx-date date)
                                  (:as company.title company)
@@ -95,11 +92,11 @@
            (composite-query
             (if search
                 (append base-query
-                        `(:where (:and (:= ,(cash-kind-account cash-kind) ,*cash-acc-id*)
+                        `(:where (:and (:= ,(acc-kind kind) ,*cash-acc-id*)
                                        (:or (:ilike description ,(ilike search))
                                             (:ilike company.title ,(ilike search))))))
                 (append base-query
-                        `(:where (:or (:= ,(cash-kind-account cash-kind) ,*cash-acc-id*))))))
+                        `(:where (:or (:= ,(acc-kind kind) ,*cash-acc-id*))))))
            (final-query `(:order-by ,composite-query (:desc date))))
       (with-db ()
         (query (sql-compile final-query)
@@ -116,12 +113,12 @@
          (table (collection row))
          (pg (paginator table))
          (filter (filter table))
-         (cash-kind (subpage table))
+         (kind (kind table))
          (start (start-index table)))
     (html ()
       (:a :href (if enabled-p
-                    (apply #'cash cash-kind :start (page-start pg (index row) start) filter)
-                    (apply #'cash cash-kind :id id filter))
+                    (apply #'cash kind :start (page-start pg (index row) start) filter)
+                    (apply #'cash kind :id id filter))
           (selector-img enabled-p)))))
 
 (defmethod payload ((row cash-tx-row) enabled-p)
@@ -137,12 +134,22 @@
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
-         (cash-kind (subpage table)))
+         (kind (kind table)))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply #'cash cash-kind :id id filter)))
+                             :href (apply #'cash kind :id id filter)))
         (list nil nil))))
+
+
+;;; paginator
+
+(defclass cash-paginator (scrooge-paginator)
+  ())
+
+(defmethod target-url ((pg cash-paginator) start)
+  (let ((table (table pg)))
+   (apply #'cash (kind table) :start start (filter table))))
 
 
 
@@ -150,12 +157,15 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun cash-kind-label (cash-kind)
-  (cond ((string-equal cash-kind "revenue") "Έσοδα")
-        ((string-equal cash-kind "expense") "Έξοδα")
-        (t (error "Internal error in cash-kind-label"))))
+(defun revenues-p (kind)
+  (string-equal kind "revenue"))
 
-(defun cash-filters (cash-kind search)
+(defun cash-page-title (kind)
+  (cond ((string-equal kind "revenue") "Έσοδα")
+        ((string-equal kind "expense") "Έξοδα")
+        (t (error "Internal error in cash-page-title"))))
+
+(defun cash-filters (kind search)
   (let ((spec `((revenue ,(cash "revenue" :search search) "Έσοδα")
                 (expense ,(cash "expense" :search search) "Έξοδα"))))
     (with-html
@@ -164,13 +174,13 @@
             (navbar spec
                     :id "cash-filters"
                     :css-class "vnavbar"
-                    :active (intern (string-upcase cash-kind)))))))
+                    :active (intern (string-upcase kind)))))))
 
-(defun cash-menu (cash-kind id filter disabled)
-  (menu (crud-actions-spec (apply #'cash        cash-kind :id id filter)
-                           (apply #'cash/create cash-kind filter)
-                           (apply #'cash/update cash-kind :id id filter)
-                           (apply #'cash/delete cash-kind :id id filter))
+(defun cash-menu (kind id filter disabled)
+  (menu (crud-actions-spec (apply #'cash        kind :id id filter)
+                           (apply #'cash/create kind filter)
+                           (apply #'cash/update kind :id id filter)
+                           (apply #'cash/delete kind :id id filter))
         :id "cash-actions"
         :css-class "hmenu actions"
         :disabled disabled))
@@ -182,10 +192,10 @@
 ;;; ------------------------------------------------------------
 
 (defclass cash-form (crud-form/plist)
-  ((cash-kind :accessor cash-kind :initarg :cash-kind)))
+  ((kind :accessor kind :initarg :kind)))
 
 (defmethod display ((form cash-form) &key styles)
-  (let* ((revenues-p (string-equal (cash-kind form) "revenue"))
+  (let* ((revenues-p (revenues-p (kind form)))
          (disabled (eql (op form) :details))
          (record (record form))
          (tree (make-account-radio-tree revenues-p)))
@@ -212,16 +222,19 @@
                     (label-input-text 'amount "Ποσό")
                     (:div :class "data-form-buttons"
                           (if disabled
-                              (cancel-button (apply #'cash cash-kind :id id filter)
+                              (cancel-button (cancel-url form)
                                              :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
                               (progn
-                                (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                                (cancel-button (apply #'cash cash-kind :id id filter)
+                                (ok-button :body (if (eql (op form) :update)
+                                                     "Ανανέωση"
+                                                     "Δημιουργία"))
+                                (cancel-button (cancel-url form)
                                                :body "Άκυρο")))))
               (:div :class "grid_6 omega"
-                    (label 'account (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης")))
+                    (label 'account (conc "Λογαριασμός "
+                                          (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :key (or (getf data :account-id)
+                    (display tree :key (or (getf record :account-id)
                                            (key (first (children (root tree))))))))))))
 
 
@@ -230,17 +243,17 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage cash-page cash (("cash/" (cash-kind "(expense|revenue)")))
+(defpage cash-page cash (("cash/" (kind "(expense|revenue)")))
     ((search    string)
      (start     integer)
      (id        integer chk-tx-id))
   (with-view-page
     (check-cash-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Κατάλογος"))
+           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :id "cash-tx-table"
-                                         :subpage cash-kind
+                                         :kind kind
                                          :op :read
                                          :filter filter)))
       (with-document ()
@@ -253,7 +266,7 @@
                (financial-navbar 'cash)
                (:div :class "window grid_10"
                      (:div :class "title" (str page-title))
-                     (cash-menu cash-kind
+                     (cash-menu kind
                                 (val id)
                                 filter
                                 (if (val id)
@@ -261,11 +274,11 @@
                                     '(:read :details :update :delete)))
                      (display cash-tx-table
                               :key (val id)
-                              :selected-data nil
+                              :payload nil
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (cash cash-kind) (val search))
-                     (cash-filters cash-kind (val search)))
+                     (searchbox (cash kind) (val search))
+                     (cash-filters kind (val search)))
                (footer)))))))
 
 
@@ -274,7 +287,7 @@
 ;;; CREATE
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash/create (("cash/" (cash-kind "(expense|revenue)") "/create"))
+(defpage cash-page cash/create (("cash/" (kind "(expense|revenue)") "/create"))
     ((search      string)
      (date        date)
      (company     string chk-company-title*)
@@ -285,10 +298,11 @@
     (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
+                                     :kind kind
                                      :op :create
                                      :record nil
                                      :cancel-url (apply #'cash filter)))
-           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Δημιουργία")))
+           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Δημιουργία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -299,18 +313,18 @@
                (financial-navbar 'cash)
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cash-menu cash-kind
+                     (cash-menu kind
                                 nil
                                 filter
                                 '(:create :update :delete))
                      (notifications)
-                     (with-form (actions/cash/create cash-kind :search (val search))
-                       (display cash-form cash-kind :data (params->payload)
-                                                    :styles (params->styles))))
+                     (with-form (actions/cash/create kind :search (val search))
+                       (display cash-form :payload (params->payload)
+                                          :styles (params->styles))))
                (footer)))))))
 
 (defpage cash-page actions/cash/create
-    (("actions/cash/" (cash-kind "(expense|revenue)") "/create") :request-type :post)
+    (("actions/cash/" (kind "(expense|revenue)") "/create") :request-type :post)
     ((search      string)
      (date        date)
      (company     string  chk-company-title*)
@@ -319,11 +333,11 @@
      (account-id  integer chk-acc-id t))
   (with-controller-page (cash/create)
     (check-cash-accounts)
-    (let* ((company-id (company-id (val company))) ;; using val (accept null values)
-           (debit-acc-id (if (string-equal cash-kind "revenue")
+    (let* ((company-id (company-id (val company)))
+           (debit-acc-id (if (string-equal kind "revenue")
                              *cash-acc-id*
                              (val account-id)))
-           (credit-acc-id (if (string-equal cash-kind "revenue")
+           (credit-acc-id (if (string-equal kind "revenue")
                               (val account-id)
                               *cash-acc-id*))
            (new-tx (make-instance 'tx
@@ -335,7 +349,7 @@
                                   :debit-acc-id debit-acc-id)))
       (with-db ()
         (insert-dao new-tx)
-        (see-other (cash cash-kind :id (id new-tx) :search (val search)))))))
+        (see-other (cash kind :id (id new-tx) :search (val search)))))))
 
 
 
@@ -343,7 +357,7 @@
 ;;; UPDATE
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash/update (("cash/" (cash-kind "(expense|revenue)") "/update"))
+(defpage cash-page cash/update (("cash/" (kind "(expense|revenue)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -355,11 +369,11 @@
     (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
+                                     :kind kind
                                      :op :update
                                      :record (get-record 'cash (val id))
-                                     :cancel-url (apply #'cash filter)))
-           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Επεξεργασία"))
-           (acc-keyword (if (string-equal cash-kind "expense") :debit-acc-id :credit-acc-id)))
+                                     :cancel-url (apply #'cash kind :id id filter)))
+           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -370,20 +384,20 @@
                (financial-navbar 'cash)
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cash-menu cash-kind
+                     (cash-menu kind
                                 nil
                                 filter
                                 '(:create :update :delete))
                      (notifications)
-                     (with-form (actions/cash/update cash-kind
+                     (with-form (actions/cash/update kind
                                                      :id (val id)
                                                      :search (val search))
-                       (display cash-form cash-kind :payload (params->payload)
+                       (display cash-form kind :payload (params->payload)
                                                     :styles (params->styles))))
                (footer)))))))
 
 (defpage cash-page actions/cash/update
-    (("actions/cash/" (cash-kind "(expense|revenue)") "/update") :request-type :post)
+    (("actions/cash/" (kind "(expense|revenue)") "/update") :request-type :post)
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -393,11 +407,11 @@
      (account-id  integer chk-acc-id))
   (with-controller-page (cash/update)
     (check-cash-accounts)
-    (let ((company-id (company-id (val company))) ;; using val (accept null values)
-          (debit-acc-id (if (string-equal cash-kind "revenue")
+    (let ((company-id (company-id (val company)))
+          (debit-acc-id (if (string-equal kind "revenue")
                             *cash-acc-id*
                             (val account-id)))
-          (credit-acc-id (if (string-equal cash-kind "revenue")
+          (credit-acc-id (if (string-equal kind "revenue")
                              (val account-id)
                              *cash-acc-id*)))
       (execute (:update 'tx :set
@@ -408,7 +422,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val id))))
-      (see-other (cash cash-kind :id (val id))))))
+      (see-other (cash kind :id (val id))))))
 
 
 
@@ -416,16 +430,16 @@
 ;;; DELETE
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash/delete (("cash/" (cash-kind "(expense|revenue)") "/delete"))
+(defpage cash-page cash/delete (("cash/" (kind "(expense|revenue)") "/delete"))
     ((id     integer chk-project-id t)
      (search string))
   (with-view-page
     (check-cash-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc "Μετρητά » " (cash-kind-label cash-kind) " » Διαγραφή"))
+           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op :delete
-                                         :subpage cash-kind
+                                         :kind kind
                                          :filter filter)))
       (with-document ()
         (:head
@@ -437,25 +451,25 @@
                (financial-navbar 'cash)
                (:div :id "cash-window" :class "window grid_10"
                      (:div :class "title" (str page-title))
-                     (cash-menu cash-kind
+                     (cash-menu kind
                                 (val id)
                                 filter
                                 '(:read :delete))
-                     (with-form (actions/cash/delete cash-kind
+                     (with-form (actions/cash/delete kind
                                                      :id (val id)
                                                      :search (val search))
                        (display cash-tx-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (cash cash-kind) (val search))
-                     (cash-filters cash-kind (val search)))
+                     (searchbox (cash kind) (val search))
+                     (cash-filters kind (val search)))
                (footer)))))))
 
 (defpage cash-page actions/cash/delete
-    (("actions/cash/" (cash-kind "(expense|revenue)") "/delete") :request-type :post)
+    (("actions/cash/" (kind "(expense|revenue)") "/delete") :request-type :post)
     ((search string)
      (id     integer chk-tx-id t))
   (with-controller-page (cash/delete)
     (check-cash-accounts)
     (delete-dao (get-dao 'tx (val id)))
-    (see-other (cash cash-kind :search (val search)))))
+    (see-other (cash kind :search (val search)))))

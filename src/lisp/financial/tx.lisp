@@ -320,7 +320,7 @@
                                   :credit-acc-id credit-acc-id
                                   :debit-acc-id debit-acc-id)))
       (insert-dao new-tx)
-      (see-other (tx :id (id new-tx) :search (val search))))))
+      (see-other (tx :id (tx-id new-tx) :search (val search))))))
 
 
 
@@ -417,7 +417,7 @@
                      (with-form (actions/tx/delete :id (val id)
                                                    :search (val search))
                        (display tx-table :key (val id))))
-               (:div :id "sidebar" :class "sidebar `grid_2"
+               (:div :id "sidebar" :class "sidebar grid_2"
                      (searchbox (tx) (val search)))
                (footer)))))))
 

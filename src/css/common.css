@@ -169,6 +169,10 @@ select[disabled] {
     margin-top: 10px;
 }
 
+.window button {
+    padding: 5px;
+}
+
 .title {
     font-weight: bold;
     background-color: #104e8b;

@@ -188,7 +188,7 @@
   (:keys id))
 
 (defclass cheque ()
-  ((cheque-id  :col-type integer       :reader   cheque-id)
+  ((id         :col-type integer       :reader   cheque-id)
    (bank-id    :col-type string        :accessor bank-id    :initarg :bank-id)
    (company-id :col-type integer       :accessor company-id :initarg :company-id)
    (due-date   :col-type date          :accessor due-date   :initarg :due-date)
@@ -196,11 +196,11 @@
    (state      :col-type string        :accessor state     :initarg :state)
    (payable-p  :col-type boolean       :accessor payable-p  :initarg :payable-p))
   (:metaclass dao-class)
-  (:keys cheque-id))
+  (:keys id))
 
 
 (defclass tx ()
-  ((tx-id         :col-type integer       :reader   tx-id)
+  ((id            :col-type integer       :reader   tx-id)
    (tx-date       :col-type date          :accessor tx-date       :initarg :tx-date)
    (description   :col-type string        :accessor description   :initarg :description)
    (debit-acc-id  :col-type string        :accessor debit-acc-id  :initarg :debit-acc-id)
@@ -209,7 +209,7 @@
    (cheque-id     :col-type integer       :accessor cheque-id     :initarg :cheque-id)
    (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount))
   (:metaclass dao-class)
-  (:keys tx-id))
+  (:keys id))
 
 
 
