@@ -177,13 +177,13 @@
                     :active (intern (string-upcase kind)))))))
 
 (defun cash-menu (kind id filter disabled)
-  (menu (crud-actions-spec (apply #'cash        kind :id id filter)
-                           (apply #'cash/create kind filter)
-                           (apply #'cash/update kind :id id filter)
-                           (apply #'cash/delete kind :id id filter))
-        :id "cash-actions"
-        :css-class "hmenu actions"
-        :disabled disabled))
+  (anchor-menu (crud-actions-spec (apply #'cash        kind :id id filter)
+                                  (apply #'cash/create kind filter)
+                                  (apply #'cash/update kind :id id filter)
+                                  (apply #'cash/delete kind :id id filter))
+               :id "cash-actions"
+               :css-class "hmenu actions"
+               :disabled disabled))
 
 
 
@@ -198,13 +198,11 @@
   (let* ((revenues-p (revenues-p (kind form)))
          (disabled (eql (op form) :details))
          (record (record form))
-         (tree (make-account-radio-tree revenues-p)))
-    (push (root (make-instance 'account-radio-tree
-                               :root-key (if revenues-p
-                                             *invoice-receivable-acc-id*
-                                             *invoice-payable-acc-id*)
-                               :filter (list :debit-p revenues-p)))
-          (children (root tree)))
+         (tree (make-instance 'rev/exp-account-tree
+                              :root-key (if revenues-p
+                                            *revenues-root-acc-id*
+                                            *expenses-root-acc-id*)
+                              :filter (list :debit-p (not revenues-p)))))
     (flet ((label-input-text (name label &optional extra-styles)
              (with-html
                (label name label)
@@ -234,8 +232,7 @@
                     (label 'account (conc "Λογαριασμός "
                                           (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :key (or (getf record :account-id)
-                                           (key (first (children (root tree))))))))))))
+                    (display tree :key (root tree))))))))
 
 
 
@@ -301,7 +298,7 @@
                                      :kind kind
                                      :op :create
                                      :record nil
-                                     :cancel-url (apply #'cash filter)))
+                                     :cancel-url (apply #'cash kind filter)))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Δημιουργία")))
       (with-document ()
         (:head
@@ -473,3 +470,12 @@
     (check-cash-accounts)
     (delete-dao (get-dao 'tx (val id)))
     (see-other (cash kind :search (val search)))))
+
+
+;;; CASH WTF
+;; (push (root (make-instance 'account-radio-tree
+;;                                :root-key (if revenues-p
+;;                                              *invoice-receivable-acc-id*
+;;                                              *invoice-payable-acc-id*)
+;;                                :filter (list :debit-p revenues-p)))
+;;           (children (root tree)))

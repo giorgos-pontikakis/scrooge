@@ -75,8 +75,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-tree (crud-tree)
-  ()
-  (:default-initargs :css-class "crud-tree" :root-parent-key :null))
+  ((root-parent-key :allocation :class :initform :null))
+  (:default-initargs :css-class "crud-tree" :root-key nil))
 
 
 ;;; crud tree with records being daos
@@ -84,11 +84,11 @@
 (defclass scrooge-node/obj (crud-node/obj)
   ()
   (:default-initargs :css-delete "attention"
-    :css-selected "selected"
-    :css-selector "selector"
-    :css-payload "payload"
-    :css-controls "controls"
-    :css-indent "indent"))
+                     :css-selected "selected"
+                     :css-selector "selector"
+                     :css-payload "payload"
+                     :css-controls "controls"
+                     :css-indent "indent"))
 
 (defmethod key ((item scrooge-row/obj))
   (let ((rec (record item)))
@@ -230,31 +230,3 @@
 ;; (defmethod controls ((node account-ro-node) enabled-p)
 ;;   (declare (ignore node enabled-p))
 ;;   (list nil nil))
-
-
-
-;; ;;; ----------------------------------------------------------------------
-;; ;;; account-radio tree
-;; ;;; ----------------------------------------------------------------------
-
-;; (defclass account-radio-tree (account-crud-tree)
-;;   ()
-;;   (:default-initargs :item-class 'account-radio-node))
-
-;; (defclass account-radio-node (account-crud-node)
-;;   ())
-
-;; (defmethod selector ((node account-radio-node) enabled-p)
-;;   (let* ((id (key node)))
-;;     (make-instance 'input-radio
-;;                    :name 'account-id
-;;                    :value id
-;;                    :body nil)))
-
-;; (defun make-account-radio-tree (revenues-p)
-;;   (make-instance 'account-radio-tree
-;;                  :op :read
-;;                  :root-parent-key (if revenues-p
-;;                                       *revenues-root-acc-id*
-;;                                       *expenses-root-acc-id*)
-;;                  :filter (list :debit-p (not revenues-p))))
