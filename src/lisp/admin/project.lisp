@@ -24,7 +24,7 @@
     :reader messages
     :initform
     '((description (:project-description-null
-                    "Η περιγραφή του έργου πρέπει να μην είναι κενή."
+                    "Η περιγραφή του έργου είναι κενή."
                     :project-description-exists
                     "Υπάρχει ήδη έργο με αυτή την περιγραφή."))
       (company     (:company-title-unknown
@@ -32,11 +32,11 @@
                     :company-title-null
                     "Η επωνυμία της εταιρίας είναι κενή"))
       (price       (:non-positive-amount
-                    "Το ποσό της τιμής πρέπει να είναι θετικός αριθμός."
+                    "Το ποσό της τιμής δεν είναι θετικός αριθμός."
                     :parse-error
                     "Το ποσό της τιμής περιέχει άκυρους χαρακτήρες."))
       (vat         (:non-positive-amount
-                    "Το ποσό του Φ.Π.Α. πρέπει να είναι θετικός αριθμός."
+                    "Το ποσό του Φ.Π.Α. δεν είναι θετικός αριθμός."
                     :parse-error
                     "Το ποσό του Φ.Π.Α. περιέχει άκυρους χαρακτήρες."))
       (quote-date  (:parse-error
@@ -398,7 +398,7 @@
 (defpage project-page project/create ("admin/project/create")
     ((search      string)
      (cstate      string)
-     (company     string chk-company-title*)
+     (company     string chk-company-title)
      (description string chk-project-description/create)
      (location    string)
      (price       float  chk-amount*)

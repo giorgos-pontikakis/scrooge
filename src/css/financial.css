@@ -5,3 +5,7 @@
 .data-form .selector input {
     display: inline;
 }
+
+#cash-data-form li.selected, #invoice-data-form li.selected {
+    background-color: transparent;
+}

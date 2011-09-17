@@ -71,9 +71,12 @@
       :parent-acc-id-unknown))
 
 (defun chk-acc-id (id)
-  (if (acc-id-exists-p id)
-      nil
-      :acc-id-unknown))
+  (cond ((eql :null id)
+         :account-id-null)
+        ((not (acc-id-exists-p id))
+         :acc-id-unknown)
+        (t
+         nil)))
 
 (defun chk-acc-id/ref (id)
   (if (or (chk-acc-id id)

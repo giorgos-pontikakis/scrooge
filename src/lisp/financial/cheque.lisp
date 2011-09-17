@@ -156,7 +156,7 @@
 ;;; table
 
 (defclass cheque-table (scrooge-table)
-  ((subpage        :accessor subpage :initarg :subpage)
+  ((kind        :accessor kind :initarg :kind)
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
@@ -165,7 +165,7 @@
   (:default-initargs :item-class 'cheque-row))
 
 (defmethod initialize-instance :after ((table cheque-table) &key)
-  (let ((cheque-kind (subpage table)))
+  (let ((cheque-kind (kind table)))
     (setf (urlfn (paginator table))
           (lambda (&rest args)
             (apply #'cheque cheque-kind args)))))
@@ -173,7 +173,7 @@
 (defmethod get-records ((table cheque-table))
   (let* ((search (getf (filter table) :search))
          (state (getf (filter table) :state))
-         (payable-p (string= (subpage table) "payable"))
+         (payable-p (string= (kind table) "payable"))
          (base-query `(:select cheque.id (:as bank.title bank)
                                due-date (:as company.title company) amount payable-p
                                :from cheque
@@ -208,7 +208,7 @@
          (table (collection row))
          (pg (paginator table))
          (filter (filter table))
-         (cheque-kind (subpage table))
+         (cheque-kind (kind table))
          (start (start-index table)))
     (html ()
       (:a :href (if enabled-p
@@ -231,7 +231,7 @@
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
-         (cash-kind (subpage table)))
+         (cash-kind (kind table)))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
@@ -309,7 +309,7 @@
            (page-title (conc "Επιταγές » " (cheque-kind-label cheque-kind) " » Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
-                                        :subpage cheque-kind
+                                        :kind cheque-kind
                                         :op :read
                                         :filter filter)))
       (with-document ()
@@ -569,7 +569,7 @@
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
                                         :op :delete
-                                        :subpage cheque-kind
+                                        :kind cheque-kind
                                         :id "cheque-table"
                                         :filter filter)))
       (with-document ()

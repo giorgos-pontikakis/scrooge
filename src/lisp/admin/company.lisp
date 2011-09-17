@@ -22,16 +22,32 @@
    (messages
     :allocation :class
     :reader messages
-    :initform '((title   (:company-title-null "Το όνομα της εταιρίας είναι κενό"
-                          :company-title-exists "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
-                (tof     (:tof-title-unknown "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
-                (city    (:city-title-unknown "Η πόλη αυτή δεν έχει οριστεί."))
-                (tin     (:tin-exists "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ."
-                          :tin-invalid "Άκυρος Α.Φ.Μ."))
-                (pobox   (:parse-error "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας"
-                          :pobox-invalid "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
-                (zipcode (:parse-error "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
-                          :zipcode-invalid "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
+    :initform '((title
+                 (:company-title-null
+                  "Η επωνυμία της εταιρίας είναι κενή"
+                  :company-title-exists
+                  "Υπάρχει ήδη εταιρία με αυτή την επωνυμία"))
+                (tof
+                 (:tof-title-unknown
+                  "Η Δ.Ο.Υ. αυτή δεν έχει οριστεί."))
+                (city
+                 (:city-title-unknown
+                  "Η πόλη αυτή δεν έχει οριστεί."))
+                (tin
+                 (:tin-exists
+                  "Υπάρχει ήδη εταιρία με αυτόν τον Α.Φ.Μ."
+                  :tin-invalid
+                  "Άκυρος Α.Φ.Μ."))
+                (pobox
+                 (:parse-error
+                  "Άκυροι χαρακτήρες στο αριθμό ταχυδρομικής θυρίδας"
+                  :pobox-invalid
+                  "Μη αποδεκτός αριθμός ταχυδρομικής θυρίδας."))
+                (zipcode
+                 (:parse-error
+                  "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
+                  :zipcode-invalid
+                  "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
 
 
 
@@ -78,12 +94,6 @@
 
 (defun chk-company-title (title)
   (cond ((eql :null title) :company-title-null)
-        ((not (company-title-exists-p title)) :company-title-unknown)
-        (t nil)))
-
-(defun chk-company-title* (title)
-  "Like chk-company-title, but accepts null titles"
-  (cond ((eql :null title) nil)
         ((not (company-title-exists-p title)) :company-title-unknown)
         (t nil)))
 

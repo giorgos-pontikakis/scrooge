@@ -23,18 +23,24 @@
     :allocation :class
     :reader messages
     :initform
-    '((company (:company-title-unknown
-                "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-      (amount (:empty-amount
-               "Το ποσό της συναλλαγής πρέπει να μην είναι κενό"
-               :non-positive-amount
-               "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
-               :parse-error
-               "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-      (account-id (:acc-id-null
-                   "Δεν έχετε επιλέξει λογαριασμό"))
-      (date (:parse-error
-             "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
+    '((company
+       (:company-title-unknown
+        "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
+        :company-title-null
+        "Η επωνυμία της εταιρίας είναι κενή"))
+      (amount
+       (:empty-amount
+        "Το ποσό της συναλλαγής είναι κενό"
+        :non-positive-amount
+        "Το ποσό της συναλλαγής δεν είναι θετικός αριθμός"
+        :parse-error
+        "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+      (account-id
+       (:acc-id-null
+        "Δεν έχετε επιλέξει λογαριασμό"))
+      (date
+       (:parse-error
+        "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
 
 
@@ -110,7 +116,7 @@
 (defclass cash-tx-row (tx-row)
   ())
 
-(defmethod selector ((row cash-tx-row) enabled-p)
+(defmethod selector ((row cash-tx-row) selected-p)
   (let* ((id (key row))
          (table (collection row))
          (pg (paginator table))
@@ -118,10 +124,10 @@
          (kind (kind table))
          (start (start-index table)))
     (html ()
-      (:a :href (if enabled-p
+      (:a :href (if selected-p
                     (apply #'cash kind :start (page-start pg (index row) start) filter)
                     (apply #'cash kind :id id filter))
-          (selector-img enabled-p)))))
+          (selector-img selected-p)))))
 
 (defmethod payload ((row cash-tx-row) enabled-p)
   (let ((record (record row)))
@@ -132,15 +138,14 @@
                              :disabled (not enabled-p)))
             '(date company description amount))))
 
-(defmethod controls ((row cash-tx-row) enabled-p)
+(defmethod controls ((row cash-tx-row) controls-p)
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
          (kind (kind table)))
-    (if enabled-p
+    (if controls-p
         (list (make-instance 'ok-button)
-              (make-instance 'cancel-button
-                             :href (apply #'cash kind :id id filter)))
+              (make-instance 'cancel-button :href (apply #'cash kind :id id filter)))
         (list nil nil))))
 
 
@@ -176,7 +181,8 @@
             (navbar spec
                     :id "cash-filters"
                     :css-class "vnavbar"
-                    :active (intern (string-upcase kind)))))))
+                    :active (intern (string-upcase kind))
+                    :test #'string-equal)))))
 
 (defun cash-menu (kind id filter disabled)
   (anchor-menu (crud-actions-spec (apply #'cash        kind :id id filter)
@@ -231,36 +237,13 @@
                                 (cancel-button (cancel-url form)
                                                :body "Άκυρο")))))
               (:div :class "grid_6 omega"
-                    (label 'account (conc "Λογαριασμός "
-                                          (if revenues-p "πίστωσης" "χρέωσης")))
+                    (label 'account-id (conc "Λογαριασμός "
+                                             (if revenues-p "εσόδων" "εξόδων")))
                     ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :key (getf record (if revenues-p
-                                                        :credit-acc-id
-                                                        :debit-acc-id)))))))))
-
-(defmethod get-record ((type (eql 'cash)) id)
-  (declare (ignore type))
-  (with-db ()
-    (query (:select 'tx.id
-                    (:as 'tx-date 'date)
-                    (:as 'company.title 'company)
-                    'description
-                    (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
-                    (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
-                    'tx.debit-acc-id
-                    'tx.credit-acc-id
-                    'amount
-            :from 'tx
-            :left-join 'company
-            :on (:= 'tx.company-id 'company.id)
-            :left-join (:as 'account 'non-chq-debit-acc)
-            :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
-            :left-join (:as 'account 'non-chq-credit-acc)
-            :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
-            :where (:and (:= 'tx.id id)
-                         (:or (:= 'debit-acc-id *cash-acc-id*)
-                              (:= 'credit-acc-id *cash-acc-id*))))
-           :plist)))
+                    (display tree :key (or (getf record (if revenues-p
+                                                            :credit-acc-id
+                                                            :debit-acc-id))
+                                           (root-key tree)))))))))
 
 
 
@@ -312,10 +295,11 @@
 ;;; CREATE
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash/create (("cash/" (kind "(expense|revenue)") "/create"))
+(defpage cash-page cash/create
+    (("cash/" (kind "(expense|revenue)") "/create"))
     ((search      string)
      (date        date)
-     (company     string chk-company-title*)
+     (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
@@ -352,9 +336,9 @@
     (("actions/cash/" (kind "(expense|revenue)") "/create") :request-type :post)
     ((search      string)
      (date        date)
-     (company     string  chk-company-title*)
+     (company     string  chk-company-title t)
      (description string)
-     (amount      float   chk-amount)
+     (amount      float   chk-amount t)
      (account-id  integer chk-acc-id t))
   (with-controller-page (cash/create kind)
     (check-cash-accounts)
@@ -374,7 +358,7 @@
                                   :debit-acc-id debit-acc-id)))
       (with-db ()
         (insert-dao new-tx)
-        (see-other (cash kind :id (id new-tx) :search (val search)))))))
+        (see-other (cash kind :id (tx-id new-tx) :search (val search)))))))
 
 
 
@@ -386,17 +370,17 @@
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
-     (company     string chk-company-title*)
+     (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
-     (account-id  integer chk-acc-id))
+     (account-id  integer chk-acc-id t))
   (with-view-page
     (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op :update
-                                     :record (get-record 'cash (val id))
+                                     :record (get-record 'tx (val id))
                                      :cancel-url (apply #'cash kind :id (val id) filter)))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
@@ -424,10 +408,10 @@
 (defpage cash-page actions/cash/update
     (("actions/cash/" (kind "(expense|revenue)") "/update") :request-type :post)
     ((search      string)
-     (id          integer chk-tx-id t)
+     (id          integer chk-tx-id         t)
      (date        date)
      (description string)
-     (company     string  chk-company-title*)
+     (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
   (with-controller-page (cash/update kind)

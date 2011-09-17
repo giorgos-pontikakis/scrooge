@@ -25,12 +25,14 @@
     :initform
     '((company
        (:company-title-unknown
-        "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
+        "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
+        :company-title-null
+        "Η επωνυμία της εταιρίας είναι κενή"))
       (amount
        (:empty-amount
-        "Το ποσό της συναλλαγής πρέπει να μην είναι κενό"
+        "Το ποσό της συναλλαγής είναι κενό"
         :non-positive-amount
-        "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
+        "Το ποσό της συναλλαγής δεν είναι θετικός αριθμός"
         :parse-error
         "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
       (non-chq-debit-acc
@@ -104,7 +106,7 @@
               (label-input-text 'description "Περιγραφή")
               (label-input-text 'non-chq-debit-acc "Λογαριασμός χρέωσης" "ac-non-chq-account")
               (label-input-text 'non-chq-credit-acc "Λογαριασμός πίστωσης" "ac-non-chq-account")
-              (label-input-text 'amount "Ποσόν"))
+              (label-input-text 'amount "Ποσό"))
         (:div :class "data-form-buttons"
               (if disabled
                   (cancel-button (cancel-url form)
@@ -268,13 +270,13 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx/create ("tx/create")
-    ((search         string)
-     (date           date)
-     (description    string)
-     (company        string  chk-company-title*)
-     (amount         float   chk-amount)
-     (non-chq-debit-acc  string  chk-non-chq-acc-title)
-     (non-chq-credit-acc string  chk-non-chq-acc-title))
+    ((search             string)
+     (date               date)
+     (description        string)
+     (company            string chk-company-title)
+     (amount             float  chk-amount)
+     (non-chq-debit-acc  string chk-non-chq-acc-title)
+     (non-chq-credit-acc string chk-non-chq-acc-title))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-form (make-instance 'tx-form
@@ -305,11 +307,10 @@
     ((search         string)
      (date           date)
      (description    string)
-     (company        string  chk-company-title*)
+     (company        string  chk-company-title)
      (amount         float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
-  (break)
   (with-controller-page (tx/create)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (account-id (val non-chq-debit-acc)))
@@ -331,12 +332,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx/update ("tx/update")
-    ((search         string)
-     (id             integer chk-tx-id t)
-     (date           date)
-     (description    string)
-     (company        string  chk-company-title*)
-     (amount         float   chk-amount)
+    ((search             string)
+     (id                 integer chk-tx-id             t)
+     (date               date)
+     (description        string)
+     (company            string  chk-company-title)
+     (amount             float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
   (with-view-page
@@ -371,7 +372,7 @@
      (id             integer chk-tx-id t)
      (date           date)
      (description    string)
-     (company        string  chk-company-title*)
+     (company        string  chk-company-title)
      (amount         float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
