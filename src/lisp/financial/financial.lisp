@@ -43,7 +43,8 @@
   (make-instance 'input-radio
                  :name 'account-id
                  :value (key node)
-                 :body nil))
+                 :body nil
+                 :checked enabled-p))
 
 (defmethod payload ((node rev/exp-account-node) enabled-p)
   (html ()

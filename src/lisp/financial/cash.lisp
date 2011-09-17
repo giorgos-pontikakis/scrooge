@@ -25,7 +25,9 @@
     :initform
     '((company (:company-title-unknown
                 "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"))
-      (amount (:non-positive-amount
+      (amount (:empty-amount
+               "Το ποσό της συναλλαγής πρέπει να μην είναι κενό"
+               :non-positive-amount
                "Το ποσό της συναλλαγής πρέπει να είναι θετικός αριθμός"
                :parse-error
                "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
@@ -232,7 +234,33 @@
                     (label 'account (conc "Λογαριασμός "
                                           (if revenues-p "πίστωσης" "χρέωσης")))
                     ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :key (root tree))))))))
+                    (display tree :key (getf record (if revenues-p
+                                                        :credit-acc-id
+                                                        :debit-acc-id)))))))))
+
+(defmethod get-record ((type (eql 'cash)) id)
+  (declare (ignore type))
+  (with-db ()
+    (query (:select 'tx.id
+                    (:as 'tx-date 'date)
+                    (:as 'company.title 'company)
+                    'description
+                    (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
+                    (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
+                    'tx.debit-acc-id
+                    'tx.credit-acc-id
+                    'amount
+            :from 'tx
+            :left-join 'company
+            :on (:= 'tx.company-id 'company.id)
+            :left-join (:as 'account 'non-chq-debit-acc)
+            :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
+            :left-join (:as 'account 'non-chq-credit-acc)
+            :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
+            :where (:and (:= 'tx.id id)
+                         (:or (:= 'debit-acc-id *cash-acc-id*)
+                              (:= 'credit-acc-id *cash-acc-id*))))
+           :plist)))
 
 
 
@@ -328,7 +356,7 @@
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id t))
-  (with-controller-page (cash/create)
+  (with-controller-page (cash/create kind)
     (check-cash-accounts)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (if (string-equal kind "revenue")
@@ -369,7 +397,7 @@
                                      :kind kind
                                      :op :update
                                      :record (get-record 'cash (val id))
-                                     :cancel-url (apply #'cash kind :id id filter)))
+                                     :cancel-url (apply #'cash kind :id (val id) filter)))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
@@ -389,8 +417,8 @@
                      (with-form (actions/cash/update kind
                                                      :id (val id)
                                                      :search (val search))
-                       (display cash-form kind :payload (params->payload)
-                                                    :styles (params->styles))))
+                       (display cash-form :payload (params->payload)
+                                          :styles (params->styles))))
                (footer)))))))
 
 (defpage cash-page actions/cash/update
@@ -402,7 +430,7 @@
      (company     string  chk-company-title*)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
-  (with-controller-page (cash/update)
+  (with-controller-page (cash/update kind)
     (check-cash-accounts)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (if (string-equal kind "revenue")
@@ -470,12 +498,3 @@
     (check-cash-accounts)
     (delete-dao (get-dao 'tx (val id)))
     (see-other (cash kind :search (val search)))))
-
-
-;;; CASH WTF
-;; (push (root (make-instance 'account-radio-tree
-;;                                :root-key (if revenues-p
-;;                                              *invoice-receivable-acc-id*
-;;                                              *invoice-payable-acc-id*)
-;;                                :filter (list :debit-p revenues-p)))
-;;           (children (root tree)))

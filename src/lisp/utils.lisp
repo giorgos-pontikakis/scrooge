@@ -133,8 +133,8 @@
        (data-entry-error ()
          (see-other ,(if view-page-fn
                          (let ((fn-call (ensure-list view-page-fn)))
-                           `(apply #',(first fn-call) (append ',(rest fn-call)
-                                                              (params->plist #'raw *parameters*))))
+                           `(apply #',(first fn-call) (list* ,@(rest fn-call)
+                                                             (params->plist #'raw *parameters*))))
                          '(error "Data entry error"))))
        (bad-request-error ()
          (setf (return-code*) +http-bad-request+))
@@ -240,24 +240,13 @@ excluded for the search - useful for updates."
 (defun today ()
   (universal-time-to-timestamp (get-universal-time)))
 
-(defun parse-option-dao (option-dao)
-  (flet ((parse-config-fn (lisp-type)
-           (cond ((string= lisp-type "integer") #'parse-integer)
-                 ((string= lisp-type "float")   #'parse-float)
-                 ((string= lisp-type "date")    #'parse-date)
-                 ((string= lisp-type "string")  #'identity)
-                 (t (error "Unknown lisp-type in option table.")))))
-    (let ((config-value (config-value option-dao)))
-      (if (eql config-value :null)
-          nil
-          (funcall (parse-config-fn (lisp-type option-dao))
-                   config-value)))))
-
 (defun chk-amount (float)
-  (if (or (positive-real-p float)
-          (zerop float))
-      nil
-      :non-positive-amount))
+  (cond ((eql float :null)
+         :empty-amount)
+        ((non-positive-real-p float)
+         :non-positive-amount)
+        (t
+         nil)))
 
 (defun chk-amount* (float)
   "Same as chk-amount but allow null values"

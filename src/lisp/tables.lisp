@@ -109,6 +109,9 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defmethod company-id ((title (eql :null)))
+  :null)
+
 (define-surrogate-key-readers company ((title string)) company-id)
 
 
