@@ -20,7 +20,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Config
+;;; Configuration
 ;;; ------------------------------------------------------------
 
 (defclass usr ()
@@ -92,7 +92,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Admin
+;;; Companies & Contacts
 ;;; ------------------------------------------------------------
 
 (defclass company ()
@@ -114,7 +114,19 @@
 
 (define-surrogate-key-readers company ((title string)) company-id)
 
+(defclass contact ()
+  ((id         :col-type integer :reader   contact-id)
+   (company-id :col-type integer :accessor company-id :initarg :company-id)
+   (tag        :col-type string  :accessor tag        :initarg :tag)
+   (phone      :col-type string  :accessor phone      :initarg :phone)
+   (rank       :col-type integer :accessor rank       :initarg :rank))
+  (:metaclass dao-class)
+  (:keys id))
 
+
+;;; ------------------------------------------------------------
+;;; Projects & Bills
+;;; ------------------------------------------------------------
 
 (defclass project-state ()
   ((state       :col-type string :reader   state)
@@ -125,9 +137,6 @@
 (defclass project-event ()
   ((id              :col-type integer :reader   project-event-id)
    (title           :col-type string  :accessor title           :initarg :title)
-   (debit-acc-id    :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
-   (credit-acc-id   :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id)
-   (payable-p       :col-type boolean :accessor payable-p       :initarg :payable-p)
    (from-state      :col-type string  :accessor from-state     :initarg :from-state)
    (to-state        :col-type string  :accessor to-state       :initarg :to-state))
   (:metaclass dao-class)
@@ -148,16 +157,6 @@
   (:metaclass dao-class)
   (:keys id))
 
-
-(defclass contact ()
-  ((id         :col-type integer :reader   contact-id)
-   (company-id :col-type integer :accessor company-id :initarg :company-id)
-   (tag        :col-type string  :accessor tag        :initarg :tag)
-   (phone      :col-type string  :accessor phone      :initarg :phone)
-   (rank       :col-type integer :accessor rank       :initarg :rank))
-  (:metaclass dao-class)
-  (:keys id))
-
 (defclass bill ()
   ((id         :col-type integer :reader   bill-id)
    (project-id :col-type integer :accessor project-id :initarg :project-id)
@@ -170,7 +169,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Financial
+;;; Cheques
 ;;; ------------------------------------------------------------
 
 (defclass cheque-state ()
@@ -182,8 +181,7 @@
 (defclass cheque-event ()
   ((id              :col-type integer :reader   cheque-event-id)
    (title           :col-type string  :accessor title           :initarg :title)
-   (debit-acc-id    :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
-   (credit-acc-id   :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id)
+
    (payable-p       :col-type boolean :accessor payable-p       :initarg :payable-p)
    (from-state      :col-type string  :accessor from-state     :initarg :from-state)
    (to-state        :col-type string  :accessor to-state       :initarg :to-state))
@@ -202,6 +200,11 @@
   (:keys id))
 
 
+
+;;; ------------------------------------------------------------
+;;; Transactions & Templates
+;;; ------------------------------------------------------------
+
 (defclass tx ()
   ((id            :col-type integer       :reader   tx-id)
    (tx-date       :col-type date          :accessor tx-date       :initarg :tx-date)
@@ -211,6 +214,14 @@
    (company-id    :col-type integer       :accessor company-id    :initarg :company-id)
    (cheque-id     :col-type integer       :accessor cheque-id     :initarg :cheque-id)
    (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount))
+  (:metaclass dao-class)
+  (:keys id))
+
+(defclass temtx ()
+  ((id            :col-type integer :reader   id)
+   (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
+   (description   :col-type string  :accessor description   :initarg :description))
   (:metaclass dao-class)
   (:keys id))
 

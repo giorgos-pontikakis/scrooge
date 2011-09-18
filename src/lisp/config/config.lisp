@@ -32,6 +32,6 @@
             (tof          ,(tof)          "Δ.Ο.Υ.")
             (account      ,(account)      "Λογαριασμοί")
             (account-role ,(config/account-role) "Ρόλοι Λογαριασμών")
-            #|(cheque-stran ,(config/cheque-stran "receivable") "Επιταγές")|#)
+            #|(cheque-event ,(config/cheque-event "receivable") "Επιταγές")|#)
           :css-class "section-navbar hnavbar grid_12"
           :active active))
