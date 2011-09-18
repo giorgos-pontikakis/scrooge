@@ -6,7 +6,7 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass cash-page (regex-page page-family-mixin)
+(defclass cheque-event-page (regex-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
     :initform '(id))
@@ -15,7 +15,7 @@
     :initform '(date company description amount account-id))
    (filter-parameter-names
     :allocation :class
-    :initform '(search state))
+    :initform '())
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -50,15 +50,15 @@
       nil
       :cheque-event-id-unknown))
 
-(defun chk-cheque-state (state)
-  (if (cheque-state-exists-p state)
-      nil
-      :cheque-state-invalid))
-
 (defun chk-cheque-event-title (title)
   (if (eql title :null)
       :cheque-event-title-null
       nil))
+
+(defun chk-cheque-state (state)
+  (if (cheque-state-exists-p state)
+      nil
+      :cheque-state-invalid))
 
 (defun chk-cheque-event-from/to/payable (from-state to-state kind)
   (if (cheque-event-from/to/payable-exists-p from-state to-state kind)
@@ -75,7 +75,7 @@
                                      (:= 'payable-p (string= kind "payable"))))
                :plists))))
 
-(defun post-checks (from-state to-state debit-account credit-account kind)
+(defun check-cheque-event-parameters (from-state to-state kind)
   (validate-parameters (lambda (from to)
                          (chk-cheque-event-from/to/payable from to kind))
                        from-state to-state)
@@ -84,11 +84,6 @@
                              :cheque-event-from-to-equal
                              nil))
                        from-state to-state)
-  (validate-parameters (lambda (&rest accounts)
-                         (if (some #'chequing-p accounts)
-                             nil
-                             :no-chequing-accounts-found))
-                       debit-account credit-account)
   nil)
 
 
@@ -115,7 +110,8 @@
             (navbar spec
                     :id "cheque-event-filters"
                     :css-class "vnavbar"
-                    :active (intern (string-upcase kind)))))))
+                    :active (intern (string-upcase kind))
+                    :test #'string-equal)))))
 
 
 
@@ -158,28 +154,17 @@
    (paginator      :initform nil))
   (:default-initargs :item-class 'cheque-event-row))
 
-
-
 (defmethod get-records ((table cheque-event-table))
-  (let ((payable-p (string= (kind table) "payable")))
-    (with-db ()
-      (query (:order-by (:select 'cheque-event.id 'cheque-event.title
-                                 (:as 'debit-account-tbl.title 'debit-account)
-                                 (:as 'credit-account-tbl.title 'credit-account)
-                                 (:as 'from-cheque-state.description 'from-description)
-                                 (:as 'to-cheque-state.description 'to-description)
-                                 :from 'cheque-event
-                                 :inner-join (:as 'account 'debit-account-tbl)
-                                 :on (:= 'debit-acc-id 'debit-account-tbl.id)
-                                 :inner-join (:as 'account 'credit-account-tbl)
-                                 :on (:= 'credit-acc-id 'credit-account-tbl.id)
-                                 :inner-join (:as 'cheque-state 'from-cheque-state)
-                                 :on (:= 'from-cheque-state.id 'cheque-event.from-state)
-                                 :inner-join (:as 'cheque-state 'to-cheque-state)
-                                 :on (:= 'to-cheque-state.id 'cheque-event.to-state)
-                                 :where (:= 'payable_p payable-p))
-                        'cheque-event.title)
-             :plists))))
+  (with-db ()
+    (query (:order-by (:select 'id 'cheque-event.title 'from-state 'to-state
+                               (:as 'temtx.title 'temtx)
+                       :from 'cheque-event
+                       :inner-join 'temtx
+                       :on (:= 'temtx.id 'cheque-event.temtx-id)
+                       :where (:= 'payable-p (string= (kind table) "payable")))
+                      'cheque-event.title)
+           :plists)))
+
 
 ;;; rows
 
@@ -189,13 +174,11 @@
 (defmethod selector ((row cheque-event-row) enabled-p)
   (let* ((id (key row))
          (table (collection row))
-         (filter (filter table))
-         (kind (kind table))
-         (start (page-start (paginator table) (index row) (start-index table))))
+         (kind (kind table)))
     (html ()
       (:a :href (if enabled-p
-                    (apply #'config/cheque-event kind :start start filter)
-                    (apply #'config/cheque-event kind :id id filter))
+                    (apply #'config/cheque-event kind)
+                    (apply #'config/cheque-event kind :id id))
           (selector-img enabled-p)))))
 
 (defmethod payload ((row cheque-event-row) enabled-p)
@@ -207,22 +190,19 @@
                          :disabled disabled)
           (make-instance 'dropdown
                          :name 'from-state
-                         :label-value-alist *cheque-statees*
-                         :selected (getf record :from-description)
+                         :label-value-alist *cheque-states*
+                         :selected (getf record :from-state)
                          :disabled disabled)
           (make-instance 'dropdown
                          :name 'to-state
-                         :label-value-alist *cheque-statees*
-                         :selected (getf record :to-description)
+                         :label-value-alist *cheque-states*
+                         :selected (getf record :to-state)
                          :disabled disabled)
-          (make-instance 'textbox
-                         :name 'debit-account
-                         :value (getf record :debit-account)
-                         :disabled disabled)
-          (make-instance 'textbox
-                         :name 'credit-account
-                         :value (getf record :credit-account)
-                         :disabled disabled))))
+          (make-instance 'input-text
+                         :name 'temtx
+                         :value (getf record :temtx)
+                         :css-class "ac-temtx"
+                         :disabled (not enabled-p)))))
 
 (defmethod controls ((row cheque-event-row) enabled-p)
   (let ((id (key row))
@@ -232,6 +212,7 @@
               (make-instance 'cancel-button
                              :href (config/cheque-event kind :id id)))
         (list nil nil))))
+
 
 
 ;;; ------------------------------------------------------------
@@ -275,13 +256,12 @@
 
 (defpage cheque-event-page config/cheque-event/create
     (("config/cheque-event/" (kind "(receivable|payable)") "/create"))
-    ((title          string chk-cheque-event-title)
-     (debit-account  string chk-acc-title)
-     (credit-account string chk-acc-title)
-     (from-state    string chk-cheque-state)
-     (to-state      string chk-cheque-state))
+    ((title      string chk-cheque-event-title)
+     (payable-p  boolean)
+     (from-state string chk-cheque-state)
+     (to-state   string chk-cheque-state))
   (with-view-page
-    (post-checks from-state to-state debit-account credit-account kind)
+    (check-cheque-event-parameters from-state to-state kind)
     (let ((cheque-event-table (make-instance 'cheque-event-table
                                              :kind kind
                                              :op :create)))
@@ -300,30 +280,23 @@
                                         '(:create :update :delete))
                      (notifications)
                      (with-form (actions/cheque-event/create kind)
-                       (display cheque-event-table :key (val id)
-                                                   :payload (params->payload))))))))))
+                       (display cheque-event-table :payload (params->payload))))))))))
 
 (defpage cheque-event-page actions/cheque-event/create
-    (("actions/cheque-event/" (kind "(receivable|payable)") "/create")
-     :request-type :post)
-    ((title          string chk-cheque-event-title)
-     (debit-account  string chk-acc-title)
-     (credit-account string chk-acc-title)
-     (from-state    string chk-cheque-state)
-     (to-state      string chk-cheque-state))
-  (with-controller-page (cheque-event/create kind)
-    (post-checks from-state to-state debit-account credit-account kind)
-    (let* ((debit-acc-id (account-id (val debit-account)))
-           (credit-acc-id (account-id (val credit-account)))
-           (new-cheque-event (make-instance 'cheque-event
-                                            :title (val title)
-                                            :debit-acc-id debit-acc-id
-                                            :credit-acc-id credit-acc-id
-                                            :payable-p (string= kind "payable")
-                                            :from-state (val from-state)
-                                            :to-state (val to-state))))
+    (("actions/cheque-event/" (kind "(receivable|payable)") "/create") :request-type :post)
+    ((title      string chk-cheque-event-title)
+     (payable-p  boolean)
+     (from-state string chk-cheque-state)
+     (to-state   string chk-cheque-state))
+  (with-controller-page (config/cheque-event/create kind)
+    (check-cheque-event-parameters from-state to-state kind)
+    (let ((new-cheque-event (make-instance 'cheque-event
+                                           :title (val title)
+                                           :payable-p (string= kind "payable")
+                                           :from-state (val from-state)
+                                           :to-state (val to-state))))
       (insert-dao new-cheque-event)
-      (see-other (config/cheque-event kind :id (id new-cheque-event))))))
+      (see-other (config/cheque-event kind :id (cheque-event-id new-cheque-event))))))
 
 
 
@@ -333,14 +306,13 @@
 
 (defpage cheque-event-page config/cheque-event/update
     (("config/kind/" (kind "(receivable|payable)") "/update"))
-    ((id             integer chk-cheque-event-id t)
-     (title          string chk-cheque-event-title)
-     (debit-account  string chk-acc-title)
-     (credit-account string chk-acc-title)
-     (from-state    string chk-cheque-state)
-     (to-state      string chk-cheque-state))
+    ((id         integer chk-cheque-event-id    t)
+     (title      string  chk-cheque-event-title)
+     (payable-p  boolean)
+     (from-state string  chk-cheque-state)
+     (to-state   string  chk-cheque-state))
   (with-view-page
-    (post-checks from-state to-state debit-account credit-account kind)
+    (check-cheque-event-parameters from-state to-state kind)
     (let ((cheque-event-table (make-instance 'cheque-event-table
                                              :kind kind
                                              :op :update)))
@@ -366,24 +338,19 @@
 (defpage cheque-event-page actions/cheque-event/update
     (("actions/cheque-event/" (kind "(receivable|payable)") "/update")
      :request-type :post)
-    ((id             integer chk-cheque-event-id t)
-     (title          string  chk-cheque-event-title)
-     (debit-account  string  chk-acc-title)
-     (credit-account string  chk-acc-title)
-     (from-state    string  chk-cheque-state)
-     (to-state      string  chk-cheque-state))
-  (with-controller-page (actions/cheque-event/update kind)
-    (post-checks from-state to-state debit-account credit-account kind)
-    (let* ((debit-acc-id (account-id (val debit-account)))
-           (credit-acc-id (account-id (val credit-account))))
-      (execute (:update 'cheque-event :set
-                        'title (val title)
-                        'debit-acc-id debit-acc-id
-                        'credit-acc-id credit-acc-id
-                        'from-state (val from-state)
-                        'to-state (val to-state)
-                        :where (:= 'id (val id)))))
-    (see-other (config/cheque-event kind))))
+    ((id         integer chk-cheque-event-id    t)
+     (title      string  chk-cheque-event-title)
+     (payable-p  boolean)
+     (from-state string  chk-cheque-state)
+     (to-state   string  chk-cheque-state))
+  (with-controller-page (config/cheque-event/update kind)
+    (check-cheque-event-parameters from-state to-state kind)
+    (execute (:update 'cheque-event :set
+                      'title (val title)
+                      'from-state (val from-state)
+                      'to-state (val to-state)
+                      :where (:= 'id (val id))))
+    (see-other (config/cheque-event kind :id (val id)))))
 
 
 
@@ -426,40 +393,3 @@
   (with-controller-page (config/cheque-event/delete kind)
     (delete-dao (get-dao 'cheque-event (val id)))
     (see-other (config/cheque-event kind))))
-
-
-;; (defun cheque-event-data-form (kind op &key id data styles)
-;;   (let ((disabled (eql op :details)))
-;;     (flet ((label-input-text (name label &optional extra-styles)
-;;              (with-html
-;;                (label name label)
-;;                (input-text name
-;;                            :value (getf data (make-keyword name))
-;;                            :disabled disabled
-;;                            :css-class (conc (getf styles (make-keyword name))
-;;                                             " " extra-styles)))))
-;;       (with-html
-;;         (:div :id "cheque-data-form" :class "data-form"
-;;               (label-input-text 'title "Περιγραφή")
-;;               ;;
-;;               (label 'from-state "Αρχική Κατάσταση")
-;;               (dropdown 'from-state *cheque-statees*
-;;                         :selected (getf data :from-state)
-;;                         :disabled disabled
-;;                         :css-class (getf styles :from-state))
-;;               (label 'from-state "Τελική Κατάσταση")
-;;               (dropdown 'to-state *cheque-statees*
-;;                         :selected (getf data :to-state)
-;;                         :disabled disabled
-;;                         :css-class (getf styles :to-state))
-;;               ;;
-;;               (label-input-text 'debit-account "Λογαριασμός Χρέωσης" "ac-account")
-;;               (label-input-text 'credit-account "Λογαριασμός Πίστωσης" "ac-account"))
-;;         (:div :class "data-form-buttons grid_9"
-;;               (if disabled
-;;                   (cancel-button (config/cheque-event kind :id id)
-;;                                  :body "Επιστροφή στον Κατάλογο Επιταγών")
-;;                   (progn
-;;                     (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία") )
-;;                     (cancel-button (config/cheque-event kind :id id)
-;;                                    :body "Άκυρο"))))))))

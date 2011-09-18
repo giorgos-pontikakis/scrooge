@@ -218,7 +218,7 @@
   (:keys id))
 
 (defclass temtx ()
-  ((id            :col-type integer :reader   id)
+  ((id            :col-type integer :reader   temtx-id)
    (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
    (description   :col-type string  :accessor description   :initarg :description))
