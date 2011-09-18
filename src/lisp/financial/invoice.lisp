@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date company description amount))
+    :initform '(date company description amount account-id))
    (filter-parameter-names
     :allocation :class
     :initform '(search state))
@@ -77,7 +77,6 @@
 (defclass invoice-tx-table (tx-table)
   ((kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'scrooge-paginator
-                                       :id "invoice-tx-paginator"
                                        :css-class "paginator")))
   (:default-initargs :item-class 'invoice-tx-row))
 
@@ -95,9 +94,9 @@
                                  (:as tx-date date)
                                  (:as company.title company)
                                  description amount
-                                 :from tx
-                                 :left-join company
-                                 :on (:= tx.company-id company.id)))
+                         :from tx
+                         :left-join company
+                         :on (:= tx.company-id company.id)))
            (composite-query
             (if search
                 (append base-query
@@ -121,8 +120,8 @@
   (let* ((id (key row))
          (table (collection row))
          (pg (paginator table))
-         (kind (kind table))
          (filter (filter table))
+         (kind (kind table))
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
@@ -142,8 +141,8 @@
 (defmethod controls ((row invoice-tx-row) controls-p)
   (let* ((id (key row))
          (table (collection row))
-         (kind (kind table))
-         (filter (filter table)))
+         (filter (filter table))
+         (kind (kind table)))
     (if controls-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button :href (apply #'invoice kind :id id filter)))
@@ -162,63 +161,11 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Invoice form
+;;; UI elements
 ;;; ----------------------------------------------------------------------
 
 (defun receivable-p (kind)
   (string-equal kind "receivable"))
-
-(defclass invoice-form (crud-form/plist)
-  ((kind :accessor kind :initarg :kind)))
-
-(defmethod display ((form invoice-form) &key styles)
-  (let* ((receivable-p (receivable-p (kind form)))
-         (disabled (eql (op form) :details))
-         (record (record form))
-         (tree (make-instance 'rev/exp-account-tree
-                              :root-key (if receivable-p
-                                            *revenues-root-acc-id*
-                                            *expenses-root-acc-id*)
-                              :filter (list :debit-p (not receivable-p)))))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf record (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :id "invoice-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
-                    (label-input-text 'date "Ημερομηνία" "datepicker")
-                    (label-input-text 'description "Περιγραφή")
-                    (label-input-text 'company "Εταιρία" "ac-company")
-                    (label-input-text 'amount "Ποσό")
-                    (:div :class "data-form-buttons"
-                          (if disabled
-                              (cancel-button (cancel-url form)
-                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
-                              (progn
-                                (ok-button :body (if (eql (op form) :update)
-                                                     "Ανανέωση"
-                                                     "Δημιουργία"))
-                                (cancel-button (cancel-url form)
-                                               :body "Άκυρο")))))
-              (:div :class "grid_6 omega"
-                    (label 'account (conc "Λογαριασμός "
-                                          (if receivable-p "εσόδων" "εξόδων")))
-                    ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :key (or (getf record (if receivable-p
-                                                            :credit-acc-id
-                                                            :debit-acc-id))
-                                           (root-key tree)))))))))
-
-
-
-;;; ----------------------------------------------------------------------
-;;; UI elements
-;;; ----------------------------------------------------------------------
 
 (defun invoice-page-title (kind)
   (cond ((string-equal kind "receivable") "Προς είσπραξη")
@@ -248,9 +195,54 @@
 
 
 
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
+;;; Invoice form
+;;; ----------------------------------------------------------------------
+
+(defclass invoice-form (crud-form/plist)
+  ((kind :accessor kind :initarg :kind)))
+
+(defmethod display ((form invoice-form) &key styles)
+  (let* ((receivable-p (receivable-p (kind form)))
+         (disabled (eql (op form) :details))
+         (record (record form))
+         (lit (label-input-text disabled record styles))
+         (tree (make-instance 'rev/exp-account-tree
+                              :root-key (if receivable-p
+                                            *revenues-root-acc-id*
+                                            *expenses-root-acc-id*)
+                              :filter (list :debit-p (not receivable-p)))))
+    (with-html
+      (:div :id "invoice-data-form" :class "data-form"
+            (:div :class "grid_6 alpha"
+                  (display lit 'date "Ημερομηνία" "datepicker")
+                  (display lit 'description "Περιγραφή")
+                  (display lit 'company "Εταιρία" "ac-company")
+                  (display lit 'amount "Ποσό")
+                  (:div :class "data-form-buttons"
+                        (if disabled
+                            (cancel-button (cancel-url form)
+                                           :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
+                            (progn
+                              (ok-button :body (if (eql (op form) :update)
+                                                   "Ανανέωση"
+                                                   "Δημιουργία"))
+                              (cancel-button (cancel-url form)
+                                             :body "Άκυρο")))))
+            (:div :class "grid_6 omega"
+                  (label 'account-id (conc "Λογαριασμός "
+                                           (if receivable-p "εσόδων" "εξόδων")))
+                  ;; Display the tree. If needed, preselect the first account of the tree.
+                  (display tree :key (or (getf record (if receivable-p
+                                                          :credit-acc-id
+                                                          :debit-acc-id))
+                                         (root-key tree))))))))
+
+
+
+;;; ----------------------------------------------------------------------
 ;;; VIEW
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice (("invoice/" (kind "(receivable|payable)")))
     ((search    string)
@@ -292,14 +284,15 @@
 
 
 
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 ;;; CREATE
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 
-(defpage invoice-page invoice/create (("invoice/" (kind  "(receivable|payable)") "/create"))
+(defpage invoice-page invoice/create
+    (("invoice/" (kind  "(receivable|payable)") "/create"))
     ((search      string)
      (date        date)
-     (company     string chk-company-title)
+     (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
      (account-id  integer chk-acc-id))
@@ -337,9 +330,9 @@
      :request-type :post)
     ((search      string)
      (date        date)
-     (company     string  chk-company-title)
+     (company     string  chk-company-title t)
      (description string)
-     (amount      float   chk-amount)
+     (amount      float   chk-amount t)
      (account-id  integer chk-acc-id t))
   (with-controller-page (invoice/create kind)
     (check-invoice-accounts)
@@ -362,19 +355,19 @@
 
 
 
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 ;;; UPDATE
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/update
     (("invoice/" (kind "(receivable|payable)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
-     (company     string chk-company-title)
+     (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
-     (account-id  integer chk-acc-id))
+     (account-id  integer chk-acc-id t))
   (with-view-page
     (check-invoice-accounts)
     (let* ((filter (params->filter))
@@ -398,6 +391,7 @@
                                    nil
                                    filter
                                    '(:create :update :delete))
+                     (notifications)
                      (with-form (actions/invoice/update kind
                                                         :id (val id)
                                                         :search (val search))
@@ -408,7 +402,7 @@
 (defpage invoice-page actions/invoice/update
     (("actions/invoice/" (kind "(receivable|payable)") "/update") :request-type :post)
     ((search      string)
-     (id          integer chk-tx-id t)
+     (id          integer chk-tx-id         t)
      (date        date)
      (description string)
      (company     string  chk-company-title)
@@ -435,9 +429,9 @@
 
 
 
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 ;;; DELETE
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/delete
     (("invoice/" (kind "(receivable|payable)") "/delete"))
@@ -477,8 +471,8 @@
 
 (defpage invoice-page actions/invoice/delete
     (("actions/invoice/" (kind "(receivable|payable)") "/delete") :request-type :post)
-    ((id     integer chk-tx-id t)
-     (search string))
+    ((search string)
+     (id     integer chk-tx-id t))
   (with-controller-page (invoice/delete kind)
     (check-invoice-accounts)
     (delete-dao (get-dao 'tx (val id)))

@@ -159,48 +159,41 @@
   ())
 
 (defmethod display ((form company-form) &key styles)
-  (let ((disabled (eql (op form) :read))
-        (record (record form)))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf record (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :class "data-form company-form"
-              (:div :class "data-form-title"
-                    (label-input-text 'title "Επωνυμία" "ac-company"))
-              (:fieldset
-               (:legend "Φορολογικά στοιχεία")
-               (label-input-text 'occupation "Επάγγελμα" "ac-occupation")
-               (:div :id "tin"
-                     (label-input-text 'tin "Α.Φ.Μ."))
-               (:div :id "tof-div"
-                     (label-input-text 'tof "Δ.Ο.Υ." "ac-tof")))
-              (:fieldset
-               (:legend "Διεύθυνση")
-               (:div :id "address"
-                     (label-input-text 'address "Οδός"))
-               (:div :id "city"
-                     (label-input-text 'city "Πόλη" "ac-city"))
-               (:div :id "zipcode"
-                     (label-input-text 'zipcode "Ταχυδρομικός κωδικός"))
-               (:div :id "pobox"
-                     (label-input-text 'pobox "Ταχυδρομική θυρίδα")))
-              (:div :id "company-notes"
-                    (label 'notes "Σημειώσεις")
-                    (:textarea :name 'notes :disabled disabled
-                               (str (lisp->html (or (getf record :notes) :null))))))
-        (:div :class "data-form-buttons"
-              (if disabled
-                  (cancel-button (cancel-url form)
-                                 :body "Επιστροφή στον Κατάλογο Εταιριών")
-                  (progn
-                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+  (let* ((disabled (eql (op form) :read))
+         (record (record form))
+         (lit (label-input-text disabled record styles)))
+    (with-html
+      (:div :class "data-form company-form"
+            (:div :class "data-form-title"
+                  (display lit 'title "Επωνυμία" "ac-company"))
+            (:fieldset
+             (:legend "Φορολογικά στοιχεία")
+             (display lit 'occupation "Επάγγελμα" "ac-occupation")
+             (:div :id "tin"
+                   (display lit 'tin "Α.Φ.Μ."))
+             (:div :id "tof-div"
+                   (display lit 'tof "Δ.Ο.Υ." "ac-tof")))
+            (:fieldset
+             (:legend "Διεύθυνση")
+             (:div :id "address"
+                   (display lit 'address "Οδός"))
+             (:div :id "city"
+                   (display lit 'city "Πόλη" "ac-city"))
+             (:div :id "zipcode"
+                   (display lit 'zipcode "Ταχυδρομικός κωδικός"))
+             (:div :id "pobox"
+                   (display lit 'pobox "Ταχυδρομική θυρίδα")))
+            (:div :id "company-notes"
+                  (label 'notes "Σημειώσεις")
+                  (:textarea :name 'notes :disabled disabled
+                             (str (lisp->html (or (getf record :notes) :null))))))
+      (:div :class "data-form-buttons"
+            (if disabled
+                (cancel-button (cancel-url form)
+                               :body "Επιστροφή στον Κατάλογο Εταιριών")
+                (progn
+                  (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                  (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
 (defmethod get-record ((type (eql 'company)) id)
   (declare (ignore type))
@@ -296,7 +289,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage company-page company ("admin/company")
+(defpage company-page company ("company")
     ((id     integer chk-company-id)
      (search string)
      (start  integer))
@@ -327,7 +320,7 @@
                      (searchbox (company) (val search)))
                (footer)))))))
 
-(defpage company-page company/details ("admin/company/details")
+(defpage company-page company/details ("company/details")
     ((search     string)
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id)))
@@ -372,7 +365,7 @@
 ;;; CREATE
 ;;; ----------------------------------------------------------------------
 
-(defpage company-page company/create ("admin/company/create")
+(defpage company-page company/create ("company/create")
     ((search     string)
      (title      string  chk-company-title/create)
      (occupation string)
@@ -408,7 +401,7 @@
                                              :styles (params->styles))))
                (footer)))))))
 
-(defpage company-page actions/company/create ("actions/admin/company/create"
+(defpage company-page actions/company/create ("actions/company/create"
                                               :request-type :post)
     ((search     string)
      (title      string  chk-company-title/create)
@@ -443,7 +436,7 @@
 ;;; UPDATE
 ;;; ----------------------------------------------------------------------
 
-(defpage company-page company/update ("admin/company/update")
+(defpage company-page company/update ("company/update")
     ((search     string)
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id))
@@ -494,7 +487,7 @@
                               :key (val contact-id)))
                (footer)))))))
 
-(defpage company-page actions/company/update ("actions/admin/company/update"
+(defpage company-page actions/company/update ("actions/company/update"
                                               :request-type :post)
     ((search     string)
      (id         integer chk-company-id)
@@ -530,7 +523,7 @@
 ;;; DELETE
 ;;; ----------------------------------------------------------------------
 
-(defpage company-page company/delete ("admin/company/delete")
+(defpage company-page company/delete ("company/delete")
     ((id     integer chk-company-id/ref t)
      (search string))
   (with-view-page
@@ -559,7 +552,7 @@
                      (searchbox (company) (val search)))
                (footer)))))))
 
-(defpage company-page actions/company/delete ("actions/admin/company/delete"
+(defpage company-page actions/company/delete ("actions/company/delete"
                                               :request-type :post)
     ((id     integer chk-company-id)
      (search string))

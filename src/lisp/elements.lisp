@@ -151,3 +151,12 @@
                          (input-text 'search :value search)
                          (submit (html ()
                                    (img "magnifier.png")))))))
+
+(defun label-input-text (disabled record styles)
+  (html (name label &optional extra-styles)
+    (label name label)
+    (input-text name
+                :value (getf record (make-keyword name))
+                :disabled disabled
+                :css-class (conc (getf styles (make-keyword name))
+                                 extra-styles))))

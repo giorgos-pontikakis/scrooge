@@ -89,31 +89,24 @@
   ())
 
 (defmethod display ((form tx-form) &key styles)
-  (let ((disabled (eql (op form) :details))
-        (record (record form)))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf record (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :class "data-form tx-form"
-              (label-input-text 'date "Ημερομηνία" "datepicker")
-              (label-input-text 'company "Εταιρία" "ac-company")
-              (label-input-text 'description "Περιγραφή")
-              (label-input-text 'non-chq-debit-acc "Λογαριασμός χρέωσης" "ac-non-chq-account")
-              (label-input-text 'non-chq-credit-acc "Λογαριασμός πίστωσης" "ac-non-chq-account")
-              (label-input-text 'amount "Ποσό"))
-        (:div :class "data-form-buttons"
-              (if disabled
-                  (cancel-button (cancel-url form)
-                                 :body "Επιστροφή στον Κατάλογο Συναλλαγών")
-                  (progn
-                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+  (let* ((disabled (eql (op form) :details))
+         (record (record form))
+         (lit (label-input-text disabled record styles)))
+    (with-html
+      (:div :class "data-form tx-form"
+            (display lit 'date "Ημερομηνία" "datepicker")
+            (display lit 'company "Εταιρία" "ac-company")
+            (display lit 'description "Περιγραφή")
+            (display lit 'non-chq-debit-acc "Λογαριασμός χρέωσης" "ac-non-chq-account")
+            (display lit 'non-chq-credit-acc "Λογαριασμός πίστωσης" "ac-non-chq-account")
+            (display lit 'amount "Ποσό"))
+      (:div :class "data-form-buttons"
+            (if disabled
+                (cancel-button (cancel-url form)
+                               :body "Επιστροφή στον Κατάλογο Συναλλαγών")
+                (progn
+                  (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                  (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
 (defmethod get-record ((type (eql 'tx)) id)
   (declare (ignore type))

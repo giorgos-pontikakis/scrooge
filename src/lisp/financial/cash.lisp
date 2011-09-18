@@ -64,7 +64,7 @@
      (:div :id "header"
            (logo))
      (:div :id "body"
-           (:div :id "body" :class "summary"
+           (:div :id "content" :class "summary"
                  (:p "Δεν έχετε ορίσει στις ρυθμίσεις είτε τον λογαριασμό μετρητών, είτε το λογαριασμό ρίζας εσόδων, ή το λογαριασμό ρίζας εξόδων."))))))
 
 
@@ -76,7 +76,6 @@
 (defclass cash-tx-table (tx-table)
   ((kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'scrooge-paginator
-                                       :id "cash-tx-paginator"
                                        :css-class "paginator")))
   (:default-initargs :item-class 'cash-tx-row))
 
@@ -206,50 +205,43 @@
   (let* ((revenues-p (revenues-p (kind form)))
          (disabled (eql (op form) :details))
          (record (record form))
+         (lit (label-input-text disabled record styles))
          (tree (make-instance 'rev/exp-account-tree
                               :root-key (if revenues-p
                                             *revenues-root-acc-id*
                                             *expenses-root-acc-id*)
                               :filter (list :debit-p (not revenues-p)))))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf record (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :id "cash-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
-                    (label-input-text 'date "Ημερομηνία" "datepicker")
-                    (label-input-text 'description "Περιγραφή")
-                    (label-input-text 'company "Εταιρία" "ac-company")
-                    (label-input-text 'amount "Ποσό")
-                    (:div :class "data-form-buttons"
-                          (if disabled
+    (with-html
+      (:div :id "cash-data-form" :class "data-form"
+            (:div :class "grid_6 alpha"
+                  (display lit 'date "Ημερομηνία" "datepicker")
+                  (display lit 'description "Περιγραφή")
+                  (display lit 'company "Εταιρία" "ac-company")
+                  (display lit 'amount "Ποσό")
+                  (:div :class "data-form-buttons"
+                        (if disabled
+                            (cancel-button (cancel-url form)
+                                           :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
+                            (progn
+                              (ok-button :body (if (eql (op form) :update)
+                                                   "Ανανέωση"
+                                                   "Δημιουργία"))
                               (cancel-button (cancel-url form)
-                                             :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
-                              (progn
-                                (ok-button :body (if (eql (op form) :update)
-                                                     "Ανανέωση"
-                                                     "Δημιουργία"))
-                                (cancel-button (cancel-url form)
-                                               :body "Άκυρο")))))
-              (:div :class "grid_6 omega"
-                    (label 'account-id (conc "Λογαριασμός "
-                                             (if revenues-p "εσόδων" "εξόδων")))
-                    ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree :key (or (getf record (if revenues-p
-                                                            :credit-acc-id
-                                                            :debit-acc-id))
-                                           (root-key tree)))))))))
+                                             :body "Άκυρο")))))
+            (:div :class "grid_6 omega"
+                  (label 'account-id (conc "Λογαριασμός "
+                                           (if revenues-p "εσόδων" "εξόδων")))
+                  ;; Display the tree. If needed, preselect the first account of the tree.
+                  (display tree :key (or (getf record (if revenues-p
+                                                          :credit-acc-id
+                                                          :debit-acc-id))
+                                         (root-key tree))))))))
 
 
 
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 ;;; VIEW
-;;; ------------------------------------------------------------
+;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash (("cash/" (kind "(expense|revenue)")))
     ((search    string)
@@ -356,9 +348,8 @@
                                   :amount (val amount)
                                   :credit-acc-id credit-acc-id
                                   :debit-acc-id debit-acc-id)))
-      (with-db ()
-        (insert-dao new-tx)
-        (see-other (cash kind :id (tx-id new-tx) :search (val search)))))))
+      (insert-dao new-tx)
+      (see-other (cash kind :id (tx-id new-tx) :search (val search))))))
 
 
 
@@ -366,7 +357,8 @@
 ;;; UPDATE
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash/update (("cash/" (kind "(expense|revenue)") "/update"))
+(defpage cash-page cash/update
+    (("cash/" (kind "(expense|revenue)") "/update"))
     ((search      string)
      (id          integer chk-tx-id t)
      (date        date)
@@ -439,8 +431,9 @@
 ;;; DELETE
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash/delete (("cash/" (kind "(expense|revenue)") "/delete"))
-    ((id     integer chk-project-id t)
+(defpage cash-page cash/delete
+    (("cash/" (kind "(expense|revenue)") "/delete"))
+    ((id     integer chk-tx-id t)
      (search string))
   (with-view-page
     (check-cash-accounts)

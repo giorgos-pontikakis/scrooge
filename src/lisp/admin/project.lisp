@@ -161,59 +161,44 @@
 
 
 (defmethod display ((form project-form) &key styles)
-  (let ((disabled (eql (op form) :read))
-        (record (record form)))
-    (flet ((label-input-text (name label &optional extra-styles)
-             (with-html
-               (label name label)
-               (input-text name
-                           :value (getf record (make-keyword name))
-                           :disabled disabled
-                           :css-class (conc (getf styles (make-keyword name))
-                                            " " extra-styles)))))
-      (with-html
-        (:div :class "data-form project-form"
-              (:div :class "data-form-title"
-                    (label-input-text 'description "Περιγραφή")
-                    (label-input-text 'company "Εταιρία" "ac-company"))
-              (:div :class "grid_3 alpha project-form-details"
-                    (:fieldset
-                     (:legend "Οικονομικά")
-                     (:ul
-                      (:li (label 'state "Κατάσταση")
-                           (dropdown 'state *project-states*
-                                     :selected (or (getf record :state)
-                                                   *default-project-state*)
-                                     :disabled disabled))
-                      (:li (label-input-text 'price
-                                             "Τιμή"))
-                      (:li (label-input-text 'vat
-                                             "Φ.Π.Α.")))))
-              (:div :class "grid_3 omega project-form-details"
-                    (:fieldset
-                     (:legend "Χρονοδιάγραμμα")
-                     (:ul
-                      (:li (label-input-text 'quote-date
-                                             "Ημερομηνία προσφοράς"
-                                             "datepicker"))
-                      (:li (label-input-text 'start-date
-                                             "Ημερομηνία έναρξης"
-                                             "datepicker"))
-                      (:li (label-input-text 'end-date
-                                             "Ημερομηνία ολοκλήρωσης"
-                                             "datepicker")))))
-              (:div :class "clear" "")
-              (:div :id "project-notes"
-                    (label 'notes "Σημειώσεις")
-                    (:textarea :name 'notes :disabled disabled
-                               (str (lisp->html (or (getf record :notes) :null)))))
-              (:div :class "data-form-buttons"
-                    (if disabled
-                        (cancel-button (cancel-url form)
-                                       :body "Επιστροφή στον Κατάλογο Έργων")
-                        (progn
-                          (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                          (cancel-button (cancel-url form) :body "Άκυρο")))))))))
+  (let* ((disabled (eql (op form) :read))
+         (record (record form))
+         (lit (label-input-text disabled record styles)))
+    (with-html
+      (:div :class "data-form project-form"
+            (:div :class "data-form-title"
+                  (display lit 'description "Περιγραφή")
+                  (display lit 'company "Εταιρία" "ac-company"))
+            (:div :class "grid_3 alpha project-form-details"
+                  (:fieldset
+                   (:legend "Οικονομικά")
+                   (:ul
+                    (:li (label 'state "Κατάσταση")
+                         (dropdown 'state *project-states*
+                                   :selected (or (getf record :state)
+                                                 *default-project-state*)
+                                   :disabled disabled))
+                    (:li (display lit 'price "Τιμή"))
+                    (:li (display lit 'vat "Φ.Π.Α.")))))
+            (:div :class "grid_3 omega project-form-details"
+                  (:fieldset
+                   (:legend "Χρονοδιάγραμμα")
+                   (:ul
+                    (:li (display lit 'quote-date "Ημερομηνία προσφοράς" "datepicker"))
+                    (:li (display lit 'start-date "Ημερομηνία έναρξης" "datepicker"))
+                    (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης" "datepicker")))))
+            (:div :class "clear" "")
+            (:div :id "project-notes"
+                  (label 'notes "Σημειώσεις")
+                  (:textarea :name 'notes :disabled disabled
+                             (str (lisp->html (or (getf record :notes) :null)))))
+            (:div :class "data-form-buttons"
+                  (if disabled
+                      (cancel-button (cancel-url form)
+                                     :body "Επιστροφή στον Κατάλογο Έργων")
+                      (progn
+                        (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                        (cancel-button (cancel-url form) :body "Άκυρο"))))))))
 
 (defmethod get-record ((type (eql 'project)) id)
   (declare (ignore type))
@@ -315,7 +300,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage project-page project ("admin/project")
+(defpage project-page project ("project")
     ((id     integer chk-project-id)
      (cstate string)
      (search string)
@@ -349,7 +334,7 @@
                      (project-filters (val cstate) (val search)))
                (footer)))))))
 
-(defpage project-page project/details ("admin/project/details")
+(defpage project-page project/details ("project/details")
     ((search  string)
      (cstate  string)
      (id      integer chk-project-id           t)
@@ -395,7 +380,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage project-page project/create ("admin/project/create")
+(defpage project-page project/create ("project/create")
     ((search      string)
      (cstate      string)
      (company     string chk-company-title)
@@ -433,7 +418,7 @@
                                              :styles (params->styles))))
                (footer)))))))
 
-(defpage project-page actions/project/create ("actions/admin/project/create"
+(defpage project-page actions/project/create ("actions/project/create"
                                               :request-type :post)
     ((search      string)
      (cstate      string)
@@ -470,7 +455,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage project-page project/update ("admin/project/update")
+(defpage project-page project/update ("project/update")
     ((search      string)
      (cstate      string)
      (id          integer chk-project-id)
@@ -523,7 +508,7 @@
                               :key (val bill-id)))
                (footer)))))))
 
-(defpage project-page actions/project/update ("actions/admin/project/update"
+(defpage project-page actions/project/update ("actions/project/update"
                                               :request-type :post)
     ((search      string)
      (cstate      string)
@@ -561,7 +546,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage project-page project/delete ("admin/project/delete")
+(defpage project-page project/delete ("project/delete")
     ((id     integer chk-project-id t)
      (search string)
      (cstate string))
@@ -593,7 +578,7 @@
                      (project-filters (val cstate) (val search)))
                (footer)))))))
 
-(defpage project-page actions/project/delete ("actions/admin/project/delete"
+(defpage project-page actions/project/delete ("actions/project/delete"
                                               :request-type :post)
     ((id     integer chk-project-id)
      (search string)

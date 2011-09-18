@@ -29,3 +29,4 @@ function applyAutocomplete () {
         $(".ac-" + id).autocomplete(options);
     }
 }
+
