@@ -67,7 +67,7 @@
   (if (or (eql :null title)
           (bank-title-exists-p title))
       nil
-      :tof-title-unknown))
+      :bank-title-unknown))
 
 
 

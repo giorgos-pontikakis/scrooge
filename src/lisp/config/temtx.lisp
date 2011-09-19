@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(description debit-acc-id credit-acc-id))
+    :initform '(title debit-account credit-account))
    (filter-parameter-names
     :allocation :class
     :initform '())
@@ -27,14 +27,17 @@
        (:temtx-title-null
         "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
         :temtx-title-exists
-        "Αυτή η περιγραφή Πρότυπης Συναλλαγής έχει ήδη οριστεί."))
-      (from-state
-       (:cheque-event-from/to/payable-exists
-        "Έχει ήδη οριστεί καταστατική μεταβολή για αυτή την αρχική και τελική κατάσταση"
-        :cheque-event-from-to-equal nil))
-      (to-state
-       (:cheque-event-from-to-equal
-        "Η τελική κατάσταση δεν μπορεί να είναι ίδια με την αρχική κατάσταση."))))))
+        "Έχει ήδη οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))
+      (debit-account
+       (:account-title-null
+        "Άκυρος λογαριασμός χρέωσης: Το όνομα είναι κενό."
+        :account-title-unknown
+        "Άκυρος λογαριασμός χρέωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))
+      (credit-account
+       (:account-title-null
+        "Άκυρος λογαριασμός πίστωσης: Το όνομα είναι κενό."
+        :account-title-unknown
+        "Άκυρος λογαριασμός πίστωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))))))
 
 
 
@@ -64,7 +67,7 @@
   (if (or (eql :null title)
           (temtx-title-exists-p title))
       nil
-      :tof-title-unknown))
+      :temtx-title-unknown))
 
 
 
@@ -121,7 +124,7 @@
   (let ((record (record row))
         (disabled (not enabled-p)))
     (list (make-instance 'textbox
-                         :title 'title
+                         :name 'title
                          :value (getf record :title)
                          :disabled disabled)
           (make-instance 'textbox
@@ -132,6 +135,7 @@
           (make-instance 'textbox
                          :name 'credit-account
                          :value (getf record :credit-account)
+                         :css-class "ac-account"
                          :disabled disabled))))
 
 (defmethod controls ((row temtx-row) controls-p)
@@ -152,8 +156,9 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage temtx-page config/temtx ("config/temtx/")
-    ((id integer chk-temtx-id))
+(defpage temtx-page config/temtx ("config/temtx")
+    ((start integer)
+     (id    integer chk-temtx-id))
   (with-view-page
     (let ((title "Πρότυπες Συναλλαγές » Κατάλογος")
           (temtx-table (make-instance 'temtx-table
@@ -229,7 +234,7 @@
 
 (defpage temtx-page config/temtx/update ("config/temtx/update")
     ((id             integer chk-temtx-id t)
-     (title          string chk-temtx-title/update)
+     (title          string (chk-temtx-title/update title id))
      (debit-account  string chk-acc-title)
      (credit-account string chk-acc-title))
   (with-view-page
@@ -256,7 +261,7 @@
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
     ((id             integer chk-temtx-id t)
-     (title          string  chk-temtx-title/update)
+     (title          string  (chk-temtx-title/update title id))
      (debit-account  string  chk-acc-title)
      (credit-account string  chk-acc-title))
   (with-controller-page (config/temtx/update)
@@ -267,7 +272,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val id)))))
-    (see-other (config/temtx))))
+    (see-other (config/temtx :id (val id)))))
 
 
 

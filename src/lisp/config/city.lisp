@@ -67,7 +67,7 @@
   (if (or (eql :null title)
           (city-title-exists-p title))
       nil
-      :tof-title-unknown))
+      :city-title-unknown))
 
 
 
