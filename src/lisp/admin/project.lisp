@@ -446,7 +446,7 @@
                                        :state (val state)
                                        :notes (val notes))))
       (insert-dao new-project)
-      (see-other (apply #'project :id (project-id new-project)
+      (see-other (apply #'project/details :id (project-id new-project)
                         (params->filter))))))
 
 
@@ -503,7 +503,7 @@
                                 filter
                                 (if (val bill-id)
                                     '(:read)
-                                    '(:read :update :delete)))
+                                    '(:read :update :delete :rank-up :rank-down)))
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))

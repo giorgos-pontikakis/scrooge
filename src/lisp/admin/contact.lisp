@@ -92,7 +92,8 @@
              '(:create :update :delete :rank-up :rank-down))
       (with-html
         (:div :class "hmenu actions"
-              (:p :class "invisible" "No available action.")))
+              (:ul
+               (:li :class "invisible" "No available action."))))
       (with-html
         (menu `((:create ,(html ()
                             (:a :class "create"
@@ -188,7 +189,7 @@
                      (contact-menu (val id)
                                    nil
                                    filter
-                                   '(:create :update :delete))
+                                   '(:create :update :delete :rank-up :rank-down))
                      (with-form (actions/contact/create :id (val id))
                        (display contact-table)))
                (footer)))))))

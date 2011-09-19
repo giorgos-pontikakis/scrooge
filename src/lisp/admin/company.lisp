@@ -165,7 +165,7 @@
     (with-html
       (:div :class "data-form company-form"
             (:div :class "data-form-title"
-                  (display lit 'title "Επωνυμία" "ac-company"))
+                  (display lit 'title "Επωνυμία"))
             (:fieldset
              (:legend "Φορολογικά στοιχεία")
              (display lit 'occupation "Επάγγελμα" "ac-occupation")
@@ -417,7 +417,6 @@
     (let* ((tof-id (tof-id (val tof)))
            (city-id (city-id (val city)))
            (new-company (make-instance 'company
-                                       :search (val search)
                                        :title (val title)
                                        :occupation (val occupation)
                                        :tof-id tof-id
@@ -428,7 +427,8 @@
                                        :pobox (val pobox)
                                        :notes (val notes))))
       (insert-dao new-company)
-      (see-other (company :id (company-id new-company))))))
+      (see-other (apply #'company/details :id (company-id new-company)
+                        (params->filter))))))
 
 
 
@@ -482,7 +482,7 @@
                                    filter
                                    (if (val contact-id)
                                        '(:read)
-                                       '(:read :update :delete)))
+                                       '(:read :update :delete :rank-up :rank-down)))
                      (display contact-table
                               :key (val contact-id)))
                (footer)))))))
