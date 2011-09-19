@@ -4,7 +4,7 @@ database=scrooge
 project_root="www/scrooge"
 
 echo Backing up current postgresql database $database
-pg_dump --create -f $HOME/$project_root/db_dumps/$database.$(date +%F_%H:%M:%S).sql $database
+pg_dump --create -f $HOME/$project_root/db_dumps/$database.$(hostname).$(date +%F_%H:%M:%S).sql $database
 
 echo Attempting to drop postgresql database $database
 dropdb $database
