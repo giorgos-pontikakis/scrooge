@@ -25,12 +25,12 @@
     :initform
     '((title
        (:cheque-event-title-null
-        "Η περιγραφή της  καταστατικής μεταβολής είναι κενή."
+        "Η περιγραφή του συμβάντος είναι κενή."
         :cheque-event-title-exists
-        "Αυτή η περιγραφή καταστατικής μεταβολής έχει ήδη οριστεί."))
+        "Αυτή η περιγραφή συμβάντος έχει ήδη οριστεί."))
       (from-state
        (:cheque-event-from/to/payable-exists
-        "Έχει ήδη οριστεί καταστατική μεταβολή για αυτή την αρχική και τελική κατάσταση"
+        "Έχει ήδη οριστεί συμβάν για αυτή την αρχική και τελική κατάσταση"
         :cheque-event-from-to-equal nil))
       (to-state
        (:cheque-event-from-to-equal
@@ -150,7 +150,7 @@
   ((kind        :accessor kind :initarg :kind)
    (header-labels  :initform '("" "<br />Περιγραφή"
                                "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
+                                "Πρότυπη<br />Συναλλαγή"))
    (paginator      :initform nil))
   (:default-initargs :item-class 'cheque-event-row))
 

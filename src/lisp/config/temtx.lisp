@@ -6,16 +6,16 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass cash-page (regex-page page-family-mixin)
+(defclass temtx-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date company description amount account-id))
+    :initform '(description debit-acc-id credit-acc-id))
    (filter-parameter-names
     :allocation :class
-    :initform '(search state))
+    :initform '())
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -24,10 +24,10 @@
     :reader messages
     :initform
     '((title
-       (:cheque-event-title-null
-        "Η περιγραφή της  καταστατικής μεταβολής είναι κενή."
-        :cheque-event-title-exists
-        "Αυτή η περιγραφή καταστατικής μεταβολής έχει ήδη οριστεί."))
+       (:temtx-title-null
+        "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
+        :temtx-title-exists
+        "Αυτή η περιγραφή Πρότυπης Συναλλαγής έχει ήδη οριστεί."))
       (from-state
        (:cheque-event-from/to/payable-exists
         "Έχει ήδη οριστεί καταστατική μεταβολή για αυτή την αρχική και τελική κατάσταση"
@@ -39,57 +39,32 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Checks
+;;; Validation
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate cheque-event-exists-p cheque-event id)
-(define-existence-predicate cheque-state-exists-p cheque-state id)
+(define-existence-predicate temtx-exists-p temtx id)
+(define-existence-predicate* temtx-title-exists-p temtx title id)
 
-(defun chk-cheque-event-id (id)
-  (if (cheque-event-exists-p id)
+(defun chk-temtx-id (id)
+  (if (temtx-exists-p id)
       nil
-      :cheque-event-id-unknown))
+      :temtx-id-unknown))
 
-(defun chk-cheque-state (state)
-  (if (cheque-state-exists-p state)
+(defun chk-temtx-title/create (title)
+  (cond ((eql :null title) :temtx-title-null)
+        ((temtx-title-exists-p title) :temtx-title-exists)
+        (t nil)))
+
+(defun chk-temtx-title/update (title id)
+  (cond ((eql :null title) :temtx-title-null)
+        ((temtx-title-exists-p title id) :temtx-title-exists)
+        (t nil)))
+
+(defun chk-temtx-title (title)
+  (if (or (eql :null title)
+          (temtx-title-exists-p title))
       nil
-      :cheque-state-invalid))
-
-(defun chk-cheque-event-title (title)
-  (if (eql title :null)
-      :cheque-event-title-null
-      nil))
-
-(defun chk-cheque-event-from/to/payable (from-state to-state kind)
-  (if (cheque-event-from/to/payable-exists-p from-state to-state kind)
-      :cheque-event-from/to/payable-exists
-      nil))
-
-(defun cheque-event-from/to/payable-exists-p (from-state to-state kind)
-  (if (or (null from-state) (null to-state))
-      nil
-      (with-db ()
-        (query (:select 1 :from 'cheque-event
-                        :where (:and (:= 'from-state from-state)
-                                     (:= 'to-state to-state)
-                                     (:= 'payable-p (string= kind "payable"))))
-               :plists))))
-
-(defun post-checks (from-state to-state debit-account credit-account kind)
-  (validate-parameters (lambda (from to)
-                         (chk-cheque-event-from/to/payable from to kind))
-                       from-state to-state)
-  (validate-parameters (lambda (from to)
-                         (if (string= from to)
-                             :cheque-event-from-to-equal
-                             nil))
-                       from-state to-state)
-  (validate-parameters (lambda (&rest accounts)
-                         (if (some #'chequing-p accounts)
-                             nil
-                             :no-chequing-accounts-found))
-                       debit-account credit-account)
-  nil)
+      :tof-title-unknown))
 
 
 
@@ -97,174 +72,109 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun cheque-event-menu (id kind &optional disabled)
-  (menu (crud-actions-spec (config/cheque-event kind :id id)
-                           (config/cheque-event/create kind)
-                           (config/cheque-event/update kind :id id)
-                           (config/cheque-event/delete kind :id id))
-        :id "cheque-event-actions"
-        :css-class "hmenu actions"
-        :disabled disabled))
-
-(defun cheque-event-filters (kind)
-  (let ((spec `((receivable ,(config/cheque-event "receivable") "Προς είσπραξη")
-                (payable    ,(config/cheque-event "payable")    "Προς πληρωμή"))))
-    (with-html
-      (:div :id "filters" :class "filters"
-            (:p :class "title" "Είδος επιταγής")
-            (navbar spec
-                    :id "cheque-event-filters"
-                    :css-class "vnavbar"
-                    :active (intern (string-upcase kind)))))))
-
-
-
-;;; ----------------------------------------------------------------------
-;;; Database interface
-;;; ----------------------------------------------------------------------
-
-(defun cheque-event-record (id)
-  (with-db ()
-    (query (:select 'cheque-event.id 'cheque-event.title
-                    (:as 'debit-account-tbl.title 'debit-account)
-                    (:as 'credit-account-tbl.title 'credit-account)
-                    (:as 'from-cheque-state.description 'from-description)
-                    (:as 'to-cheque-state.description 'to-description)
-                    :from 'cheque-event
-                    :inner-join (:as 'account 'debit-account-tbl)
-                    :on (:= 'debit-acc-id 'debit-account-tbl.id)
-                    :inner-join (:as 'account 'credit-account-tbl)
-                    :on (:= 'credit-acc-id 'credit-account-tbl.id)
-                    :inner-join (:as 'cheque-state 'from-cheque-state)
-                    :on (:= 'from-cheque-state.id 'cheque-event.from-state)
-                    :inner-join (:as 'cheque-state 'to-cheque-state)
-                    :on (:= 'to-cheque-state.id 'cheque-event.to-state)
-                    :where (:= 'cheque-event.id id))
-           :plist)))
+(defun temtx-menu (id &optional disabled)
+  (anchor-menu (crud-actions-spec (config/temtx :id id)
+                                  (config/temtx/create)
+                                  (config/temtx/update :id id)
+                                  (config/temtx/delete :id id))
+               :id "temtx-actions"
+               :css-class "hmenu actions"
+               :disabled disabled))
 
 
 
 ;;; ------------------------------------------------------------
-;;; Cheque Event Table
+;;; Template TX Table
 ;;; ------------------------------------------------------------
 
 ;;; table
 
-(defclass cheque-event-table (scrooge-table)
-  ((kind        :accessor kind :initarg :kind)
-   (header-labels  :initform '("" "<br />Περιγραφή"
-                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
-   (paginator      :initform nil))
-  (:default-initargs :item-class 'cheque-event-row))
+(defclass temtx-table (scrooge-table)
+  ((header-labels :initform '("" "<br />Περιγραφή"
+                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
+   (paginator     :initform (make-instance 'temtx-paginator)))
+  (:default-initargs :item-class 'temtx-row))
 
+(defmethod get-records ((table temtx-table))
+  (with-db ()
+    (query (:order-by (:select 'temtx.id 'temtx.title
+                               (:as 'debit-account.title 'debit-account)
+                               (:as 'credit-account.title 'credit-account)
+                               :from 'temtx
+                               :inner-join (:as 'account 'debit-account)
+                               :on (:= 'debit-acc-id 'debit-account.id)
+                               :inner-join (:as 'account 'credit-account)
+                               :on (:= 'credit-acc-id 'credit-account.id))
+                      'temtx.title)
+           :plists)))
 
-
-(defmethod get-records ((table cheque-event-table))
-  (let ((payable-p (string= (kind table) "payable")))
-    (with-db ()
-      (query (:order-by (:select 'cheque-event.id 'cheque-event.title
-                                 (:as 'debit-account-tbl.title 'debit-account)
-                                 (:as 'credit-account-tbl.title 'credit-account)
-                                 (:as 'from-cheque-state.description 'from-description)
-                                 (:as 'to-cheque-state.description 'to-description)
-                                 :from 'cheque-event
-                                 :inner-join (:as 'account 'debit-account-tbl)
-                                 :on (:= 'debit-acc-id 'debit-account-tbl.id)
-                                 :inner-join (:as 'account 'credit-account-tbl)
-                                 :on (:= 'credit-acc-id 'credit-account-tbl.id)
-                                 :inner-join (:as 'cheque-state 'from-cheque-state)
-                                 :on (:= 'from-cheque-state.id 'cheque-event.from-state)
-                                 :inner-join (:as 'cheque-state 'to-cheque-state)
-                                 :on (:= 'to-cheque-state.id 'cheque-event.to-state)
-                                 :where (:= 'payable_p payable-p))
-                        'cheque-event.title)
-             :plists))))
 
 ;;; rows
 
-(defclass cheque-event-row (scrooge-row/plist)
+(defclass temtx-row (scrooge-row/plist)
   ())
 
-(defmethod selector ((row cheque-event-row) enabled-p)
-  (let* ((id (key row))
-         (table (collection row))
-         (filter (filter table))
-         (kind (kind table))
-         (start (page-start (paginator table) (index row) (start-index table))))
-    (html ()
-      (:a :href (if enabled-p
-                    (apply #'config/cheque-event kind :start start filter)
-                    (apply #'config/cheque-event kind :id id filter))
-          (selector-img enabled-p)))))
+(defmethod selector ((row temtx-row) selected-p)
+  (simple-selector row selected-p #'config/temtx))
 
-(defmethod payload ((row cheque-event-row) enabled-p)
+(defmethod payload ((row temtx-row) enabled-p)
   (let ((record (record row))
         (disabled (not enabled-p)))
     (list (make-instance 'textbox
                          :title 'title
                          :value (getf record :title)
                          :disabled disabled)
-          (make-instance 'dropdown
-                         :name 'from-state
-                         :label-value-alist *cheque-statees*
-                         :selected (getf record :from-description)
-                         :disabled disabled)
-          (make-instance 'dropdown
-                         :name 'to-state
-                         :label-value-alist *cheque-statees*
-                         :selected (getf record :to-description)
-                         :disabled disabled)
           (make-instance 'textbox
                          :name 'debit-account
                          :value (getf record :debit-account)
+                         :css-class "ac-account"
                          :disabled disabled)
           (make-instance 'textbox
                          :name 'credit-account
                          :value (getf record :credit-account)
                          :disabled disabled))))
 
-(defmethod controls ((row cheque-event-row) enabled-p)
-  (let ((id (key row))
-        (kind (kind (collection row))))
-    (if enabled-p
-        (list (make-instance 'ok-button)
-              (make-instance 'cancel-button
-                             :href (config/cheque-event kind :id id)))
-        (list nil nil))))
+(defmethod controls ((row temtx-row) controls-p)
+  (simple-controls row controls-p #'config/temtx))
+
+
+;;; paginator
+
+(defclass temtx-paginator (scrooge-paginator)
+  ())
+
+(defmethod target-url ((pg temtx-paginator) start)
+  (apply #'config/temtx :start start))
+
 
 
 ;;; ------------------------------------------------------------
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage cheque-event-page config/cheque-event
-    (("config/cheque-event/" (kind "(receivable|payable)")))
-    ((id integer chk-cheque-event-id))
+(defpage temtx-page config/temtx ("config/temtx/")
+    ((id integer chk-temtx-id))
   (with-view-page
-    (let ((cheque-event-table (make-instance 'cheque-event-table
-                                             :op :read
-                                             :id "cheque-event-table"
-                                             :kind kind)))
+    (let ((title "Πρότυπες Συναλλαγές » Κατάλογος")
+          (temtx-table (make-instance 'temtx-table
+                                      :op :read
+                                      :id "temtx-table")))
       (with-document ()
         (:head
-         (:title "Συμβάντα Επιταγών")
+         (:title (str title))
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-navbar 'cheque-event)
-               (:div :id "cheque-event-window" :class "window grid_10"
-                     (:div :class "title" "Συμβάντα Επιταγών » Κατάλογος")
-                     (cheque-event-menu (val id)
-                                        kind
-                                        (if (val id)
-                                            '(:read)
-                                            '(:read :update :delete)))
-                     (display cheque-event-table
+               (config-navbar 'temtx)
+               (:div :id "temtx-window" :class "window grid_10"
+                     (:div :class "title" (str title))
+                     (temtx-menu (val id)
+                                 (if (val id)
+                                     '(:read)
+                                     '(:read :update :delete)))
+                     (display temtx-table
                               :key (val id)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (cheque-event-filters kind))
                (footer)))))))
 
 
@@ -273,57 +183,43 @@
 ;;; CREATE
 ;;; ----------------------------------------------------------------------
 
-(defpage cheque-event-page config/cheque-event/create
-    (("config/cheque-event/" (kind "(receivable|payable)") "/create"))
-    ((title          string chk-cheque-event-title)
+(defpage temtx-page config/temtx/create ("config/temtx/create")
+    ((title          string chk-temtx-title/create)
      (debit-account  string chk-acc-title)
-     (credit-account string chk-acc-title)
-     (from-state    string chk-cheque-state)
-     (to-state      string chk-cheque-state))
+     (credit-account string chk-acc-title))
   (with-view-page
-    (post-checks from-state to-state debit-account credit-account kind)
-    (let ((cheque-event-table (make-instance 'cheque-event-table
-                                             :kind kind
-                                             :op :create)))
+    (let ((title "Πρότυπες Συναλλαγές » Δημιουργία")
+          (temtx-table (make-instance 'temtx-table
+                                      :op :create)))
       (with-document ()
         (:head
-         (:title "Συμβάντα Επιταγών » Δημιουργία")
+         (:title (str title))
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-navbar 'cheque)
+               (config-navbar 'temtx)
                (:div :class "window grid_12"
-                     (:div :class "title" "Συμβάντα Επιταγών » Δημιουργία")
-                     (cheque-event-menu nil
-                                        kind
-                                        '(:create :update :delete))
+                     (:div :class "title" (str title))
+                     (temtx-menu nil
+                                 '(:create :update :delete))
                      (notifications)
-                     (with-form (actions/cheque-event/create kind)
-                       (display cheque-event-table :key (val id)
-                                                   :payload (params->payload))))))))))
+                     (with-form (actions/config/temtx/create)
+                       (display temtx-table :payload (params->payload))))))))))
 
-(defpage cheque-event-page actions/cheque-event/create
-    (("actions/cheque-event/" (kind "(receivable|payable)") "/create")
-     :request-type :post)
-    ((title          string chk-cheque-event-title)
+(defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
+    ((title          string chk-temtx-title/create)
      (debit-account  string chk-acc-title)
-     (credit-account string chk-acc-title)
-     (from-state    string chk-cheque-state)
-     (to-state      string chk-cheque-state))
-  (with-controller-page (cheque-event/create kind)
-    (post-checks from-state to-state debit-account credit-account kind)
+     (credit-account string chk-acc-title))
+  (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
-           (new-cheque-event (make-instance 'cheque-event
-                                            :title (val title)
-                                            :debit-acc-id debit-acc-id
-                                            :credit-acc-id credit-acc-id
-                                            :payable-p (string= kind "payable")
-                                            :from-state (val from-state)
-                                            :to-state (val to-state))))
-      (insert-dao new-cheque-event)
-      (see-other (config/cheque-event kind :id (id new-cheque-event))))))
+           (new-temtx (make-instance 'temtx
+                                     :title (val title)
+                                     :debit-acc-id debit-acc-id
+                                     :credit-acc-id credit-acc-id)))
+      (insert-dao new-temtx)
+      (see-other (config/temtx :id (temtx-id new-temtx))))))
 
 
 
@@ -331,59 +227,47 @@
 ;;; UPDATE
 ;;; ----------------------------------------------------------------------
 
-(defpage cheque-event-page config/cheque-event/update
-    (("config/kind/" (kind "(receivable|payable)") "/update"))
-    ((id             integer chk-cheque-event-id t)
-     (title          string chk-cheque-event-title)
+(defpage temtx-page config/temtx/update ("config/temtx/update")
+    ((id             integer chk-temtx-id t)
+     (title          string chk-temtx-title/update)
      (debit-account  string chk-acc-title)
-     (credit-account string chk-acc-title)
-     (from-state    string chk-cheque-state)
-     (to-state      string chk-cheque-state))
+     (credit-account string chk-acc-title))
   (with-view-page
-    (post-checks from-state to-state debit-account credit-account kind)
-    (let ((cheque-event-table (make-instance 'cheque-event-table
-                                             :kind kind
-                                             :op :update)))
+    (let ((title "Πρότυπες Συναλλαγές » Επεξεργασία")
+          (temtx-table (make-instance 'temtx-table
+                                      :op :update)))
       (with-document ()
         (:head
-         (:title "Συμβάντα Επιταγών » Επεξεργασία")
+         (:title (str title))
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-navbar 'cheque-event)
-               (:div :id "cheque-event-window" :class "window grid_12"
-                     (:div :class "title" "Συμβάντα Επιταγών » Επεξεργασία")
-                     (cheque-event-menu (val id)
-                                        kind
-                                        '(:create :update))
+               (config-navbar 'temtx)
+               (:div :id "temtx-window" :class "window grid_12"
+                     (:div :class "title" (str title))
+                     (temtx-menu (val id)
+                                 '(:create :update))
                      (notifications)
-                     (with-form (actions/cheque-event/update kind :id (val id))
-                       (display cheque-event-table :key (val id)
-                                                   :payload (params->payload))))
+                     (with-form (actions/config/temtx/update :id (val id))
+                       (display temtx-table :key (val id)
+                                            :payload (params->payload))))
                (footer)))))))
 
-(defpage cheque-event-page actions/cheque-event/update
-    (("actions/cheque-event/" (kind "(receivable|payable)") "/update")
-     :request-type :post)
-    ((id             integer chk-cheque-event-id t)
-     (title          string  chk-cheque-event-title)
+(defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
+    ((id             integer chk-temtx-id t)
+     (title          string  chk-temtx-title/update)
      (debit-account  string  chk-acc-title)
-     (credit-account string  chk-acc-title)
-     (from-state    string  chk-cheque-state)
-     (to-state      string  chk-cheque-state))
-  (with-controller-page (actions/cheque-event/update kind)
-    (post-checks from-state to-state debit-account credit-account kind)
-    (let* ((debit-acc-id (account-id (val debit-account)))
-           (credit-acc-id (account-id (val credit-account))))
-      (execute (:update 'cheque-event :set
+     (credit-account string  chk-acc-title))
+  (with-controller-page (config/temtx/update)
+    (let ((debit-acc-id (account-id (val debit-account)))
+          (credit-acc-id (account-id (val credit-account))))
+      (execute (:update 'temtx :set
                         'title (val title)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
-                        'from-state (val from-state)
-                        'to-state (val to-state)
                         :where (:= 'id (val id)))))
-    (see-other (config/cheque-event kind))))
+    (see-other (config/temtx))))
 
 
 
@@ -391,75 +275,30 @@
 ;;; DELETE
 ;;; ----------------------------------------------------------------------
 
-(defpage cheque-event-page config/cheque-event/delete
-    (("config/cheque-event/" (kind "(receivable|payable)") "/delete"))
-    ((id integer chk-cheque-event-id t))
+(defpage temtx-page config/temtx/delete ("config/temtx/delete")
+    ((id integer chk-temtx-id t))
   (with-view-page
-    (let ((cheque-event-table (make-instance 'cheque-event-table
-                                             :kind kind
-                                             :op :delete)))
+    (let ((title "Πρότυπες Συναλλαγές » Διαγραφή")
+          (temtx-table (make-instance 'temtx-table
+                                      :op :delete)))
       (with-document ()
         (:head
-         (:title "Συμβάντα Επιταγών » Διαγραφή")
+         (:title (str title))
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-navbar 'cheque-event)
-               (:div :id "cheque-event-window" :class "window grid_10"
-                     (:div :class "title" "Συμβάντα Επιταγών » Διαγραφή")
-                     (cheque-event-menu (val id)
-                                        kind
-                                        '(:create :delete))
-                     (with-form (actions/cheque-event/delete kind
-                                                             :id (val id))
-                       (display cheque-event-table
-                                :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (cheque-event-filters kind))
+               (config-navbar 'temtx)
+               (:div :id "temtx-window" :class "window grid_10"
+                     (:div :class "title" (str title))
+                     (temtx-menu (val id)
+                                 '(:create :delete))
+                     (with-form (actions/config/temtx/delete :id (val id))
+                       (display temtx-table :key (val id))))
                (footer)))))))
 
-(defpage cheque-event-page actions/cheque-event/delete
-    (("actions/cheque-event/" (kind "(receivable|payable)") "/delete")
-     :request-type :post)
-    ((id integer chk-cheque-event-id t))
-  (with-controller-page (config/cheque-event/delete kind)
-    (delete-dao (get-dao 'cheque-event (val id)))
-    (see-other (config/cheque-event kind))))
-
-
-;; (defun cheque-event-data-form (kind op &key id data styles)
-;;   (let ((disabled (eql op :details)))
-;;     (flet ((label-input-text (name label &optional extra-styles)
-;;              (with-html
-;;                (label name label)
-;;                (input-text name
-;;                            :value (getf data (make-keyword name))
-;;                            :disabled disabled
-;;                            :css-class (conc (getf styles (make-keyword name))
-;;                                             " " extra-styles)))))
-;;       (with-html
-;;         (:div :id "cheque-data-form" :class "data-form"
-;;               (label-input-text 'title "Περιγραφή")
-;;               ;;
-;;               (label 'from-state "Αρχική Κατάσταση")
-;;               (dropdown 'from-state *cheque-statees*
-;;                         :selected (getf data :from-state)
-;;                         :disabled disabled
-;;                         :css-class (getf styles :from-state))
-;;               (label 'from-state "Τελική Κατάσταση")
-;;               (dropdown 'to-state *cheque-statees*
-;;                         :selected (getf data :to-state)
-;;                         :disabled disabled
-;;                         :css-class (getf styles :to-state))
-;;               ;;
-;;               (label-input-text 'debit-account "Λογαριασμός Χρέωσης" "ac-account")
-;;               (label-input-text 'credit-account "Λογαριασμός Πίστωσης" "ac-account"))
-;;         (:div :class "data-form-buttons grid_9"
-;;               (if disabled
-;;                   (cancel-button (config/cheque-event kind :id id)
-;;                                  :body "Επιστροφή στον Κατάλογο Επιταγών")
-;;                   (progn
-;;                     (ok-button :body (if (eql op :update) "Ανανέωση" "Δημιουργία") )
-;;                     (cancel-button (config/cheque-event kind :id id)
-;;                                    :body "Άκυρο"))))))))
+(defpage temtx-page actions/config/temtx/delete ("actions/config/temtx/delete" :request-type :post)
+    ((id integer chk-temtx-id t))
+  (with-controller-page (config/temtx/delete)
+    (delete-dao (get-dao 'temtx (val id)))
+    (see-other (config/temtx))))
