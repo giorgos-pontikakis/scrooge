@@ -249,9 +249,8 @@ excluded for the search - useful for updates."
          nil)))
 
 (defun chk-amount* (float)
-  "Same as chk-amount but allow null values"
+  "Same as chk-amount but allow null values or zeros"
   (if (or (eql float :null)
-          (positive-real-p float)
-          (zerop float))
+          (realp float))
       nil
       :non-positive-amount))

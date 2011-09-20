@@ -68,6 +68,7 @@
     (mapcar (lambda (name)
               (make-instance 'textbox
                              :name name
+                             :css-class (string-downcase name)
                              :value (getf record (make-keyword name))
                              :disabled disabled))
             '(tag amount))))
@@ -178,7 +179,7 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Κοστολόγηση » Δημιουργία")
+         (:title "Λεπτομέρειες Έργου » Δημιουργία κόστους")
          (admin-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -242,7 +243,7 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Επεξεργασία Έργος > Επεξεργασία Επαφής")
+         (:title "Λεπτομέρειες Έργου > Επεξεργασία κόστους")
          (admin-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -255,7 +256,7 @@
                                    '(:details :create))
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση » Επεξεργασία κόστους")
+                     (:div :class "title" "Κοστολόγηση » Επεξεργασία")
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
@@ -304,7 +305,7 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Επεξεργασία Επαφής")
+         (:title "Λεπτομέρειες Έργου » Διαγραφή κόστους")
          (admin-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -317,7 +318,7 @@
                                    '(:details :create))
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση » Διαγραφή κόστους")
+                     (:div :class "title" "Κοστολόγηση » Διαγραφή")
                      (bill-menu (val id)
                                 (val bill-id)
                                 filter
