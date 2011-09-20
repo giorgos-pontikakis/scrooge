@@ -22,9 +22,9 @@
                (:file "config/tof")
                (:file "config/city")
                (:file "config/account")
-               (:file "config/temtx")
-               ;; (:file "config/cheque-stran")
+               ;; (:file "config/temtx")
                (:file "config/role")
+               (:file "config/cheque-stran")
                ;; ;; admin
                (:file "admin/admin")
                (:file "admin/company")

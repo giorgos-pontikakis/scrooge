@@ -27,12 +27,12 @@
 ;;; UI elements
 
 (defun config-navbar (&optional active)
-  (navbar `((city         ,(city)                "Πόλεις")
-            (bank         ,(bank)                "Τράπεζες")
-            (tof          ,(tof)                 "Δ.Ο.Υ.")
-            (account      ,(account)             "Λογαριασμοί")
-            (account-role ,(config/account-role) "Ρόλοι Λογαριασμών")
-            (temtx        ,(config/temtx)        "Πρότυπες Συναλλαγές")
+  (navbar `((city         ,(city)                             "Πόλεις")
+            (bank         ,(bank)                             "Τράπεζες")
+            (tof          ,(tof)                              "Δ.Ο.Υ.")
+            (account      ,(account)                          "Λογαριασμοί")
+            (account-role ,(config/account-role)              "Ρόλοι Λογαριασμών")
+            (cheque-stran ,(config/cheque-stran "receivable") "Μεταπτώσεις Επιταγών")
             #|(cheque-event ,(config/cheque-event "receivable") "Επιταγές")|#)
           :css-class "section-navbar hnavbar grid_12"
           :active active))

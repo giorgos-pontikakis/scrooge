@@ -127,6 +127,6 @@
 }
 
 #bill-table td:nth-child(3) input {
-    width: 5px;
+    width: 50px;
     text-align: right;
 }
