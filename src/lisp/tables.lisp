@@ -134,13 +134,19 @@
   (:metaclass dao-class)
   (:keys state))
 
-(defclass project-event ()
-  ((id              :col-type integer :reader   project-event-id)
+(defclass project-stran ()
+  ((id              :col-type integer :reader   project-stran-id)
    (title           :col-type string  :accessor title           :initarg :title)
    (from-state      :col-type string  :accessor from-state     :initarg :from-state)
    (to-state        :col-type string  :accessor to-state       :initarg :to-state))
   (:metaclass dao-class)
   (:keys id))
+
+(defclass project-event ()
+  ((id               :accessor id               :initarg :id)
+   (project-id       :accessor project-id       :initarg :project-id)
+   (project-stran-id :accessor project-stran-id :initarg :project-stran-id)
+   (tx-id            :accessor tx-id            :initarg :tx-id)))
 
 (defclass project ()
   ((id          :col-type integer       :reader   project-id)
@@ -178,15 +184,20 @@
   (:metaclass dao-class)
   (:keys state))
 
-(defclass cheque-event ()
-  ((id              :col-type integer :reader   cheque-event-id)
+(defclass cheque-stran ()
+  ((id              :col-type integer :reader   cheque-stran-id)
    (title           :col-type string  :accessor title           :initarg :title)
-
    (payable-p       :col-type boolean :accessor payable-p       :initarg :payable-p)
    (from-state      :col-type string  :accessor from-state     :initarg :from-state)
    (to-state        :col-type string  :accessor to-state       :initarg :to-state))
   (:metaclass dao-class)
   (:keys id))
+
+(defclass cheque-event ()
+  ((id              :accessor id              :initarg :id)
+   (cheque-id       :accessor cheque-id       :initarg :cheque-id)
+   (cheque-stran-id :accessor cheque-stran-id :initarg :cheque-stran-id)
+   (tx-id           :accessor tx-id           :initarg :tx-id)))
 
 (defclass cheque ()
   ((id         :col-type integer       :reader   cheque-id)
