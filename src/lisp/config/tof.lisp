@@ -77,13 +77,13 @@
 
 (defun tof-menu (id filter &optional disabled)
   (with-html
-    (anchor-menu (crud-actions-spec (apply #'tof :id id filter)
-                                    (apply #'tof/create filter)
-                                    (apply #'tof/update :id id filter)
+    (anchor-menu (crud-actions-spec (apply #'config/tof :id id filter)
+                                    (apply #'config/tof/create filter)
+                                    (apply #'config/tof/update :id id filter)
                                     (if (or (null id)
                                             (tof-referenced-p id))
                                         nil
-                                        (apply #'tof/delete :id id filter)))
+                                        (apply #'config/tof/delete :id id filter)))
                  :id "tof-actions"
                  :css-class "hmenu actions"
                  :disabled disabled)))
@@ -114,10 +114,10 @@
   ((record-class :allocation :class :initform 'tof)))
 
 (defmethod selector ((row tof-row) enabled-p)
-  (simple-selector row enabled-p #'tof))
+  (simple-selector row enabled-p #'config/tof))
 
 (defmethod controls ((row tof-row) enabled-p)
-  (simple-controls row enabled-p #'tof))
+  (simple-controls row enabled-p #'config/tof))
 
 
 ;;; paginator
@@ -126,7 +126,7 @@
   ())
 
 (defmethod target-url ((pg tof-paginator) start)
-  (apply #'tof :start start (filter (table pg))))
+  (apply #'config/tof :start start (filter (table pg))))
 
 
 
@@ -170,7 +170,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage tof-page tof/create ("config/tof/create")
+(defpage tof-page config/tof/create ("config/tof/create")
     ((title  string chk-tof-title/create)
      (search string))
   (with-view-page
@@ -191,7 +191,7 @@
                      (tof-menu nil
                                filter
                                '(:create :update :delete))
-                     (with-form (actions/tof/create :search (val search))
+                     (with-form (actions/config/tof/create :search (val search))
                        (display tof-table
                                 :key nil
                                 :payload (params->payload))))
@@ -200,10 +200,10 @@
                      (notifications))
                (footer)))))))
 
-(defpage tof-page actions/tof/create ("actions/tof/create" :request-type :post)
+(defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
     ((title  string chk-tof-title/create t)
      (search string))
-  (with-controller-page (tof/create)
+  (with-controller-page (config/tof/create)
     (let ((new-tof (make-instance 'tof :title (val title))))
       (insert-dao new-tof)
       (see-other (tof :id (tof-id new-tof))))))
@@ -214,7 +214,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage tof-page tof/update ("config/tof/update")
+(defpage tof-page config/tof/update ("config/tof/update")
     ((id     integer chk-tof-id                   t)
      (title  string  (chk-tof-title/update title id))
      (search string))
@@ -236,7 +236,7 @@
                      (tof-menu (val id)
                                filter
                                '(:create :update))
-                     (with-form (actions/tof/update :id (val id)
+                     (with-form (actions/config/tof/update :id (val id)
                                                     :filter (val search))
                        (display tof-table
                                 :key (val id)
@@ -246,11 +246,11 @@
                      (notifications))
                (footer)))))))
 
-(defpage tof-page actions/tof/update ("actions/tof/update" :request-type :post)
+(defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
     ((id     integer chk-tof-id t)
      (title  string (chk-tof-title/update title id) t)
      (search string))
-  (with-controller-page (tof/update)
+  (with-controller-page (config/tof/update)
     (execute (:update 'tof :set
                       'title (val title)
                       :where (:= 'id (val id))))
@@ -262,7 +262,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage tof-page tof/delete ("config/tof/delete")
+(defpage tof-page config/tof/delete ("config/tof/delete")
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-view-page
@@ -283,7 +283,7 @@
                      (tof-menu (val id)
                                filter
                                '(:create :delete))
-                     (with-form (actions/tof/delete :id (val id)
+                     (with-form (actions/config/tof/delete :id (val id)
                                                     :search (val search))
                        (display tof-table
                                 :key (val id))))
@@ -291,9 +291,9 @@
                      (searchbox (tof) (val search)))
                (footer)))))))
 
-(defpage tof-page actions/tof/delete ("actions/tof/delete" :request-type :post)
+(defpage tof-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
     ((id     integer chk-tof-id/ref t)
      (search string))
-  (with-controller-page (tof/delete)
+  (with-controller-page (config/tof/delete)
     (delete-dao (get-dao 'tof (val id)))
     (see-other (tof :search (val search)))))

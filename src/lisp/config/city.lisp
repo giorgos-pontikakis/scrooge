@@ -76,13 +76,13 @@
 ;;; ------------------------------------------------------------
 
 (defun city-menu (id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'city :id id filter)
-                                  (apply #'city/create filter)
-                                  (apply #'city/update :id id filter)
+  (anchor-menu (crud-actions-spec (apply #'config/city :id id filter)
+                                  (apply #'config/city/create filter)
+                                  (apply #'config/city/update :id id filter)
                                   (if (or (null id)
                                           (city-referenced-p id))
                                       nil
-                                      (apply #'city/delete :id id filter)))
+                                      (apply #'config/city/delete :id id filter)))
                :id "city-actions"
                :css-class "hmenu actions"
                :disabled disabled))
@@ -113,10 +113,10 @@
   ((record-class :allocation :class :initform 'city)))
 
 (defmethod selector ((row city-row) enabled-p)
-  (simple-selector row enabled-p #'city))
+  (simple-selector row enabled-p #'config/city))
 
 (defmethod controls ((row city-row) enabled-p)
-  (simple-controls row enabled-p #'city))
+  (simple-controls row enabled-p #'config/city))
 
 
 ;;; paginator
@@ -125,7 +125,7 @@
   ())
 
 (defmethod target-url ((pg city-paginator) start)
-  (apply #'city :start start (filter (table pg))))
+  (apply #'config/city :start start (filter (table pg))))
 
 
 
@@ -169,7 +169,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage city-page city/create ("config/city/create")
+(defpage city-page config/city/create ("config/city/create")
     ((title  string chk-city-title/create)
      (search string))
   (with-view-page
@@ -190,7 +190,7 @@
                      (city-menu nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/city/create :search (val search))
+                     (with-form (actions/config/city/create :search (val search))
                        (display city-table
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
@@ -198,10 +198,10 @@
                      (notifications))
                (footer)))))))
 
-(defpage city-page actions/city/create ("actions/city/create" :request-type :post)
+(defpage city-page actions/config/city/create ("actions/config/city/create" :request-type :post)
     ((title  string chk-city-title/create t)
      (search string))
-  (with-controller-page (city/create)
+  (with-controller-page (config/city/create)
     (let ((new-city (make-instance 'city :title (val title))))
       (insert-dao new-city)
       (see-other (city :id (city-id new-city))))))
@@ -212,7 +212,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage city-page city/update ("config/city/update")
+(defpage city-page config/city/update ("config/city/update")
     ((id     integer chk-city-id                   t)
      (title  string  (chk-city-title/update title id))
      (search string))
@@ -234,7 +234,7 @@
                      (city-menu (val id)
                                 filter
                                 '(:create :update))
-                     (with-form (actions/city/update :id (val id)
+                     (with-form (actions/config/city/update :id (val id)
                                                      :search (val search))
                        (display city-table
                                 :key (val id)
@@ -244,11 +244,11 @@
                      (notifications))
                (footer)))))))
 
-(defpage city-page actions/city/update ("actions/city/update" :request-type :post)
+(defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
     ((id     integer chk-city-id t)
      (title  string (chk-city-title/update title id) t)
      (search string))
-  (with-controller-page (city/update)
+  (with-controller-page (config/city/update)
     (execute (:update 'city :set
                       'title (val title)
                       :where (:= 'id (val id))))
@@ -260,7 +260,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage city-page city/delete ("config/city/delete")
+(defpage city-page config/city/delete ("config/city/delete")
     ((id     integer chk-city-id/ref t)
      (search string))
   (with-view-page
@@ -281,7 +281,7 @@
                      (city-menu (val id)
                                 filter
                                 '(:create :delete))
-                     (with-form (actions/city/delete :id (val id)
+                     (with-form (actions/config/city/delete :id (val id)
                                                      :search (val search))
                        (display city-table
                                 :key (val id))))
@@ -289,9 +289,9 @@
                      (searchbox (city) (val search)))
                (footer)))))))
 
-(defpage city-page actions/city/delete ("actions/city/delete" :request-type :post)
+(defpage city-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
     ((id     integer chk-city-id/ref t)
      (search string))
-  (with-controller-page (city/delete)
+  (with-controller-page (config/city/delete)
     (delete-dao (get-dao 'city (val id)))
     (see-other (city :search (val search)))))

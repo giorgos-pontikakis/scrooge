@@ -134,12 +134,12 @@
 (defun account-crud-menu (id debitp &optional disabled)
   (let ((prefix (if debitp "debit" "credit")))
     (anchor-menu (crud-actions-spec (account :id id)
-                                    (account/create :debitp debitp :parent-id id)
-                                    (account/update :id id)
+                                    (config/account/create :debitp debitp :parent-id id)
+                                    (config/account/update :id id)
                                     (if (or (null id)
                                             (acc-referenced-p id))
                                         nil
-                                        (account/delete :id id)))
+                                        (config/account/delete :id id)))
                  :id (conc prefix "-account-actions")
                  :css-class "hmenu actions"
                  :disabled disabled)))
@@ -268,7 +268,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage account-page account/create ("config/account/create")
+(defpage account-page config/account/create ("config/account/create")
     ((parent-id integer chk-parent-acc-id)
      (debitp    boolean (chk-debitp debitp parent-id))
      (title     string  chk-acc-title/create)
@@ -292,19 +292,19 @@
                      (account-crud-menu (val parent-id)
                                         debitp
                                         '(:create :update :delete))
-                     (with-form (actions/account/create :parent-id (val parent-id)
-                                                        :debitp (val debitp))
+                     (with-form (actions/config/account/create :parent-id (val parent-id)
+                                                               :debitp (val debitp))
                        (display account-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
 
-(defpage account-page actions/account/create ("actions/account/create"
+(defpage account-page actions/config/account/create ("actions/account/create"
                                                      :request-type :post)
     ((parent-id integer chk-parent-acc-id)
      (title     string  chk-acc-title/create t)
      (debitp    boolean (chk-debitp debitp parent-id))
      (chequing-p   boolean))
-  (with-controller-page (account/create)
+  (with-controller-page (config/account/create)
     (with-db ()
       (let ((new-dao (make-instance 'account
                                     :parent-id (or (val parent-id) :null)
@@ -320,7 +320,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage account-page account/update ("config/account/update")
+(defpage account-page config/account/update ("config/account/update")
     ((id      integer chk-acc-id t)
      (title   string  (chk-acc-title/update title id))
      (chequing-p boolean (chk-chequing-p chequing-p id)))
@@ -344,17 +344,17 @@
                                         (debit-p (with-db ()
                                                    (get-dao 'account (val id))))
                                         '(:create :update :delete))
-                     (with-form (actions/account/update :id (val id))
+                     (with-form (actions/config/account/update :id (val id))
                        (display account-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
 
-(defpage account-page actions/account/update ("actions/account/update"
+(defpage account-page actions/config/account/update ("actions/config/account/update"
                                                      :request-type :post)
     ((id         integer chk-acc-id                     t)
      (title      string  (chk-acc-title/update title id)   t)
      (chequing-p boolean (chk-chequing-p chequing-p id)))
-  (with-controller-page (account/update)
+  (with-controller-page (config/account/update)
     (execute (:update 'account :set
                       :title (val title)
                       :chequing-p (val chequing-p)
@@ -367,7 +367,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage account-page account/delete ("config/account/delete")
+(defpage account-page config/account/delete ("config/account/delete")
     ((id integer chk-acc-id/ref t))
   (with-view-page
     (with-document ()
@@ -397,13 +397,13 @@
                                          (if id-debit-p
                                              '(:delete)
                                              '(:create :update :delete)))
-                      (with-form (actions/account/delete :id (val id))
+                      (with-form (actions/config/account/delete :id (val id))
                         (display account-tree :key (val id) :hide-root-p t)))))
              (footer))))))
 
-(defpage account-page actions/account/delete ("actions/account/delete"
+(defpage account-page actions/config/account/delete ("actions/config/account/delete"
                                                      :request-type :post)
     ((id integer chk-acc-id/ref t))
-  (with-controller-page (account/delete)
+  (with-controller-page (config/account/delete)
     (delete-dao (get-dao 'account (val id)))
     (see-other (account))))

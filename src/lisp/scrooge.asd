@@ -16,7 +16,7 @@
                (:file "elements")
                (:file "auth")
                (:file "root")
-               ;; ;; config
+               ;; config
                (:file "config/config")
                (:file "config/bank")
                (:file "config/tof")
@@ -26,17 +26,15 @@
                (:file "config/temtx")
                (:file "config/cheque-stran")
                (:file "config/project-stran")
-               ;; ;; admin
-               (:file "admin/admin")
-               (:file "admin/company")
-               (:file "admin/contact")
-               (:file "admin/project")
-               (:file "admin/bill")
-               ;; ;; financial
-               (:file "financial/financial")
-               (:file "financial/tx")
-               (:file "financial/cash")
-               (:file "financial/invoice")
-               ;; (:file "financial/cheque")
-               ;; (:file "financial/account")
+               ;; main
+               (:file "main/main")
+               (:file "main/company")
+               (:file "main/contact")
+               (:file "main/project")
+               (:file "main/bill")
+               (:file "main/tx")
+               (:file "main/cash")
+               (:file "main/invoice")
+               ;; (:file "main/cheque")
+               ;; (:file "main/account")
                ))

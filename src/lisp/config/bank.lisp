@@ -76,13 +76,13 @@
 ;;; ------------------------------------------------------------
 
 (defun bank-menu (id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'bank :id id filter)
-                                  (apply #'bank/create filter)
-                                  (apply #'bank/update :id id filter)
+  (anchor-menu (crud-actions-spec (apply #'config/bank :id id filter)
+                                  (apply #'config/bank/create filter)
+                                  (apply #'config/bank/update :id id filter)
                                   (if (or (null id)
                                           (bank-referenced-p id))
                                       nil
-                                      (apply #'bank/delete :id id filter)))
+                                      (apply #'config/bank/delete :id id filter)))
                :id "bank-actions"
                :css-class "hmenu actions"
                :disabled disabled))
@@ -113,10 +113,10 @@
   ((record-class :allocation :class :initform 'bank)))
 
 (defmethod selector ((row bank-row) selected-p)
-  (simple-selector row selected-p #'bank))
+  (simple-selector row selected-p #'config/bank))
 
 (defmethod controls ((row bank-row) controls-p)
-  (simple-controls row controls-p #'bank))
+  (simple-controls row controls-p #'config/bank))
 
 
 ;;; paginator
@@ -125,7 +125,7 @@
   ())
 
 (defmethod target-url ((pg bank-paginator) start)
-  (apply #'bank :start start (filter (table pg))))
+  (apply #'config/bank :start start (filter (table pg))))
 
 
 
@@ -133,7 +133,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage bank-page bank ("config/bank")
+(defpage bank-page config/bank ("config/bank")
     ((id     integer chk-bank-id)
      (search string)
      (start  integer))
@@ -170,7 +170,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage bank-page bank/create ("config/bank/create")
+(defpage bank-page config/bank/create ("config/bank/create")
     ((title  string chk-bank-title/create)
      (search string))
   (with-view-page
@@ -191,7 +191,7 @@
                      (bank-menu nil
                                 filter
                                 '(:create :update :delete))
-                     (with-form (actions/bank/create :search (val search))
+                     (with-form (actions/config/bank/create :search (val search))
                        (display bank-table
                                 :key nil
                                 :payload (params->payload))))
@@ -200,10 +200,10 @@
                      (notifications))
                (footer)))))))
 
-(defpage bank-page actions/bank/create ("actions/bank/create" :request-type :post)
+(defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
     ((title  string chk-bank-title/create t)
      (search string))
-  (with-controller-page (bank/create)
+  (with-controller-page (config/bank/create)
     (let ((new-bank (make-instance 'bank :title (val title))))
       (insert-dao new-bank)
       (see-other (bank :id (bank-id new-bank))))))
@@ -214,7 +214,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage bank-page bank/update ("config/bank/update")
+(defpage bank-page config/bank/update ("config/bank/update")
     ((id     integer chk-bank-id t)
      (title  string  (chk-bank-title/update title id))
      (search string))
@@ -236,7 +236,7 @@
                      (bank-menu (val id)
                                 filter
                                 '(:create :update))
-                     (with-form (actions/bank/update :id (val id)
+                     (with-form (actions/config/bank/update :id (val id)
                                                      :search (val search))
                        (display bank-table
                                 :key (val id)
@@ -246,11 +246,11 @@
                      (notifications))
                (footer)))))))
 
-(defpage bank-page actions/bank/update ("actions/bank/update" :request-type :post)
+(defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
     ((id     integer chk-bank-id t)
      (title  string  (chk-bank-title/update title id) t)
      (search string))
-  (with-controller-page (bank/update)
+  (with-controller-page (config/bank/update)
     (execute (:update 'bank :set
                       'title (val title)
                       :where (:= 'id (val id))))
@@ -262,7 +262,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage bank-page bank/delete ("config/bank/delete")
+(defpage bank-page config/bank/delete ("config/bank/delete")
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-view-page
@@ -283,7 +283,7 @@
                      (bank-menu (val id)
                                 filter
                                 '(:create :delete))
-                     (with-form (actions/bank/delete :id (val id)
+                     (with-form (actions/config/bank/delete :id (val id)
                                                      :search (val search))
                        (display bank-table
                                 :key (val id))))
@@ -291,9 +291,9 @@
                      (searchbox (bank) (val search)))
                (footer)))))))
 
-(defpage bank-page actions/bank/delete ("actions/bank/delete" :request-type :post)
+(defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
     ((id     integer chk-bank-id/ref t)
      (search string))
-  (with-controller-page (bank/delete)
+  (with-controller-page (config/bank/delete)
     (delete-dao (get-dao 'bank (val id)))
     (see-other (bank :search (val search)))))
