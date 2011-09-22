@@ -134,7 +134,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage tof-page tof ("config/tof")
+(defpage tof-page config/tof ("config/tof")
     ((id     integer chk-tof-id)
      (search string)
      (start  integer))
@@ -161,7 +161,7 @@
                                    '(:read :update :delete)))
                      (display tof-table :key (val id)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (tof) (val search)))
+                     (searchbox (config/tof) (val search)))
                (footer)))))))
 
 
@@ -196,7 +196,7 @@
                                 :key nil
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (tof) (val search))
+                     (searchbox (config/tof) (val search))
                      (notifications))
                (footer)))))))
 
@@ -206,7 +206,7 @@
   (with-controller-page (config/tof/create)
     (let ((new-tof (make-instance 'tof :title (val title))))
       (insert-dao new-tof)
-      (see-other (tof :id (tof-id new-tof))))))
+      (see-other (config/tof :id (tof-id new-tof))))))
 
 
 
@@ -242,7 +242,7 @@
                                 :key (val id)
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (tof) (val search))
+                     (searchbox (config/tof) (val search))
                      (notifications))
                (footer)))))))
 
@@ -254,7 +254,7 @@
     (execute (:update 'tof :set
                       'title (val title)
                       :where (:= 'id (val id))))
-    (see-other (tof :id (val id) :search (val search)))))
+    (see-other (config/tof :id (val id) :search (val search)))))
 
 
 
@@ -288,7 +288,7 @@
                        (display tof-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (tof) (val search)))
+                     (searchbox (config/tof) (val search)))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
@@ -296,4 +296,4 @@
      (search string))
   (with-controller-page (config/tof/delete)
     (delete-dao (get-dao 'tof (val id)))
-    (see-other (tof :search (val search)))))
+    (see-other (config/tof :search (val search)))))

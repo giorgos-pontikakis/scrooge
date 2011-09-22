@@ -301,11 +301,11 @@
       (with-document ()
         (:head
          (:title "Εταιρίες » Κατάλογος")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_10"
                      (:div :class "title" "Εταιρίες » Κατάλογος")
                      (company-menu (val id)
@@ -336,11 +336,11 @@
       (with-document ()
         (:head
          (:title "Εταιρία » Λεπτομέρειες")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Λεπτομέρειες")
                      (company-menu (val id)
@@ -385,11 +385,11 @@
       (with-document ()
         (:head
          (:title "Εταιρία » Δημιουργία")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Δημιουργία")
                      (company-menu nil
@@ -461,11 +461,11 @@
       (with-document ()
         (:head
          (:title "Εταιρία » Επεξεργασία")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Επεξεργασία")
                      (company-menu (val id)
@@ -534,11 +534,11 @@
       (with-document ()
         (:head
          (:title "Διαγραφή εταιρίας")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_10"
                      (:div :class "title" "Διαγραφή εταιρίας")
                      (company-menu (val id)

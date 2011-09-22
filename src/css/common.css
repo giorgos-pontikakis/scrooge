@@ -57,8 +57,8 @@ textarea[disabled], textarea[readonly] {
 button, select {
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
-    /* line-height: 20px; */
-    /* padding: 2px 5px 1px 5px; */
+/* line-height: 20px; */
+/* padding: 2px 5px 1px 5px; */
 }
 
 select option {
@@ -198,45 +198,33 @@ select[disabled] {
     font-family: 'Courier New','Courier',monospace;
 }
 
-#primary-navbar li, #logout li {
-    margin-top: 3px;
-    line-height: 30px;
-}
-
-#primary-navbar li {
-    font-weight: bold;
-}
-
-#primary-navbar a {
-    display: block;
-    color: #ffffff;
-    text-decoration: none;
-    padding: 0px 10px;
-    margin: 0px 1px;
-}
-
-#primary-navbar a:hover {
-    color: #104E8B;
-    background-color: #ededed;
-    border-radius: 4px 4px 0px 0px;
-}
-
-#primary-navbar span, #logout span {
-    color: #882233;
-    background-color: #ededed;
-    padding: 0px 10px;
-    border-radius: 4px 4px 0px 0px;
-}
-
-p#logout  {
+#logout  {
     line-height: 30px;
     float: right;
     margin-right: 10px;
 }
 
-p#logout a {
-    text-decoration: underline;
+#logout ul, #logout li {
+    display: inline;
+}
+
+#logout a {
+    margin: 0px 2px;
+    padding: 5px;
+    text-decoration: none;
     color: #ffffff;
+}
+
+#logout a:hover, #logout a.active {
+    border-radius: 3px;
+    color: #000000;
+    background-color: #bbccdd;
+}
+
+#logout span {
+    margin: 0px 2px;
+    padding: 5px;
+    color: #bbccdd;
 }
 
 

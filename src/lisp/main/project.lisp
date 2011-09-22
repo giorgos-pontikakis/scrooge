@@ -314,11 +314,11 @@
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_10"
                      (:div :class "title" "Έργα » Κατάλογος")
                      (project-menu (val id)
@@ -351,11 +351,11 @@
       (with-document ()
         (:head
          (:title "Έργο » Λεπτομέρειες")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
@@ -402,11 +402,11 @@
       (with-document ()
         (:head
          (:title "Έργο » Δημιουργία")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Έργο » Δημιουργία")
                      (project-menu nil
@@ -482,11 +482,11 @@
       (with-document ()
         (:head
          (:title "Έργο » Επεξεργασία")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Έργο » Επεξεργασία")
                      (project-menu (val id)
@@ -558,11 +558,11 @@
       (with-document ()
         (:head
          (:title "Έργο » Διαγραφή")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_10"
                      (:div :class "title" "Έργο » Διαγραφή")
                      (project-menu (val id)

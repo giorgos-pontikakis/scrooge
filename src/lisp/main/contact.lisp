@@ -173,11 +173,11 @@
       (with-document ()
         (:head
          (:title "Επαφές » Δημιουργία")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Λεπτομέρειες")
                      (company-menu (val id)
@@ -233,11 +233,11 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Λεπτομέρειες")
                      (company-menu (val id)
@@ -292,11 +292,11 @@
       (with-document ()
         (:head
          (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'company)
+               (header)
+               (main-navbar 'company)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Λεπτομέρειες")
                      (company-menu (val id)

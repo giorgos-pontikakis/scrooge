@@ -161,7 +161,7 @@
                      (display bank-table
                               :key (val id)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (bank) (val search)))
+                     (searchbox (config/bank) (val search)))
                (footer)))))))
 
 
@@ -196,7 +196,7 @@
                                 :key nil
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (bank) (val search))
+                     (searchbox (config/bank) (val search))
                      (notifications))
                (footer)))))))
 
@@ -206,7 +206,7 @@
   (with-controller-page (config/bank/create)
     (let ((new-bank (make-instance 'bank :title (val title))))
       (insert-dao new-bank)
-      (see-other (bank :id (bank-id new-bank))))))
+      (see-other (config/bank :id (bank-id new-bank))))))
 
 
 
@@ -242,7 +242,7 @@
                                 :key (val id)
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (bank) (val search))
+                     (searchbox (config/bank) (val search))
                      (notifications))
                (footer)))))))
 
@@ -254,7 +254,7 @@
     (execute (:update 'bank :set
                       'title (val title)
                       :where (:= 'id (val id))))
-    (see-other (bank :id (val id) :search (val search)))))
+    (see-other (config/bank :id (val id) :search (val search)))))
 
 
 
@@ -288,7 +288,7 @@
                        (display bank-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (bank) (val search)))
+                     (searchbox (config/bank) (val search)))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
@@ -296,4 +296,4 @@
      (search string))
   (with-controller-page (config/bank/delete)
     (delete-dao (get-dao 'bank (val id)))
-    (see-other (bank :search (val search)))))
+    (see-other (config/bank :search (val search)))))

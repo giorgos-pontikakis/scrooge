@@ -211,11 +211,11 @@
       (with-document ()
         (:head
          (:title "Συναλλαγές")
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'tx)
+               (header)
+               (main-navbar 'tx)
                (:div :class "window grid_10"
                      (:div :class "title" "Συναλλαγές » Κατάλογος")
                      (tx-menu (val id)
@@ -242,11 +242,11 @@
       (with-document ()
         (:head
          (:title "Συναλλαγή » Λεπτομέρειες")
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'tx)
+               (header)
+               (main-navbar 'tx)
                (:div :class "window grid_12"
                      (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
                      (tx-menu (val id)
@@ -279,11 +279,11 @@
       (with-document ()
         (:head
          (:title "Συναλλαγές » Δημιουργία")
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'tx)
+               (header)
+               (main-navbar 'tx)
                (:div :class "window grid_12"
                      (:div :class "title" "Συναλλαγή » Δημιουργία")
                      (tx-menu nil
@@ -342,11 +342,11 @@
       (with-document ()
         (:head
          (:title "Συναλλαγή » Επεξεργασία")
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'tx)
+               (header)
+               (main-navbar 'tx)
                (:div :class "window grid_12"
                      (:div :class "title" "Συναλλαγή » Επεξεργασία")
                      (tx-menu (val id)
@@ -400,11 +400,11 @@
       (with-document ()
         (:head
          (:title "Συναλλαγή » Διαγραφή")
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'tx)
+               (header)
+               (main-navbar 'tx)
                (:div :class "window grid_10"
                      (:div :class "title" "Συναλλαγή » Διαγραφή")
                      (tx-menu (val id)

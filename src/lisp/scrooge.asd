@@ -28,6 +28,7 @@
                (:file "config/project-stran")
                ;; main
                (:file "main/main")
+               (:file "main/home")
                (:file "main/company")
                (:file "main/contact")
                (:file "main/project")

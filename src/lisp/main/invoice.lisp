@@ -260,11 +260,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'invoice)
+               (header)
+               (main-navbar 'invoice)
                (:div :class "window grid_10"
                      (:div :class "title" (str page-title))
                      (invoice-menu kind
@@ -308,11 +308,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'invoice)
+               (header)
+               (main-navbar 'invoice)
                (:div :id "invoice-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (invoice-menu kind
@@ -380,11 +380,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'invoice)
+               (header)
+               (main-navbar 'invoice)
                (:div :id "invoice-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (invoice-menu kind
@@ -448,11 +448,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'invoice)
+               (header)
+               (main-navbar 'invoice)
                (:div :id "invoice-window" :class "window grid_10"
                      (:div :class "title" (str page-title))
                      (invoice-menu kind

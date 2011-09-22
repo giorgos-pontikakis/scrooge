@@ -133,7 +133,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage city-page city ("config/city")
+(defpage city-page config/city ("config/city")
     ((id     integer chk-city-id)
      (search string)
      (start  integer))
@@ -160,7 +160,7 @@
                                     '(:read :update :delete)))
                      (display city-table :key (val id)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (city) (val search)))
+                     (searchbox (config/city) (val search)))
                (footer)))))))
 
 
@@ -194,7 +194,7 @@
                        (display city-table
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (city) (val search))
+                     (searchbox (config/city) (val search))
                      (notifications))
                (footer)))))))
 
@@ -204,7 +204,7 @@
   (with-controller-page (config/city/create)
     (let ((new-city (make-instance 'city :title (val title))))
       (insert-dao new-city)
-      (see-other (city :id (city-id new-city))))))
+      (see-other (city :id (config/city-id new-city))))))
 
 
 
@@ -240,7 +240,7 @@
                                 :key (val id)
                                 :payload (params->payload))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (city) (val search))
+                     (searchbox (config/city) (val search))
                      (notifications))
                (footer)))))))
 
@@ -252,7 +252,7 @@
     (execute (:update 'city :set
                       'title (val title)
                       :where (:= 'id (val id))))
-    (see-other (city :id (val id) :search (val search)))))
+    (see-other (config/city :id (val id) :search (val search)))))
 
 
 
@@ -286,7 +286,7 @@
                        (display city-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (city) (val search)))
+                     (searchbox (config/city) (val search)))
                (footer)))))))
 
 (defpage city-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)
@@ -294,4 +294,4 @@
      (search string))
   (with-controller-page (config/city/delete)
     (delete-dao (get-dao 'city (val id)))
-    (see-other (city :search (val search)))))
+    (see-other (config/city :search (val search)))))

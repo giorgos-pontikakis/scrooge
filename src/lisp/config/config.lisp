@@ -27,10 +27,10 @@
 ;;; UI elements
 
 (defun config-navbar (&optional active)
-  (navbar `((city          ,(city)                             "Πόλεις")
-            (bank          ,(bank)                             "Τράπεζες")
-            (tof           ,(tof)                              "Δ.Ο.Υ.")
-            (account       ,(account)                          "Λογαριασμοί")
+  (navbar `((city          ,(config/city)                      "Πόλεις")
+            (bank          ,(config/bank)                      "Τράπεζες")
+            (tof           ,(config/tof)                       "Δ.Ο.Υ.")
+            (account       ,(config/account)                   "Λογαριασμοί")
             (account-role  ,(config/account-role)              "Ρόλοι Λογαριασμών")
             (temtx         ,(config/temtx)                     "Συναλλαγές")
             (cheque-stran  ,(config/cheque-stran "receivable") "Επιταγές")

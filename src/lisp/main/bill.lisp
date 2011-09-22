@@ -180,11 +180,11 @@
       (with-document ()
         (:head
          (:title "Λεπτομέρειες Έργου » Δημιουργία κόστους")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
                      (:div :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
@@ -244,11 +244,11 @@
       (with-document ()
         (:head
          (:title "Λεπτομέρειες Έργου > Επεξεργασία κόστους")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
                      (:div :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)
@@ -306,11 +306,11 @@
       (with-document ()
         (:head
          (:title "Λεπτομέρειες Έργου » Διαγραφή κόστους")
-         (admin-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'admin)
-               (admin-navbar 'project)
+               (header)
+               (main-navbar 'project)
                (:div :id "project-window" :class "window grid_6"
                      (:div :class "title" "Έργο » Λεπτομέρειες")
                      (project-menu (val id)

@@ -133,7 +133,7 @@
 
 (defun account-crud-menu (id debitp &optional disabled)
   (let ((prefix (if debitp "debit" "credit")))
-    (anchor-menu (crud-actions-spec (account :id id)
+    (anchor-menu (crud-actions-spec (config/account :id id)
                                     (config/account/create :debitp debitp :parent-id id)
                                     (config/account/update :id id)
                                     (if (or (null id)
@@ -173,8 +173,8 @@
   (let ((id (key node)))
     (html ()
       (:a :href (if selected-p
-                    (account)
-                    (account :id id))
+                    (config/account)
+                    (config/account :id id))
           (selector-img selected-p)))))
 
 (defmethod payload ((node account-node) enabled-p)
@@ -188,7 +188,7 @@
     (if controls-p
         (html ()
           (:div (display (make-instance 'ok-button))
-                (display (make-instance 'cancel-button :href (account :id id)))))
+                (display (make-instance 'cancel-button :href (config/account :id id)))))
         (list nil nil))))
 
 
@@ -227,7 +227,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage account-page account ("config/account")
+(defpage account-page config/account ("config/account")
     ((id integer chk-acc-id))
   (with-view-page
     (with-document ()
@@ -277,7 +277,7 @@
     (let ((account-form (make-instance 'account-form
                                        :op :create
                                        :record nil
-                                       :cancel-url (account))))
+                                       :cancel-url (config/account))))
       (with-document ()
         (:head
          (:title "Λογαριασμός » Δημιουργία")
@@ -312,7 +312,7 @@
                                     :debit-p (val debitp)
                                     :chequing-p (val chequing-p))))
         (insert-dao new-dao)
-        (see-other (account :id (account-id new-dao)))))))
+        (see-other (config/account :id (account-id new-dao)))))))
 
 
 
@@ -328,7 +328,7 @@
     (let ((account-form (make-instance 'account-form
                                        :op :update
                                        :record (get-dao 'account (val id))
-                                       :cancel-url (account :id (val id)))))
+                                       :cancel-url (config/account :id (val id)))))
       (with-document ()
         (:head
          (:title "Λογαριασμός » Επεξεργασία")
@@ -406,4 +406,4 @@
     ((id integer chk-acc-id/ref t))
   (with-controller-page (config/account/delete)
     (delete-dao (get-dao 'account (val id)))
-    (see-other (account))))
+    (see-other (config/account))))

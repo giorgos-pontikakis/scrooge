@@ -309,11 +309,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cheque)
+               (header)
+               (main-navbar 'cheque)
                (:div :class "window grid_10"
                      (:div :class "title" (str page-title))
                      (cheque-menu kind
@@ -343,11 +343,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cheque)
+               (header)
+               (main-navbar 'cheque)
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cheque-menu kind
@@ -385,11 +385,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cheque)
+               (header)
+               (main-navbar 'cheque)
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cheque-menu kind
@@ -469,11 +469,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cheque)
+               (header)
+               (main-navbar 'cheque)
                (:div :id "cheque-window" :class "window grid_12"
                      (:p :class "title" (str page-title))
                      (cheque-menu kind
@@ -553,11 +553,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cheque)
+               (header)
+               (main-navbar 'cheque)
                (:div :class "window"
                      (:div :class "window grid_10"
                            (:div :class "title" (str page-title))

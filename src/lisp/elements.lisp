@@ -52,19 +52,13 @@
   (jquery-autocomplete)
   (css (url 'css "config.css")))
 
-(defun admin-headers ()
+(defun main-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
   (jquery-autocomplete)
-  (css (url 'css "admin.css")))
+  (css (url 'css "main.css")))
 
-(defun financial-headers ()
-  (global-headers)
-  (jquery)
-  (jquery-ui)
-  (jquery-autocomplete)
-  (css (url 'css "financial.css")))
 
 
 
@@ -84,12 +78,11 @@
           :class "grid_2"
           (:h1 "(scrooge)"))))
 
-(defun header (active-item)
+(defun header (&optional config-p)
   (with-html
     (:div :id "header"
           (logo)
-          (primary-navbar active-item)
-          (logout-menu)
+          (logout-menu config-p)
           (:div :class "clear" ""))))
 
 (defun footer ()
@@ -98,19 +91,13 @@
           (:p "Powered by lisp"))
     (:div :class "clear" "")))
 
-(defun primary-navbar (active)
-  (navbar `((financial ,(tx)    "Οικονομικά")
-            (admin     ,(admin) "Διαχείριση")
-            (config    ,(city)  "Ρυθμίσεις"))
-          :id "primary-navbar"
-          :css-class "hnavbar grid_6 prefix_1"
-          :active active))
-
-(defun logout-menu ()
+(defun logout-menu (config-p)
   (with-html
-    (:p :id "logout"
-        (fmt "~A@~A :: " (session-value 'user) (machine-instance))
-        (:a :href (logout) "Έξοδος"))))
+    (:div :id "logout"
+        (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
+              (:a :class (if config-p "active" "")
+                  :href (if config-p (home) (config/city)) "Ρυθμίσεις"))
+             (:li (:a :href (logout) "Έξοδος"))))))
 
 (defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)

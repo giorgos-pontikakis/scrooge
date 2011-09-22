@@ -75,18 +75,18 @@
 ;;; Account pages
 ;;; ----------------------------------------------------------------------
 
-(defpage dynamic-page account/overview ("financial/account")
+(defpage dynamic-page account/overview ("account")
     ((id integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
     (with-document ()
       (:head
        (:title "Λογαριασμοί » Σύνοψη")
-       (financial-headers))
+       (main-headers))
       (:body
        (:div :id "container" :class "container_12"
-             (header 'financial)
-             (financial-navbar 'account)
+             (header)
+             (main-navbar 'account)
              (iter
                (for flag in (list t nil))
                (for div-id in '("debit-accounts" "credit-accounts"))
@@ -103,7 +103,7 @@
                       (display account-tree :selected-id (val id))))))))))
 
 
-(defpage dynamic-page account/details ("financial/account/details")
+(defpage dynamic-page account/details ("account/details")
     ((id    integer chk-acc-id)
      (start integer))
   (with-auth ("configuration")
@@ -116,11 +116,11 @@
           (with-document ()
             (:head
              (:title "Λογαριασμοί » Λεπτομέρειες")
-             (financial-headers))
+             (main-headers))
             (:body
              (:div :id "container" :class "container_12"
-                   (header 'financial)
-                   (financial-navbar 'account)
+                   (header)
+                   (main-navbar 'account)
                    (:div :class "window grid_9"
                          (:div :class "title"
                                (str (conc "Ανάλυση Λογαριασμού: "
@@ -129,7 +129,7 @@
                                   :start (val start)))))))
         (see-other (notfound)))))
 
-(defpage dynamic-page account/print ("financial/account/print")
+(defpage dynamic-page account/print ("account/print")
     ((id integer chk-acc-id))
   (with-auth ("configuration")
     (no-cache)
@@ -150,11 +150,11 @@
         (with-document ()
           (:head
            (:title "Λογαριασμοί » Λεπτομέρειες")
-           (financial-headers))
+           (main-headers))
           (:body
            (:div :id "container" :class "container_12"
-                 (header 'financial)
-                 (financial-navbar 'account)
+                 (header)
+                 (main-navbar 'account)
                  (:div :class "window grid_9"
                        (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
                                                   account-title)

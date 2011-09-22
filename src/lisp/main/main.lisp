@@ -5,13 +5,14 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun admin-navbar (&optional active)
-  (navbar `((company ,(company)              "Εταιρίες")
+(defun main-navbar (&optional active)
+  (navbar `((home    ,(home)                 "Αρχική")
+            (company ,(company)              "Εταιρίες")
             (project ,(project)              "Έργα")
             (tx      ,(tx)                   "Συναλλαγές")
             (cash    ,(cash "revenue")       "Μετρητά")
             (invoice ,(invoice "receivable") "Τιμολόγια")
-            (cheque  ,(cheque "receivable")  "Επιταγές"))
+            #|(cheque  ,(cheque "receivable")  "Επιταγές")|#)
           :css-class "section-navbar hnavbar grid_12"
           :active active))
 

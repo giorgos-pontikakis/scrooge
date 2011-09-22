@@ -259,11 +259,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cash)
+               (header)
+               (main-navbar 'cash)
                (:div :class "window grid_10"
                      (:div :class "title" (str page-title))
                      (cash-menu kind
@@ -307,11 +307,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cash)
+               (header)
+               (main-navbar 'cash)
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cash-menu kind
@@ -378,11 +378,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cash)
+               (header)
+               (main-navbar 'cash)
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cash-menu kind
@@ -446,11 +446,11 @@
       (with-document ()
         (:head
          (:title (str page-title))
-         (financial-headers))
+         (main-headers))
         (:body
          (:div :id "container" :class "container_12"
-               (header 'financial)
-               (financial-navbar 'cash)
+               (header)
+               (main-navbar 'cash)
                (:div :id "cash-window" :class "window grid_10"
                      (:div :class "title" (str page-title))
                      (cash-menu kind
