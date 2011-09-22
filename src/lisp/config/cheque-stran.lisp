@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(from-state to-state debit-account credit-account))
+    :initform '(title from-state to-state temtx))
    (filter-parameter-names
     :allocation :class
     :initform '())
@@ -33,16 +33,11 @@
         "Έχει ήδη οριστεί συμβάν για αυτή την αρχική και τελική κατάσταση"
         :cheque-stran-from-to-equal
         "Η τελική κατάσταση δεν μπορεί να είναι ίδια με την αρχική κατάσταση."))
-      (debit-account
-       (:account-title-null
-        "Άκυρος λογαριασμός χρέωσης: Το όνομα είναι κενό."
-        :account-title-unknown
-        "Άκυρος λογαριασμός χρέωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))
-      (credit-account
-       (:account-title-null
-        "Άκυρος λογαριασμός πίστωσης: Το όνομα είναι κενό."
-        :account-title-unknown
-        "Άκυρος λογαριασμός πίστωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))))))
+      (tem-tx
+       (:temtx-title-null
+        "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
+        :temtx-title-unknown
+        "Δεν έχει οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))))))
 
 
 
@@ -88,9 +83,9 @@
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
-                        :where (:and (:= 'from-state from-state)
-                                     (:= 'to-state to-state)
-                                     (:= 'payable-p (string= kind "payable"))))
+                :where (:and (:= 'from-state from-state)
+                             (:= 'to-state to-state)
+                             (:= 'payable-p (string= kind "payable"))))
                :plists))))
 
 (defun chk-cheque-stran-from/to/payable (from-state to-state kind)
@@ -145,24 +140,21 @@
 ;;; table
 
 (defclass cheque-stran-table (scrooge-table)
-  ((kind        :accessor kind :initarg :kind)
-   (header-labels  :initform '("" "<br />Περιγραφή"
-                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
-   (paginator      :initform nil))
+  ((kind :accessor kind :initarg :kind)
+   (header-labels :initform '("" "<br />Περιγραφή"
+                              "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
+                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
+   (paginator     :initform nil))
   (:default-initargs :item-class 'cheque-stran-row))
 
 (defmethod get-records ((table cheque-stran-table))
   (with-db ()
     (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
                                'from-state 'to-state
-                               (:as 'debit-account-tbl.title 'debit-account)
-                               (:as 'credit-account-tbl.title 'credit-account)
+                               (:as 'temtx.title 'temtx)
                        :from 'cheque-stran
-                       :inner-join (:as 'account 'debit-account-tbl)
-                       :on (:= 'debit-acc-id 'debit-account-tbl.id)
-                       :inner-join (:as 'account 'credit-account-tbl)
-                       :on (:= 'credit-acc-id 'credit-account-tbl.id)
+                       :inner-join 'temtx
+                       :on (:= 'temtx-id 'temtx.id)
                        :where (:= 'payable-p (string= (kind table) "payable")))
                       'cheque-stran.title)
            :plists)))
@@ -201,14 +193,9 @@
                          :selected (getf record :to-state)
                          :disabled disabled)
           (make-instance 'textbox
-                         :name 'debit-account
-                         :value (getf record :debit-account)
-                         :css-class "ac-account"
-                         :disabled disabled)
-          (make-instance 'textbox
-                         :name 'credit-account
-                         :value (getf record :credit-account)
-                         :css-class "ac-account"
+                         :name 'temtx
+                         :value (getf record :temtx)
+                         :css-class "ac-temtx"
                          :disabled disabled))))
 
 (defmethod controls ((row cheque-stran-row) enabled-p)
@@ -263,11 +250,10 @@
 
 (defpage cheque-stran-page config/cheque-stran/create
     (("config/cheque-stran/" (kind "(receivable|payable)") "/create"))
-    ((title          string  chk-cheque-stran-title/create)
-     (from-state     string  chk-cheque-state)
-     (to-state       string  chk-cheque-state)
-     (debit-account  string  chk-acc-title)
-     (credit-account string  chk-acc-title))
+    ((title      string chk-cheque-stran-title/create)
+     (from-state string chk-cheque-state)
+     (to-state   string chk-cheque-state)
+     (temtx      string chk-temtx-title))
   (with-view-page
     (check-cheque-stran-parameters from-state to-state kind)
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
@@ -287,27 +273,24 @@
                                         kind
                                         '(:create :update :delete))
                      (notifications)
-                     (with-form (actions/cheque-stran/create kind)
+                     (with-form (actions/config/cheque-stran/create kind)
                        (display cheque-stran-table :payload (params->payload))))))))))
 
-(defpage cheque-stran-page actions/cheque-stran/create
-    (("actions/cheque-stran/" (kind "(receivable|payable)") "/create") :request-type :post)
+(defpage cheque-stran-page actions/config/cheque-stran/create
+    (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/create") :request-type :post)
     ((title          string  chk-cheque-stran-title/create)
      (from-state     string  chk-cheque-state)
      (to-state       string  chk-cheque-state)
-     (debit-account  string  chk-acc-title)
-     (credit-account string  chk-acc-title))
+     (temtx          string  chk-temtx-title))
   (with-controller-page (config/cheque-stran/create kind)
     (check-cheque-stran-parameters from-state to-state kind)
-    (let* ((debit-acc-id (account-id (val debit-account)))
-           (credit-acc-id (account-id (val credit-account)))
+    (let* ((temtx-id (temtx-id (val temtx)))
            (new-cheque-stran (make-instance 'cheque-stran
                                             :title (val title)
                                             :payable-p (string= kind "payable")
                                             :from-state (val from-state)
                                             :to-state (val to-state)
-                                            :debit-acc-id debit-acc-id
-                                            :credit-acc-id credit-acc-id)))
+                                            :temtx-id temtx-id)))
       (insert-dao new-cheque-stran)
       (see-other (config/cheque-stran kind :id (cheque-stran-id new-cheque-stran))))))
 
@@ -318,13 +301,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/update
-    (("config/kind/" (kind "(receivable|payable)") "/update"))
+    (("config/cheque-stran/" (kind "(receivable|payable)") "/update"))
     ((id             integer chk-cheque-stran-id                      t)
      (title          string  (chk-cheque-stran-title/update title id))
      (from-state     string  chk-cheque-state)
      (to-state       string  chk-cheque-state)
-     (debit-account  string  chk-acc-title)
-     (credit-account string  chk-acc-title))
+     (temtx          string  chk-temtx-title))
   (with-view-page
     (check-cheque-stran-parameters from-state to-state kind)
     (let ((title "Μεταπτώσεις Επιταγών » Επεξεργασία")
@@ -345,30 +327,27 @@
                                         kind
                                         '(:create :update))
                      (notifications)
-                     (with-form (actions/cheque-stran/update kind :id (val id))
+                     (with-form (actions/config/cheque-stran/update kind :id (val id))
                        (display cheque-stran-table :key (val id)
                                                    :payload (params->payload))))
                (footer)))))))
 
-(defpage cheque-stran-page actions/cheque-stran/update
-    (("actions/cheque-stran/" (kind "(receivable|payable)") "/update")
+(defpage cheque-stran-page actions/config/cheque-stran/update
+    (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/update")
      :request-type :post)
     ((id             integer chk-cheque-stran-id                      t)
      (title          string  (chk-cheque-stran-title/update title id))
      (from-state     string  chk-cheque-state)
      (to-state       string  chk-cheque-state)
-     (debit-account  string  chk-acc-title)
-     (credit-account string  chk-acc-title))
+     (temtx          string  chk-temtx-title))
   (with-controller-page (config/cheque-stran/update kind)
     (check-cheque-stran-parameters from-state to-state kind)
-    (let ((debit-acc-id (account-id (val debit-account)))
-          (credit-acc-id (account-id (val credit-account))))
+    (let ((temtx-id (temtx-id (val temtx))))
       (execute (:update 'cheque-stran :set
                         'title (val title)
                         'from-state (val from-state)
                         'to-state (val to-state)
-                        'debit-acc-id debit-acc-id
-                        'credit-acc-id credit-acc-id
+                        'temtx-id temtx-id
                         :where (:= 'id (val id)))))
     (see-other (config/cheque-stran kind :id (val id)))))
 
@@ -398,16 +377,16 @@
                      (cheque-stran-menu (val id)
                                         kind
                                         '(:create :delete))
-                     (with-form (actions/cheque-stran/delete kind
-                                                             :id (val id))
+                     (with-form (actions/config/cheque-stran/delete kind
+                                                                    :id (val id))
                        (display cheque-stran-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
                      (cheque-stran-filters kind))
                (footer)))))))
 
-(defpage cheque-stran-page actions/cheque-stran/delete
-    (("actions/cheque-stran/" (kind "(receivable|payable)") "/delete")
+(defpage cheque-stran-page actions/config/cheque-stran/delete
+    (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/delete")
      :request-type :post)
     ((id integer chk-cheque-stran-id t))
   (with-controller-page (config/cheque-stran/delete kind)

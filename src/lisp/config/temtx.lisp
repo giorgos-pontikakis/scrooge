@@ -64,10 +64,9 @@
         (t nil)))
 
 (defun chk-temtx-title (title)
-  (if (or (eql :null title)
-          (temtx-title-exists-p title))
-      nil
-      :temtx-title-unknown))
+  (cond ((eql :null title) :temtx-title-null)
+        ((not (temtx-title-exists-p title)) :temtx-title-unknown)
+        (t nil)))
 
 
 
@@ -172,7 +171,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (:div :id "temtx-window" :class "window grid_10"
+               (:div :id "temtx-window" :class "window grid_12"
                      (:div :class "title" (str title))
                      (temtx-menu (val id)
                                  (if (val id)
@@ -294,7 +293,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (:div :id "temtx-window" :class "window grid_10"
+               (:div :id "temtx-window" :class "window grid_12"
                      (:div :class "title" (str title))
                      (temtx-menu (val id)
                                  '(:create :delete))

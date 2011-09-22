@@ -236,6 +236,16 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defclass temtx ()
+  ((id            :col-type integer :reader   temtx-id)
+   (title         :col-type string  :accessor title         :initarg :title)
+   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
+  (:metaclass dao-class)
+  (:keys id))
+
+(define-surrogate-key-readers temtx ((title string)) temtx-id)
+
 
 
 ;;; ------------------------------------------------------------
