@@ -112,14 +112,12 @@
 ;;; CRUD actions menu
 ;;; ------------------------------------------------------------
 
-(defun crud-actions-spec (read create update delete)
-  `((:read   ,read   "Κατάλογος")
-    (:create ,create "Δημιουργία")
+(defun crud-actions-spec (create update delete)
+  `((:create ,create "Δημιουργία")
     (:update ,update "Επεξεργασία")
     (:delete ,delete "Διαγραφή")))
 
-(defun crud+details-actions-spec (read create details update delete)
-  `((:read    ,read    "Κατάλογος")
+(defun crud+details-actions-spec (create details update delete) `(
     (:create  ,create  "Δημιουργία")
     (:details ,details "Λεπτομέρειες")
     (:update  ,update  "Επεξεργασία")

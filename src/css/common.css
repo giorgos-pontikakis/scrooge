@@ -46,12 +46,12 @@ input:focus, textarea:focus {
 
 input[disabled], input[readonly] {
     color: #000000;
-    background-color: #EDEDED;
+    background-color: #DDDDDD;
 }
 
 textarea[disabled], textarea[readonly] {
     color: #000000;
-    background-color: #EDEDED;
+    background-color: #DDDDDD;
 }
 
 button, select {
@@ -145,7 +145,7 @@ select[disabled] {
 
 #container {
     height: 100%;
-    background-color: #cccccc;
+    background-color: #eeeeee;
 }
 
 #footer {
@@ -166,9 +166,10 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .window {
+    /* border: solid 5px #223344; */
     border-top: solid 1px orange;
-    background-color: #223344;
-    padding: 0px 5px 5px 5px;
+    background-color: #dddddd;
+    /* padding: 0px 5px 5px 5px; */
     border-radius: 0px 0px 4px 4px;
 }
 
@@ -218,7 +219,13 @@ select[disabled] {
     color: #ffffff;
 }
 
-#logout a:hover, #logout a.active {
+#logout a:hover, #logout a.active:hover {
+    border-radius: 3px;
+    color: #000000;
+    background-color: #bbccdd;
+}
+
+#logout a.active {
     border-radius: 3px;
     color: #000000;
     background-color: #bbccdd;
@@ -238,8 +245,8 @@ select[disabled] {
 
 .data-form fieldset {
     border: 1px solid #ccc;
-    padding: 10px 20px;
-    margin: 15px 0px;
+    padding: 10px 10px;
+    margin: 15px 10px;
 }
 
 .data-form legend {
@@ -264,8 +271,12 @@ select[disabled] {
     display: inline;
 }
 
-.data-form-first, .data-form-buttons {
+.data-form-first {
     margin: 20px 0px 0px 20px;
+}
+
+.data-form-buttons {
+    margin: 20px 0px 20px 20px;
 }
 
 .data-form-buttons a {
