@@ -149,6 +149,15 @@
                :css-class "hmenu actions"
                :disabled disabled))
 
+(defun company-navbar (search)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (:div :class "filters hnavbar"
+                (:ul (:li "foobar")
+                     (:li "bazquux")))
+          (:div :id "searchbox"
+                (searchbox (company) search "ac-company")))))
+
 
 
 ;;; ------------------------------------------------------------
@@ -306,18 +315,18 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (:div :id "company-window" :class "window grid_10"
-                     (:div :class "title" "Εταιρίες » Κατάλογος")
-                     (company-menu (val id)
-                                   filter
-                                   (if (val id)
-                                       '(:read :update)
-                                       '(:read :details :update :delete)))
-                     (display company-table
-                              :key (val id)
-                              :start (val start)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (company) (val search)))
+               (company-navbar (val search))
+               (:div :class "grid_12"
+                     (:div :id "company-window" :class "window"
+                           (:div :class "title"  "Εταιρίες » Κατάλογος")
+                           (company-menu (val id)
+                                         filter
+                                         (if (val id)
+                                             '(:read :update)
+                                             '(:read :details :update :delete)))
+                           (display company-table
+                                    :key (val id)
+                                    :start (val start))))
                (footer)))))))
 
 (defpage company-page company/details ("company/details")
@@ -341,6 +350,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
+               (company-navbar (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Λεπτομέρειες")
                      (company-menu (val id)
@@ -390,6 +400,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
+               (company-navbar (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Δημιουργία")
                      (company-menu nil
@@ -466,6 +477,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
+               (company-navbar (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Εταιρία » Επεξεργασία")
                      (company-menu (val id)
@@ -539,7 +551,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (:div :id "company-window" :class "window grid_10"
+               (company-navbar (val search))
+               (:div :id "company-window" :class "window grid_12"
                      (:div :class "title" "Διαγραφή εταιρίας")
                      (company-menu (val id)
                                    filter
@@ -548,8 +561,6 @@
                                                         :search (val search))
                        (display company-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (company) (val search)))
                (footer)))))))
 
 (defpage company-page actions/company/delete ("actions/company/delete"

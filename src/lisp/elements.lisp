@@ -131,11 +131,12 @@
 ;;; Searchbox
 ;;; ------------------------------------------------------------
 
-(defun searchbox (submit-url search)
+(defun searchbox (submit-url search &optional css-class)
   (form submit-url (html ()
-                     (:p :class "title" "Αναζήτηση")
                      (:p :class "search"
-                         (input-text 'search :value search)
+                         "Αναζήτηση: "
+                         (input-text 'search :value search
+                                             :css-class css-class)
                          (submit (html ()
                                    (img "magnifier.png")))))))
 

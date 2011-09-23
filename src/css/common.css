@@ -6,7 +6,7 @@ a, a:hover img {
 }
 
 body {
-    background-color: #f8f8f8;
+    background-color: #ffffff;
     color: #000000;
     line-height: 1;
     font-size: 13px;
@@ -145,7 +145,7 @@ select[disabled] {
 
 #container {
     height: 100%;
-    background-color: #ededed;
+    background-color: #cccccc;
 }
 
 #footer {
@@ -155,7 +155,7 @@ select[disabled] {
 }
 
 #header {
-    background-color: #104E8B;
+    background-color: #223344;
     color: #ffffff;
 }
 
@@ -166,7 +166,10 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    margin-top: 10px;
+    border-top: solid 1px orange;
+    background-color: #223344;
+    padding: 0px 5px 5px 5px;
+    border-radius: 0px 0px 4px 4px;
 }
 
 .window button {
@@ -175,7 +178,7 @@ select[disabled] {
 
 .title {
     font-weight: bold;
-    background-color: #104e8b;
+    background-color: #223344;
     color: white;
     line-height: 26px;
     padding-left: 10px;

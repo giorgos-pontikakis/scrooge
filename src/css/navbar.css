@@ -48,34 +48,6 @@
     display: block;
 }
 
-.section-navbar {
-    background-color: #5E2510;
-    margin-top: 10px;
-}
-
-.section-navbar ul li {
-    background-color: #5E2510;
-    border-right: 1px solid #aaa;
-}
-
-.section-navbar ul li a {
-    padding: 8px 10px;
-    color: white;
-    font-weight: bold;
-}
-
-.section-navbar ul li span {
-    padding: 8px 10px;
-    color: white;
-    font-weight: bold;
-    background-color: #843418;
-}
-
-.section-navbar ul li a:hover {
-    background-color: #843418;
-    color: white;
-}
-
 
 
 /* ---------------------------------------------------------------------- */

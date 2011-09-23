@@ -30,42 +30,94 @@
 
 
 /* ---------------------------------------------------------------------- */
+/* Section navbar */
+/* ---------------------------------------------------------------------- */
+
+.section-navbar {
+    /* background-color: #bbccdd; */
+    margin-top: 10px;
+}
+
+.section-navbar ul li {
+    background-color: #bbccdd;
+    border-right: 1px solid #888888;
+    border-left: 1px solid #ededed;
+    border-top: 1px solid #ededed;
+    border-radius: 4px 4px 0px 0px;
+    margin-right: 2px;
+}
+
+.section-navbar ul li a {
+    padding: 8px 10px;
+    color: #333333;
+    font-weight: bold;
+    border-radius: 4px 4px 0px 0px;
+}
+
+.section-navbar ul li span {
+    padding: 8px 10px;
+    color: white;
+    font-weight: bold;
+    background-color: #223344;
+    border-radius: 4px 4px 0px 0px;
+}
+
+
+.section-navbar ul li a:hover {
+    background-color: #223344;
+    color: #ffffff;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Section sub-navbar */
+/* ---------------------------------------------------------------------- */
+
+.section-subnavbar {
+    background-color: #223344;
+}
+
+.filters {
+    color: #ffffff;
+    float: left;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
 /* search */
 /* ---------------------------------------------------------------------- */
 
 #searchbox {
-    margin-bottom: 20px;
+    float: right;
+    color: #ffffff;
 }
 
 .search {
-    background-color: #bbccdd;
-    padding: 10px 0px;
+    /* background-color: #bbccdd; */
+    padding: 5px 0px;
+    line-height: 26px;
 }
 
 .search input {
+    width: 150px;
+    line-height: 23px;
+    margin: 0px;
     border: 1px solid #444444;
-    margin-bottom: 10px;
-    width: 100px;
-    border-radius: 7px 7px 7px 7px;
+    border-radius: 4px;
 }
 
 .search button {
-    width: 26px;
-    height: 26px;
-    vertical-align: top;
-    border-radius: 7px 7px 7px 7px;
+    width: 25px;
+    line-height: 19px;
+    vertical-align: baseline;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
 }
 
 .search button img {
-    vertical-align: top;
+    vertical-align: bottom;
     padding: 0px 0px 0px 0px;
-}
-
-
-/* ---------------------------------------------------------------------- */
-/* filters */
-/* ---------------------------------------------------------------------- */
-
-.filters {
-    margin-bottom: 20px;
 }
