@@ -5,7 +5,7 @@
 /* ---------------------------------------------------------------------- */
 
 .sidebar {
-    background-color: #dddddd;
+    background-color: #ddd;
     margin-top: 10px;
     margin-bottom: 30px;
 }
@@ -17,7 +17,7 @@
 /* ---------------------------------------------------------------------- */
 
 #notifications {
-    background-color: #FFFFDD;
+    background-color: #ffd;
     border: 1px solid red;
     margin: 10px 0 20px 0px;
 }
@@ -34,15 +34,15 @@
 /* ---------------------------------------------------------------------- */
 
 .section-navbar {
-    /* background-color: #bbccdd; */
+    /* background-color: #bcd; */
     margin-top: 10px;
 }
 
 .section-navbar ul li {
-    background-color: #bbccdd;
-    border-right: 1px solid #888888;
-    border-left: 1px solid #dddddd;
-    border-top: 1px solid #dddddd;
+    background-color: #bcd;
+    border-right: 1px solid #888;
+    border-left: 1px solid #ddd;
+    border-top: 1px solid #ddd;
     border-radius: 4px 4px 0px 0px;
     margin-right: 2px;
 }
@@ -58,13 +58,13 @@
     padding: 8px 10px;
     color: orange;
     font-weight: bold;
-    background-color: #223344;
+    background-color: #234;
     border-radius: 4px 4px 0px 0px;
 }
 
 
 .section-navbar ul li a:hover {
-    /* background-color: #556677; */
+    /* background-color: #567; */
     color: black;
 }
 
@@ -75,30 +75,55 @@
 /* ---------------------------------------------------------------------- */
 
 .section-subnavbar {
-    background-color: #223344;
+    background-color: #234;
 }
 
 .filters {
-    color: #ffffff;
+    color: #fff;
     float: left;
 }
 
 .filters ul {
-    line-height: 26px;
+    line-height: 23px;
+    margin: 10px;
 }
 
-.section-subnavbar a {
-    margin: 5px;
-    padding: 0px 5px;
+.filters a, .filters span {
+    margin-right: 10px;
+    padding: 0px 7px;
     text-decoration: none;
-    color: #ffffff;
-    background-color: #445566;
+    color: #ddd;
+    background-color: #456;
     border-radius: 3px;
 }
 
-.section-subnavbar a:hover {
+.filters a {
+    color: #ddd;
+    background-color: #456;
+}
+
+.filters a:hover, .filters span {
     color: #fff;
-    background-color: #667788;
+    background-color: #678;
+}
+
+.options {
+    float: left;
+    line-height: 23px;
+    margin: 10px;
+}
+
+.options a {
+    text-decoration: none;
+    color: #ddd;
+    background-color: #456;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.options a:hover {
+    color: #fff;
+    background-color: #678;
 }
 
 
@@ -109,20 +134,19 @@
 
 #searchbox {
     float: right;
-    color: #ffffff;
+    color: #fff;
 }
 
 .search {
-    /* background-color: #bbccdd; */
-    padding: 5px 0px;
-    line-height: 26px;
+    line-height: 23px;
+    margin: 10px;
 }
 
 .search input {
     width: 200px;
     line-height: 23px;
     margin: 0px;
-    border: 1px solid #444444;
+    border: 1px solid #444;
     border-radius: 4px;
 }
 

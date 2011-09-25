@@ -6,7 +6,7 @@
     clear: both;
     padding-top: 10px;
     line-height: 22px;
-    background-color: #dddddd;
+    background-color: #ddd;
 }
 
 .crud-tree a img {
@@ -27,11 +27,11 @@
 }
 
 .crud-tree li.selected, .crud-tree li.selected {
-    background-color: #FFFFDD;
+    background-color: #ffd;
 }
 
 .crud-tree li.selected ul, .crud-tree li.selected ul {
-    background-color: #dddddd;
+    background-color: #ddd;
 }
 
 
@@ -41,7 +41,7 @@
 /* ---------------------------------------------------------------------- */
 
 .crud-table {
-    background-color: #dddddd;
+    background-color: #ddd;
     padding: 10px;
     width: 100%;
     clear: both;
@@ -53,7 +53,7 @@
 }
 
 .crud-table tr.selected, .crud-table ul.selected {
-    background-color: #FFFFDD;
+    background-color: #ffd;
 }
 
 .crud-table td, .crud-table th  {
@@ -76,7 +76,7 @@
     padding: 15px 0px 5px 0px;
     text-align: right;
     font-size: 11px;
-    background-color: #dddddd
+    background-color: #ddd
 }
 
 .paginator img {

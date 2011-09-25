@@ -124,15 +124,16 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-menu (id filter &optional disabled)
-  (anchor-menu (crud+details-actions-spec (apply #'project :id id filter)
-                                          (apply #'project/create filter)
-                                          (apply #'project/details :id id filter)
-                                          (apply #'project/update :id id filter)
-                                          (apply #'project/delete :id id filter))
+(defun project-actions (id filter op)
+  (anchor-menu (actions-spec (apply #'project/create filter)
+                             (if id
+                                 (apply #'project/details :id id filter)
+                                 nil)
+                             (apply #'project/update :id id filter)
+                             (apply #'project/delete :id id filter))
                :id "project-actions"
                :css-class "hmenu actions"
-               :disabled disabled))
+               :disabled (actions-disabled op id)))
 
 (defun project-filters (cstate search)
   (let ((spec `((nil      ,(project :search search)                    "Όλα")
@@ -141,14 +142,20 @@
                 (finished ,(project :search search :cstate "finished") "Ολοκληρωμένα")
                 (archived ,(project :search search :cstate "archived") "Αρχειοθετημένα")
                 (canceled ,(project :search search :cstate "canceled") "Άκυρα"))))
-    (with-html
-      (:div :id "filters" :class "filters"
-            (:p :class "title" "Κατάσταση")
-            (navbar spec
-                    :id "project-filters"
-                    :css-class "vnavbar"
-                    :active cstate
-                    :test #'string-equal)))))
+    (filters-navbar spec cstate)))
+
+(defun project-subnavbar (op id cstate search)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (if (member op '(:catalogue :delete))
+              (project-filters cstate search)
+              (htm (:div :class "options"
+                         (:a :href (project :id id :cstate cstate :search search)
+                             "Κατάλογος"))))
+          (searchbox (project)
+                     search
+                     :hidden `(:cstate ,cstate)
+                     :css-class "ac-project"))))
 
 
 
@@ -161,7 +168,7 @@
 
 
 (defmethod display ((form project-form) &key styles)
-  (let* ((disabled (eql (op form) :read))
+  (let* ((disabled (eql (op form) :details))
          (record (record form))
          (lit (label-input-text disabled record styles)))
     (with-html
@@ -193,12 +200,9 @@
                   (:textarea :name 'notes :disabled disabled
                              (str (lisp->html (or (getf record :notes) :null)))))
             (:div :class "data-form-buttons"
-                  (if disabled
-                      (cancel-button (cancel-url form)
-                                     :body "Επιστροφή στον Κατάλογο Έργων")
-                      (progn
-                        (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                        (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+                  (unless disabled
+                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
 (defmethod get-record ((type (eql 'project)) id)
   (declare (ignore type))
@@ -278,7 +282,10 @@
   (let ((record (record row)))
     (list
      (html ()
-       (str (lisp->html (getf record :description))))
+       (:a :href (apply #'project/details
+                        :id (getf record :id)
+                        (filter (collection row)))
+           (str (lisp->html (getf record :description)))))
      (html ()
        (:a :href (company/details :id (getf record :company-id))
            (str (getf record :company))))
@@ -306,33 +313,32 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :catalogue)
+           (filter (params->filter))
            (project-table (make-instance 'project-table
-                                         :op :read
+                                         :op op
                                          :filter filter
                                          :start-index (val start))))
-      (with-document ()
-        (:head
-         (:title "Έργα » Κατάλογος")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'project)
-               (:div :id "project-window" :class "window grid_10"
-                     (:div :class "title" "Έργα » Κατάλογος")
-                     (project-menu (val id)
-                                   filter
-                                   (if (val id)
-                                       '(:read :update)
-                                       '(:read :details :update :delete)))
-                     (display project-table
-                              :key (val id)
-                              :start (val start)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (project :cstate (val cstate)) (val search))
-                     (project-filters (val cstate) (val search)))
-               (footer)))))))
+      (if (or (null (rows project-table))
+              (cdr (rows project-table)))
+          (with-document ()
+            (:head
+             (:title "Έργα » Κατάλογος")
+             (main-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (header)
+                   (main-navbar 'project)
+                   (project-subnavbar op (val id) (val cstate) (val search))
+                   (:div :id "project-window" :class "window grid_12"
+                         (:div :class "title" "Κατάλογος")
+                         (project-actions (val id) filter op)
+                         (display project-table
+                                  :key (val id)
+                                  :start (val start)))
+                   (footer))))
+          (redirect (apply #'project/details :id (key (first (rows project-table)))
+                           filter))))))
 
 (defpage project-page project/details ("project/details")
     ((search  string)
@@ -340,9 +346,10 @@
      (id      integer chk-project-id           t)
      (bill-id integer (chk-bill-id id bill-id)))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :details)
+           (filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :read
+                                        :op op
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
@@ -356,11 +363,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
+               (project-subnavbar op (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
-                     (:p :class "title" "Έργο » Λεπτομέρειες")
-                     (project-menu (val id)
-                                   filter
-                                   '(:details))
+                     (:p :class "title" "Λεπτομέρειες")
+                     (project-actions (val id) filter op)
                      (display project-form :payload (get-record 'project (val id))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
@@ -394,9 +400,10 @@
      (end-date    date   (chk-end-date end-date state))
      (notes       string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :create)
+           (filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :create
+                                        :op op
                                         :record nil
                                         :cancel-url (apply #'project filter))))
       (with-document ()
@@ -407,11 +414,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
+               (project-subnavbar op nil (val cstate) (val search))
                (:div :id "project-window" :class "window grid_12"
-                     (:div :class "title" "Έργο » Δημιουργία")
-                     (project-menu nil
-                                   filter
-                                   '(:details :create :update :delete))
+                     (:div :class "title" "Δημιουργία")
+                     (project-actions nil filter op)
                      (notifications)
                      (with-form (actions/project/create :search (val search) :cstate (val cstate))
                        (display project-form :payload (params->payload)
@@ -471,9 +477,10 @@
      (end-date    date    (chk-end-date end-date state))
      (notes       string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :update
+                                        :op op
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project/details :id (val id) filter)))
            (bill-table (make-instance 'bill-table
@@ -487,11 +494,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
+               (project-subnavbar op (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
-                     (:p :class "title" "Έργο » Επεξεργασία")
-                     (project-menu (val id)
-                                   filter
-                                   '(:create :update))
+                     (:p :class "title" "Επεξεργασία")
+                     (project-actions (val id) filter op)
                      (notifications)
                      (with-form (actions/project/update :id (val id) :search (val search))
                        (display project-form :payload (params->payload)
@@ -551,7 +557,8 @@
      (search string)
      (cstate string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :delete)
+           (filter (params->filter))
            (project-table (make-instance 'project-table
                                          :op :delete
                                          :filter filter)))
@@ -563,19 +570,15 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (:div :id "project-window" :class "window grid_10"
+               (project-subnavbar op (val id) (val cstate) (val search))
+               (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Έργο » Διαγραφή")
-                     (project-menu (val id)
-                                   filter
-                                   '(:read :delete))
+                     (project-actions (val id) filter op)
                      (with-form (actions/project/delete :id (val id)
                                                         :search (val search)
                                                         :cstate (val cstate))
                        (display project-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (project :cstate (val cstate)) (val search))
-                     (project-filters (val cstate) (val search)))
                (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/project/delete"

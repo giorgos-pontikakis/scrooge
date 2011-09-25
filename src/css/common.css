@@ -6,8 +6,8 @@ a, a:hover img {
 }
 
 body {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #fff;
+    color: #000;
     line-height: 1;
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
@@ -26,7 +26,7 @@ h3 {
 }
 
 input {
-    border: 1px solid #cccccc;
+    border: 1px solid #bbb;
     padding: 2px 5px;
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
@@ -35,23 +35,23 @@ input {
 textarea {
     font-family: "Liberation Mono", "Andale Mono", "Courier New", "monospace";
     font-size: 13px;
-    border: 1px solid grey;
+    border: 1px solid #bbb;
     padding: 3px 5px 3px 5px;
 }
 
 input:focus, textarea:focus {
     border: solid 1px #aaa;
-    background-color: #ffffff;
+    background-color: #fff;
 }
 
 input[disabled], input[readonly] {
-    color: #000000;
-    background-color: #DDDDDD;
+    color: #222;
+    background-color: #ddd;
 }
 
 textarea[disabled], textarea[readonly] {
-    color: #000000;
-    background-color: #DDDDDD;
+    color: #000;
+    background-color: #ddd;
 }
 
 button, select {
@@ -66,7 +66,7 @@ select option {
 }
 
 select[disabled] {
-    color: #000000;
+    color: #000;
 }
 
 
@@ -145,7 +145,7 @@ select[disabled] {
 
 #container {
     height: 100%;
-    background-color: #eeeeee;
+    background-color: #ddd;
 }
 
 #footer {
@@ -155,8 +155,8 @@ select[disabled] {
 }
 
 #header {
-    background-color: #223344;
-    color: #ffffff;
+    background-color: #234;
+    color: #fff;
 }
 
 
@@ -166,9 +166,9 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    /* border: solid 5px #223344; */
+    /* border: solid 5px #234; */
     border-top: solid 1px orange;
-    background-color: #dddddd;
+    background-color: #ddd;
     /* padding: 0px 5px 5px 5px; */
     border-radius: 0px 0px 4px 4px;
 }
@@ -179,7 +179,7 @@ select[disabled] {
 
 .title {
     font-weight: bold;
-    background-color: #223344;
+    background-color: #234;
     color: white;
     line-height: 26px;
     padding-left: 10px;
@@ -216,25 +216,25 @@ select[disabled] {
     margin: 0px 2px;
     padding: 5px;
     text-decoration: none;
-    color: #ffffff;
+    color: #fff;
 }
 
 #logout a:hover, #logout a.active:hover {
     border-radius: 3px;
-    color: #000000;
-    background-color: #bbccdd;
+    color: #000;
+    background-color: #bcd;
 }
 
 #logout a.active {
     border-radius: 3px;
-    color: #000000;
-    background-color: #bbccdd;
+    color: #000;
+    background-color: #bcd;
 }
 
 #logout span {
     margin: 0px 2px;
     padding: 5px;
-    color: #bbccdd;
+    color: #bcd;
 }
 
 
@@ -244,7 +244,7 @@ select[disabled] {
 /* ---------------------------------------------------------------------- */
 
 .data-form fieldset {
-    border: 1px solid #ccc;
+    border: 1px solid #bbb;
     padding: 10px 10px;
     margin: 15px 10px;
 }

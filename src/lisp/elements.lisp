@@ -109,34 +109,58 @@
 
 
 ;;; ------------------------------------------------------------
-;;; CRUD actions menu
+;;; Misc UI elements
 ;;; ------------------------------------------------------------
 
-(defun crud-actions-spec (create update delete)
+;;; actions menu
+
+(defun actions-spec (create details update delete)
   `((:create ,create "Δημιουργία")
+    (:details ,details "Λεπτομέρειες")
     (:update ,update "Επεξεργασία")
     (:delete ,delete "Διαγραφή")))
 
-(defun crud+details-actions-spec (create details update delete) `(
-    (:create  ,create  "Δημιουργία")
+(defun actions-disabled (op id)
+  (ecase op
+    (:catalogue (if id
+                    '(:update)
+                    '(:update :delete)))
+    (:details '(:create :details :delete))
+    (:create '(:create :update :delete))
+    (:update '(:create :update :delete))
+    (:delete '(:delete))))
+
+(defun crud+details-actions-spec (create details update delete)
+  `((:create  ,create  "Δημιουργία")
     (:details ,details "Λεπτομέρειες")
     (:update  ,update  "Επεξεργασία")
     (:delete  ,delete  "Διαγραφή")))
 
 
+;;; searchbox
 
-;;; ------------------------------------------------------------
-;;; Searchbox
-;;; ------------------------------------------------------------
+(defun searchbox (submit-url term &key hidden css-class)
+  (form submit-url
+        (html ()
+          (:div :id "searchbox"
+                (:p :class "search"
+                    "Αναζήτηση: "
+                    (input-text 'search :value term
+                                        :css-class css-class)
+                    (submit (html ()
+                              (img "magnifier.png"))))))
+        :hidden hidden))
 
-(defun searchbox (submit-url search &optional css-class)
-  (form submit-url (html ()
-                     (:p :class "search"
-                         "Αναζήτηση: "
-                         (input-text 'search :value search
-                                             :css-class css-class)
-                         (submit (html ()
-                                   (img "magnifier.png")))))))
+(defun filters-navbar (spec &optional active)
+  (with-html
+    (:div :id "filters" :class "filters"
+          (navbar spec
+                  :css-class "hnavbar"
+                  :active active
+                  :test #'string-equal))))
+
+
+;;; label-input-text for forms
 
 (defun label-input-text (disabled record styles)
   (html (name label &optional extra-styles)
@@ -144,5 +168,4 @@
     (input-text name
                 :value (getf record (make-keyword name))
                 :disabled disabled
-                :css-class (conc (getf styles (make-keyword name))
-                                 extra-styles))))
+                :css-class (conc (getf styles (make-keyword name)) " " extra-styles))))
