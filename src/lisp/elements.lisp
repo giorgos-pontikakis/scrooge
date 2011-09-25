@@ -114,21 +114,21 @@
 
 ;;; actions menu
 
-(defun actions-spec (create details update delete)
+(defun crud-actions-spec (create update delete)
   `((:create ,create "Δημιουργία")
-    (:details ,details "Λεπτομέρειες")
     (:update ,update "Επεξεργασία")
     (:delete ,delete "Διαγραφή")))
 
-(defun actions-disabled (op id)
-  (ecase op
-    (:catalogue (if id
-                    '(:update)
-                    '(:update :delete)))
-    (:details '(:create :details :delete))
-    (:create '(:create :update :delete))
-    (:update '(:create :update :delete))
-    (:delete '(:delete))))
+(defun crud-actions-enabled/disabled (op id)
+  (let ((enabled (ecase op
+                   (:catalogue (if id
+                                   '(:create :update :delete)
+                                   '(:create)))
+                   (:create '())
+                   (:update '())
+                   (:delete '()))))
+    (list enabled (set-difference '(:create :update :delete)
+                                  enabled))))
 
 (defun crud+details-actions-spec (create details update delete)
   `((:create  ,create  "Δημιουργία")
@@ -136,6 +136,27 @@
     (:update  ,update  "Επεξεργασία")
     (:delete  ,delete  "Διαγραφή")))
 
+(defun crud+details-actions-enabled/disabled (op id)
+  (let ((enabled (ecase op
+                   (:catalogue (if id
+                                   '(:create :details :delete)
+                                   '(:create)))
+                   (:details '(:update))
+                   (:create '())
+                   (:update '(:details))
+                   (:delete '()))))
+    (list enabled (set-difference '(:create :details :update :delete)
+                                  enabled))))
+
+(defun actions-menu (spec enabled/disabled)
+  (if (first enabled/disabled)
+      (anchor-menu spec
+                   :css-class "hmenu actions"
+                   :disabled (second enabled/disabled))
+      (with-html
+        (:div :class "hmenu actions"
+              (:ul
+               (:li :class "invisible" "No available action."))))))
 
 ;;; searchbox
 

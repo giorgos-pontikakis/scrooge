@@ -28,7 +28,7 @@
 
 
 ;;; ------------------------------------------------------------
-;;; City - Validation
+;;; Validation
 ;;; ------------------------------------------------------------
 
 (defun city-referenced-p (id)
@@ -75,19 +75,21 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun city-menu (id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'config/city :id id filter)
-                                  (apply #'config/city/create filter)
-                                  (apply #'config/city/update :id id filter)
-                                  (if (or (null id)
-                                          (city-referenced-p id))
-                                      nil
-                                      (apply #'config/city/delete :id id filter)))
-               :id "city-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun city-actions (op id filter)
+  (actions-menu (crud-actions-spec (apply #'config/city/create filter)
+                                   (apply #'config/city/update :id id filter)
+                                   (if (or (null id)
+                                           (city-referenced-p id))
+                                       nil
+                                       (apply #'config/city/delete :id id filter)))
+                (crud-actions-enabled/disabled op id)))
 
-
+(defun city-subnavbar (search)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (searchbox (config/city)
+                     search
+                     :css-class "ac-city"))))
 
 ;;; ------------------------------------------------------------
 ;;; City table
@@ -138,29 +140,26 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :catalogue)
+           (filter (params->filter))
            (city-table (make-instance 'city-table
-                                      :op :read
+                                      :op op
                                       :filter filter
                                       :start-index (val start))))
       (with-document ()
         (:head
-         (:title "Πόλεις")
+         (:title "Πόλεις » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (:div :id "city-window" :class "window grid_10"
-                     (:div :class "title" "Πόλεις » Κατάλογος")
-                     (city-menu (val id)
-                                filter
-                                (if (val id)
-                                    '(:read)
-                                    '(:read :update :delete)))
+               (city-subnavbar (val search))
+               (:div :id "city-window" :class "window grid_12"
+                     (:div :class "title" "Κατάλογος")
+                     (city-actions op (val id) filter)
+                     (notifications)
                      (display city-table :key (val id)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/city) (val search)))
                (footer)))))))
 
 
@@ -173,9 +172,10 @@
     ((title  string chk-city-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :create)
+           (filter (params->filter))
            (city-table (make-instance 'city-table
-                                      :op :create
+                                      :op op
                                       :filter filter)))
       (with-document ()
         (:head
@@ -185,17 +185,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (:div :id "city-window" :class "window grid_10"
-                     (:div :class "title" "Πόλη » Δημιουργία")
-                     (city-menu nil
-                                filter
-                                '(:create :update :delete))
+               (city-subnavbar (val search))
+               (:div :id "city-window" :class "window grid_12"
+                     (:div :class "title" "Δημιουργία")
+                     (city-actions op nil filter)
+                     (notifications)
                      (with-form (actions/config/city/create :search (val search))
                        (display city-table
                                 :payload (params->payload))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/city) (val search))
-                     (notifications))
                (footer)))))))
 
 (defpage city-page actions/config/city/create ("actions/config/city/create" :request-type :post)
@@ -204,7 +201,7 @@
   (with-controller-page (config/city/create)
     (let ((new-city (make-instance 'city :title (val title))))
       (insert-dao new-city)
-      (see-other (city :id (config/city-id new-city))))))
+      (see-other (config/city :id (city-id new-city))))))
 
 
 
@@ -217,9 +214,10 @@
      (title  string  (chk-city-title/update title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (city-table (make-instance 'city-table
-                                      :op :update
+                                      :op op
                                       :filter filter)))
       (with-document ()
         (:head
@@ -229,19 +227,15 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (:div :id "city-window" :class "window grid_10"
-                     (:div :class "title" "Πόλη » Επεξεργασία")
-                     (city-menu (val id)
-                                filter
-                                '(:create :update))
+               (city-subnavbar (val search))
+               (:div :id "city-window" :class "window grid_12"
+                     (:div :class "title" "Επεξεργασία")
+                     (city-actions op (val id) filter)
                      (with-form (actions/config/city/update :id (val id)
-                                                     :search (val search))
+                                                            :search (val search))
                        (display city-table
                                 :key (val id)
                                 :payload (params->payload))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/city) (val search))
-                     (notifications))
                (footer)))))))
 
 (defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
@@ -264,9 +258,10 @@
     ((id     integer chk-city-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :delete)
+           (filter (params->filter))
            (city-table (make-instance 'city-table
-                                      :op :delete
+                                      :op op
                                       :filter filter)))
       (with-document ()
         (:head
@@ -276,17 +271,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (:div :id "city-window" :class "window grid_10"
-                     (:div :class "title" "Πόλη » Διαγραφή")
-                     (city-menu (val id)
-                                filter
-                                '(:create :delete))
+               (city-subnavbar (val search))
+               (:div :id "city-window" :class "window grid_12"
+                     (:div :class "title" "Διαγραφή")
+                     (city-actions op (val id) filter)
                      (with-form (actions/config/city/delete :id (val id)
-                                                     :search (val search))
+                                                            :search (val search))
                        (display city-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/city) (val search)))
                (footer)))))))
 
 (defpage city-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)

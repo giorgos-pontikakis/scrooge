@@ -47,6 +47,10 @@
     clear: both;
 }
 
+.crud-table a {
+    color: #018;
+}
+
 .crud-table tr  {
     border-top: solid 1px #bbb;
     border-bottom: solid 1px #bbb;

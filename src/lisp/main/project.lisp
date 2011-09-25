@@ -124,25 +124,23 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-actions (id filter op)
-  (anchor-menu (actions-spec (apply #'project/create filter)
-                             (if id
-                                 (apply #'project/details :id id filter)
-                                 nil)
-                             (apply #'project/update :id id filter)
-                             (apply #'project/delete :id id filter))
-               :id "project-actions"
-               :css-class "hmenu actions"
-               :disabled (actions-disabled op id)))
+(defun project-actions (op id filter)
+  (actions-menu (crud+details-actions-spec (apply #'project/create filter)
+                                           (if id
+                                               (apply #'project/details :id id filter)
+                                               nil)
+                                           (apply #'project/update :id id filter)
+                                           (apply #'project/delete :id id filter))
+                (crud+details-actions-enabled/disabled op id)))
 
 (defun project-filters (cstate search)
-  (let ((spec `((nil      ,(project :search search)                    "Όλα")
-                (quoted   ,(project :search search :cstate "quoted")   "Προσφορές")
-                (ongoing  ,(project :search search :cstate "ongoing")  "Σε εξέλιξη")
-                (finished ,(project :search search :cstate "finished") "Ολοκληρωμένα")
-                (archived ,(project :search search :cstate "archived") "Αρχειοθετημένα")
-                (canceled ,(project :search search :cstate "canceled") "Άκυρα"))))
-    (filters-navbar spec cstate)))
+  (filters-navbar `((nil      ,(project :search search)                    "Όλα")
+                    (quoted   ,(project :search search :cstate "quoted")   "Προσφορές")
+                    (ongoing  ,(project :search search :cstate "ongoing")  "Σε εξέλιξη")
+                    (finished ,(project :search search :cstate "finished") "Ολοκληρωμένα")
+                    (archived ,(project :search search :cstate "archived") "Αρχειοθετημένα")
+                    (canceled ,(project :search search :cstate "canceled") "Άκυρα"))
+                  cstate))
 
 (defun project-subnavbar (op id cstate search)
   (with-html
@@ -283,7 +281,7 @@
     (list
      (html ()
        (:a :href (apply #'project/details
-                        :id (getf record :id)
+                        :id (key row)
                         (filter (collection row)))
            (str (lisp->html (getf record :description)))))
      (html ()
@@ -332,7 +330,7 @@
                    (project-subnavbar op (val id) (val cstate) (val search))
                    (:div :id "project-window" :class "window grid_12"
                          (:div :class "title" "Κατάλογος")
-                         (project-actions (val id) filter op)
+                         (project-actions op (val id) filter)
                          (display project-table
                                   :key (val id)
                                   :start (val start)))
@@ -366,7 +364,7 @@
                (project-subnavbar op (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Λεπτομέρειες")
-                     (project-actions (val id) filter op)
+                     (project-actions op (val id) filter)
                      (display project-form :payload (get-record 'project (val id))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
@@ -417,7 +415,7 @@
                (project-subnavbar op nil (val cstate) (val search))
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
-                     (project-actions nil filter op)
+                     (project-actions op nil filter)
                      (notifications)
                      (with-form (actions/project/create :search (val search) :cstate (val cstate))
                        (display project-form :payload (params->payload)
@@ -497,7 +495,7 @@
                (project-subnavbar op (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Επεξεργασία")
-                     (project-actions (val id) filter op)
+                     (project-actions op (val id) filter)
                      (notifications)
                      (with-form (actions/project/update :id (val id) :search (val search))
                        (display project-form :payload (params->payload)
@@ -573,7 +571,7 @@
                (project-subnavbar op (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Έργο » Διαγραφή")
-                     (project-actions (val id) filter op)
+                     (project-actions op (val id) filter)
                      (with-form (actions/project/delete :id (val id)
                                                         :search (val search)
                                                         :cstate (val cstate))

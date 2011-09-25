@@ -75,18 +75,22 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun tof-menu (id filter &optional disabled)
+(defun tof-actions (op id filter)
   (with-html
-    (anchor-menu (crud-actions-spec (apply #'config/tof :id id filter)
-                                    (apply #'config/tof/create filter)
-                                    (apply #'config/tof/update :id id filter)
-                                    (if (or (null id)
-                                            (tof-referenced-p id))
-                                        nil
-                                        (apply #'config/tof/delete :id id filter)))
-                 :id "tof-actions"
-                 :css-class "hmenu actions"
-                 :disabled disabled)))
+    (actions-menu (crud-actions-spec (apply #'config/tof/create filter)
+                                     (apply #'config/tof/update :id id filter)
+                                     (if (or (null id)
+                                             (tof-referenced-p id))
+                                         nil
+                                         (apply #'config/tof/delete :id id filter)))
+                  (crud-actions-enabled/disabled op id))))
+
+(defun tof-subnavbar (search)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (searchbox (config/tof)
+                     search
+                     :css-class "ac-tof"))))
 
 
 
@@ -139,29 +143,25 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :catalogue)
+           (filter (params->filter))
            (tof-table (make-instance 'tof-table
-                                     :op :read
+                                     :op op
                                      :filter filter
                                      :start-index (val start))))
       (with-document ()
         (:head
-         (:title "Δ.Ο.Υ.")
+         (:title "Δ.Ο.Υ. » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (:div :id "tof-window" :class "window grid_10"
-                     (:div :class "title" "Δ.Ο.Υ. » Κατάλογος")
-                     (tof-menu (val id)
-                               filter
-                               (if (val id)
-                                   '(:read)
-                                   '(:read :update :delete)))
+               (tof-subnavbar (val search))
+               (:div :id "tof-window" :class "window grid_12"
+                     (:div :class "title" "Κατάλογος")
+                     (tof-actions op (val id) filter)
                      (display tof-table :key (val id)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/tof) (val search)))
                (footer)))))))
 
 
@@ -174,9 +174,10 @@
     ((title  string chk-tof-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :create)
+           (filter (params->filter))
            (tof-table (make-instance 'tof-table
-                                     :op :create
+                                     :op op
                                      :filter filter)))
       (with-document ()
         (:head
@@ -186,18 +187,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (:div :id "tof-window" :class "window grid_10"
-                     (:div :class "title" "Δ.Ο.Υ. » Δημιουργία")
-                     (tof-menu nil
-                               filter
-                               '(:create :update :delete))
+               (tof-subnavbar (val search))
+               (:div :id "tof-window" :class "window grid_12"
+                     (:div :class "title" "Δημιουργία")
+                     (tof-actions op nil filter)
                      (with-form (actions/config/tof/create :search (val search))
                        (display tof-table
                                 :key nil
                                 :payload (params->payload))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/tof) (val search))
-                     (notifications))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
@@ -219,9 +216,10 @@
      (title  string  (chk-tof-title/update title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (tof-table (make-instance 'tof-table
-                                     :op :update
+                                     :op op
                                      :filter filter)))
       (with-document ()
         (:head
@@ -231,19 +229,15 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (:div :id "tof-window" :class "window grid_10"
-                     (:div :class "title" "Δ.Ο.Υ. » Επεξεργασία")
-                     (tof-menu (val id)
-                               filter
-                               '(:create :update))
+               (tof-subnavbar (val search))
+               (:div :id "tof-window" :class "window grid_12"
+                     (:div :class "title" "Επεξεργασία")
+                     (tof-actions op (val id) filter)
                      (with-form (actions/config/tof/update :id (val id)
-                                                    :filter (val search))
+                                                           :filter (val search))
                        (display tof-table
                                 :key (val id)
                                 :payload (params->payload))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/tof) (val search))
-                     (notifications))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
@@ -266,9 +260,10 @@
     ((id     integer chk-tof-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :delete)
+           (filter (params->filter))
            (tof-table (make-instance 'tof-table
-                                     :op :delete
+                                     :op op
                                      :filter filter)))
       (with-document ()
         (:head
@@ -278,17 +273,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (:div :id "tof-window" :class "window grid_10"
-                     (:div :class "title" "Δ.Ο.Υ. » Διαγραφή")
-                     (tof-menu (val id)
-                               filter
-                               '(:create :delete))
+               (tof-subnavbar (val search))
+               (:div :id "tof-window" :class "window grid_12"
+                     (:div :class "title" "Διαγραφή")
+                     (tof-actions op (val id) filter)
                      (with-form (actions/config/tof/delete :id (val id)
                                                     :search (val search))
                        (display tof-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/tof) (val search)))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)

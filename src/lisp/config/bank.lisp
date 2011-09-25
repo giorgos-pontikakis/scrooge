@@ -75,17 +75,21 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun bank-menu (id filter &optional disabled)
-  (anchor-menu (crud-actions-spec (apply #'config/bank :id id filter)
-                                  (apply #'config/bank/create filter)
-                                  (apply #'config/bank/update :id id filter)
-                                  (if (or (null id)
-                                          (bank-referenced-p id))
-                                      nil
-                                      (apply #'config/bank/delete :id id filter)))
-               :id "bank-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun bank-actions (op id filter)
+  (actions-menu (crud-actions-spec (apply #'config/bank/create filter)
+                                   (apply #'config/bank/update :id id filter)
+                                   (if (or (null id)
+                                           (bank-referenced-p id))
+                                       nil
+                                       (apply #'config/bank/delete :id id filter)))
+                (crud-actions-enabled/disabled op id)))
+
+(defun bank-subnavbar (search)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (searchbox (config/bank)
+                     search
+                     :css-class "ac-bank"))))
 
 
 
@@ -138,30 +142,26 @@
      (search string)
      (start  integer))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :catalogue)
+           (filter (params->filter))
            (bank-table (make-instance 'bank-table
-                                      :op :read
+                                      :op op
                                       :filter filter
                                       :start-index (val start))))
       (with-document ()
         (:head
-         (:title "Τράπεζες")
+         (:title "Τράπεζες » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (:div :id "bank-window" :class "window grid_10"
-                     (:div :class "title" "Τράπεζες » Κατάλογος")
-                     (bank-menu (val id)
-                                filter
-                                (if (val id)
-                                    '(:read)
-                                    '(:read :update :delete)))
+               (bank-subnavbar (val search))
+               (:div :id "bank-window" :class "window grid_12"
+                     (:div :class "title" "Κατάλογος")
+                     (bank-actions op (val id) filter)
                      (display bank-table
                               :key (val id)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/bank) (val search)))
                (footer)))))))
 
 
@@ -174,9 +174,10 @@
     ((title  string chk-bank-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :create)
+           (filter (params->filter))
            (bank-table (make-instance 'bank-table
-                                      :op :create
+                                      :op op
                                       :filter filter)))
       (with-document ()
         (:head
@@ -186,18 +187,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (:div :id "bank-window" :class "window grid_10"
-                     (:div :class "title" "Τράπεζα » Δημιουργία")
-                     (bank-menu nil
-                                filter
-                                '(:create :update :delete))
+               (bank-subnavbar (val search))
+               (:div :id "bank-window" :class "window grid_12"
+                     (:div :class "title" "Δημιουργία")
+                     (bank-actions op nil filter)
                      (with-form (actions/config/bank/create :search (val search))
                        (display bank-table
                                 :key nil
                                 :payload (params->payload))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/bank) (val search))
-                     (notifications))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
@@ -219,9 +216,10 @@
      (title  string  (chk-bank-title/update title id))
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (bank-table (make-instance 'bank-table
-                                      :op :update
+                                      :op op
                                       :filter filter)))
       (with-document ()
         (:head
@@ -231,19 +229,15 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (:div :id "bank-window" :class "window grid_10"
-                     (:div :class "title" "Τράπεζα » Επεξεργασία")
-                     (bank-menu (val id)
-                                filter
-                                '(:create :update))
+               (bank-subnavbar (val search))
+               (:div :id "bank-window" :class "window grid_12"
+                     (:div :class "title" "Επεξεργασία")
+                     (bank-actions op (val id) filter)
                      (with-form (actions/config/bank/update :id (val id)
-                                                     :search (val search))
+                                                            :search (val search))
                        (display bank-table
                                 :key (val id)
                                 :payload (params->payload))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/bank) (val search))
-                     (notifications))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
@@ -266,9 +260,10 @@
     ((id     integer chk-bank-id/ref t)
      (search string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :delete)
+           (filter (params->filter))
            (bank-table (make-instance 'bank-table
-                                      :op :delete
+                                      :op op
                                       :filter filter)))
       (with-document ()
         (:head
@@ -278,17 +273,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (:div :id "bank-window" :class "window grid_10"
-                     (:div :class "title" "Τράπεζα » Διαγραφή")
-                     (bank-menu (val id)
-                                filter
-                                '(:create :delete))
+               (bank-subnavbar (val search))
+               (:div :id "bank-window" :class "window grid_12"
+                     (:div :class "title" "Διαγραφή")
+                     (bank-actions op (val id) filter)
                      (with-form (actions/config/bank/delete :id (val id)
-                                                     :search (val search))
+                                                            :search (val search))
                        (display bank-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (config/bank) (val search)))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)

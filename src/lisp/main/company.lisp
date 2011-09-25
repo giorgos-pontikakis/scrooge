@@ -138,21 +138,18 @@
 ;;; ------------------------------------------------------------
 
 (defun company-actions (id filter op)
-  (anchor-menu (actions-spec (apply #'company/create filter)
-                             (if id
-                                 (apply #'company/details :id id filter)
-                                 nil)
-                             (apply #'company/update :id id filter)
-                             (if (chk-company-id/ref id)
-                                 nil
-                                 (apply #'company/delete :id id filter)))
-               :id "company-actions"
-               :css-class "hmenu actions"
-               :disabled (actions-disabled op id)))
+  (actions-menu (crud+details-actions-spec (apply #'company/create filter)
+                                           (if id
+                                               (apply #'company/details :id id filter)
+                                               nil)
+                                           (apply #'company/update :id id filter)
+                                           (if (chk-company-id/ref id)
+                                               nil
+                                               (apply #'company/delete :id id filter)))
+                (crud+details-actions-enabled/disabled op id)))
 
 (defun company-filters (id search)
-  (let ((spec `((nil ,(company :id id :search search) "Όλες"))))
-    (filters-navbar spec)))
+  (filters-navbar `((nil ,(company :id id :search search) "Όλες"))))
 
 (defun company-subnavbar (op id search)
   (with-html
@@ -281,12 +278,18 @@
 
 (defmethod payload ((row company-row) enabled-p)
   (let ((record (record row)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled (not enabled-p)))
-            '(title tin tof))))
+    (list*
+     (html ()
+       (:a :href (apply #'company/details
+                        :id (key row)
+                        (filter (collection row)))
+           (str (lisp->html (getf record :title)))))
+     (mapcar (lambda (name)
+               (make-instance 'textbox
+                              :name name
+                              :value (getf record (make-keyword name))
+                              :disabled (not enabled-p)))
+             '(tin tof)))))
 
 ;;; paginator
 
@@ -404,7 +407,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op nil filter)
+               (company-subnavbar op nil (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Δημιουργία")
                      (company-actions nil filter op)
