@@ -109,14 +109,11 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-stran-menu (id &optional disabled)
-  (anchor-menu (crud-actions-spec (config/project-stran :id id)
-                                  (config/project-stran/create)
-                                  (config/project-stran/update :id id)
-                                  (config/project-stran/delete :id id))
-               :id "project-stran-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun project-stran-actions (op id)
+  (actions-menu (crud-actions-spec (config/project-stran/create)
+                                   (config/project-stran/update :id id)
+                                   (config/project-stran/delete :id id))
+                (crud-actions-enabled/disabled op id)))
 
 
 
@@ -199,24 +196,21 @@
     ((start integer)
      (id    integer chk-project-stran-id))
   (with-view-page
-    (let ((title "Μεταπτώσεις Έργων » Κατάλογος")
-          (project-stran-table (make-instance 'project-stran-table
-                                              :op :read
-                                              :id "project-stran-table")))
+    (let* ((op :catalogue)
+           (project-stran-table (make-instance 'project-stran-table
+                                               :op op
+                                               :id "project-stran-table")))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Μεταπτώσεις Έργων » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'project-stran)
                (:div :id "project-stran-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (project-stran-menu (val id)
-                                         (if (val id)
-                                             '(:read)
-                                             '(:read :update :delete)))
+                     (:div :class "title" "Κατάλογος")
+                     (project-stran-actions op (val id))
                      (display project-stran-table
                               :key (val id)))
                (footer)))))))
@@ -235,7 +229,8 @@
      (temtx      string chk-temtx-title))
   (with-view-page
     (check-project-stran-parameters from-state to-state)
-    (let ((project-stran-table (make-instance 'project-stran-table :op :create)))
+    (let* ((op :create)
+           (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Έργων » Δημιουργία")
@@ -245,9 +240,8 @@
                (header 'config)
                (config-navbar 'project)
                (:div :class "window grid_12"
-                     (:div :class "title" "Μεταπτώσεις Έργων » Δημιουργία")
-                     (project-stran-menu nil
-                                         '(:create :update :delete))
+                     (:div :class "title" "Δημιουργία")
+                     (project-stran-actions op nil)
                      (notifications)
                      (with-form (actions/config/project-stran/create)
                        (display project-stran-table :payload (params->payload))))))))))
@@ -284,20 +278,19 @@
      (temtx          string  chk-temtx-title))
   (with-view-page
     (check-project-stran-parameters from-state to-state)
-    (let ((title "Μεταπτώσεις Έργων » Επεξεργασία")
-          (project-stran-table (make-instance 'project-stran-table :op :update)))
+    (let* ((op :update)
+           (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Μεταπτώσεις Έργων » Επεξεργασία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'project-stran)
                (:div :id "project-stran-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (project-stran-menu (val id)
-                                         '(:create :update))
+                     (:div :class "title" "Επεξεργασία")
+                     (project-stran-actions op (val id))
                      (notifications)
                      (with-form (actions/config/project-stran/update :id (val id))
                        (display project-stran-table :key (val id)
@@ -332,7 +325,8 @@
     ("config/project-stran/delete")
     ((id integer chk-project-stran-id t))
   (with-view-page
-    (let ((project-stran-table (make-instance 'project-stran-table :op :delete)))
+    (let* ((op :delete)
+           (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Έργων » Διαγραφή")
@@ -343,8 +337,7 @@
                (config-navbar 'project-stran)
                (:div :id "project-stran-window" :class "window grid_10"
                      (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
-                     (project-stran-menu (val id)
-                                         '(:create :delete))
+                     (project-stran-actions op (val id))
                      (with-form (actions/config/project-stran/delete :id (val id))
                        (display project-stran-table
                                 :key (val id))))

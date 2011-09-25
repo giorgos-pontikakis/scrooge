@@ -74,14 +74,11 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun temtx-menu (id &optional disabled)
-  (anchor-menu (crud-actions-spec (config/temtx :id id)
-                                  (config/temtx/create)
-                                  (config/temtx/update :id id)
-                                  (config/temtx/delete :id id))
-               :id "temtx-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun temtx-actions (op id)
+  (actions-menu (crud-actions-spec (config/temtx/create)
+                                   (config/temtx/update :id id)
+                                   (config/temtx/delete :id id))
+                (crud-actions-enabled/disabled op id)))
 
 
 
@@ -159,24 +156,21 @@
     ((start integer)
      (id    integer chk-temtx-id))
   (with-view-page
-    (let ((title "Πρότυπες Συναλλαγές » Κατάλογος")
-          (temtx-table (make-instance 'temtx-table
-                                      :op :read
-                                      :id "temtx-table")))
+    (let* ((op :catalogue)
+           (temtx-table (make-instance 'temtx-table
+                                       :op op
+                                       :id "temtx-table")))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Πρότυπες Συναλλαγές » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
                (:div :id "temtx-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (temtx-menu (val id)
-                                 (if (val id)
-                                     '(:read)
-                                     '(:read :update :delete)))
+                     (:div :class "title" "Κατάλογος")
+                     (temtx-actions op (val id))
                      (display temtx-table
                               :key (val id)))
                (footer)))))))
@@ -192,21 +186,20 @@
      (debit-account  string chk-acc-title)
      (credit-account string chk-acc-title))
   (with-view-page
-    (let ((title "Πρότυπες Συναλλαγές » Δημιουργία")
+    (let ((op :create)
           (temtx-table (make-instance 'temtx-table
                                       :op :create)))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Πρότυπες Συναλλαγές » Δημιουργία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
                (:div :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (temtx-menu nil
-                                 '(:create :update :delete))
+                     (:div :class "title" "Δημιουργία")
+                     (temtx-actions op nil)
                      (notifications)
                      (with-form (actions/config/temtx/create)
                        (display temtx-table :payload (params->payload))))))))))
@@ -237,21 +230,20 @@
      (debit-account  string chk-acc-title)
      (credit-account string chk-acc-title))
   (with-view-page
-    (let ((title "Πρότυπες Συναλλαγές » Επεξεργασία")
-          (temtx-table (make-instance 'temtx-table
-                                      :op :update)))
+    (let* ((op :update)
+           (temtx-table (make-instance 'temtx-table
+                                       :op op)))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Πρότυπες Συναλλαγές » Επεξεργασία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
                (:div :id "temtx-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (temtx-menu (val id)
-                                 '(:create :update))
+                     (:div :class "title" "Επεξεργασία")
+                     (temtx-actions op (val id))
                      (notifications)
                      (with-form (actions/config/temtx/update :id (val id))
                        (display temtx-table :key (val id)
@@ -282,21 +274,20 @@
 (defpage temtx-page config/temtx/delete ("config/temtx/delete")
     ((id integer chk-temtx-id t))
   (with-view-page
-    (let ((title "Πρότυπες Συναλλαγές » Διαγραφή")
-          (temtx-table (make-instance 'temtx-table
-                                      :op :delete)))
+    (let* ((op :delete)
+           (temtx-table (make-instance 'temtx-table
+                                       :op :delete)))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Πρότυπες Συναλλαγές » Διαγραφή")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
                (:div :id "temtx-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (temtx-menu (val id)
-                                 '(:create :delete))
+                     (:div :class "title" "Διαγραφή")
+                     (temtx-actions op (val id))
                      (with-form (actions/config/temtx/delete :id (val id))
                        (display temtx-table :key (val id))))
                (footer)))))))

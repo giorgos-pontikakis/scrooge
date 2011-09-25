@@ -110,26 +110,21 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun cheque-stran-menu (id kind &optional disabled)
-  (anchor-menu (crud-actions-spec (config/cheque-stran kind :id id)
-                                  (config/cheque-stran/create kind)
-                                  (config/cheque-stran/update kind :id id)
-                                  (config/cheque-stran/delete kind :id id))
-               :id "cheque-stran-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun cheque-stran-actions (op kind id)
+  (actions-menu (crud-actions-spec (config/cheque-stran/create kind)
+                                   (config/cheque-stran/update kind :id id)
+                                   (config/cheque-stran/delete kind :id id))
+                (crud-actions-enabled/disabled op id)))
 
 (defun cheque-stran-filters (kind)
-  (let ((spec `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
-                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))))
-    (with-html
-      (:div :id "filters" :class "filters"
-            (:p :class "title" "Είδος επιταγής")
-            (navbar spec
-                    :id "cheque-stran-filters"
-                    :css-class "vnavbar"
-                    :active (intern (string-upcase kind))
-                    :test #'string-equal)))))
+  (filters-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
+                    (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
+                  (intern (string-upcase kind))))
+
+(defun cheque-stran-subnavbar (kind)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (cheque-stran-filters kind))))
 
 
 
@@ -218,26 +213,23 @@
     ((start integer)
      (id    integer chk-cheque-stran-id))
   (with-view-page
-    (let ((title "Μεταπτώσεις Επιταγών » Κατάλογος")
+    (let ((op :catalogue)
           (cheque-stran-table (make-instance 'cheque-stran-table
-                                             :op :read
+                                             :op :catalogue
                                              :id "cheque-stran-table"
                                              :kind kind)))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Μεταπτώσεις Επιταγών » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
+               (cheque-stran-subnavbar kind)
                (:div :id "cheque-stran-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (cheque-stran-menu (val id)
-                                        kind
-                                        (if (val id)
-                                            '(:read)
-                                            '(:read :update :delete)))
+                     (:div :class "title" "Κατάλογος")
+                     (cheque-stran-actions op kind (val id))
                      (display cheque-stran-table
                               :key (val id)))
                (footer)))))))
@@ -256,9 +248,10 @@
      (temtx      string chk-temtx-title))
   (with-view-page
     (check-cheque-stran-parameters from-state to-state kind)
-    (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :kind kind
-                                             :op :create)))
+    (let* ((op :create)
+           (cheque-stran-table (make-instance 'cheque-stran-table
+                                              :kind kind
+                                              :op op)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Επιταγών » Δημιουργία")
@@ -267,11 +260,10 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque)
+               (cheque-stran-subnavbar kind)
                (:div :class "window grid_12"
-                     (:div :class "title" "Μεταπτώσεις Επιταγών » Δημιουργία")
-                     (cheque-stran-menu nil
-                                        kind
-                                        '(:create :update :delete))
+                     (:div :class "title" "Δημιουργία")
+                     (cheque-stran-actions op kind nil)
                      (notifications)
                      (with-form (actions/config/cheque-stran/create kind)
                        (display cheque-stran-table :payload (params->payload))))))))))
@@ -309,23 +301,22 @@
      (temtx          string  chk-temtx-title))
   (with-view-page
     (check-cheque-stran-parameters from-state to-state kind)
-    (let ((title "Μεταπτώσεις Επιταγών » Επεξεργασία")
-          (cheque-stran-table (make-instance 'cheque-stran-table
-                                             :kind kind
-                                             :op :update)))
+    (let* ((op :update)
+           (cheque-stran-table (make-instance 'cheque-stran-table
+                                              :kind kind
+                                              :op op)))
       (with-document ()
         (:head
-         (:title (str title))
+         (:title "Μεταπτώσεις Επιταγών » Επεξεργασία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
+               (cheque-stran-subnavbar kind)
                (:div :id "cheque-stran-window" :class "window grid_12"
-                     (:div :class "title" (str title))
-                     (cheque-stran-menu (val id)
-                                        kind
-                                        '(:create :update))
+                     (:div :class "title" "Επεξεργασία")
+                     (cheque-stran-actions op kind (val id))
                      (notifications)
                      (with-form (actions/config/cheque-stran/update kind :id (val id))
                        (display cheque-stran-table :key (val id)
@@ -361,9 +352,10 @@
     (("config/cheque-stran/" (kind "(receivable|payable)") "/delete"))
     ((id integer chk-cheque-stran-id t))
   (with-view-page
-    (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :kind kind
-                                             :op :delete)))
+    (let* ((op :delete)
+           (cheque-stran-table (make-instance 'cheque-stran-table
+                                              :kind kind
+                                              :op op)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Επιταγών » Διαγραφή")
@@ -372,17 +364,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (:div :id "cheque-stran-window" :class "window grid_10"
-                     (:div :class "title" "Μεταπτώσεις Επιταγών » Διαγραφή")
-                     (cheque-stran-menu (val id)
-                                        kind
-                                        '(:create :delete))
+               (cheque-stran-subnavbar kind)
+               (:div :id "cheque-stran-window" :class "window grid_12"
+                     (:div :class "title" "Διαγραφή")
+                     (cheque-stran-actions op kind (val id))
                      (with-form (actions/config/cheque-stran/delete kind
                                                                     :id (val id))
                        (display cheque-stran-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (cheque-stran-filters kind))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/delete

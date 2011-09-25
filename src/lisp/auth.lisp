@@ -35,10 +35,10 @@
      (:title "Είσοδος"))
     (:body
      (:div :id "container" :class "container_12"
-           (:div :class "window grid_4 prefix_3"
+           (:div :class "grid_4 prefix_3"
                  (:div :id "header"
-                       (logo)
-                       (:div :class "clear" ""))
+                             (logo)
+                             (:div :class "clear" ""))
                  (when (and (suppliedp user) (not (null user)))
                    (htm (:div :id "login-error"
                               (:p :class "attention"
