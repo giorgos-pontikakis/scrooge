@@ -44,8 +44,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defun account-role-menu (id &optional disabled)
-  (anchor-menu `((:read   ,(config/account-role :id id)        "Προβολή")
-                 (:update ,(config/account-role/update :id id) "Επεξεργασία"))
+  (anchor-menu `((:catalogue ,(config/account-role :id id)        "Προβολή")
+                 (:update    ,(config/account-role/update :id id) "Επεξεργασία"))
                :id "option-actions"
                :css-class "hmenu actions"
                :disabled disabled))
@@ -109,7 +109,7 @@
     ((id      string chk-acc-role-id)
      (account string chk-acc-title))
   (with-view-page
-    (let ((account-role-table (make-instance 'account-role-table :op :read)))
+    (let ((account-role-table (make-instance 'account-role-table :op :catalogue)))
       (with-document ()
         (:head
          (:title "Ρυθμίσεις")
@@ -120,7 +120,7 @@
                (config-navbar 'account-role)
                (:div :id "bank-window" :class "window grid_12"
                      (:div :class "title" "Ρυθμίσεις » Γενικά")
-                     (account-role-menu (val id) '(:read))
+                     (account-role-menu (val id) '(:catalogue))
                      (display account-role-table :key (val id)))
                (footer)))))))
 

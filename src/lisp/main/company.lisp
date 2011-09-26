@@ -137,7 +137,7 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-actions (id filter op)
+(defun company-actions (op id filter)
   (actions-menu (crud+details-actions-spec (apply #'company/create filter)
                                            (if id
                                                (apply #'company/details :id id filter)
@@ -328,7 +328,7 @@
                    (company-subnavbar op (val id) (val search))
                    (:div :id "company-window" :class "window grid_12"
                          (:div :class "title"  "Κατάλογος")
-                         (company-actions (val id) filter op)
+                         (company-actions op (val id) filter)
                          (display company-table
                                   :key (val id)
                                   :start (val start)))
@@ -341,14 +341,13 @@
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id)))
   (with-view-page
-    (let* ((op :details)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op op
+                                        :op :details
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
-                                         :op :read
+                                         :op :catalogue
                                          :company-id (val id))))
       (with-document ()
         (:head
@@ -358,19 +357,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op (val id) (val search))
+               (company-subnavbar :details (val id) (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
-                     (company-actions (val id) filter op)
+                     (company-actions :details (val id) filter)
                      (display company-form))
                (:div :id "contact-window" :class "window grid_6"
                      (:div :class "title" "Επαφές")
-                     (contact-menu (val id)
-                                   (val contact-id)
-                                   filter
-                                   (if (val contact-id)
-                                       '(:read)
-                                       '(:read :update :delete :rank-up :rank-down)))
+                     (contact-actions :catalogue (val id) (val contact-id) filter)
                      (display contact-table
                               :key (val contact-id)))
                (footer)))))))
@@ -410,7 +404,7 @@
                (company-subnavbar op nil (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Δημιουργία")
-                     (company-actions nil filter op)
+                     (company-actions op nil filter)
                      (notifications)
                      (with-form (actions/company/create :search (val search))
                        (display company-form :payload (params->payload)
@@ -466,14 +460,13 @@
      (zipcode    integer chk-zipcode)
      (notes      string))
   (with-view-page
-    (let* ((op :update)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op op
+                                        :op :update
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company/details :id (val id) filter)))
            (contact-table (make-instance 'contact-table
-                                         :op :read
+                                         :op :catalogue
                                          :company-id (val id))))
       (with-document ()
         (:head
@@ -483,22 +476,17 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op (val id) (val search))
+               (company-subnavbar :update (val id) (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Επεξεργασία")
-                     (company-actions (val id) filter op)
+                     (company-actions :update (val id) filter)
                      (notifications)
                      (with-form (actions/company/update :id (val id) :search (val search))
                        (display company-form :payload (params->payload)
                                              :styles (params->styles))))
                (:div :id "contact-window" :class "window grid_6"
                      (:div :class "title" "Επαφές")
-                     (contact-menu (val id)
-                                   (val contact-id)
-                                   filter
-                                   (if (val contact-id)
-                                       '(:read)
-                                       '(:read :update :delete :rank-up :rank-down)))
+                     (contact-actions :catalogue (val id) (val contact-id) filter)
                      (display contact-table
                               :key (val contact-id)))
                (footer)))))))
@@ -559,7 +547,7 @@
                (company-subnavbar op (val id) (val search))
                (:div :id "company-window" :class "window grid_12"
                      (:div :class "title" "Εταιρία » Διαγραφή")
-                     (company-actions nil filter op)
+                     (company-actions op nil filter)
                      (with-form (actions/company/delete :id (val id)
                                                         :search (val search))
                        (display company-table

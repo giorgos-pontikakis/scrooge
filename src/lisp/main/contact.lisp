@@ -73,8 +73,8 @@
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (company/update :id (company-id table)
-                                                   :contact-id contact-id)))
+                             :href (company/details :id (company-id table)
+                                                    :contact-id contact-id)))
         (list nil nil))))
 
 (defmethod key ((item contact-row))
@@ -86,41 +86,36 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun contact-menu (id contact-id filter &optional disabled)
-  (if (every (lambda (i)
-               (member i disabled))
-             '(:create :update :delete :rank-up :rank-down))
-      (with-html
-        (:div :class "hmenu actions"
-              (:ul
-               (:li :class "invisible" "No available action."))))
-      (with-html
-        (menu `((:create ,(html ()
-                            (:a :class "create"
-                                :href (apply #'contact/create :id id filter)
-                                "Δημιουργία")))
-                (:update ,(html ()
-                            (:a :class "update"
-                                :href (apply #'contact/update :id id :contact-id contact-id filter)
-                                "Επεξεργασία")))
-                (:delete ,(html ()
-                            (:a :class "delete"
-                                :href (apply #'contact/delete :id id :contact-id contact-id filter)
-                                "Διαγραφή")))
-                (:rank-up ,(make-instance 'form
-                                          :action (action/contact/rank-dec)
-                                          :reqtype :post
-                                          :hidden `(:id ,id :contact-id ,contact-id ,@filter)
-                                          :body (make-instance 'submit
-                                                               :body "Πάνω" :css-class "up")))
-                (:rank-down ,(make-instance 'form
-                                            :action (action/contact/rank-inc)
+(defun contact-actions (op id contact-id filter)
+  (actions-menu `((:create ,(html ()
+                              (:a :class "create"
+                                  :href (apply #'contact/create
+                                               :id id filter)
+                                  "Δημιουργία")))
+                  (:update ,(html ()
+                              (:a :class "update"
+                                  :href (apply #'contact/update
+                                               :id id :contact-id contact-id filter)
+                                  "Επεξεργασία")))
+                  (:delete ,(html ()
+                              (:a :class "delete"
+                                  :href (apply #'contact/delete
+                                               :id id :contact-id contact-id filter)
+                                  "Διαγραφή")))
+                  (:rank-up ,(make-instance 'form
+                                            :action (action/contact/rank-dec)
                                             :reqtype :post
                                             :hidden `(:id ,id :contact-id ,contact-id ,@filter)
                                             :body (make-instance 'submit
-                                                                 :body "Κάτω" :css-class "down"))))
-              :css-class "hmenu actions"
-              :disabled disabled))))
+                                                                 :body "Πάνω" :css-class "up")))
+                  (:rank-down ,(make-instance 'form
+                                              :action (action/contact/rank-inc)
+                                              :reqtype :post
+                                              :hidden `(:id ,id :contact-id ,contact-id ,@filter)
+                                              :body (make-instance 'submit
+                                                                   :body "Κάτω" :css-class "down"))))
+                (crud+ranks-actions-enabled/disabled op contact-id)
+                #'menu))
 
 
 
@@ -164,7 +159,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :read
+                                        :op :details
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
@@ -178,18 +173,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
+               (company-subnavbar :details (val id) (val search))
                (:div :id "company-window" :class "window grid_6"
-                     (:div :class "title" "Εταιρία » Λεπτομέρειες")
-                     (company-menu (val id)
-                                   filter
-                                   '(:details :create))
+                     (:div :class "title" "Λεπτομέρειες")
+                     (company-actions :details (val id) filter)
                      (display company-form))
                (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Δημιουργία")
-                     (contact-menu (val id)
-                                   nil
-                                   filter
-                                   '(:create :update :delete :rank-up :rank-down))
+                     (:div :class "title" "Δημιουργία")
+                     (contact-actions :create (val id) nil filter)
                      (with-form (actions/contact/create :id (val id))
                        (display contact-table)))
                (footer)))))))
@@ -224,7 +215,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :read
+                                        :op :details
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
@@ -238,18 +229,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
+               (company-subnavbar :details (val id) (val search))
                (:div :id "company-window" :class "window grid_6"
-                     (:div :class "title" "Εταιρία » Λεπτομέρειες")
-                     (company-menu (val id)
-                                   filter
-                                   '(:details :create))
+                     (:div :class "title" "Λεπτομέρειες")
+                     (company-actions :details (val id) filter)
                      (display company-form))
                (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Επεξεργασία")
-                     (contact-menu (val id)
-                                   (val contact-id)
-                                   filter
-                                   '(:read :update))
+                     (:div :class "title" "Επεξεργασία")
+                     (contact-actions :update (val id) (val contact-id) filter)
                      (with-form (actions/contact/update :id (val id)
                                                         :contact-id (val contact-id))
                        (display contact-table :key (val contact-id))))
@@ -283,7 +270,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :read
+                                        :op :details
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
@@ -297,18 +284,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
+               (company-subnavbar :details (val id) (val search))
                (:div :id "company-window" :class "window grid_6"
-                     (:div :class "title" "Εταιρία » Λεπτομέρειες")
-                     (company-menu (val id)
-                                   filter
-                                   '(:details :create))
+                     (:div :class "title" "Λεπτομέρειες")
+                     (company-actions :details (val id) filter)
                      (display company-form))
                (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Επαφές » Διαγραφή")
-                     (contact-menu (val id)
-                                   (val contact-id)
-                                   filter
-                                   '(:read :delete))
+                     (:div :class "title" "Διαγραφή")
+                     (contact-actions :delete (val id) (val contact-id) filter)
                      (with-form (actions/contact/delete :id (val id)
                                                         :contact-id (val contact-id))
                        (display contact-table :key (val contact-id))))

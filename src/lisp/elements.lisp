@@ -119,6 +119,12 @@
     (:update ,update "Επεξεργασία")
     (:delete ,delete "Διαγραφή")))
 
+(defun crud+details-actions-spec (create details update delete)
+  `((:create  ,create  "Δημιουργία")
+    (:details ,details "Λεπτομέρειες")
+    (:update  ,update  "Επεξεργασία")
+    (:delete  ,delete  "Διαγραφή")))
+
 (defun crud-actions-enabled/disabled (op id)
   (let ((enabled (ecase op
                    (:catalogue (if id
@@ -129,12 +135,6 @@
                    (:delete '()))))
     (list enabled (set-difference '(:create :update :delete)
                                   enabled))))
-
-(defun crud+details-actions-spec (create details update delete)
-  `((:create  ,create  "Δημιουργία")
-    (:details ,details "Λεπτομέρειες")
-    (:update  ,update  "Επεξεργασία")
-    (:delete  ,delete  "Διαγραφή")))
 
 (defun crud+details-actions-enabled/disabled (op id)
   (let ((enabled (ecase op
@@ -148,15 +148,27 @@
     (list enabled (set-difference '(:create :details :update :delete)
                                   enabled))))
 
-(defun actions-menu (spec enabled/disabled)
+(defun crud+ranks-actions-enabled/disabled (op id)
+  (let ((enabled (ecase op
+                   (:catalogue (if id
+                                   '(:create :update :delete :rank-up :rank-down)
+                                   '(:create)))
+                   (:create '())
+                   (:update '())
+                   (:delete '()))))
+    (list enabled (set-difference '(:create :update :delete :rank-up :rank-down)
+                                  enabled))))
+
+(defun actions-menu (spec enabled/disabled &optional (menu-fn #'anchor-menu))
   (if (first enabled/disabled)
-      (anchor-menu spec
-                   :css-class "hmenu actions"
-                   :disabled (second enabled/disabled))
+      (funcall menu-fn spec
+               :css-class "hmenu actions"
+               :disabled (second enabled/disabled))
       (with-html
         (:div :class "hmenu actions"
               (:ul
                (:li :class "invisible" "No available action."))))))
+
 
 ;;; searchbox
 
