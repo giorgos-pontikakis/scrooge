@@ -351,7 +351,7 @@
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
-                                      :op :details
+                                      :op :catalogue
                                       :project-id (val id))))
       (with-document ()
         (:head
@@ -368,7 +368,7 @@
                      (display project-form :payload (get-record 'project (val id))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
-                     (bill-actions :details (val id) (val bill-id) filter)
+                     (bill-actions :catalogue (val id) (val bill-id) filter)
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))
@@ -477,7 +477,7 @@
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project/details :id (val id) filter)))
            (bill-table (make-instance 'bill-table
-                                      :op :details
+                                      :op :catalogue
                                       :project-id (val id))))
       (with-document ()
         (:head
@@ -497,7 +497,7 @@
                                              :styles (params->styles))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
-                     (bill-actions :details (val id) (val bill-id) filter)
+                     (bill-actions :catalogue (val id) (val bill-id) filter)
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))
