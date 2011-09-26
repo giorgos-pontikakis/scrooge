@@ -351,7 +351,7 @@
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
-                                      :op :read
+                                      :op :details
                                       :project-id (val id))))
       (with-document ()
         (:head
@@ -368,12 +368,7 @@
                      (display project-form :payload (get-record 'project (val id))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
-                     (bill-menu (val id)
-                                (val bill-id)
-                                filter
-                                (if (suppliedp bill-id)
-                                    '(:read)
-                                    '(:read :update :delete :rank-up :rank-down)))
+                     (bill-actions :details (val id) (val bill-id) filter)
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))
@@ -478,11 +473,11 @@
     (let* ((op :update)
            (filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op op
+                                        :op :update
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project/details :id (val id) filter)))
            (bill-table (make-instance 'bill-table
-                                      :op :read
+                                      :op :details
                                       :project-id (val id))))
       (with-document ()
         (:head
@@ -502,12 +497,7 @@
                                              :styles (params->styles))))
                (:div :id "bill-window" :class "window grid_6"
                      (:div :class "title" "Κοστολόγηση")
-                     (bill-menu (val id)
-                                (val bill-id)
-                                filter
-                                (if (val bill-id)
-                                    '(:read)
-                                    '(:read :update :delete :rank-up :rank-down)))
+                     (bill-actions :details (val id) (val bill-id) filter)
                      (display bill-table
                               :key (val bill-id)))
                (footer)))))))

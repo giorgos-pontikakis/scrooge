@@ -42,8 +42,8 @@
 (defmethod get-records ((table bill-table))
   (with-db ()
     (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
-                       :from 'bill
-                       :where (:= 'project-id (project-id table)))
+                               :from 'bill
+                               :where (:= 'project-id (project-id table)))
                       'rank)
            :plists)))
 
@@ -92,41 +92,34 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun bill-menu (id bill-id filter &optional disabled)
-  (if (every (lambda (i)
-               (member i disabled))
-             '(:create :update :delete :rank-up :rank-down))
-      (with-html
-        (:div :class "hmenu actions"
-              (:ul
-               (:li :class "invisible" "No available action."))))
-      (with-html
-        (menu `((:create ,(html ()
-                            (:a :class "create"
-                                :href (apply #'bill/create :id id filter)
-                                "Δημιουργία")))
-                (:update ,(html ()
-                            (:a :class "update"
-                                :href (apply #'bill/update :id id :bill-id bill-id filter)
-                                "Επεξεργασία")))
-                (:delete ,(html ()
-                            (:a :class "delete"
-                                :href (apply #'bill/delete :id id :bill-id bill-id filter)
-                                "Διαγραφή")))
-                (:rank-up ,(make-instance 'form
-                                          :action (action/bill/rank-dec)
-                                          :reqtype :post
-                                          :hidden `(:id ,id :bill-id ,bill-id ,@filter)
-                                          :body (make-instance 'submit
-                                                               :body "Πάνω" :css-class "up")))
-                (:rank-down ,(make-instance 'form
-                                            :action (action/bill/rank-inc)
-                                            :reqtype :post
-                                            :hidden `(:id ,id :bill-id ,bill-id ,@filter)
-                                            :body (make-instance 'submit
-                                                                 :body "Κάτω" :css-class "down"))))
-              :css-class "hmenu actions"
-              :disabled disabled))))
+(defun bill-actions (op id bill-id filter)
+  (actions-menu
+   `((:create ,(html ()
+                 (:a :class "create"
+                     :href (apply #'bill/create :id id filter)
+                     "Δημιουργία")))
+     (:update ,(html ()
+                 (:a :class "update"
+                     :href (apply #'bill/update :id id :bill-id bill-id filter)
+                     "Επεξεργασία")))
+     (:delete ,(html ()
+                 (:a :class "delete"
+                     :href (apply #'bill/delete :id id :bill-id bill-id filter)
+                     "Διαγραφή")))
+     (:rank-up ,(make-instance 'form
+                               :action (action/bill/rank-dec)
+                               :reqtype :post
+                               :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                               :body (make-instance 'submit
+                                                    :body "Πάνω" :css-class "up")))
+     (:rank-down ,(make-instance 'form
+                                 :action (action/bill/rank-inc)
+                                 :reqtype :post
+                                 :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                                 :body (make-instance 'submit
+                                                      :body "Κάτω" :css-class "down"))))
+   (crud+ranks-actions-enabled/disabled op bill-id)
+   #'menu))
 
 
 
@@ -171,7 +164,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :read
+                                        :op :details
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
@@ -179,24 +172,20 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Λεπτομέρειες Έργου » Δημιουργία κόστους")
+         (:title "Κοστολόγηση » Δημιουργία")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
+               (project-subnavbar :details (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Έργο » Λεπτομέρειες")
-                     (project-menu (val id)
-                                   filter
-                                   '(:details :create))
+                     (:div :class "title" "Λεπτομέρειες")
+                     (project-actions :details (val id) filter)
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση » Δημιουργία")
-                     (bill-menu (val id)
-                                nil
-                                filter
-                                '(:create :update :delete :rank-up :rank-down))
+                     (:div :class "title" "Δημιουργία")
+                     (bill-actions :create (val id) nil filter)
                      (notifications)
                      (with-form (actions/bill/create :id (val id))
                        (display bill-table
@@ -235,7 +224,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :read
+                                        :op :details
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
@@ -243,24 +232,20 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Λεπτομέρειες Έργου > Επεξεργασία κόστους")
+         (:title "Κοστολόγηση » Επεξεργασία")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
+               (project-subnavbar :details (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Έργο » Λεπτομέρειες")
-                     (project-menu (val id)
-                                   filter
-                                   '(:details :create))
+                     (:div :class "title" "Λεπτομέρειες")
+                     (project-actions :details (val id) filter)
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση » Επεξεργασία")
-                     (bill-menu (val id)
-                                (val bill-id)
-                                filter
-                                '(:update :rank-up :rank-down))
+                     (:div :class "title" "Επεξεργασία")
+                     (bill-actions :update (val id) (val bill-id) filter)
                      (with-form (actions/bill/update :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id)
@@ -297,7 +282,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :read
+                                        :op :details
                                         :record (get-record 'project (val id))
                                         :cancel-url (apply #'project :id (val id) filter)))
            (bill-table (make-instance 'bill-table
@@ -305,24 +290,20 @@
                                       :project-id (val id))))
       (with-document ()
         (:head
-         (:title "Λεπτομέρειες Έργου » Διαγραφή κόστους")
+         (:title "Κοστολόγηση » Διαγραφή")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
+               (project-subnavbar :details (val id) (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Έργο » Λεπτομέρειες")
-                     (project-menu (val id)
-                                   filter
-                                   '(:details :create))
+                     (:div :class "title" "Λεπτομέρειες")
+                     (project-actions :details (val id) filter)
                      (display project-form))
                (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση » Διαγραφή")
-                     (bill-menu (val id)
-                                (val bill-id)
-                                filter
-                                '(:delete :rank-up :rank-down))
+                     (:div :class "title" "Διαγραφή")
+                     (bill-actions :delete (val id) (val bill-id) filter)
                      (with-form (actions/bill/delete :id (val id)
                                                      :bill-id (val bill-id))
                        (display bill-table :key (val bill-id))))

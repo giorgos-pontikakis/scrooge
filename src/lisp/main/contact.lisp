@@ -87,35 +87,36 @@
 ;;; ------------------------------------------------------------
 
 (defun contact-actions (op id contact-id filter)
-  (actions-menu `((:create ,(html ()
-                              (:a :class "create"
-                                  :href (apply #'contact/create
-                                               :id id filter)
-                                  "Δημιουργία")))
-                  (:update ,(html ()
-                              (:a :class "update"
-                                  :href (apply #'contact/update
-                                               :id id :contact-id contact-id filter)
-                                  "Επεξεργασία")))
-                  (:delete ,(html ()
-                              (:a :class "delete"
-                                  :href (apply #'contact/delete
-                                               :id id :contact-id contact-id filter)
-                                  "Διαγραφή")))
-                  (:rank-up ,(make-instance 'form
-                                            :action (action/contact/rank-dec)
-                                            :reqtype :post
-                                            :hidden `(:id ,id :contact-id ,contact-id ,@filter)
-                                            :body (make-instance 'submit
-                                                                 :body "Πάνω" :css-class "up")))
-                  (:rank-down ,(make-instance 'form
-                                              :action (action/contact/rank-inc)
-                                              :reqtype :post
-                                              :hidden `(:id ,id :contact-id ,contact-id ,@filter)
-                                              :body (make-instance 'submit
-                                                                   :body "Κάτω" :css-class "down"))))
-                (crud+ranks-actions-enabled/disabled op contact-id)
-                #'menu))
+  (actions-menu
+   `((:create ,(html ()
+                 (:a :class "create"
+                     :href (apply #'contact/create
+                                  :id id filter)
+                     "Δημιουργία")))
+     (:update ,(html ()
+                 (:a :class "update"
+                     :href (apply #'contact/update
+                                  :id id :contact-id contact-id filter)
+                     "Επεξεργασία")))
+     (:delete ,(html ()
+                 (:a :class "delete"
+                     :href (apply #'contact/delete
+                                  :id id :contact-id contact-id filter)
+                     "Διαγραφή")))
+     (:rank-up ,(make-instance 'form
+                               :action (action/contact/rank-dec)
+                               :reqtype :post
+                               :hidden `(:id ,id :contact-id ,contact-id ,@filter)
+                               :body (make-instance 'submit
+                                                    :body "Πάνω" :css-class "up")))
+     (:rank-down ,(make-instance 'form
+                                 :action (action/contact/rank-inc)
+                                 :reqtype :post
+                                 :hidden `(:id ,id :contact-id ,contact-id ,@filter)
+                                 :body (make-instance 'submit
+                                                      :body "Κάτω" :css-class "down"))))
+   (crud+ranks-actions-enabled/disabled op contact-id)
+   #'menu))
 
 
 
@@ -223,7 +224,7 @@
                                          :company-id (val id))))
       (with-document ()
         (:head
-         (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+         (:title "Επαφές » Επεξεργασία")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
@@ -278,7 +279,7 @@
                                          :company-id (val id))))
       (with-document ()
         (:head
-         (:title "Επεξεργασία Εταιρίας > Επεξεργασία Επαφής")
+         (:title "Επαφές » Διαγραφή")
          (main-headers))
         (:body
          (:div :id "container" :class "container_12"
