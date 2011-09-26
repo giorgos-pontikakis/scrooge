@@ -34,7 +34,6 @@
 /* ---------------------------------------------------------------------- */
 
 .section-navbar {
-    /* background-color: #bcd; */
     margin-top: 10px;
 }
 
@@ -68,15 +67,36 @@
     color: black;
 }
 
+.section-subnavbar button {
+    width: 25px;
+    line-height: 19px;
+    vertical-align: baseline;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.section-subnavbar {
+    line-height: 23px;
+    padding: 10px 0px;
+    background-color: #234;
+}
+
+.section-subnavbar img {
+    vertical-align: bottom;
+    padding: 0px 0px 0px 0px;
+}
+
+.section-subnavbar input {
+    line-height: 23px;
+    border: 1px solid #444;
+    border-radius: 4px;
+}
 
 
 /* ---------------------------------------------------------------------- */
 /* Section sub-navbar */
 /* ---------------------------------------------------------------------- */
-
-.section-subnavbar {
-    background-color: #234;
-}
 
 .filters {
     color: #fff;
@@ -107,6 +127,14 @@
     background-color: #678;
 }
 
+.filters label {
+    margin-left: 10px;
+}
+
+.filters input.datepicker {
+    width: 70px;
+}
+
 .options {
     float: left;
     line-height: 23px;
@@ -127,7 +155,6 @@
 }
 
 
-
 /* ---------------------------------------------------------------------- */
 /* search */
 /* ---------------------------------------------------------------------- */
@@ -137,29 +164,6 @@
     color: #fff;
 }
 
-.search {
-    line-height: 23px;
-    margin: 10px;
-}
-
 .search input {
     width: 200px;
-    line-height: 23px;
-    margin: 0px;
-    border: 1px solid #444;
-    border-radius: 4px;
-}
-
-.search button {
-    width: 25px;
-    line-height: 19px;
-    vertical-align: baseline;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-}
-
-.search button img {
-    vertical-align: bottom;
-    padding: 0px 0px 0px 0px;
 }

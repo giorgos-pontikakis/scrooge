@@ -178,11 +178,16 @@
           (:div :id "searchbox"
                 (:p :class "search"
                     "Αναζήτηση: "
-                    (input-text 'search :value term
+                    (input-text 'search :id "search-input"
+                                        :value term
                                         :css-class css-class)
                     (submit (html ()
-                              (img "magnifier.png"))))))
-        :hidden hidden))
+                              (img "magnifier.png")))
+                    (:button :type "button"
+                             :id "search-reset"
+                             (img "cross.png")))))
+        :hidden hidden
+        :id "search-form"))
 
 (defun filters-navbar (spec &optional active)
   (with-html

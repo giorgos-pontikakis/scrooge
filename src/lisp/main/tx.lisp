@@ -15,7 +15,7 @@
     :initform '(tx-date description company amount non-chq-debit-acc non-chq-credit-acc))
    (filter-parameter-names
     :allocation :class
-    :initform '(search))
+    :initform '(search since until))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -75,13 +75,26 @@
                                    (apply #'tx/delete :id id filter))
                 (crud-actions-enabled/disabled op id)))
 
-(defun bank-subnavbar (search)
+(defun tx-subnavbar (op id search since until)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (searchbox (config/bank)
+          (tx-filters (eq op :catalogue) id search since until)
+          (searchbox (tx)
                      search
-                     :css-class "ac-bank"))))
+                     :css-class "ac-company"))))
 
+(defun tx-filters (active-p id search since until)
+  (declare (ignore active-p))
+  (with-html
+    (:div :class "filters"
+          (with-form (tx :id id :search search :since since :until until)
+            (:p (label 'since "Από: ")
+                (input-text 'since :value since
+                                   :css-class "datepicker")
+                (label 'since "Εώς: ")
+                (input-text 'until :value until
+                                   :css-class "datepicker")
+                (submit "Go"))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -168,6 +181,8 @@
 (defpage tx-page tx ("tx")
     ((id     integer chk-tx-id)
      (search string)
+     (since  date)
+     (until  date)
      (start  integer))
   (with-view-page
     (let* ((op :catalogue)
@@ -183,6 +198,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
+               (tx-subnavbar op (val id) (val search) (val since) (val until))
                (:div :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (tx-actions op (val id) filter)
@@ -199,6 +215,8 @@
 
 (defpage tx-page tx/create ("tx/create")
     ((search             string)
+     (since              date)
+     (until              date)
      (tx-date            date)
      (description        string)
      (company            string chk-company-title)
@@ -219,6 +237,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
+               (tx-subnavbar op nil (val search) (val since) (val until))
                (:div :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (tx-actions op nil filter)
@@ -230,6 +249,8 @@
 (defpage tx-page actions/tx/create ("actions/tx/create"
                                     :request-type :post)
     ((search         string)
+     (since          date)
+     (until          date)
      (tx-date        date)
      (description    string)
      (company        string  chk-company-title)
@@ -259,6 +280,8 @@
 (defpage tx-page tx/update ("tx/update")
     ((search             string)
      (id                 integer chk-tx-id             t)
+     (since              date)
+     (until              date)
      (tx-date            date)
      (description        string)
      (company            string  chk-company-title)
@@ -279,6 +302,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
+               (tx-subnavbar op (val id) (val search) (val since) (val until))
                (:div :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (tx-actions op (val id) filter)
@@ -292,6 +316,8 @@
 (defpage tx-page actions/tx/update ("actions/tx/update"
                                     :request-type :post)
     ((search         string)
+     (since          date)
+     (until          date)
      (id             integer chk-tx-id t)
      (tx-date        date)
      (description    string)
@@ -321,6 +347,8 @@
 
 (defpage tx-page tx/delete ("tx/delete")
     ((id     integer chk-tx-id t)
+     (since  date)
+     (until  date)
      (search string))
   (with-view-page
     (let* ((op :delete)
@@ -336,6 +364,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
+               (tx-subnavbar op (val id) (val search) (val since) (val until))
                (:div :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (tx-actions op (val id) filter)
@@ -347,6 +376,8 @@
 (defpage tx-page actions/tx/delete ("actions/tx/delete"
                                     :request-type :post)
     ((id     integer chk-tx-id t)
+     (since  date)
+     (until  date)
      (search string))
   (with-controller-page (tx/delete)
     (delete-dao (get-dao 'tx (val id)))
