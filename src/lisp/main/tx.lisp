@@ -114,6 +114,8 @@
 
 (defmethod get-records ((table tx-table))
   (let* ((search (getf (filter table) :search))
+         (since (getf (filter table) :since))
+         (until (getf (filter table) :until))
          (base-query `(:select tx.id
                                (:as company.title company)
                                (:as debit-acc.title non-chq-debit-acc)
@@ -121,25 +123,35 @@
                                tx-date
                                description
                                amount
-                               :from tx
-                               :left-join company
-                               :on (:= tx.company-id company.id)
-                               :inner-join (:as account debit-acc)
-                               :on (:= debit-acc.id debit-acc-id)
-                               :inner-join (:as account credit-acc)
-                               :on (:= credit-acc.id credit-acc-id)))
-         (composite-query (if search
-                              (append base-query
-                                      `(:where (:or (:ilike description ,(ilike search))
-                                                    (:ilike company.title ,(ilike search))
-                                                    (:ilike debit-acc.title ,(ilike search))
-                                                    (:ilike credit-acc.title ,(ilike search)))))
-                              base-query))
-         (final-query `(:order-by ,composite-query (:desc tx-date))))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
+                       :from tx
+                       :left-join company
+                       :on (:= tx.company-id company.id)
+                       :inner-join (:as account debit-acc)
+                       :on (:= debit-acc.id debit-acc-id)
+                       :inner-join (:as account credit-acc)
+                       :on (:= credit-acc.id credit-acc-id)))
+         (where nil))
+    (when search
+      (push `(:or (:ilike description ,(ilike search))
+                  (:ilike company.title ,(ilike search))
+                  (:ilike debit-acc.title ,(ilike search))
+                  (:ilike credit-acc.title ,(ilike search)))
+            where))
+    (when since
+      (push `(:< ,since tx-date) where))
+    (when until
+      (push `(:< tx-date ,until) where))
+    (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
+                           (:desc tx-date))))
+      (with-db ()
+        (query (sql-compile sql)
+               :plists)))))
 
+
+;; (composite-query (if search
+
+;;                               base-query))
+;;          (final-query `(:order-by ,composite-query (:desc tx-date)))
 
 ;;; rows
 

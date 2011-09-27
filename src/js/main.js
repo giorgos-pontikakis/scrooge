@@ -5,7 +5,6 @@ $(document).ready(function () {
       $(this).siblings("input").val("");
       $(this).parents("form").trigger("submit");
    });
-
 });
 
 function applyDatepicker () {
