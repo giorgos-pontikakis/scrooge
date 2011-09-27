@@ -278,7 +278,7 @@
                               :payload nil
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (invoice kind) (val search))
+                     (searchbox (lambda () (invoice kind)) (val search))
                      (invoice-filters kind (val search)))
                (footer)))))))
 
@@ -465,7 +465,7 @@
                        (display invoice-tx-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (invoice kind) (val search))
+                     (searchbox (lambda () (invoice kind)) (val search))
                      (invoice-filters kind (val search)))
                (footer)))))))
 

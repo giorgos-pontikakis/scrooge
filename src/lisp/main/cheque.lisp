@@ -327,7 +327,7 @@
                               :selected-data nil
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (cheque kind) (val search))
+                     (searchbox (lambda () (cheque kind)) (val search))
                      (cheque-filters kind)
                      (cheque-state-filters kind (val state) (val search)))
                (footer)))))))
@@ -572,7 +572,7 @@
                              (display cheque-table
                                       :selected-id (val id))))
                      (:div :id "sidebar" :class "sidebar grid_2"
-                           (searchbox (cheque kind) (val search))
+                           (searchbox (lambda () (cheque kind)) (val search))
                            (cheque-filters kind)
                            (cheque-state-filters kind (val state) (val search))))
                (footer)))))))

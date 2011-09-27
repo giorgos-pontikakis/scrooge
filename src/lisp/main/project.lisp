@@ -150,7 +150,7 @@
               (htm (:div :class "options"
                          (:a :href (project :id id :cstate cstate :search search)
                              "Κατάλογος"))))
-          (searchbox (project)
+          (searchbox #'project
                      search
                      :hidden `(:cstate ,cstate)
                      :css-class "ac-project"))))

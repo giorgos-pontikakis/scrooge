@@ -148,17 +148,17 @@
                                                (apply #'company/delete :id id filter)))
                 (crud+details-actions-enabled/disabled op id)))
 
-(defun company-filters (id search)
-  (filters-navbar `((nil ,(company :id id :search search) "Όλες"))))
+(defun company-filters (search)
+  (filters-navbar `((nil ,(company :search search) "Όλες"))))
 
-(defun company-subnavbar (op id search)
+(defun company-subnavbar (op search)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (if (member op '(:catalogue :delete))
-              (company-filters id search)
+              (company-filters search)
               (htm (:div :class "options"
-                         (:a :href (company :id id :search search) "Κατάλογος"))))
-          (searchbox (company)
+                         (:a :href (company :search search) "Κατάλογος"))))
+          (searchbox #'company
                      search
                      :css-class "ac-company"))))
 
@@ -325,7 +325,7 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'company)
-                   (company-subnavbar op (val id) (val search))
+                   (company-subnavbar op (val search))
                    (:div :id "company-window" :class "window grid_12"
                          (:div :class "title"  "Κατάλογος")
                          (company-actions op (val id) filter)
@@ -357,7 +357,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details (val id) (val search))
+               (company-subnavbar :details (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (company-actions :details (val id) filter)
@@ -401,7 +401,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op nil (val search))
+               (company-subnavbar op (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Δημιουργία")
                      (company-actions op nil filter)
@@ -476,7 +476,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :update (val id) (val search))
+               (company-subnavbar :update (val search))
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Επεξεργασία")
                      (company-actions :update (val id) filter)
@@ -544,7 +544,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op (val id) (val search))
+               (company-subnavbar op (val search))
                (:div :id "company-window" :class "window grid_12"
                      (:div :class "title" "Εταιρία » Διαγραφή")
                      (company-actions op nil filter)

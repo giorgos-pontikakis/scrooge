@@ -172,8 +172,8 @@
 
 ;;; searchbox
 
-(defun searchbox (submit-url term &key hidden css-class)
-  (form submit-url
+(defun searchbox (submit-fn term &key hidden css-class)
+  (form (funcall submit-fn)
         (html ()
           (:div :id "searchbox"
                 (:p :class "search"
@@ -182,7 +182,7 @@
                                         :value term
                                         :css-class css-class)
                     (:button :type "submit" (img "magnifier.png"))
-                    (:button :type "button" (img "cross.png")))))
+                    (:a :href (apply submit-fn hidden) (img "cross.png")))))
         :hidden hidden))
 
 (defun filters-navbar (spec &optional active)

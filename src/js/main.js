@@ -1,10 +1,6 @@
 $(document).ready(function () {
    applyAutocomplete();
    applyDatepicker();
-   $(".section-subnavbar button[type='button']").click(function () {
-      $(this).siblings("input").val("");
-      $(this).parents("form").trigger("submit");
-   });
 });
 
 function applyDatepicker () {

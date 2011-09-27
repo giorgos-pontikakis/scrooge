@@ -87,7 +87,7 @@
 (defun city-subnavbar (search)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (searchbox (config/city)
+          (searchbox #'config/city
                      search
                      :css-class "ac-city"))))
 

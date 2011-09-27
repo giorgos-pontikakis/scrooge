@@ -277,7 +277,7 @@
                               :payload nil
                               :start (val start)))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (cash kind) (val search))
+                     (searchbox (lambda () (cash kind)) (val search))
                      (cash-filters kind (val search)))
                (footer)))))))
 
@@ -463,7 +463,7 @@
                        (display cash-tx-table
                                 :key (val id))))
                (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (cash kind) (val search))
+                     (searchbox (lambda () (cash kind)) (val search))
                      (cash-filters kind (val search)))
                (footer)))))))
 

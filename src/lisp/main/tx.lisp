@@ -75,27 +75,32 @@
                                    (apply #'tx/delete :id id filter))
                 (crud-actions-enabled/disabled op id)))
 
-(defun tx-subnavbar (op id search since until)
+(defun tx-subnavbar (op filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (tx-filters (eq op :catalogue) id search since until)
-          (searchbox (tx)
-                     search
-                     :css-class "ac-company"))))
+          (tx-filters (eq op :catalogue) filter)
+          (searchbox #'tx
+                     (getf filter :search)
+                     :css-class "ac-company"
+                     :hidden (plist-map-vals #'parse-date
+                                             (remove-from-plist filter :search))))))
 
-(defun tx-filters (active-p id search since until)
+(defun tx-filters (active-p filter)
   (declare (ignore active-p))
   (with-html
     (:div :class "filters"
-          (with-form (tx :id id :search search :since since :until until)
-            (:p (label 'since "Από: ")
-                (input-text 'since :value since
-                                   :css-class "datepicker")
-                (label 'since "Εώς: ")
-                (input-text 'until :value until
-                                   :css-class "datepicker")
-                (:button :type "submit" (img "tick.png"))
-                (:button :type "button" (img "cross.png")))))))
+          (form (tx)
+                (html ()
+                  (:p (label 'since "Από: ")
+                      (input-text 'since :value (getf filter :since)
+                                         :css-class "datepicker")
+                      (label 'since "Εώς: ")
+                      (input-text 'until :value (getf filter :until)
+                                         :css-class "datepicker")
+                      (:button :type "submit" (img "tick.png"))
+                      (:a :href (apply #'tx (remove-from-plist filter :since :until))
+                          (img "cross.png"))))
+                :hidden filter))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -147,11 +152,6 @@
         (query (sql-compile sql)
                :plists)))))
 
-
-;; (composite-query (if search
-
-;;                               base-query))
-;;          (final-query `(:order-by ,composite-query (:desc tx-date)))
 
 ;;; rows
 
@@ -213,7 +213,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op (val id) (val search) (val since) (val until))
+               (tx-subnavbar op filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (tx-actions op (val id) filter)
@@ -252,7 +252,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op nil (val search) (val since) (val until))
+               (tx-subnavbar op filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (tx-actions op nil filter)
@@ -317,7 +317,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op (val id) (val search) (val since) (val until))
+               (tx-subnavbar op filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (tx-actions op (val id) filter)
@@ -379,7 +379,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op (val id) (val search) (val since) (val until))
+               (tx-subnavbar op filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (tx-actions op (val id) filter)
