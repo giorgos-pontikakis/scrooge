@@ -142,13 +142,13 @@
                     (canceled ,(project :search search :cstate "canceled") "Άκυρα"))
                   cstate))
 
-(defun project-subnavbar (op id cstate search)
+(defun project-subnavbar (op cstate search)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (if (member op '(:catalogue :delete))
               (project-filters cstate search)
               (htm (:div :class "options"
-                         (:ul (:li (:a :href (project :id id :cstate cstate :search search)
+                         (:ul (:li (:a :href (project :cstate cstate :search search)
                                        "Κατάλογος"))))))
           (searchbox #'project
                      search
@@ -327,7 +327,7 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'project)
-                   (project-subnavbar op (val id) (val cstate) (val search))
+                   (project-subnavbar op (val cstate) (val search))
                    (:div :id "project-window" :class "window grid_12"
                          (:div :class "title" "Κατάλογος")
                          (project-actions op (val id) filter)
@@ -361,7 +361,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val id) (val cstate) (val search))
+               (project-subnavbar op (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Λεπτομέρειες")
                      (project-actions op (val id) filter)
@@ -407,7 +407,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op nil (val cstate) (val search))
+               (project-subnavbar op (val cstate) (val search))
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (project-actions op nil filter)
@@ -487,7 +487,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val id) (val cstate) (val search))
+               (project-subnavbar op (val cstate) (val search))
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Επεξεργασία")
                      (project-actions op (val id) filter)
@@ -558,7 +558,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val id) (val cstate) (val search))
+               (project-subnavbar op (val cstate) (val search))
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Έργο » Διαγραφή")
                      (project-actions op (val id) filter)

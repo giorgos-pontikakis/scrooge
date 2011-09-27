@@ -172,27 +172,29 @@
         ((string-equal kind "payable") "Προς πληρωμή")
         (t (error "Internal error in invoice-page-title"))))
 
-(defun invoice-filters (kind search)
-  (let ((spec `((receivable ,(invoice "receivable" :search search) "Προς είσπραξη")
-                (payable ,(invoice "payable" :search search) "Προς πληρωμή"))))
-    (with-html
-      (:div :id "filters" :class "filters"
-            (:p :class "title" "Κατάσταση")
-            (navbar spec
-                    :id "invoice-filters"
-                    :css-class "vnavbar"
-                    :active (intern (string-upcase kind))
-                    :test #'string-equal)))))
+(defun invoice-actions (op kind id filter)
+  (actions-menu (crud-actions-spec (apply #'invoice/create kind filter)
+                                   (apply #'invoice/update kind :id id filter)
+                                   (apply #'invoice/delete kind :id id filter))
+                (crud-actions-enabled/disabled op id)))
 
-(defun invoice-menu (kind id filter disabled)
-  (anchor-menu (crud-actions-spec (apply #'invoice        kind :id id filter)
-                                  (apply #'invoice/create kind filter)
-                                  (apply #'invoice/update kind :id id filter)
-                                  (apply #'invoice/delete kind :id id filter))
-               :id "invoice-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun invoice-filters (kind filter)
+  (filters-navbar `((receivable ,(apply #'invoice "receivable" filter) "Προς είσπραξη")
+                    (payable ,(apply #'invoice "payable" filter) "Προς πληρωμή"))
+                  kind))
 
+(defun invoice-subnavbar (op kind filter)
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (if (member op '(:catalogue :delete))
+              (invoice-filters kind filter)
+              (htm (:div :class "options"
+                         (:ul (:li (:a :href (apply #'invoice filter)
+                                       "Κατάλογος"))))))
+          (searchbox (lambda () (invoice kind))
+                     (getf filter :search)
+                     :css-class "ac-company"
+                     :hidden (remove-from-plist filter :search)))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -250,12 +252,13 @@
      (id        integer chk-tx-id))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :catalogue)
+           (filter (params->filter))
            (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :id "invoice-tx-table"
                                             :kind kind
-                                            :op :read
+                                            :op :catalogue
                                             :filter filter)))
       (with-document ()
         (:head
@@ -265,21 +268,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (:div :class "window grid_10"
+               (invoice-subnavbar op kind filter)
+               (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (invoice-menu kind
-                                   (val id)
-                                   filter
-                                   (if (val id)
-                                       '(:read)
-                                       '(:read :details :update :delete)))
+                     (invoice-actions op kind (val id) filter)
                      (display invoice-tx-table
                               :key (val id)
                               :payload nil
                               :start (val start)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (lambda () (invoice kind)) (val search))
-                     (invoice-filters kind (val search)))
                (footer)))))))
 
 
@@ -298,10 +294,11 @@
      (account-id  integer chk-acc-id))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :create)
+           (filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :kind kind
-                                        :op :create
+                                        :op op
                                         :record nil
                                         :cancel-url (apply #'invoice kind filter)))
            (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Δημιουργία")))
@@ -313,12 +310,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
+               (invoice-subnavbar op kind filter)
                (:div :id "invoice-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (invoice-menu kind
-                                   nil
-                                   filter
-                                   '(:create :update :delete))
+                     (invoice-actions op kind nil filter)
                      (notifications)
                      (with-form (actions/invoice/create kind :search (val search))
                        (display invoice-form :payload (params->payload)
@@ -370,10 +365,11 @@
      (account-id  integer chk-acc-id t))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :kind kind
-                                        :op :update
+                                        :op op
                                         :record (get-record 'tx (val id))
                                         :cancel-url (apply #'invoice kind :id (val id) filter)))
            (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Επεξεργασία")))
@@ -385,12 +381,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
+               (invoice-subnavbar op kind filter)
                (:div :id "invoice-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (invoice-menu kind
-                                   nil
-                                   filter
-                                   '(:create :update :delete))
+                     (invoice-actions op kind nil filter)
                      (notifications)
                      (with-form (actions/invoice/update kind
                                                         :id (val id)
@@ -439,10 +433,11 @@
      (search string))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :delete)
+           (filter (params->filter))
            (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
-                                            :op :delete
+                                            :op op
                                             :kind kind
                                             :filter filter)))
       (with-document ()
@@ -453,20 +448,15 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (:div :id "invoice-window" :class "window grid_10"
+               (invoice-subnavbar op kind filter)
+               (:div :id "invoice-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (invoice-menu kind
-                                   (val id)
-                                   filter
-                                   '(:read :delete))
+                     (invoice-actions op kind (val id) filter)
                      (with-form (actions/invoice/delete kind
                                                         :id (val id)
                                                         :search (val search))
                        (display invoice-tx-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (lambda () (invoice kind)) (val search))
-                     (invoice-filters kind (val search)))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/delete

@@ -75,17 +75,16 @@
                                    (apply #'tx/delete :id id filter))
                 (crud-actions-enabled/disabled op id)))
 
-(defun tx-subnavbar (op filter)
+(defun tx-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (tx-filters (eq op :catalogue) filter)
+          (tx-filters filter)
           (searchbox #'tx
                      (getf filter :search)
                      :css-class "ac-company"
                      :hidden (remove-from-plist filter :search)))))
 
-(defun tx-filters (active-p filter)
-  (declare (ignore active-p))
+(defun tx-filters (filter)
   (with-html
     (:div :class "filters"
           (form (tx)
@@ -213,7 +212,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op filter)
+               (tx-subnavbar filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (tx-actions op (val id) filter)
@@ -252,7 +251,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op filter)
+               (tx-subnavbar filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (tx-actions op nil filter)
@@ -317,7 +316,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op filter)
+               (tx-subnavbar filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (tx-actions op (val id) filter)
@@ -379,7 +378,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar op filter)
+               (tx-subnavbar filter)
                (:div :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (tx-actions op (val id) filter)

@@ -171,26 +171,29 @@
         ((string-equal kind "expense") "Έξοδα")
         (t (error "Internal error in cash-page-title"))))
 
-(defun cash-filters (kind search)
-  (let ((spec `((revenue ,(cash "revenue" :search search) "Έσοδα")
-                (expense ,(cash "expense" :search search) "Έξοδα"))))
-    (with-html
-      (:div :id "filters" :class "filters"
-            (:p :class "title" "Κατάσταση")
-            (navbar spec
-                    :id "cash-filters"
-                    :css-class "vnavbar"
-                    :active (intern (string-upcase kind))
-                    :test #'string-equal)))))
+(defun cash-actions (op kind id filter)
+  (actions-menu (crud-actions-spec (apply #'cash/create kind filter)
+                                   (apply #'cash/update kind :id id filter)
+                                   (apply #'cash/delete kind :id id filter))
+                (crud-actions-enabled/disabled op id)))
 
-(defun cash-menu (kind id filter disabled)
-  (anchor-menu (crud-actions-spec (apply #'cash        kind :id id filter)
-                                  (apply #'cash/create kind filter)
-                                  (apply #'cash/update kind :id id filter)
-                                  (apply #'cash/delete kind :id id filter))
-               :id "cash-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun cash-filters (kind filter)
+  (filters-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
+                    (expense ,(apply #'cash "expense" filter) "Έξοδα"))
+                  kind))
+
+(defun cash-subnavbar (op kind filter)
+  (let ((search (getf filter :search)))
+    (with-html
+      (:div :class "section-subnavbar grid_12"
+            (if (member op '(:catalogue :delete))
+                (cash-filters kind search)
+                (htm (:div :class "options"
+                           (:ul (:li (:a :href (apply #'cash filter)
+                                         "Κατάλογος"))))))
+            (searchbox #'(lambda () (cash kind))
+                       search
+                       :hidden (remove-from-plist filter :search))))))
 
 
 
@@ -249,12 +252,13 @@
      (id        integer chk-tx-id))
   (with-view-page
     (check-cash-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :catalogue)
+           (filter (params->filter))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :id "cash-tx-table"
                                          :kind kind
-                                         :op :read
+                                         :op op
                                          :filter filter)))
       (with-document ()
         (:head
@@ -264,21 +268,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (:div :class "window grid_10"
+               (cash-subnavbar op kind filter)
+               (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cash-menu kind
-                                (val id)
-                                filter
-                                (if (val id)
-                                    '(:read)
-                                    '(:read :details :update :delete)))
+                     (cash-actions op kind (val id) filter)
                      (display cash-tx-table
                               :key (val id)
                               :payload nil
                               :start (val start)))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (lambda () (cash kind)) (val search))
-                     (cash-filters kind (val search)))
                (footer)))))))
 
 
@@ -297,10 +294,11 @@
      (account-id  integer chk-acc-id))
   (with-view-page
     (check-cash-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :create)
+           (filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
-                                     :op :create
+                                     :op op
                                      :record nil
                                      :cancel-url (apply #'cash kind filter)))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Δημιουργία")))
@@ -312,12 +310,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
+               (cash-subnavbar op kind filter)
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cash-menu kind
-                                nil
-                                filter
-                                '(:create :update :delete))
+                     (cash-actions op kind nil filter)
                      (notifications)
                      (with-form (actions/cash/create kind :search (val search))
                        (display cash-form :payload (params->payload)
@@ -368,10 +364,11 @@
      (account-id  integer chk-acc-id t))
   (with-view-page
     (check-cash-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
-                                     :op :update
+                                     :op op
                                      :record (get-record 'tx (val id))
                                      :cancel-url (apply #'cash kind :id (val id) filter)))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Επεξεργασία")))
@@ -383,12 +380,10 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
+               (cash-subnavbar op kind filter)
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cash-menu kind
-                                nil
-                                filter
-                                '(:create :update :delete))
+                     (cash-actions op kind (val id) filter)
                      (notifications)
                      (with-form (actions/cash/update kind
                                                      :id (val id)
@@ -437,10 +432,11 @@
      (search string))
   (with-view-page
     (check-cash-accounts)
-    (let* ((filter (params->filter))
+    (let* ((op :delete)
+           (filter (params->filter))
            (page-title (conc "Μετρητά » " (cash-page-title kind) " » Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
-                                         :op :delete
+                                         :op op
                                          :kind kind
                                          :filter filter)))
       (with-document ()
@@ -451,20 +447,15 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (:div :id "cash-window" :class "window grid_10"
+               (cash-subnavbar op kind filter)
+               (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cash-menu kind
-                                (val id)
-                                filter
-                                '(:read :delete))
+                     (cash-actions op kind (val id) filter)
                      (with-form (actions/cash/delete kind
                                                      :id (val id)
                                                      :search (val search))
                        (display cash-tx-table
                                 :key (val id))))
-               (:div :id "sidebar" :class "sidebar grid_2"
-                     (searchbox (lambda () (cash kind)) (val search))
-                     (cash-filters kind (val search)))
                (footer)))))))
 
 (defpage cash-page actions/cash/delete
