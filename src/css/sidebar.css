@@ -63,9 +63,14 @@
 
 
 .section-navbar ul li a:hover {
-    /* background-color: #567; */
     color: black;
 }
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Section SUB-navbar */
+/* ---------------------------------------------------------------------- */
 
 .section-subnavbar button {
     line-height: 19px;
@@ -94,14 +99,17 @@
 
 .section-subnavbar button[type="submit"] {
     width: 25px;
-    margin: 0px -4px 0px 6px;
+    margin: 0px -2px 0px 6px;
 }
 
-.section-subnavbar button[type="button"] {
-    width: 25px;
-    margin: 0px -2px 0px 0px;
-}
+/* .section-subnavbar a.cancel { */
+/*     background-color: transparent; */
+/*     padding: 0px; */
+/* } */
 
+.section-subnavbar a.cancel img {
+    padding: 2px 4px;
+}
 
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +126,7 @@
     margin: 0px 0px 0px 10px;
 }
 
-.filters a, .filters span {
+.filters ul li a, .filters ul li span {
     margin-right: 10px;
     padding: 0px 7px;
     text-decoration: none;
@@ -127,12 +135,12 @@
     border-radius: 3px;
 }
 
-.filters a {
+.filters ul li a {
     color: #ddd;
     background-color: #456;
 }
 
-.filters a:hover, .filters span {
+.filters ul li a:hover, .filters ul li span {
     color: #fff;
     background-color: #678;
 }

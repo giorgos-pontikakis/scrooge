@@ -148,8 +148,8 @@
           (if (member op '(:catalogue :delete))
               (project-filters cstate search)
               (htm (:div :class "options"
-                         (:a :href (project :id id :cstate cstate :search search)
-                             "Κατάλογος"))))
+                         (:ul (:li (:a :href (project :id id :cstate cstate :search search)
+                                       "Κατάλογος"))))))
           (searchbox #'project
                      search
                      :hidden `(:cstate ,cstate)

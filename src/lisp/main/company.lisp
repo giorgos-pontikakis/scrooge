@@ -157,7 +157,7 @@
           (if (member op '(:catalogue :delete))
               (company-filters search)
               (htm (:div :class "options"
-                         (:a :href (company :search search) "Κατάλογος"))))
+                         (:ul (:li (:a :href (company :search search) "Κατάλογος"))))))
           (searchbox #'company
                      search
                      :css-class "ac-company"))))

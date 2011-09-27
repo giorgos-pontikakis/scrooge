@@ -181,8 +181,10 @@
                     (input-text 'search :id "search-input"
                                         :value term
                                         :css-class css-class)
-                    (:button :type "submit" (img "magnifier.png"))
-                    (:a :href (apply submit-fn hidden) (img "cross.png")))))
+                    (:button :type "submit"
+                             (img "magnifier.png"))
+                    (:a :class "cancel"
+                        :href (apply submit-fn hidden) (img "cross.png")))))
         :hidden hidden))
 
 (defun filters-navbar (spec &optional active)

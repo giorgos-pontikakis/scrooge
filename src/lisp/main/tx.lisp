@@ -82,8 +82,7 @@
           (searchbox #'tx
                      (getf filter :search)
                      :css-class "ac-company"
-                     :hidden (plist-map-vals #'parse-date
-                                             (remove-from-plist filter :search))))))
+                     :hidden (remove-from-plist filter :search)))))
 
 (defun tx-filters (active-p filter)
   (declare (ignore active-p))
@@ -98,7 +97,8 @@
                       (input-text 'until :value (getf filter :until)
                                          :css-class "datepicker")
                       (:button :type "submit" (img "tick.png"))
-                      (:a :href (apply #'tx (remove-from-plist filter :since :until))
+                      (:a :class "cancel"
+                          :href (apply #'tx (remove-from-plist filter :since :until))
                           (img "cross.png"))))
                 :hidden filter))))
 
@@ -142,9 +142,9 @@
                   (:ilike debit-acc.title ,(ilike search))
                   (:ilike credit-acc.title ,(ilike search)))
             where))
-    (when since
+    (when (and since (not (eql since :null)))
       (push `(:< ,since tx-date) where))
-    (when until
+    (when (and until (not (eql until :null)))
       (push `(:< tx-date ,until) where))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
                            (:desc tx-date))))
