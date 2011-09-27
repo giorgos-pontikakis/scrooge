@@ -68,7 +68,6 @@
 }
 
 .section-subnavbar button {
-    width: 25px;
     line-height: 19px;
     vertical-align: baseline;
     border: none;
@@ -105,7 +104,7 @@
 
 .filters ul {
     line-height: 23px;
-    margin: 10px;
+    margin: 0px 0px 0px 10px;
 }
 
 .filters a, .filters span {
@@ -162,8 +161,19 @@
 #searchbox {
     float: right;
     color: #fff;
+    margin-right: 5px;
 }
 
 .search input {
     width: 200px;
+}
+
+button[type="submit"] {
+    width: 25px;
+    margin: 0px -4px 0px 6px;
+}
+
+button[type="button"] {
+    width: 25px;
+    margin: 0px -2px 0px 0px;
 }

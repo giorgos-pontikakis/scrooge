@@ -94,7 +94,8 @@
                 (label 'since "Εώς: ")
                 (input-text 'until :value until
                                    :css-class "datepicker")
-                (submit "Go"))))))
+                (:button :type "submit" (img "tick.png"))
+                (:button :type "button" (img "cross.png")))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -130,7 +131,9 @@
          (composite-query (if search
                               (append base-query
                                       `(:where (:or (:ilike description ,(ilike search))
-                                                    (:ilike company.title ,(ilike search)))))
+                                                    (:ilike company.title ,(ilike search))
+                                                    (:ilike debit-acc.title ,(ilike search))
+                                                    (:ilike credit-acc.title ,(ilike search)))))
                               base-query))
          (final-query `(:order-by ,composite-query (:desc tx-date))))
     (with-db ()

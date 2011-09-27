@@ -1,11 +1,12 @@
 $(document).ready(function () {
-                      applyAutocomplete();
-                      applyDatepicker();
-                     $("#search-reset").click(function () {
-                                                 $("#search-input").val(""); 
-                                                 $("#search-form").trigger("submit");
-                                              });
-                  });
+   applyAutocomplete();
+   applyDatepicker();
+   $(".section-subnavbar button[type='button']").click(function () {
+      $(this).siblings("input").val("");
+      $(this).parents("form").trigger("submit");
+   });
+
+});
 
 function applyDatepicker () {
    $.datepicker.setDefaults({dateFormat: "dd/mm/yy"});
@@ -15,7 +16,7 @@ function applyDatepicker () {
 function applyAutocomplete () {
    var id, table, col, source;
    var options = {minLength: 2};
-   var autocompleteIDs = ["company", 
+   var autocompleteIDs = ["company",
                           ["occupation", "company", "occupation"],
                           ["project", "project", "description"],
                           "tof", "city", "bank", "account",
@@ -35,4 +36,3 @@ function applyAutocomplete () {
       $(".ac-" + id).autocomplete(options);
    }
 }
-

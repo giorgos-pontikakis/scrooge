@@ -181,13 +181,9 @@
                     (input-text 'search :id "search-input"
                                         :value term
                                         :css-class css-class)
-                    (submit (html ()
-                              (img "magnifier.png")))
-                    (:button :type "button"
-                             :id "search-reset"
-                             (img "cross.png")))))
-        :hidden hidden
-        :id "search-form"))
+                    (:button :type "submit" (img "magnifier.png"))
+                    (:button :type "button" (img "cross.png")))))
+        :hidden hidden))
 
 (defun filters-navbar (spec &optional active)
   (with-html
