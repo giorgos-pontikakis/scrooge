@@ -92,6 +92,17 @@
     border-radius: 4px;
 }
 
+.section-subnavbar button[type="submit"] {
+    width: 25px;
+    margin: 0px -4px 0px 6px;
+}
+
+.section-subnavbar button[type="button"] {
+    width: 25px;
+    margin: 0px -2px 0px 0px;
+}
+
+
 
 /* ---------------------------------------------------------------------- */
 /* Section sub-navbar */
@@ -137,7 +148,7 @@
 .options {
     float: left;
     line-height: 23px;
-    margin: 10px;
+    margin: 0px 0px 0px 10px;
 }
 
 .options a {
@@ -166,14 +177,4 @@
 
 .search input {
     width: 200px;
-}
-
-button[type="submit"] {
-    width: 25px;
-    margin: 0px -4px 0px 6px;
-}
-
-button[type="button"] {
-    width: 25px;
-    margin: 0px -2px 0px 0px;
 }
