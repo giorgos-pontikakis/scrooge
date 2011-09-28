@@ -85,11 +85,11 @@
                                          (apply #'config/tof/delete :id id filter)))
                   (crud-actions-enabled/disabled op id))))
 
-(defun tof-subnavbar (search)
+(defun tof-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (searchbox #'config/tof
-                     search
+                     filter
                      :css-class "ac-tof"))))
 
 
@@ -157,7 +157,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar (val search))
+               (tof-subnavbar filter)
                (:div :id "tof-window" :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (tof-actions op (val id) filter)
@@ -187,7 +187,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar (val search))
+               (tof-subnavbar filter)
                (:div :id "tof-window" :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (tof-actions op nil filter)
@@ -229,7 +229,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar (val search))
+               (tof-subnavbar filter)
                (:div :id "tof-window" :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (tof-actions op (val id) filter)
@@ -273,7 +273,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar (val search))
+               (tof-subnavbar filter)
                (:div :id "tof-window" :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (tof-actions op (val id) filter)

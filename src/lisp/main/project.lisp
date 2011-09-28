@@ -133,27 +133,26 @@
                                            (apply #'project/delete :id id filter))
                 (crud+details-actions-enabled/disabled op id)))
 
-(defun project-filters (cstate search)
-  (filters-navbar `((nil      ,(project :search search)                    "Όλα")
-                    (quoted   ,(project :search search :cstate "quoted")   "Προσφορές")
-                    (ongoing  ,(project :search search :cstate "ongoing")  "Σε εξέλιξη")
-                    (finished ,(project :search search :cstate "finished") "Ολοκληρωμένα")
-                    (archived ,(project :search search :cstate "archived") "Αρχειοθετημένα")
-                    (canceled ,(project :search search :cstate "canceled") "Άκυρα"))
-                  cstate))
+(defun project-filters (filter)
+  (let ((filter* (remove-from-plist filter :cstate)))
+    (:div :class "filters"
+          (filters-navbar `((nil      ,(project         )                           "Όλα")
+                            (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
+                            (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
+                            (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
+                            (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
+                            (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
+                          (getf filter :cstate)))))
 
-(defun project-subnavbar (op cstate search)
+(defun project-subnavbar (op filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (if (member op '(:catalogue :delete))
-              (project-filters cstate search)
+              (project-filters filter)
               (htm (:div :class "options"
-                         (:ul (:li (:a :href (project :cstate cstate :search search)
+                         (:ul (:li (:a :href (apply #'project filter)
                                        "Κατάλογος"))))))
-          (searchbox #'project
-                     search
-                     :hidden `(:cstate ,cstate)
-                     :css-class "ac-project"))))
+          (searchbox #'project filter "ac-project"))))
 
 
 
@@ -327,7 +326,7 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'project)
-                   (project-subnavbar op (val cstate) (val search))
+                   (project-subnavbar op filter)
                    (:div :id "project-window" :class "window grid_12"
                          (:div :class "title" "Κατάλογος")
                          (project-actions op (val id) filter)
@@ -361,7 +360,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val cstate) (val search))
+               (project-subnavbar op filter)
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Λεπτομέρειες")
                      (project-actions op (val id) filter)
@@ -407,7 +406,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val cstate) (val search))
+               (project-subnavbar op filter)
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (project-actions op nil filter)
@@ -487,7 +486,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val cstate) (val search))
+               (project-subnavbar op filter)
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Επεξεργασία")
                      (project-actions op (val id) filter)
@@ -558,7 +557,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op (val cstate) (val search))
+               (project-subnavbar op filter)
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Έργο » Διαγραφή")
                      (project-actions op (val id) filter)

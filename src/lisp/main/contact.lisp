@@ -174,7 +174,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details (val id) (val search))
+               (company-subnavbar :details filter)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (company-actions :details (val id) filter)
@@ -230,7 +230,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details (val id) (val search))
+               (company-subnavbar :details filter)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (company-actions :details (val id) filter)
@@ -285,7 +285,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details (val id) (val search))
+               (company-subna vbar :details filter)
                (:div :id "company-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (company-actions :details (val id) filter)

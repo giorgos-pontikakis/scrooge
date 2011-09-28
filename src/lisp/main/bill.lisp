@@ -178,7 +178,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar :details (val id) (val cstate) (val search))
+               (project-subnavbar :details filter)
                (:div :id "project-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (project-actions :details (val id) filter)
@@ -238,7 +238,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar :details (val id) (val cstate) (val search))
+               (project-subnavbar :details filter)
                (:div :id "project-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (project-actions :details (val id) filter)
@@ -296,7 +296,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar :details (val id) (val cstate) (val search))
+               (project-subnavbar :details filter)
                (:div :id "project-window" :class "window grid_6"
                      (:div :class "title" "Λεπτομέρειες")
                      (project-actions :details (val id) filter)

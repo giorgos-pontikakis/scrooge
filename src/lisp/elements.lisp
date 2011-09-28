@@ -170,30 +170,49 @@
                (:li :class "invisible" "No available action."))))))
 
 
-;;; searchbox
-
-(defun searchbox (submit-fn term &key hidden css-class)
-  (form (funcall submit-fn)
-        (html ()
-          (:div :id "searchbox"
-                (:p :class "search"
-                    "Αναζήτηση: "
-                    (input-text 'search :id "search-input"
-                                        :value term
-                                        :css-class css-class)
-                    (:button :type "submit"
-                             (img "magnifier.png"))
-                    (:a :class "cancel"
-                        :href (apply submit-fn hidden) (img "cross.png")))))
-        :hidden hidden))
+;;; filters
 
 (defun filters-navbar (spec &optional active)
-  (with-html
-    (:div :id "filters" :class "filters"
-          (navbar spec
-                  :css-class "hnavbar"
-                  :active active
-                  :test #'string-equal))))
+  (navbar spec
+          :css-class "hnavbar"
+          :active active
+          :test #'string-equal))
+
+(defun searchbox (submit-fn filter &optional css-class)
+  (let ((hidden (remove-from-plist filter :search))
+        (term (getf filter :search)))
+    (form (funcall submit-fn)
+          (html ()
+            (:div :id "searchbox"
+                  (:p :class "search"
+                      "Αναζήτηση: "
+                      (input-text 'search :id "search-input"
+                                          :value term
+                                          :css-class css-class)
+                      (:button :type "submit"
+                               (img "magnifier.png"))
+                      (:a :class "cancel"
+                          :href (apply submit-fn hidden)
+                          (img "cross.png")))))
+          :hidden hidden)))
+
+(defun datebox (submit-fn filter)
+  (let ((hidden (remove-from-plist filter :since :until)))
+    (form (funcall submit-fn)
+          (html ()
+            (:p (label 'since "Από: ")
+                (input-text 'since :value (getf filter :since)
+                                   :css-class "datepicker")
+                (label 'since "Εώς: ")
+                (input-text 'until :value (getf filter :until)
+                                   :css-class "datepicker")
+                (:button :type "submit"
+                         (img "tick.png"))
+                (:a :class "cancel"
+                    :href (apply submit-fn hidden)
+                    (img "cross.png"))))
+          :hidden hidden)))
+
 
 
 ;;; label-input-text for forms

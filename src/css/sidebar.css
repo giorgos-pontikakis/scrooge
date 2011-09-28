@@ -102,13 +102,9 @@
     margin: 0px -2px 0px 6px;
 }
 
-/* .section-subnavbar a.cancel { */
-/*     background-color: transparent; */
-/*     padding: 0px; */
-/* } */
-
 .section-subnavbar a.cancel img {
-    padding: 2px 4px;
+    padding: 0px 4px;
+    vertical-align: middle;
 }
 
 
@@ -119,6 +115,7 @@
 .filters {
     color: #fff;
     float: left;
+    width: 590px;
 }
 
 .filters ul {

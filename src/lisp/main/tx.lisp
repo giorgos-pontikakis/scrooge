@@ -70,7 +70,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defun tx-actions (op id filter)
-  (let ((auto-p (auto (get-dao 'tx id))))
+  (let ((auto-p (if id (auto (get-dao 'tx id)) nil)))
     (actions-menu (crud-actions-spec (apply #'tx/create filter)
                                      (if auto-p
                                          nil
@@ -84,27 +84,13 @@
   (with-html
     (:div :class "section-subnavbar grid_12"
           (tx-filters filter)
-          (searchbox #'tx
-                     (getf filter :search)
-                     :css-class "ac-company"
-                     :hidden (remove-from-plist filter :search)))))
+          (searchbox #'tx filter "ac-company"))))
+
 
 (defun tx-filters (filter)
   (with-html
     (:div :class "filters"
-          (form (tx)
-                (html ()
-                  (:p (label 'since "Από: ")
-                      (input-text 'since :value (getf filter :since)
-                                         :css-class "datepicker")
-                      (label 'since "Εώς: ")
-                      (input-text 'until :value (getf filter :until)
-                                         :css-class "datepicker")
-                      (:button :type "submit" (img "tick.png"))
-                      (:a :class "cancel"
-                          :href (apply #'tx (remove-from-plist filter :since :until))
-                          (img "cross.png"))))
-                :hidden filter))))
+          (datebox #'tx filter))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -119,7 +105,7 @@
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
                                             :css-class "paginator")))
-  (:default-initargs :item-class 'tx-row :id "tx-table"))
+  (:default-initargs :item-class 'tx-row :id "tx-tanble"))
 
 (defmethod get-records ((table tx-table))
   (let* ((search (getf (filter table) :search))
@@ -147,9 +133,9 @@
                   (:ilike credit-acc.title ,(ilike search)))
             where))
     (when (and since (not (eql since :null)))
-      (push `(:< ,since tx-date) where))
+      (push `(:<= ,since tx-date) where))
     (when (and until (not (eql until :null)))
-      (push `(:< tx-date ,until) where))
+      (push `(:<= tx-date ,until) where))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
                            (:desc tx-date))))
       (with-db ()
@@ -413,8 +399,7 @@
 (defmethod get-record ((type (eql 'tx)) id)
   (declare (ignore type))
   (with-db ()
-    (query (:select 'tx.id
-                    (:as 'tx-date 'date)
+    (query (:select 'tx.id 'tx-date
                     (:as 'company.title 'company)
                     'description
                     (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)

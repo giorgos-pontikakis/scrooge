@@ -84,11 +84,11 @@
                                        (apply #'config/city/delete :id id filter)))
                 (crud-actions-enabled/disabled op id)))
 
-(defun city-subnavbar (search)
+(defun city-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (searchbox #'config/city
-                     search
+                     filter
                      :css-class "ac-city"))))
 
 ;;; ------------------------------------------------------------
@@ -154,7 +154,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar (val search))
+               (city-subnavbar filter)
                (:div :id "city-window" :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (city-actions op (val id) filter)
@@ -185,7 +185,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar (val search))
+               (city-subnavbar filter)
                (:div :id "city-window" :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (city-actions op nil filter)
@@ -227,7 +227,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar (val search))
+               (city-subnavbar filter)
                (:div :id "city-window" :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (city-actions op (val id) filter)
@@ -271,7 +271,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar (val search))
+               (city-subnavbar filter)
                (:div :id "city-window" :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (city-actions op (val id) filter)

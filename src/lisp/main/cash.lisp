@@ -85,15 +85,16 @@
 (defmethod get-records ((table cash-tx-table))
   (flet ((acc-kind (kind)
            (cond ((string-equal kind "revenue")
-                  `(debit-acc-id *cash-acc-id*))
+                  `(debit-acc-id ,*cash-acc-id*))
                  ((string-equal kind "expense")
-                  `(credit-acc-id *cash-acc-id*))
+                  `(credit-acc-id ,*cash-acc-id*))
                  (t
                   (error "internal error in acc-kind")))))
     (let* ((search (getf (filter table) :search))
+           (since (getf (filter table) :since))
+           (until (getf (filter table) :until))
            (kind (kind table))
-           (base-query `(:select tx.id
-                                 tx-date
+           (base-query `(:select tx.id tx-date
                                  (:as company.title company)
                                  description amount
                          :from tx
@@ -105,9 +106,9 @@
                     (:ilike company.title ,(ilike search)))
               where))
       (when (and since (not (eql since :null)))
-        (push `(:< ,since tx-date) where))
+        (push `(:<= ,since tx-date) where))
       (when (and until (not (eql until :null)))
-        (push `(:< tx-date ,until) where))
+        (push `(:<= tx-date ,until) where))
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(acc-kind kind))
                                                  ,@where))
@@ -185,22 +186,27 @@
                 (crud-actions-enabled/disabled op id)))
 
 (defun cash-filters (kind filter)
-  (filters-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
-                    (expense ,(apply #'cash "expense" filter) "Έξοδα"))
-                  kind))
+  (with-html
+    (:div :class "filters"
+          (filters-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
+                            (expense ,(apply #'cash "expense" filter) "Έξοδα"))
+                          kind)
+          (datebox (lambda (&rest args)
+                     (apply #'cash kind args))
+                   filter))))
 
 (defun cash-subnavbar (op kind filter)
-  (let ((search (getf filter :search)))
-    (with-html
-      (:div :class "section-subnavbar grid_12"
-            (if (member op '(:catalogue :delete))
-                (cash-filters kind search)
-                (htm (:div :class "options"
-                           (:ul (:li (:a :href (apply #'cash kind filter)
-                                         "Κατάλογος"))))))
-            (searchbox #'(lambda () (cash kind))
-                       search
-                       :hidden (remove-from-plist filter :search))))))
+  (with-html
+    (:div :class "section-subnavbar grid_12"
+          (if (member op '(:catalogue :delete))
+              (cash-filters kind filter)
+              (htm (:div :class "options"
+                         (:ul (:li (:a :href (apply #'cash kind filter)
+                                       "Κατάλογος"))))))
+
+          (searchbox #'(lambda (&rest args)
+                         (apply #'cash kind args))
+                     filter))))
 
 
 
@@ -228,16 +234,13 @@
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" "ac-company")
                   (display lit 'amount "Ποσό")
-                  (:div :class "data-form-buttons"
-                        (if disabled
-                            (cancel-button (cancel-url form)
-                                           :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
-                            (progn
-                              (ok-button :body (if (eql (op form) :update)
-                                                   "Ανανέωση"
-                                                   "Δημιουργία"))
-                              (cancel-button (cancel-url form)
-                                             :body "Άκυρο")))))
+                  (unless disabled
+                    (htm (:div :class "data-form-buttons"
+                               (ok-button :body (if (eql (op form) :update)
+                                                    "Ανανέωση"
+                                                    "Δημιουργία"))
+                               (cancel-button (cancel-url form)
+                                              :body "Άκυρο")))))
             (:div :class "grid_6 omega"
                   (label 'account-id (conc "Λογαριασμός "
                                            (if revenues-p "εσόδων" "εξόδων")))
@@ -377,7 +380,7 @@
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
-     (account-id  integer chk-acc-id t))
+     (account-id  integer chk-acc-id))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :update)

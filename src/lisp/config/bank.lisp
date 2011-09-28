@@ -84,11 +84,11 @@
                                        (apply #'config/bank/delete :id id filter)))
                 (crud-actions-enabled/disabled op id)))
 
-(defun bank-subnavbar (search)
+(defun bank-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (searchbox #'config/bank
-                     search
+                     filter
                      :css-class "ac-bank"))))
 
 
@@ -156,7 +156,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar (val search))
+               (bank-subnavbar filter)
                (:div :id "bank-window" :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (bank-actions op (val id) filter)
@@ -187,7 +187,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar (val search))
+               (bank-subnavbar filter)
                (:div :id "bank-window" :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (bank-actions op nil filter)
@@ -229,7 +229,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar (val search))
+               (bank-subnavbar filter)
                (:div :id "bank-window" :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (bank-actions op (val id) filter)
@@ -273,7 +273,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar (val search))
+               (bank-subnavbar filter)
                (:div :id "bank-window" :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (bank-actions op (val id) filter)

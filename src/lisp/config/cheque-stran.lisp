@@ -117,9 +117,10 @@
                 (crud-actions-enabled/disabled op id)))
 
 (defun cheque-stran-filters (kind)
-  (filters-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
-                    (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
-                  (intern (string-upcase kind))))
+  (:div :class "filters"
+        (filters-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
+                          (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
+                        (intern (string-upcase kind)))))
 
 (defun cheque-stran-subnavbar (kind)
   (with-html

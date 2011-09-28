@@ -92,9 +92,10 @@
                  (t
                   (error "internal error in acc-kind")))))
     (let* ((search (getf (filter table) :search))
+           (since (getf (filter table) :since))
+           (until (getf (filter table) :until))
            (kind (kind table))
-           (base-query `(:select tx.id
-                                 (:as tx-date date)
+           (base-query `(:select tx.id tx-date
                                  (:as company.title company)
                                  description amount
                          :from tx
@@ -105,15 +106,15 @@
         `(:or (:ilike description ,(ilike search))
               (:ilike company.title ,(ilike search))))
       (when (and since (not (eql since :null)))
-        (push `(:< ,since tx-date) where))
+        (push `(:<= ,since tx-date) where))
       (when (and until (not (eql until :null)))
-        (push `(:< tx-date ,until) where))
+        (push `(:<= tx-date ,until) where))
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(acc-kind kind))
                                                  ,@where))
                              (:desc tx-date))))
         (with-db ()
-          (query (sql-compile final-query)
+          (query (sql-compile sql)
                  :plists))))))
 
 
@@ -185,9 +186,14 @@
                 (crud-actions-enabled/disabled op id)))
 
 (defun invoice-filters (kind filter)
-  (filters-navbar `((receivable ,(apply #'invoice "receivable" filter) "Προς είσπραξη")
-                    (payable ,(apply #'invoice "payable" filter) "Προς πληρωμή"))
-                  kind))
+  (with-html
+    (:div :class "filters"
+          (filters-navbar `((receivable ,(apply #'invoice "receivable" filter) "Προς είσπραξη")
+                            (payable ,(apply #'invoice "payable" filter) "Προς πληρωμή"))
+                          kind)
+          (datebox (lambda (&rest args)
+                     (apply #'invoice kind args))
+                   filter))))
 
 (defun invoice-subnavbar (op kind filter)
   (with-html
@@ -197,10 +203,10 @@
               (htm (:div :class "options"
                          (:ul (:li (:a :href (apply #'invoice kind filter)
                                        "Κατάλογος"))))))
-          (searchbox (lambda () (invoice kind))
-                     (getf filter :search)
-                     :css-class "ac-company"
-                     :hidden (remove-from-plist filter :search)))))
+          (searchbox #'(lambda (&rest args)
+                         (apply #'invoice kind args))
+                     filter
+                     "ac-company"))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -223,20 +229,17 @@
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
             (:div :class "grid_6 alpha"
-                  (display lit 'date "Ημερομηνία" "datepicker")
+                  (display lit 'tx-date "Ημερομηνία" "datepicker")
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" "ac-company")
                   (display lit 'amount "Ποσό")
-                  (:div :class "data-form-buttons"
-                        (if disabled
-                            (cancel-button (cancel-url form)
-                                           :body "Επιστροφή στον Κατάλογο Συναλλαγών Μετρητών")
-                            (progn
-                              (ok-button :body (if (eql (op form) :update)
-                                                   "Ανανέωση"
-                                                   "Δημιουργία"))
-                              (cancel-button (cancel-url form)
-                                             :body "Άκυρο")))))
+                  (unless disabled
+                    (htm (:div :class "data-form-buttons"
+                               (ok-button :body (if (eql (op form) :update)
+                                                    "Ανανέωση"
+                                                    "Δημιουργία"))
+                               (cancel-button (cancel-url form)
+                                              :body "Άκυρο")))))
             (:div :class "grid_6 omega"
                   (label 'account-id (conc "Λογαριασμός "
                                            (if receivable-p "εσόδων" "εξόδων")))
@@ -377,7 +380,7 @@
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
-     (account-id  integer chk-acc-id t))
+     (account-id  integer chk-acc-id))
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :update)
