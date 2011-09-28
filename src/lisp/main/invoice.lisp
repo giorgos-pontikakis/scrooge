@@ -75,7 +75,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass invoice-tx-table (tx-table)
-  ((kind :accessor kind :initarg :kind)
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
+   (kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :css-class "paginator")))
   (:default-initargs :item-class 'invoice-tx-row))
@@ -189,7 +190,7 @@
           (if (member op '(:catalogue :delete))
               (invoice-filters kind filter)
               (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'invoice filter)
+                         (:ul (:li (:a :href (apply #'invoice kind filter)
                                        "Κατάλογος"))))))
           (searchbox (lambda () (invoice kind))
                      (getf filter :search)

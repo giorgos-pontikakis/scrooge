@@ -14,3 +14,7 @@
 #login-form input {
     width: 288px;
 }
+
+#login-form button {
+    padding: 5px;
+}

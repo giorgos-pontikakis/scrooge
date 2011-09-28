@@ -109,12 +109,12 @@
 ;;; table
 
 (defclass tx-table (scrooge-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
-                               "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό"))
+  ((header-labels  :initform '("" "Ημ/νία" "Εταιρία" "Περιγραφή"
+                               "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
                                             :css-class "paginator")))
-  (:default-initargs :item-class 'tx-row))
+  (:default-initargs :item-class 'tx-row :id "tx-table"))
 
 (defmethod get-records ((table tx-table))
   (let* ((search (getf (filter table) :search))
@@ -404,6 +404,28 @@
 ;;; TX form
 ;;; ----------------------------------------------------------------------
 
+(defmethod get-record ((type (eql 'tx)) id)
+  (declare (ignore type))
+  (with-db ()
+    (query (:select 'tx.id
+                    (:as 'tx-date 'date)
+                    (:as 'company.title 'company)
+                    'description
+                    (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
+                    (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
+                    'tx.debit-acc-id
+                    'tx.credit-acc-id
+                    'amount
+            :from 'tx
+            :left-join 'company
+            :on (:= 'tx.company-id 'company.id)
+            :left-join (:as 'account 'non-chq-debit-acc)
+            :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
+            :left-join (:as 'account 'non-chq-credit-acc)
+            :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
+            :where (:= 'tx.id id))
+           :plist)))
+
 ;; (defclass tx-form (crud-form/plist)
 ;;   ())
 
@@ -426,28 +448,6 @@
 ;;                 (progn
 ;;                   (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
 ;;                   (cancel-button (cancel-url form) :body "Άκυρο")))))))
-
-;; (defmethod get-record ((type (eql 'tx)) id)
-;;   (declare (ignore type))
-;;   (with-db ()
-;;     (query (:select 'tx.id
-;;                     (:as 'tx-date 'date)
-;;                     (:as 'company.title 'company)
-;;                     'description
-;;                     (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
-;;                     (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
-;;                     'tx.debit-acc-id
-;;                     'tx.credit-acc-id
-;;                     'amount
-;;             :from 'tx
-;;             :left-join 'company
-;;             :on (:= 'tx.company-id 'company.id)
-;;             :left-join (:as 'account 'non-chq-debit-acc)
-;;             :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
-;;             :left-join (:as 'account 'non-chq-credit-acc)
-;;             :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
-;;             :where (:= 'tx.id id))
-;;            :plist)))
 
 
 ;; (defpage tx-page tx/details ("tx/details")

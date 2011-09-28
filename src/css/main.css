@@ -143,3 +143,57 @@
 #cash-data-form li.selected, #invoice-data-form li.selected {
     background-color: transparent;
 }
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Transactions */
+/* ---------------------------------------------------------------------- */
+
+#tx-table td:nth-child(2),
+#tx-table th:nth-child(2) {
+    width: 76px;
+}
+
+#tx-table td:nth-child(2) input {
+    width: 66px;
+}
+
+
+#tx-table td:nth-child(3), #tx-table th:nth-child(3),
+#tx-table td:nth-child(4), #tx-table th:nth-child(4)
+{
+    width: 185px;
+}
+
+#tx-table td:nth-child(3) input,
+#tx-table td:nth-child(4) input {
+    width: 175px;
+}
+
+
+
+#tx-table td:nth-child(5), #tx-table th:nth-child(5),
+#tx-table td:nth-child(6), #tx-table th:nth-child(6)
+{
+    width: 140px;
+}
+
+#tx-table td:nth-child(5) input,
+#tx-table td:nth-child(6) input
+{
+    width: 130px;
+}
+
+
+
+#tx-table td:nth-child(7), #tx-table th:nth-child(7)
+{
+    width: 60px;
+    text-align: right;
+}
+
+#tx-table td:nth-child(7) input {
+    width: 50px;
+    text-align: right;
+}

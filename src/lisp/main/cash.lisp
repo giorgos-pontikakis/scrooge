@@ -74,7 +74,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass cash-tx-table (tx-table)
-  ((kind :accessor kind :initarg :kind)
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
+   (kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :css-class "paginator")))
   (:default-initargs :item-class 'cash-tx-row))
@@ -189,7 +190,7 @@
             (if (member op '(:catalogue :delete))
                 (cash-filters kind search)
                 (htm (:div :class "options"
-                           (:ul (:li (:a :href (apply #'cash filter)
+                           (:ul (:li (:a :href (apply #'cash kind filter)
                                          "Κατάλογος"))))))
             (searchbox #'(lambda () (cash kind))
                        search
