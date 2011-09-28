@@ -73,6 +73,8 @@
 ;;; Cash transactions table
 ;;; ----------------------------------------------------------------------
 
+;;; table
+
 (defclass cash-tx-table (tx-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
@@ -83,9 +85,9 @@
 (defmethod get-records ((table cash-tx-table))
   (flet ((acc-kind (kind)
            (cond ((string-equal kind "revenue")
-                  'debit-acc-id)
+                  `(debit-acc-id *cash-acc-id*))
                  ((string-equal kind "expense")
-                  'credit-acc-id)
+                  `(credit-acc-id *cash-acc-id*))
                  (t
                   (error "internal error in acc-kind")))))
     (let* ((search (getf (filter table) :search))
@@ -97,18 +99,22 @@
                          :from tx
                          :left-join company
                          :on (:= tx.company-id company.id)))
-           (composite-query
-            (if search
-                (append base-query
-                        `(:where (:and (:= ,(acc-kind kind) ,*cash-acc-id*)
-                                       (:or (:ilike description ,(ilike search))
-                                            (:ilike company.title ,(ilike search))))))
-                (append base-query
-                        `(:where (:or (:= ,(acc-kind kind) ,*cash-acc-id*))))))
-           (final-query `(:order-by ,composite-query (:desc tx-date))))
-      (with-db ()
-        (query (sql-compile final-query)
-               :plists)))))
+           (where nil))
+      (when search
+        (push `(:or (:ilike description ,(ilike search))
+                    (:ilike company.title ,(ilike search)))
+              where))
+      (when (and since (not (eql since :null)))
+        (push `(:< ,since tx-date) where))
+      (when (and until (not (eql until :null)))
+        (push `(:< tx-date ,until) where))
+      (let ((sql `(:order-by (,@base-query :where
+                                           (:and (:= ,@(acc-kind kind))
+                                                 ,@where))
+                             (:desc tx-date))))
+        (with-db ()
+          (query (sql-compile sql)
+                 :plists))))))
 
 
 ;;; rows

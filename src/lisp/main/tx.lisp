@@ -70,10 +70,15 @@
 ;;; ----------------------------------------------------------------------
 
 (defun tx-actions (op id filter)
-  (actions-menu (crud-actions-spec (apply #'tx/create filter)
-                                   (apply #'tx/update :id id filter)
-                                   (apply #'tx/delete :id id filter))
-                (crud-actions-enabled/disabled op id)))
+  (let ((auto-p (auto (get-dao 'tx id))))
+    (actions-menu (crud-actions-spec (apply #'tx/create filter)
+                                     (if auto-p
+                                         nil
+                                         (apply #'tx/update :id id filter))
+                                     (if auto-p
+                                         nil
+                                         (apply #'tx/delete :id id filter)))
+                  (crud-actions-enabled/disabled op id))))
 
 (defun tx-subnavbar (filter)
   (with-html

@@ -74,6 +74,8 @@
 ;;; Invoice transactions table
 ;;; ----------------------------------------------------------------------
 
+;;; table
+
 (defclass invoice-tx-table (tx-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
@@ -98,18 +100,21 @@
                          :from tx
                          :left-join company
                          :on (:= tx.company-id company.id)))
-           (composite-query
-            (if search
-                (append base-query
-                        `(:where (:and (:= ,@(acc-kind kind))
-                                       (:or (:ilike description ,(ilike search))
-                                            (:ilike company.title ,(ilike search))))))
-                (append base-query
-                        `(:where (:or (:= ,@(acc-kind kind)))))))
-           (final-query `(:order-by ,composite-query (:desc date))))
-      (with-db ()
-        (query (sql-compile final-query)
-               :plists)))))
+           (where nil))
+      (when search
+        `(:or (:ilike description ,(ilike search))
+              (:ilike company.title ,(ilike search))))
+      (when (and since (not (eql since :null)))
+        (push `(:< ,since tx-date) where))
+      (when (and until (not (eql until :null)))
+        (push `(:< tx-date ,until) where))
+      (let ((sql `(:order-by (,@base-query :where
+                                           (:and (:= ,@(acc-kind kind))
+                                                 ,@where))
+                             (:desc tx-date))))
+        (with-db ()
+          (query (sql-compile final-query)
+                 :plists))))))
 
 
 ;;; rows
