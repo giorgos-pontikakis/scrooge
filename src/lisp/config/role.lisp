@@ -43,12 +43,12 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun account-role-menu (id &optional disabled)
-  (anchor-menu `((:catalogue ,(config/account-role :id id)        "Προβολή")
-                 (:update    ,(config/account-role/update :id id) "Επεξεργασία"))
-               :id "option-actions"
-               :css-class "hmenu actions"
-               :disabled disabled))
+(defun account-role-actions (op id)
+  (actions-menu `((:catalogue ,(config/account-role :id id)        "Προβολή")
+                  (:update    ,(config/account-role/update :id id) "Επεξεργασία"))
+                (ecase op
+                  (:update '(nil (:update)))
+                  (:catalogue '(:update (:catalogue))))))
 
 
 
@@ -109,18 +109,19 @@
     ((id      string chk-acc-role-id)
      (account string chk-acc-title))
   (with-view-page
-    (let ((account-role-table (make-instance 'account-role-table :op :catalogue)))
+    (let* ((op :catalogue)
+           (account-role-table (make-instance 'account-role-table :op op)))
       (with-document ()
         (:head
-         (:title "Ρυθμίσεις")
+         (:title "Ρόλοι λογαριασμών » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'account-role)
                (:div :id "bank-window" :class "window grid_12"
-                     (:div :class "title" "Ρυθμίσεις » Γενικά")
-                     (account-role-menu (val id) '(:catalogue))
+                     (:div :class "title" "Κατάλογος")
+                     (account-role-actions op (val id))
                      (display account-role-table :key (val id)))
                (footer)))))))
 
@@ -134,19 +135,20 @@
     ((id      string chk-acc-role-id t)
      (account string chk-acc-title))
   (with-view-page
-    (let ((account-role-table (make-instance 'account-role-table
-                                             :op :update)))
+    (let* ((op :update)
+           (account-role-table (make-instance 'account-role-table
+                                              :op op)))
       (with-document ()
         (:head
-         (:title "Ρυθμίσεις » Επεξεργασία")
+         (:title "Ρόλοι λογαριασμών » Επεξεργασία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'account-role)
                (:div :id "account-role-window" :class "window grid_12"
-                     (:div :class "title" "Ρυθμίσεις » Επεξεργασία")
-                     (account-role-menu (val id) '(:update))
+                     (:div :class "title" "Επεξεργασία")
+                     (account-role-actions op (val id))
                      (with-form (actions/config/account-role/update :id (val id))
                        (display account-role-table :key (val id)
                                                    :payload (params->payload)

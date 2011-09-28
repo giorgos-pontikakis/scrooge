@@ -281,7 +281,8 @@
                                   :company-id company-id
                                   :amount (val amount)
                                   :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id)))
+                                  :debit-acc-id debit-acc-id
+                                  :auto nil)))
       (insert-dao new-tx)
       (see-other (tx :id (tx-id new-tx) :search (val search))))))
 

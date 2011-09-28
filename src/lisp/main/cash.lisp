@@ -12,10 +12,10 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date company description amount account-id))
+    :initform '(tx-date company description amount account-id))
    (filter-parameter-names
     :allocation :class
-    :initform '(search state))
+    :initform '(search since until))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -38,7 +38,7 @@
       (account-id
        (:acc-id-null
         "Δεν έχετε επιλέξει λογαριασμό"))
-      (date
+      (tx-date
        (:parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
@@ -91,7 +91,7 @@
     (let* ((search (getf (filter table) :search))
            (kind (kind table))
            (base-query `(:select tx.id
-                                 (:as tx-date date)
+                                 tx-date
                                  (:as company.title company)
                                  description amount
                          :from tx
@@ -105,7 +105,7 @@
                                             (:ilike company.title ,(ilike search))))))
                 (append base-query
                         `(:where (:or (:= ,(acc-kind kind) ,*cash-acc-id*))))))
-           (final-query `(:order-by ,composite-query (:desc date))))
+           (final-query `(:order-by ,composite-query (:desc tx-date))))
       (with-db ()
         (query (sql-compile final-query)
                :plists)))))
@@ -136,7 +136,7 @@
                              :name name
                              :value (getf record (make-keyword name))
                              :disabled (not enabled-p)))
-            '(date company description amount))))
+            '(tx-date company description amount))))
 
 (defmethod controls ((row cash-tx-row) controls-p)
   (let* ((id (key row))
@@ -218,7 +218,7 @@
     (with-html
       (:div :id "cash-data-form" :class "data-form"
             (:div :class "grid_6 alpha"
-                  (display lit 'date "Ημερομηνία" "datepicker")
+                  (display lit 'tx-date "Ημερομηνία" "datepicker")
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" "ac-company")
                   (display lit 'amount "Ποσό")
@@ -248,14 +248,16 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash (("cash/" (kind "(expense|revenue)")))
-    ((search    string)
-     (start     integer)
-     (id        integer chk-tx-id))
+    ((search string)
+     (start  integer)
+     (since  date)
+     (until  date)
+     (id     integer chk-tx-id))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :catalogue)
            (filter (params->filter))
-           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Κατάλογος"))
+           (page-title (conc (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :id "cash-tx-table"
                                          :kind kind
@@ -288,7 +290,9 @@
 (defpage cash-page cash/create
     (("cash/" (kind "(expense|revenue)") "/create"))
     ((search      string)
-     (date        date)
+     (since       date)
+     (until       date)
+     (tx-date     date)
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
@@ -302,7 +306,7 @@
                                      :op op
                                      :record nil
                                      :cancel-url (apply #'cash kind filter)))
-           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Δημιουργία")))
+           (page-title (conc (cash-page-title kind) " » Δημιουργία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -324,7 +328,9 @@
 (defpage cash-page actions/cash/create
     (("actions/cash/" (kind "(expense|revenue)") "/create") :request-type :post)
     ((search      string)
-     (date        date)
+     (since       date)
+     (until       date)
+     (tx-date     date)
      (company     string  chk-company-title t)
      (description string)
      (amount      float   chk-amount t)
@@ -339,12 +345,13 @@
                               (val account-id)
                               *cash-acc-id*))
            (new-tx (make-instance 'tx
-                                  :tx-date (val date)
+                                  :tx-date (val tx-date)
                                   :description (val description)
                                   :company-id company-id
                                   :amount (val amount)
                                   :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id)))
+                                  :debit-acc-id debit-acc-id
+                                  :auto t)))
       (insert-dao new-tx)
       (see-other (cash kind :id (tx-id new-tx) :search (val search))))))
 
@@ -357,8 +364,10 @@
 (defpage cash-page cash/update
     (("cash/" (kind "(expense|revenue)") "/update"))
     ((search      string)
+     (since       date)
+     (until       date)
      (id          integer chk-tx-id t)
-     (date        date)
+     (tx-date     date)
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
@@ -372,7 +381,7 @@
                                      :op op
                                      :record (get-record 'tx (val id))
                                      :cancel-url (apply #'cash kind :id (val id) filter)))
-           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Επεξεργασία")))
+           (page-title (conc (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -396,8 +405,10 @@
 (defpage cash-page actions/cash/update
     (("actions/cash/" (kind "(expense|revenue)") "/update") :request-type :post)
     ((search      string)
+     (since       date)
+     (until       date)
      (id          integer chk-tx-id         t)
-     (date        date)
+     (tx-date     date)
      (description string)
      (company     string  chk-company-title)
      (amount      float   chk-amount)
@@ -412,7 +423,7 @@
                              (val account-id)
                              *cash-acc-id*)))
       (execute (:update 'tx :set
-                        'tx-date (val date)
+                        'tx-date (val tx-date)
                         'description (val description)
                         'company-id company-id
                         'amount (val amount)
@@ -429,13 +440,15 @@
 
 (defpage cash-page cash/delete
     (("cash/" (kind "(expense|revenue)") "/delete"))
-    ((id     integer chk-tx-id t)
-     (search string))
+    ((search string)
+     (since  date)
+     (until  date)
+     (id     integer chk-tx-id t))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :delete)
            (filter (params->filter))
-           (page-title (conc "Μετρητά » " (cash-page-title kind) " » Διαγραφή"))
+           (page-title (conc (cash-page-title kind) " » Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op op
                                          :kind kind
@@ -462,6 +475,8 @@
 (defpage cash-page actions/cash/delete
     (("actions/cash/" (kind "(expense|revenue)") "/delete") :request-type :post)
     ((search string)
+     (since  date)
+     (until  date)
      (id     integer chk-tx-id t))
   (with-controller-page (cash/delete)
     (check-cash-accounts)

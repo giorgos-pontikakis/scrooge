@@ -12,10 +12,10 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(date company description amount account-id))
+    :initform '(tx-date company description amount account-id))
    (filter-parameter-names
     :allocation :class
-    :initform '(search state))
+    :initform '(search since until))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -38,7 +38,7 @@
       (account-id
        (:acc-id-null
         "Δεν έχετε επιλέξει λογαριασμό"))
-      (date
+      (tx-date
        (:parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
@@ -137,7 +137,7 @@
                              :name name
                              :value (getf record (make-keyword name))
                              :disabled (not enabled-p)))
-            '(date company description amount))))
+            '(tx-date company description amount))))
 
 (defmethod controls ((row invoice-tx-row) controls-p)
   (let* ((id (key row))
@@ -249,13 +249,15 @@
 
 (defpage invoice-page invoice (("invoice/" (kind "(receivable|payable)")))
     ((search    string)
+     (since     date)
+     (until     date)
      (start     integer)
      (id        integer chk-tx-id))
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :catalogue)
            (filter (params->filter))
-           (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Κατάλογος"))
+           (page-title (conc (invoice-page-title kind) " » Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :id "invoice-tx-table"
                                             :kind kind
@@ -288,7 +290,9 @@
 (defpage invoice-page invoice/create
     (("invoice/" (kind  "(receivable|payable)") "/create"))
     ((search      string)
-     (date        date)
+     (since       date)
+     (until       date)
+     (tx-date     date)
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
@@ -302,7 +306,7 @@
                                         :op op
                                         :record nil
                                         :cancel-url (apply #'invoice kind filter)))
-           (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Δημιουργία")))
+           (page-title (conc (invoice-page-title kind) " » Δημιουργία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -325,7 +329,9 @@
     (("actions/invoice/" (kind "(receivable|payable)") "/create")
      :request-type :post)
     ((search      string)
-     (date        date)
+     (since       date)
+     (until       date)
+     (tx-date     date)
      (company     string  chk-company-title t)
      (description string)
      (amount      float   chk-amount t)
@@ -340,12 +346,13 @@
                               (val account-id)
                               *invoice-payable-acc-id*))
            (new-tx (make-instance 'tx
-                                  :tx-date (val date)
+                                  :tx-date (val tx-date)
                                   :description (val description)
                                   :company-id company-id
                                   :amount (val amount)
                                   :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id)))
+                                  :debit-acc-id debit-acc-id
+                                  :auto t)))
       (insert-dao new-tx)
       (see-other (invoice kind :id (tx-id new-tx) :search (val search))))))
 
@@ -358,8 +365,10 @@
 (defpage invoice-page invoice/update
     (("invoice/" (kind "(receivable|payable)") "/update"))
     ((search      string)
+     (since       date)
+     (until       date)
      (id          integer chk-tx-id t)
-     (date        date)
+     (tx-date     date)
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
@@ -373,7 +382,7 @@
                                         :op op
                                         :record (get-record 'tx (val id))
                                         :cancel-url (apply #'invoice kind :id (val id) filter)))
-           (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Επεξεργασία")))
+           (page-title (conc (invoice-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -397,8 +406,10 @@
 (defpage invoice-page actions/invoice/update
     (("actions/invoice/" (kind "(receivable|payable)") "/update") :request-type :post)
     ((search      string)
+     (since       date)
+     (until       date)
      (id          integer chk-tx-id         t)
-     (date        date)
+     (tx-date     date)
      (description string)
      (company     string  chk-company-title)
      (amount      float   chk-amount)
@@ -413,7 +424,7 @@
                              (val account-id)
                              *invoice-payable-acc-id*)))
       (execute (:update 'tx :set
-                        'tx-date (val date)
+                        'tx-date (val tx-date)
                         'description (val description)
                         'company-id company-id
                         'amount (val amount)
@@ -431,12 +442,14 @@
 (defpage invoice-page invoice/delete
     (("invoice/" (kind "(receivable|payable)") "/delete"))
     ((id     integer chk-tx-id t)
-     (search string))
+     (search string)
+     (since  date)
+     (until  date))
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :delete)
            (filter (params->filter))
-           (page-title (conc "Τιμολόγια » " (invoice-page-title kind) " » Διαγραφή"))
+           (page-title (conc (invoice-page-title kind) " » Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :op op
                                             :kind kind
@@ -463,6 +476,8 @@
 (defpage invoice-page actions/invoice/delete
     (("actions/invoice/" (kind "(receivable|payable)") "/delete") :request-type :post)
     ((search string)
+     (since  date)
+     (until  date)
      (id     integer chk-tx-id t))
   (with-controller-page (invoice/delete kind)
     (check-invoice-accounts)
