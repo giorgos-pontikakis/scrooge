@@ -87,9 +87,7 @@
 (defun bank-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (searchbox #'config/bank
-                     filter
-                     :css-class "ac-bank"))))
+          (searchbox #'config/bank filter "ac-bank"))))
 
 
 

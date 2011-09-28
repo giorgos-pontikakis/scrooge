@@ -135,14 +135,15 @@
 
 (defun project-filters (filter)
   (let ((filter* (remove-from-plist filter :cstate)))
-    (:div :class "filters"
-          (filters-navbar `((nil      ,(project         )                           "Όλα")
-                            (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
-                            (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
-                            (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
-                            (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
-                            (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
-                          (getf filter :cstate)))))
+    (with-html
+     (:div :class "filters"
+           (filters-navbar `((nil      ,(project)                                    "Όλα")
+                             (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
+                             (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
+                             (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
+                             (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
+                             (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
+                           (getf filter :cstate))))))
 
 (defun project-subnavbar (op filter)
   (with-html

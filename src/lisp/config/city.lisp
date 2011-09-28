@@ -87,9 +87,7 @@
 (defun city-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (searchbox #'config/city
-                     filter
-                     :css-class "ac-city"))))
+          (searchbox #'config/city filter "ac-city"))))
 
 ;;; ------------------------------------------------------------
 ;;; City table

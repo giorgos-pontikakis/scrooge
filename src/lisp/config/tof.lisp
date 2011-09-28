@@ -88,9 +88,7 @@
 (defun tof-subnavbar (filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (searchbox #'config/tof
-                     filter
-                     :css-class "ac-tof"))))
+          (searchbox #'config/tof filter "ac-tof"))))
 
 
 

@@ -149,8 +149,9 @@
                 (crud+details-actions-enabled/disabled op id)))
 
 (defun company-filters (filter)
-  (:div :class "filters"
-        (filters-navbar `((nil ,(apply #'company filter) "Όλες")))))
+  (with-html
+    (:div :class "filters"
+          (filters-navbar `((nil ,(apply #'company filter) "Όλες"))))))
 
 (defun company-subnavbar (op filter)
   (with-html
@@ -159,9 +160,7 @@
               (company-filters filter)
               (htm (:div :class "options"
                          (:ul (:li (:a :href (apply #'company filter) "Κατάλογος"))))))
-          (searchbox #'company
-                     filter
-                     :css-class "ac-company"))))
+          (searchbox #'company filter "ac-company"))))
 
 
 
