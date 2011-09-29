@@ -24,9 +24,9 @@
 ;;; ------------------------------------------------------------
 
 (defclass usr ()
-  ((username  :col-type (string 128) :accessor username  :initarg :username)
-   (password  :col-type (string 128) :accessor password  :initarg :password)
-   (authgroup :col-type (string 128) :accessor authgroup :initarg :authgroup))
+  ((username  :col-type string :accessor username  :initarg :username)
+   (password  :col-type string :accessor password  :initarg :password)
+   (authgroup :col-type string :accessor authgroup :initarg :authgroup))
   (:metaclass dao-class)
   (:keys username))
 
@@ -69,9 +69,9 @@
 
 
 (defclass account-role ()
-  ((id          :col-type (string 32)  :reader   id)
-   (description :col-type (string 100) :reader   description)
-   (account-id  :col-type integer      :accessor account-id  :initarg :account-id))
+  ((id          :col-type string  :reader   id)
+   (description :col-type string  :reader   description)
+   (account-id  :col-type integer :accessor account-id  :initarg :account-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -96,16 +96,16 @@
 ;;; ------------------------------------------------------------
 
 (defclass company ()
-  ((id         :col-type integer :reader   company-id)
-   (title      :col-type string  :accessor title      :initarg :title)
-   (occupation :col-type string  :accessor occupation :initarg :occupation)
-   (tof-id     :col-type integer :accessor tof-id     :initarg :tof-id)
-   (tin        :col-type string  :accessor tin        :initarg :tin)
-   (address    :col-type string  :accessor address    :initarg :address)
-   (city-id    :col-type integer :accessor city-id    :initarg :city-id)
-   (pobox      :col-type integer :accessor pobox      :initarg :pobox)
-   (zipcode    :col-type integer :accessor zipcode    :initarg :zipcode)
-   (notes      :col-type string  :accessor notes      :initarg :notes))
+  ((id         :col-type integer    :reader   company-id)
+   (title      :col-type string     :accessor title      :initarg :title)
+   (occupation :col-type string     :accessor occupation :initarg :occupation)
+   (tof-id     :col-type integer    :accessor tof-id     :initarg :tof-id)
+   (tin        :col-type (string 9) :accessor tin        :initarg :tin)
+   (address    :col-type string     :accessor address    :initarg :address)
+   (city-id    :col-type integer    :accessor city-id    :initarg :city-id)
+   (pobox      :col-type integer    :accessor pobox      :initarg :pobox)
+   (zipcode    :col-type integer    :accessor zipcode    :initarg :zipcode)
+   (notes      :col-type string     :accessor notes      :initarg :notes))
   (:metaclass dao-class)
   (:keys id))
 
@@ -145,10 +145,10 @@
   (:keys id))
 
 (defclass project-event ()
-  ((id               :accessor id               :initarg :id)
-   (project-id       :accessor project-id       :initarg :project-id)
-   (project-stran-id :accessor project-stran-id :initarg :project-stran-id)
-   (tx-id            :accessor tx-id            :initarg :tx-id))
+  ((id               :col-type integer :reader id)
+   (project-id       :col-type integer :accessor project-id       :initarg :project-id)
+   (project-stran-id :col-type integer :accessor project-stran-id :initarg :project-stran-id)
+   (tx-id            :col-type integer :accessor tx-id            :initarg :tx-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -168,11 +168,11 @@
   (:keys id))
 
 (defclass bill ()
-  ((id         :col-type integer :reader   bill-id)
-   (project-id :col-type integer :accessor project-id :initarg :project-id)
-   (tag        :col-type string  :accessor tag        :initarg :tag)
-   (amount     :col-type string  :accessor amount     :initarg :amount)
-   (rank       :col-type integer :accessor rank       :initarg :rank))
+  ((id         :col-type integer       :reader   bill-id)
+   (project-id :col-type integer       :accessor project-id :initarg :project-id)
+   (tag        :col-type string        :accessor tag        :initarg :tag)
+   (amount     :col-type (numeric 9 2) :accessor amount     :initarg :amount)
+   (rank       :col-type integer       :accessor rank       :initarg :rank))
   (:metaclass dao-class)
   (:keys id))
 
@@ -229,8 +229,8 @@
   ((id            :col-type integer       :reader   tx-id)
    (tx-date       :col-type date          :accessor tx-date       :initarg :tx-date)
    (description   :col-type string        :accessor description   :initarg :description)
-   (debit-acc-id  :col-type string        :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string        :accessor credit-acc-id :initarg :credit-acc-id)
+   (debit-acc-id  :col-type integer       :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type integer       :accessor credit-acc-id :initarg :credit-acc-id)
    (company-id    :col-type integer       :accessor company-id    :initarg :company-id)
    (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount)
    (auto          :col-type boolean       :accessor auto          :initarg :auto))
@@ -240,8 +240,8 @@
 (defclass temtx ()
   ((id            :col-type integer :reader   temtx-id)
    (title         :col-type string  :accessor title         :initarg :title)
-   (debit-acc-id  :col-type string  :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type string  :accessor credit-acc-id :initarg :credit-acc-id))
+   (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
+   (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id))
   (:metaclass dao-class)
   (:keys id))
 
