@@ -62,6 +62,7 @@
         (start-session)
         (setf (session-value 'user) (val user))
         (setf (session-value 'login-time) login-time)
+        (setf (session-max-time *session*) 3600)
         (see-other (or (val target) (home))))
       (see-other (login :user (raw user)))))
 

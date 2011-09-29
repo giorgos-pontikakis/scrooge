@@ -105,7 +105,7 @@
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
                                             :css-class "paginator")))
-  (:default-initargs :item-class 'tx-row :id "tx-tanble"))
+  (:default-initargs :item-class 'tx-row :id "tx-table"))
 
 (defmethod get-records ((table tx-table))
   (let* ((search (getf (filter table) :search))
@@ -160,13 +160,18 @@
                      company "ac-company"
                      non-chq-debit-acc "ac-non-chq-account"
                      non-chq-credit-acc "ac-non-chq-account")))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled (not enabled-p)
-                             :css-class (if enabled-p (getf css-class name) nil)))
-            '(tx-date company description non-chq-debit-acc non-chq-credit-acc amount))))
+    (list* (make-instance 'textbox
+                          :name 'tx-date
+                          :value (or (getf record :tx-date) (today))
+                          :disabled (not enabled-p)
+                          :css-class (if enabled-p (getf css-class 'tx-date) nil))
+           (mapcar (lambda (name)
+                     (make-instance 'textbox
+                                    :name name
+                                    :value (getf record (make-keyword name))
+                                    :disabled (not enabled-p)
+                                    :css-class (if enabled-p (getf css-class name) nil)))
+                   '(company description non-chq-debit-acc non-chq-credit-acc amount)))))
 
 
 ;;; paginator
