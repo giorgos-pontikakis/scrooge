@@ -97,6 +97,7 @@
            (kind (kind table))
            (base-query `(:select tx.id tx-date
                                  (:as company.title company)
+                                 (:as company.id 'company-id)
                                  description amount
                          :from tx
                          :left-join company
@@ -138,12 +139,16 @@
 
 (defmethod payload ((row invoice-tx-row) enabled-p)
   (let ((record (record row)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled (not enabled-p)))
-            '(tx-date company description amount))))
+    (insert-list 1
+                 (html ()
+                   (:a :href (company/details :id (getf record :company-id))
+                       (str (getf record :company))))
+                 (mapcar (lambda (name)
+                           (make-instance 'textbox
+                                          :name name
+                                          :value (getf record (make-keyword name))
+                                          :disabled (not enabled-p)))
+                         '(tx-date description amount)))))
 
 (defmethod controls ((row invoice-tx-row) controls-p)
   (let* ((id (key row))
