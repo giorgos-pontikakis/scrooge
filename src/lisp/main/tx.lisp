@@ -165,13 +165,22 @@
                           :value (or (getf record :tx-date) (today))
                           :disabled (not enabled-p)
                           :css-class (if enabled-p (getf css-class 'tx-date) nil))
+           (if (member (op (collection row)) '(:create :update))
+               (make-instance 'textbox
+                              :name 'company
+                              :value (getf record :company)
+                              :disabled (not enabled-p)
+                              :css-class (if enabled-p (getf css-class 'company) nil))
+               (html ()
+                 (:a :href (company/details :id (getf record :company-id))
+                     (str (getf record :company)))))
            (mapcar (lambda (name)
                      (make-instance 'textbox
                                     :name name
                                     :value (getf record (make-keyword name))
                                     :disabled (not enabled-p)
                                     :css-class (if enabled-p (getf css-class name) nil)))
-                   '(company description non-chq-debit-acc non-chq-credit-acc amount)))))
+                   '(description non-chq-debit-acc non-chq-credit-acc amount)))))
 
 
 ;;; paginator
