@@ -126,9 +126,7 @@
 
 (defun project-actions (op id filter)
   (actions-menu (crud+details-actions-spec (apply #'project/create filter)
-                                           (if id
-                                               (apply #'project/details :id id filter)
-                                               nil)
+                                           (apply #'project/details :id id filter)
                                            (apply #'project/update :id id filter)
                                            (apply #'project/delete :id id filter))
                 (crud+details-actions-enabled/disabled op id)))
@@ -136,14 +134,15 @@
 (defun project-filters (filter)
   (let ((filter* (remove-from-plist filter :cstate)))
     (with-html
-     (:div :class "filters"
-           (filters-navbar `((nil      ,(project)                                    "Όλα")
-                             (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
-                             (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
-                             (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
-                             (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
-                             (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
-                           (getf filter :cstate))))))
+      (:div :class "filters"
+            (filters-navbar
+             `((nil      ,(project)                                    "Όλα")
+               (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
+               (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
+               (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
+               (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
+               (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
+             (getf filter :cstate))))))
 
 (defun project-subnavbar (op filter)
   (with-html
@@ -412,7 +411,8 @@
                      (:div :class "title" "Δημιουργία")
                      (project-actions op nil filter)
                      (notifications)
-                     (with-form (actions/project/create :search (val search) :cstate (val cstate))
+                     (with-form (actions/project/create :search (val search)
+                                                        :cstate (val cstate))
                        (display project-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
@@ -492,7 +492,9 @@
                      (:p :class "title" "Επεξεργασία")
                      (project-actions op (val id) filter)
                      (notifications)
-                     (with-form (actions/project/update :id (val id) :search (val search))
+                     (with-form (actions/project/update :id (val id)
+                                                        :search (val search)
+                                                        :cstate (val cstate))
                        (display project-form :payload (params->payload)
                                              :styles (params->styles))))
                (:div :id "bill-window" :class "window grid_6"

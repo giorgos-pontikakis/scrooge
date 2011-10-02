@@ -39,9 +39,17 @@
 /* horizontal navbars */
 /* ---------------------------------------------------------------------- */
 
+.hnavbar {
+    display: inline;
+}
+
+.hnavbar ul {
+    display: inline;
+}
+
 .hnavbar li {
     list-style: none;
-    float: left;
+    display: inline-block;
 }
 
 .hnavbar li a, .hnavbar li span {

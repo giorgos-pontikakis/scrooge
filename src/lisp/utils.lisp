@@ -11,6 +11,11 @@
       ""
       "attention"))
 
+(defun val-or-raw (http-parameter)
+  (if (validp http-parameter)
+      (val http-parameter)
+      (raw http-parameter)))
+
 (defun params->plist (fn params)
   (mapcan (lambda (param)
             (list (parameter-key (attributes param))
@@ -18,13 +23,13 @@
           params))
 
 (defun params->payload ()
-  (params->plist #'val (payload-parameters)))
+  (params->plist #'val-or-raw (payload-parameters)))
 
 (defun params->styles ()
   (params->plist #'sty (payload-parameters)))
 
 (defun params->filter ()
-  (params->plist #'val (filter-parameters)))
+  (params->plist #'val-or-raw (filter-parameters)))
 
 
 
@@ -34,13 +39,13 @@
 
 ;;; Conditions
 
-(define-condition data-entry-error ()
+(define-condition data-entry-error (error)
   ())
 
-(define-condition bad-request-error ()
+(define-condition bad-request-error (error)
   ())
 
-(define-condition authentication-error ()
+(define-condition authentication-error (error)
   ())
 
 
@@ -254,3 +259,9 @@ excluded for the search - useful for updates."
           (realp float))
       nil
       :non-positive-amount))
+
+(defun possible-next-states (table current-state)
+  (with-db ()
+    (query (:select 'to-state :from table
+            :where (:= 'from-state current-state))
+           :column)))

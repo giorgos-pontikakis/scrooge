@@ -139,9 +139,7 @@
 
 (defun company-actions (op id filter)
   (actions-menu (crud+details-actions-spec (apply #'company/create filter)
-                                           (if id
-                                               (apply #'company/details :id id filter)
-                                               nil)
+                                           (apply #'company/details :id id filter)
                                            (apply #'company/update :id id filter)
                                            (if (chk-company-id/ref id)
                                                nil
@@ -481,7 +479,8 @@
                      (:div :class "title" "Επεξεργασία")
                      (company-actions :update (val id) filter)
                      (notifications)
-                     (with-form (actions/company/update :id (val id) :search (val search))
+                     (with-form (actions/company/update :id (val id)
+                                                        :search (val search))
                        (display company-form :payload (params->payload)
                                              :styles (params->styles))))
                (:div :id "contact-window" :class "window grid_6"
@@ -563,4 +562,5 @@
       (execute (:delete-from 'contact
                 :where (:= 'company-id (val id))))
       (delete-dao (get-dao 'company (val id))))
-    (see-other (company :search (val search)))))
+    (see-other (apply #'company
+                      (params->filter)))))

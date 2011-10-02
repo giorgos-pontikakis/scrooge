@@ -185,10 +185,11 @@
         (t (error "Internal error in cash-page-title"))))
 
 (defun cash-actions (op kind id filter)
-  (actions-menu (crud-actions-spec (apply #'cash/create kind filter)
-                                   (apply #'cash/update kind :id id filter)
-                                   (apply #'cash/delete kind :id id filter))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (crud+details-actions-spec (apply #'cash/create kind filter)
+                                           (apply #'cash/details kind :id id filter)
+                                           (apply #'cash/update kind :id id filter)
+                                           (apply #'cash/delete kind :id id filter))
+                (crud+details-actions-enabled/disabled op id)))
 
 (defun cash-filters (kind filter)
   (with-html
@@ -228,6 +229,7 @@
          (record (record form))
          (lit (label-input-text disabled record styles))
          (tree (make-instance 'rev/exp-account-tree
+                              :disabled disabled
                               :root-key (if revenues-p
                                             *revenues-root-acc-id*
                                             *expenses-root-acc-id*)
@@ -295,6 +297,35 @@
                               :start (val start)))
                (footer)))))))
 
+(defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))
+    ((search      string)
+     (since       date)
+     (until       date)
+     (id          integer chk-tx-id t))
+  (with-view-page
+    (check-cash-accounts)
+    (let* ((op :details)
+           (filter (params->filter))
+           (cash-form (make-instance 'cash-form
+                                     :kind kind
+                                     :op op
+                                     :record (get-record 'tx (val id))
+                                     :cancel-url (apply #'cash kind :id (val id) filter)))
+           (page-title (conc (cash-page-title kind) " » Λεπτομέρειες")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'cash)
+               (cash-subnavbar op kind filter)
+               (:div :id "cash-window" :class "window grid_12"
+                     (:div :class "title" "Λεπτομέρειες")
+                     (cash-actions op kind (val id) filter)
+                     (display cash-form))
+               (footer)))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -334,7 +365,10 @@
                      (:div :class "title" (str page-title))
                      (cash-actions op kind nil filter)
                      (notifications)
-                     (with-form (actions/cash/create kind :search (val search))
+                     (with-form (actions/cash/create kind
+                                                     :search (val search)
+                                                     :since (val since)
+                                                     :until (val until))
                        (display cash-form :payload (params->payload)
                                           :styles (params->styles))))
                (footer)))))))
@@ -367,7 +401,8 @@
                                   :debit-acc-id debit-acc-id
                                   :auto t)))
       (insert-dao new-tx)
-      (see-other (cash kind :id (tx-id new-tx) :search (val search))))))
+      (see-other (apply #'cash/details kind :id (tx-id new-tx)
+                        (params->filter))))))
 
 
 
@@ -411,7 +446,9 @@
                      (notifications)
                      (with-form (actions/cash/update kind
                                                      :id (val id)
-                                                     :search (val search))
+                                                     :search (val search)
+                                                     :since (val since)
+                                                     :until (val until))
                        (display cash-form :payload (params->payload)
                                           :styles (params->styles))))
                (footer)))))))
@@ -444,7 +481,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val id))))
-      (see-other (cash kind :id (val id))))))
+      (see-other (apply #'cash/details kind :id (val id) (params->filter))))))
 
 
 
@@ -481,7 +518,9 @@
                      (cash-actions op kind (val id) filter)
                      (with-form (actions/cash/delete kind
                                                      :id (val id)
-                                                     :search (val search))
+                                                     :search (val search)
+                                                     :since (val since)
+                                                     :until (val until))
                        (display cash-tx-table
                                 :key (val id))))
                (footer)))))))
@@ -495,4 +534,4 @@
   (with-controller-page (cash/delete)
     (check-cash-accounts)
     (delete-dao (get-dao 'tx (val id)))
-    (see-other (cash kind :search (val search)))))
+    (see-other (apply #'cash kind (params->filter)))))

@@ -25,18 +25,16 @@
     :initform
     '((title
        (:project-stran-title-null
-        "Η περιγραφή του συμβάντος είναι κενή."
+        "Η περιγραφή της Μετάπτωσης είναι κενή."
         :project-stran-title-exists
-        "Αυτή η περιγραφή συμβάντος έχει ήδη οριστεί."))
+        "Υπάρχει ήδη Μετάπτωση  με αυτή την περιγραφή."))
       (from-state
        (:project-stran-from/to-exists
         "Έχει ήδη οριστεί συμβάν για αυτή την αρχική και τελική κατάσταση"
         :project-stran-from-to-equal
         "Η τελική κατάσταση δεν μπορεί να είναι ίδια με την αρχική κατάσταση."))
-      (tem-tx
-       (:temtx-title-null
-        "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
-        :temtx-title-unknown
+      (temtx
+       (:temtx-title-unknown
         "Δεν έχει οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))))))
 
 
@@ -126,7 +124,7 @@
 (defclass project-stran-table (scrooge-table)
   ((header-labels  :initform '("" "<br />Περιγραφή"
                                "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
+                                " Πρότυπη<br />Συναλλαγή"))
    (paginator      :initform nil))
   (:default-initargs :item-class 'project-stran-row))
 
@@ -136,7 +134,7 @@
                                'from-state 'to-state
                                (:as 'temtx.title 'temtx)
                        :from 'project-stran
-                       :inner-join 'temtx
+                       :left-join 'temtx
                        :on (:= 'temtx-id 'temtx.id))
                       'project-stran.title)
            :plists)))
@@ -238,7 +236,7 @@
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
-               (config-navbar 'project)
+               (config-navbar 'project-stran)
                (:div :class "window grid_12"
                      (:div :class "title" "Δημιουργία")
                      (project-stran-actions op nil)

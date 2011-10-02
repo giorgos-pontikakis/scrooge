@@ -12,7 +12,7 @@
             (tx      ,(tx)                   "Συναλλαγές")
             (cash    ,(cash "revenue")       "Μετρητά")
             (invoice ,(invoice "receivable") "Τιμολόγια")
-            #|(cheque  ,(cheque "receivable")  "Επιταγές")|#)
+            (cheque  ,(cheque "receivable")  "Επιταγές"))
           :css-class "section-navbar hnavbar grid_12"
           :active active))
 
@@ -25,14 +25,16 @@
 ;;; account-radio tree
 
 (defclass rev/exp-account-tree (account-tree)
-  ((op :initform :read))
-  (:default-initargs :item-class 'rev/exp-account-node))
+  ((op :initform :read)
+   (disabled :accessor disabled :initarg :disabled))
+  (:default-initargs :item-class 'rev/exp-account-node :disabled nil))
 
 (defclass rev/exp-account-node (account-node)
   ())
 
 (defmethod selector ((node rev/exp-account-node) enabled-p)
   (make-instance 'input-radio
+                 :disabled (disabled (collection node))
                  :name 'account-id
                  :value (key node)
                  :body nil

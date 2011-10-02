@@ -45,7 +45,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Checks
+;;; Validation
 ;;; ----------------------------------------------------------------------
 
 (defun check-invoice-accounts ()
@@ -185,10 +185,11 @@
         (t (error "Internal error in invoice-page-title"))))
 
 (defun invoice-actions (op kind id filter)
-  (actions-menu (crud-actions-spec (apply #'invoice/create kind filter)
-                                   (apply #'invoice/update kind :id id filter)
-                                   (apply #'invoice/delete kind :id id filter))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (crud+details-actions-spec (apply #'invoice/create kind filter)
+                                           (apply #'invoice/details kind :id id filter)
+                                           (apply #'invoice/update kind :id id filter)
+                                           (apply #'invoice/delete kind :id id filter))
+                (crud+details-actions-enabled/disabled op id)))
 
 (defun invoice-filters (kind filter)
   (with-html
@@ -227,6 +228,7 @@
          (record (record form))
          (lit (label-input-text disabled record styles))
          (tree (make-instance 'rev/exp-account-tree
+                              :disabled disabled
                               :root-key (if receivable-p
                                             *revenues-root-acc-id*
                                             *expenses-root-acc-id*)
@@ -262,12 +264,13 @@
 
 (defpage invoice-page invoice (("invoice/" (kind "(receivable|payable)")))
     ((search    string)
-     (since     date)
-     (until     date)
      (start     integer)
+     (since     date    )
+     (until     date    )
      (id        integer chk-tx-id))
   (with-view-page
     (check-invoice-accounts)
+    (break "since ~A" since)
     (let* ((op :catalogue)
            (filter (params->filter))
            (page-title (conc (invoice-page-title kind) " » Κατάλογος"))
@@ -294,6 +297,35 @@
                               :start (val start)))
                (footer)))))))
 
+(defpage invoice-page invoice/details (("invoice/" (kind "(receivable|payable)") "/details"))
+    ((search  string)
+     (cstate  string)
+     (since   date)
+     (until   date)
+     (id      integer chk-tx-id t))
+  (with-view-page
+    (let* ((op :details)
+           (filter (params->filter))
+           (invoice-form (make-instance 'invoice-form
+                                        :kind kind
+                                        :op op
+                                        :record (get-record 'tx (val id))
+                                        :cancel-url (apply #'tx :id (val id) filter)))
+           (page-title (conc (invoice-page-title kind) " » Λεπτομέρειες")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'invoice)
+               (invoice-subnavbar op kind filter)
+               (:div :id "invoice-window" :class "window grid_12"
+                     (:p :class "title" "Λεπτομέρειες")
+                     (invoice-actions op kind (val id) filter)
+                     (display invoice-form))
+               (footer)))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -333,7 +365,10 @@
                      (:div :class "title" (str page-title))
                      (invoice-actions op kind nil filter)
                      (notifications)
-                     (with-form (actions/invoice/create kind :search (val search))
+                     (with-form (actions/invoice/create kind
+                                                        :search (val search)
+                                                        :since (val since)
+                                                        :until (val until))
                        (display invoice-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
@@ -367,7 +402,8 @@
                                   :debit-acc-id debit-acc-id
                                   :auto t)))
       (insert-dao new-tx)
-      (see-other (invoice kind :id (tx-id new-tx) :search (val search))))))
+      (see-other (apply #'invoice/details kind :id (tx-id new-tx)
+                        (params->filter))))))
 
 
 
@@ -406,12 +442,14 @@
                (main-navbar 'invoice)
                (invoice-subnavbar op kind filter)
                (:div :id "invoice-window" :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (invoice-actions op kind nil filter)
+                     (:p :class "title" "Επεξεργασία")
+                     (invoice-actions op kind (val id) filter)
                      (notifications)
                      (with-form (actions/invoice/update kind
                                                         :id (val id)
-                                                        :search (val search))
+                                                        :search (val search)
+                                                        :since (val since)
+                                                        :until (val until))
                        (display invoice-form :payload (params->payload)
                                              :styles (params->styles))))
                (footer)))))))
@@ -444,7 +482,8 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val id))))
-      (see-other (invoice kind :id (val id))))))
+      (see-other (apply #'invoice/details kind :id (val id)
+                        (params->filter))))))
 
 
 
@@ -481,7 +520,9 @@
                      (invoice-actions op kind (val id) filter)
                      (with-form (actions/invoice/delete kind
                                                         :id (val id)
-                                                        :search (val search))
+                                                        :search (val search)
+                                                        :since (val since)
+                                                        :until (val until))
                        (display invoice-tx-table
                                 :key (val id))))
                (footer)))))))
@@ -495,4 +536,5 @@
   (with-controller-page (invoice/delete kind)
     (check-invoice-accounts)
     (delete-dao (get-dao 'tx (val id)))
-    (see-other (invoice kind :search (val search)))))
+    (see-other (apply #'invoice kind
+                      (params->filter)))))

@@ -32,7 +32,7 @@
             (tof           ,(config/tof)                       "Δ.Ο.Υ.")
             (account       ,(config/account)                   "Λογαριασμοί")
             (account-role  ,(config/account-role)              "Ρόλοι Λογαριασμών")
-            (temtx         ,(config/temtx)                     "Συναλλαγές")
+            (temtx         ,(config/temtx)                     "Πρότυπες Συναλλαγές")
             (cheque-stran  ,(config/cheque-stran "receivable") "Επιταγές")
             (project-stran ,(config/project-stran)             "Έργα"))
           :css-class "section-navbar hnavbar grid_12"

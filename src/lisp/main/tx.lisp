@@ -261,7 +261,9 @@
                      (:div :class "title" "Δημιουργία")
                      (tx-actions op nil filter)
                      (notifications)
-                     (with-form (actions/tx/create)
+                     (with-form (actions/tx/create :search (val search)
+                                                   :since (val since)
+                                                   :until (val until))
                        (display tx-table :payload (params->payload))))
                (footer)))))))
 
@@ -289,7 +291,7 @@
                                   :debit-acc-id debit-acc-id
                                   :auto nil)))
       (insert-dao new-tx)
-      (see-other (tx :id (tx-id new-tx) :search (val search))))))
+      (see-other (apply #'tx :id (tx-id new-tx) (params->filter))))))
 
 
 
@@ -328,7 +330,9 @@
                      (tx-actions op (val id) filter)
                      (notifications)
                      (with-form (actions/tx/update :id (val id)
-                                                   :search (val search))
+                                                   :search (val search)
+                                                   :since (val since)
+                                                   :until (val until))
                        (display tx-table :key (val id)
                                          :payload (params->payload))))
                (footer)))))))
@@ -357,7 +361,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val id))))
-      (see-other (tx :id (val id))))))
+      (see-other (apply #'tx :id (val id) (params->filter))))))
 
 
 
@@ -389,7 +393,9 @@
                      (:div :class "title" "Διαγραφή")
                      (tx-actions op (val id) filter)
                      (with-form (actions/tx/delete :id (val id)
-                                                   :search (val search))
+                                                   :search (val search)
+                                                   :since (val since)
+                                                   :until (val until))
                        (display tx-table :key (val id))))
                (footer)))))))
 
@@ -401,7 +407,7 @@
      (search string))
   (with-controller-page (tx/delete)
     (delete-dao (get-dao 'tx (val id)))
-    (see-other (tx :search (val search)))))
+    (see-other (apply #'tx (params->filter)))))
 
 
 

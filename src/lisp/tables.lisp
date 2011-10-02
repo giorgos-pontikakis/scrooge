@@ -139,8 +139,7 @@
    (title         :col-type string  :accessor title            :initarg :title)
    (from-state    :col-type string  :accessor from-state       :initarg :from-state)
    (to-state      :col-type string  :accessor to-state         :initarg :to-state)
-   (debit-acc-id  :col-type integer :accessor debit-acc-id     :initarg :debit-acc-id)
-   (credit-acc-id :col-type integer :accessor credit-acc-id    :initarg :credit-acc-id))
+   (temtx-id      :col-type integer :accessor temtx-id         :initarg :temtx-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -194,8 +193,7 @@
    (payable-p     :col-type boolean :accessor payable-p       :initarg :payable-p)
    (from-state    :col-type string  :accessor from-state      :initarg :from-state)
    (to-state      :col-type string  :accessor to-state        :initarg :to-state)
-   (debit-acc-id  :col-type integer :accessor debit-acc-id    :initarg :debit-acc-id)
-   (credit-acc-id :col-type integer :accessor credit-acc-id   :initarg :credit-acc-id))
+   (temtx-id      :col-type integer :accessor temtx-id        :initarg :temtx-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -247,6 +245,8 @@
 
 (define-surrogate-key-readers temtx ((title string)) temtx-id)
 
+(defmethod temtx-id ((title (eql :null)))
+  :null)
 
 
 ;;; ------------------------------------------------------------
