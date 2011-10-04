@@ -380,7 +380,7 @@
 
 (defpage project-page project/create ("project/create")
     ((search      string)
-     (cstate      string)
+     (cstate      string chk-project-state)
      (company     string chk-company-title)
      (description string chk-project-description/create)
      (location    string)
@@ -420,7 +420,7 @@
 (defpage project-page actions/project/create ("actions/project/create"
                                               :request-type :post)
     ((search      string)
-     (cstate      string)
+     (cstate      string chk-project-state)
      (company     string chk-company-title)
      (description string chk-project-description/create)
      (location    string)
@@ -456,7 +456,7 @@
 
 (defpage project-page project/update ("project/update")
     ((search      string)
-     (cstate      string)
+     (cstate      string chk-project-state)
      (id          integer chk-project-id)
      (bill-id     integer (chk-bill-id id bill-id))
      (company     string  chk-company-title)
@@ -507,7 +507,7 @@
 (defpage project-page actions/project/update ("actions/project/update"
                                               :request-type :post)
     ((search      string)
-     (cstate      string)
+     (cstate      string  chk-project-state)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description id))
@@ -545,7 +545,7 @@
 (defpage project-page project/delete ("project/delete")
     ((id     integer chk-project-id t)
      (search string)
-     (cstate string))
+     (cstate string chk-project-state))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
@@ -575,7 +575,7 @@
                                               :request-type :post)
     ((id     integer chk-project-id)
      (search string)
-     (cstate string))
+     (cstate string chk-project-state))
   (with-controller-page (project/delete)
     (delete-dao (get-dao 'project (val id)))
     (see-other (apply #'project (params->filter)))))

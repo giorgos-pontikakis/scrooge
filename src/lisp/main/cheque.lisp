@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(bank due-date company amount state account-id))
+    :initform '(bank due-date company amount state))
    (filter-parameter-names
     :allocation :class
     :initform '(search since until cstate))
@@ -91,7 +91,16 @@
 (defun cheque-page-title (kind)
   (cond ((string-equal kind "receivable") "Εισπρακτέες")
         ((string-equal kind "payable") "Πληρωτέες")
-        (t (error "internal error in cheque-page-title"))))
+        (t (error "Internal error in cheque-page-title"))))
+
+(defun get-debit-credit-acc-id (kind)
+  (cond ((string-equal kind "receivable")
+         (values *cash-acc-id* *cheque-receivable-acc-id*))
+        ((string-equal kind "payable")
+         (values *cheque-payable-acc-id* *cash-acc-id*))
+        (t
+         (error "Internal error in get-debit-credit-acc-id"))))
+
 
 (defun cheque-actions (op kind id filter)
   (actions-menu (crud-actions-spec (apply #'cheque/create kind filter)
@@ -123,14 +132,10 @@
                                         "Επιστραμμένες"))
                             (getf filter :cstate))))))
 
-(defun cheque-subnavbar (op kind filter)
+(defun cheque-subnavbar (kind filter)
   (with-html
     (:div :class "section-subnavbar grid_12"
-          (if (member op '(:catalogue :delete))
-              (cheque-filters kind filter)
-              (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'cheque kind filter)
-                                       "Κατάλογος"))))))
+          (cheque-filters kind filter)
           (searchbox #'(lambda (&rest args)
                          (apply #'cheque kind args))
                      filter
@@ -167,7 +172,7 @@
 (defclass cheque-table (scrooge-table)
   ((kind        :accessor kind :initarg :kind)
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
-                               "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
+                               "Ημερομηνία<br />πληρωμής" "<br />Ποσό" "<br />Κατάσταση"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "cheque-paginator"
                                             :css-class "paginator")))
@@ -306,7 +311,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar kind filter)
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cheque-actions op kind (val id) filter)
@@ -331,8 +336,7 @@
      (due-date   date    chk-date)
      (company    string  chk-company-title)
      (amount     float   chk-amount)
-     (state      string  chk-cheque-state)
-     (account-id integer chk-acc-id))
+     (state      string  chk-cheque-state))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
@@ -350,7 +354,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar kind filter)
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cheque-actions op kind nil filter))
@@ -372,12 +376,23 @@
      (company    string  chk-company-title t)
      (due-date   date    chk-date          t)
      (amount     float   chk-amount        t)
-     (state      string  chk-cheque-state  t)
-     (account-id integer chk-acc-id        t))
+     (state      string  chk-cheque-state  t))
   (with-controller-page (cheque/create)
     (check-cheque-accounts)
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
+           (cheque-stran (select-dao-unique 'cheque-stran
+                                            (:is-null 'from-state)))
+           (temtx (select-dao 'temtx
+                              (:= 'id (temtx-id cheque-stran))))
+           (new-tx (make-instance 'tx
+                                  :tx-date (today)
+                                  :description (title temtx)
+                                  :company-id company-id
+                                  :amount (val amount)
+                                  :credit-acc-id (credit-acc-id temtx)
+                                  :debit-acc-id (debit-acc-id temtx)
+                                  :auto t))
            (new-cheque (make-instance 'cheque
                                       :bank-id bank-id
                                       :company-id company-id
@@ -385,26 +400,14 @@
                                       :amount (val amount)
                                       :state (val state)
                                       :payable-p (string= kind "payable"))))
-      (with-db ()
-        (with-transaction ()
-          (insert-dao new-cheque)
-          (let* ((debit-acc-id (if (string-equal kind "receivable")
-                                   *cheque-receivable-acc-id*
-                                   (val account-id)))
-                 (credit-acc-id (if (string-equal kind "receivable")
-                                    (val account-id)
-                                    *cheque-payable-acc-id*))
-                 (new-tx (make-instance 'tx
-                                        :tx-date (today)
-                                        :description (format nil "Auto-tx for new cheque ~A"
-                                                             (id new-cheque))
-                                        :company-id company-id
-                                        :amount (val amount)
-                                        :credit-acc-id credit-acc-id
-                                        :debit-acc-id debit-acc-id
-                                        :cheque-id (id new-cheque))))
-            (insert-dao new-tx)))
-        (see-other (apply #'cheque kind :id (id new-cheque) (params->filter)))))))
+      (with-transaction ()
+        (insert-dao new-cheque)
+        (insert-dao new-tx)
+        (insert-dao (make-instance 'cheque-event
+                                   :event-date (today)
+                                   :cheque-id (id new-cheque)
+                                   :cheque-stran-id (id cheque-stran)
+                                   :tx-id (id new-tx)))))))
 
 
 
@@ -422,8 +425,7 @@
      (company    string  chk-company-title)
      (due-date   date    chk-date)
      (state      string  chk-cheque-state)
-     (amount     float   chk-amount)
-     (account-id integer chk-acc-id))
+     (amount     float   chk-amount))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :update)
@@ -431,7 +433,7 @@
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
                                         :kind kind
-                                        :op :create
+                                        :op :update
                                         :filter filter)))
       (with-document ()
         (:head
@@ -441,7 +443,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar kind filter)
                (:div :id "cheque-window" :class "window grid_12"
                      (:p :class "title" (str page-title))
                      (cheque-actions op kind (val id) filter)
@@ -458,49 +460,49 @@
 
 (defpage cheque-page actions/cheque/update
     (("actions/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
-    ((search     string)
-     (cstate     string  chk-cheque-state)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (id         integer chk-cheque-id     t)
-     (bank       string  chk-bank-title)
-     (company    string  chk-company-title t)
-     (due-date   date    chk-date          t)
-     (amount     float   chk-amount        t)
-     (state     string  chk-cheque-state t)
-     (account-id integer chk-acc-id        t))
-  (with-controller-page (cheque/update)
+    ((search   string)
+     (cstate   string  chk-cheque-state)
+     (since    date    chk-date)
+     (until    date    chk-date)
+     (id       integer chk-cheque-id     t)
+     (bank     string  chk-bank-title)
+     (company  string  chk-company-title t)
+     (due-date date    chk-date          t)
+     (amount   float   chk-amount        t)
+     (state    string  chk-cheque-state  t))
+  (with-controller-page (cheque/update kind)
     (check-cheque-accounts)
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
-           (debit-acc-id (if (string-equal kind "receivable")
-                             *cheque-receivable-acc-id*
-                             (val account-id)))
-           (credit-acc-id (if (string-equal kind "receivable")
-                              (val account-id)
-                              *cheque-payable-acc-id*)))
-      (with-db ()
-        (with-transaction ()
-          (let* ((cheque-dao (get-dao 'cheque (val id)))
-                 (new-tx (if (string= state (state cheque-dao))
-                             nil
-                             (make-instance 'tx
-                                            :tx-date (today)
-                                            :description (conc "auto-tx for updated cheque "
-                                                               (id cheque-dao))
-                                            :company-id company-id
-                                            :amount (val amount)
-                                            :credit-acc-id credit-acc-id
-                                            :debit-acc-id debit-acc-id
-                                            :cheque-id (id cheque-dao)))))
-            (setf (bank-id cheque-dao) bank-id
-                  (company-id cheque-dao) company-id
-                  (due-date cheque-dao) (val due-date)
-                  (amount cheque-dao) (val amount)
-                  (state cheque-dao) (val state))
-            (update-dao cheque-dao)
-            (insert-dao new-tx))))
-      (see-other (apply #'cheque kind :id (val id) (params->filter))))))
+           (cheque-dao (get-dao 'cheque (val id)))
+           (cheque-stran (select-dao-unique 'cheque-stran
+                                            (:and (:= 'from-state (state cheque-dao))
+                                                  (:= 'to-state (val state)))))
+           (temtx (select-dao 'temtx
+                              (:= 'id (temtx-id cheque-stran))))
+           (new-tx (if (string= (val state) (state cheque-dao))
+                       nil
+                       (make-instance 'tx
+                                      :tx-date (today)
+                                      :description (title temtx)
+                                      :company-id company-id
+                                      :amount (val amount)
+                                      :credit-acc-id (credit-acc-id temtx)
+                                      :debit-acc-id (debit-acc-id temtx)
+                                      :auto t))))
+      (with-transaction ()
+        (setf (bank-id cheque-dao) bank-id
+              (company-id cheque-dao) company-id
+              (due-date cheque-dao) (val due-date)
+              (amount cheque-dao) (val amount)
+              (state cheque-dao) (val state))
+        (update-dao cheque-dao)
+        (insert-dao new-tx)
+        (insert-dao (make-instance 'cheque-event
+                                   :event-date (today)
+                                   :cheque-id (id cheque-dao)
+                                   :cheque-stran-id (id cheque-stran)
+                                   :tx-id (id new-tx)))))))
 
 
 
@@ -531,7 +533,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar kind filter)
                (:div :class "window"
                      (:div :class "window grid_12"
                            (:div :class "title" (str page-title))
@@ -554,5 +556,11 @@
      (id     integer chk-cheque-id t))
   (with-controller-page ()
     (check-cheque-accounts)
-    (delete-dao (get-dao 'cheque (val id)))
+    (with-transaction ()
+      (let* ((cheque-dao (get-dao 'cheque (val id)))
+             (cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (id cheque-dao))))
+             (tx-daos (mapcar #'tx-id cheque-event-daos)))
+        (mapc #'delete-dao tx-daos)
+        (mapc #'delete-dao cheque-event-daos)
+        (delete-dao cheque-dao)))
     (see-other (apply #'cheque kind (params->filter)))))
