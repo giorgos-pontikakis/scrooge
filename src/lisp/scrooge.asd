@@ -25,7 +25,7 @@
                (:file "config/role")
                (:file "config/temtx")
                (:file "config/cheque-stran")
-               (:file "config/project-stran")
+               ;; (:file "config/project-stran")
                ;; main
                (:file "main/main")
                (:file "main/home")

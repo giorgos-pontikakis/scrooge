@@ -68,10 +68,6 @@
         ((project-stran-title-exists-p title id) :project-stran-title-exists)
         (t nil)))
 
-(defun chk-project-state (state)
-  (if (project-state-exists-p state)
-      nil
-      :project-state-invalid))
 
 
 ;;; post checks

@@ -87,37 +87,46 @@
         (t nil)))
 
 (defun chk-quote-date (date state)
-  (cond ((and (member state (list "quoted" "ongoing" "finished" "archived") :test #'string=)
-              (eql date :null))
-         :quote-date-null)
-        (t
-         nil)))
+  (let ((states (list "quoted" "ongoing" "finished" "archived")))
+    (cond ((and (member state states :test #'string=)
+                (eql date :null))
+           :quote-date-null)
+          (t
+           nil))))
 
 (defun chk-start-date (date state)
-  (cond ((and (member state (list "ongoing" "finished" "archived") :test #'string=)
-              (eql date :null))
-         :start-date-null)
-        ((and (not (member state (list "ongoing" "finished" "archived") :test #'string=))
-              (not (eql date :null)))
-         :start-date-nonnull)
-        (t
-         nil)))
+  (let ((states (list "ongoing" "finished" "archived")))
+    (cond ((and (member state states :test #'string=)
+                (eql date :null))
+           :start-date-null)
+          ((and (not (member state states :test #'string=))
+                (not (eql date :null)))
+           :start-date-nonnull)
+          (t
+           nil))))
 
 (defun chk-end-date (date state)
-  (cond ((and (member state (list "finished" "archived") :test #'string=)
-              (eql date :null))
-         :end-date-null)
-        ((and (not (member state (list "finished" "archived") :test #'string=))
-              (not (eql date :null)))
-         :end-date-nonnull)
-        (t
-         nil)))
+  (let ((states (list "finished" "archived")))
+    (cond ((and (member state states :test #'string=)
+                (eql date :null))
+           :end-date-null)
+          ((and (not (member state states :test #'string=))
+                (not (eql date :null)))
+           :end-date-nonnull)
+          (t
+           nil))))
+
+(defun chk-project-state (state)
+  (if (project-state-exists-p state)
+      nil
+      :project-state-invalid))
 
 (defun chk-bill-id (project-id bill-id)
   (if (and (project-id-exists-p project-id)
            (bill-id-exists-p bill-id))
       nil
       :bill-id-invalid))
+
 
 
 ;;; ------------------------------------------------------------

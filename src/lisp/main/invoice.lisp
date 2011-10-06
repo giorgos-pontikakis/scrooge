@@ -270,7 +270,6 @@
      (id        integer chk-tx-id))
   (with-view-page
     (check-invoice-accounts)
-    (break "since ~A" since)
     (let* ((op :catalogue)
            (filter (params->filter))
            (page-title (conc (invoice-page-title kind) " » Κατάλογος"))

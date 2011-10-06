@@ -75,6 +75,13 @@
       nil
       :cheque-state-invalid))
 
+(defun chk-cheque-state* (state)
+  "Same with chk-cheque-state but accepts null values"
+  (if (or (eql state :null)
+          (cheque-state-exists-p state))
+      nil
+      :cheque-state-invalid))
+
 
 ;;; post checks
 
@@ -140,7 +147,7 @@
   ((kind :accessor kind :initarg :kind)
    (header-labels :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
+                               "Πρότυπη<br />Συναλλαγή" "" ""))
    (paginator     :initform nil))
   (:default-initargs :item-class 'cheque-stran-row))
 
@@ -245,7 +252,7 @@
 (defpage cheque-stran-page config/cheque-stran/create
     (("config/cheque-stran/" (kind "(receivable|payable)") "/create"))
     ((title      string chk-cheque-stran-title/create)
-     (from-state string chk-cheque-state)
+     (from-state string chk-cheque-state*)
      (to-state   string chk-cheque-state)
      (temtx      string chk-temtx-title))
   (with-view-page
@@ -273,7 +280,7 @@
 (defpage cheque-stran-page actions/config/cheque-stran/create
     (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/create") :request-type :post)
     ((title          string  chk-cheque-stran-title/create)
-     (from-state     string  chk-cheque-state)
+     (from-state     string  chk-cheque-state*)
      (to-state       string  chk-cheque-state)
      (temtx          string  chk-temtx-title))
   (with-controller-page (config/cheque-stran/create kind)
@@ -298,7 +305,7 @@
     (("config/cheque-stran/" (kind "(receivable|payable)") "/update"))
     ((id             integer chk-cheque-stran-id                      t)
      (title          string  (chk-cheque-stran-title/update title id))
-     (from-state     string  chk-cheque-state)
+     (from-state     string  chk-cheque-state*)
      (to-state       string  chk-cheque-state)
      (temtx          string  chk-temtx-title))
   (with-view-page
@@ -330,7 +337,7 @@
      :request-type :post)
     ((id             integer chk-cheque-stran-id                      t)
      (title          string  (chk-cheque-stran-title/update title id))
-     (from-state     string  chk-cheque-state)
+     (from-state     string  chk-cheque-state*)
      (to-state       string  chk-cheque-state)
      (temtx          string  chk-temtx-title))
   (with-controller-page (config/cheque-stran/update kind)
