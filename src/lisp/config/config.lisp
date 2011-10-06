@@ -33,6 +33,6 @@
             (account       ,(config/account)                   "Λογαριασμοί")
             (account-role  ,(config/account-role)              "Ρόλοι Λογαριασμών")
             (temtx         ,(config/temtx)                     "Πρότυπες Συναλλαγές")
-            (project-stran ,(config/project-stran)             "Έργα"))
+            (cheque-stran  ,(config/cheque-stran "receivable") "Επιταγές"))
           :css-class "section-navbar hnavbar grid_12"
           :active active))
