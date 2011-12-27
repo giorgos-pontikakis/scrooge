@@ -14,7 +14,7 @@ function applyAutocomplete () {
    var autocompleteIDs = ["company",
                           ["occupation", "company", "occupation"],
                           ["project", "project", "description"],
-                          "tof", "city", "bank", "account",
+                          "tof", "city", "bank", "account", "temtx",
                           "chq-account", "non-chq-account"];
    for ( var i = 0; i < autocompleteIDs.length; i++) {
       if ((typeof autocompleteIDs[i]) === "string") {

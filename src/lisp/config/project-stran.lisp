@@ -27,14 +27,16 @@
        (:project-stran-title-null
         "Η περιγραφή της Μετάπτωσης είναι κενή."
         :project-stran-title-exists
-        "Υπάρχει ήδη Μετάπτωση  με αυτή την περιγραφή."))
-      (from-state
+        "Υπάρχει ήδη Μετάπτωση με αυτή την περιγραφή."))
+      (from-state-id
        (:project-stran-from/to-exists
         "Έχει ήδη οριστεί συμβάν για αυτή την αρχική και τελική κατάσταση"
         :project-stran-from-to-equal
         "Η τελική κατάσταση δεν μπορεί να είναι ίδια με την αρχική κατάσταση."))
       (temtx
-       (:temtx-title-unknown
+       (:temtx-title-null
+        "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
+        :temtx-title-unknown
         "Δεν έχει οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))))))
 
 
@@ -43,7 +45,7 @@
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate project-state-exists-p project-state id)
+(define-existence-predicate project-state-id-exists-p project-state id)
 
 (define-existence-predicate project-stran-exists-p project-stran id)
 (define-existence-predicate* project-stran-title-exists-p project-stran title id)
@@ -68,33 +70,44 @@
         ((project-stran-title-exists-p title id) :project-stran-title-exists)
         (t nil)))
 
+(defun chk-project-state-id (state-id)
+  (if (project-state-id-exists-p state-id)
+      nil
+      :project-state-id-invalid))
+
+(defun chk-project-state-id* (state-id)
+  "Same with chk-project-state but accepts null values"
+  (if (or (eql state-id :null)
+          (project-state-id-exists-p state-id))
+      nil
+      :project-state-id-invalid))
 
 
 ;;; post checks
 
-(defun project-stran-from/to-exists-p (from-state to-state)
-  (if (or (null from-state) (null to-state))
+(defun project-stran-from/to-exists-p (from-state-id to-state-id)
+  (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
         (query (:select 1 :from 'project-stran
-                :where (:and (:= 'from-state from-state)
-                             (:= 'to-state to-state)))
+                :where (:and (:= 'from-state-id from-state-id)
+                             (:= 'to-state-id to-state-id)))
                :plists))))
 
-(defun chk-project-stran-from/to (from-state to-state)
-  (if (project-stran-from/to-exists-p from-state to-state)
+(defun chk-project-stran-from/to (from-state-id to-state-id)
+  (if (project-stran-from/to-exists-p from-state-id to-state-id)
       :project-stran-from/to-exists
       nil))
 
-(defun check-project-stran-parameters (from-state to-state)
+(defun check-project-stran-parameters (from-state-id to-state-id)
   (validate-parameters (lambda (from to)
                          (chk-project-stran-from/to from to))
-                       from-state to-state)
+                       from-state-id to-state-id)
   (validate-parameters (lambda (from to)
                          (if (string= from to)
                              :project-stran-from-to-equal
                              nil))
-                       from-state to-state)
+                       from-state-id to-state-id)
   nil)
 
 
@@ -127,7 +140,7 @@
 (defmethod get-records ((table project-stran-table))
   (with-db ()
     (query (:order-by (:select 'project-stran.id 'project-stran.title
-                               'from-state 'to-state
+                               'from-state-id 'to-state-id
                                (:as 'temtx.title 'temtx)
                        :from 'project-stran
                        :left-join 'temtx
@@ -157,14 +170,14 @@
                          :value (getf record :title)
                          :disabled disabled)
           (make-instance 'dropdown
-                         :name 'from-state
+                         :name 'from-state-id
                          :value-label-alist *project-states*
-                         :selected (getf record :from-state)
+                         :selected (getf record :from-state-id)
                          :disabled disabled)
           (make-instance 'dropdown
-                         :name 'to-state
+                         :name 'to-state-id
                          :value-label-alist *project-states*
-                         :selected (getf record :to-state)
+                         :selected (getf record :to-state-id)
                          :disabled disabled)
           (make-instance 'textbox
                          :name 'temtx
@@ -217,12 +230,12 @@
 
 (defpage project-stran-page config/project-stran/create
     ("config/project-stran/create")
-    ((title      string chk-project-stran-title/create)
-     (from-state string chk-project-state)
-     (to-state   string chk-project-state)
-     (temtx      string chk-temtx-title))
+    ((title         string chk-project-stran-title/create)
+     (from-state-id string chk-project-state-id)
+     (to-state-id   string chk-project-state-id)
+     (temtx         string chk-temtx-title))
+  (check-project-stran-parameters from-state-id to-state-id)
   (with-view-page
-    (check-project-stran-parameters from-state to-state)
     (let* ((op :create)
            (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
@@ -242,17 +255,17 @@
 
 (defpage project-stran-page actions/config/project-stran/create
     ("actions/config/project-stran/create" :request-type :post)
-    ((title          string  chk-project-stran-title/create)
-     (from-state     string  chk-project-state)
-     (to-state       string  chk-project-state)
-     (temtx          string  chk-temtx-title))
+    ((title         string chk-project-stran-title/create)
+     (from-state-id string chk-project-state-id)
+     (to-state-id   string chk-project-state-id)
+     (temtx         string chk-temtx-title))
+  (check-project-stran-parameters from-state-id to-state-id)
   (with-controller-page (config/project-stran/create)
-    (check-project-stran-parameters from-state to-state)
     (let* ((temtx-id (temtx-id (val temtx)))
            (new-project-stran (make-instance 'project-stran
                                              :title (val title)
-                                             :from-state (val from-state)
-                                             :to-state (val to-state)
+                                             :from-state-id (val from-state-id)
+                                             :to-state-id (val to-state-id)
                                              :temtx-id temtx-id)))
       (insert-dao new-project-stran)
       (see-other (config/project-stran :id (project-stran-id new-project-stran))))))
@@ -265,13 +278,13 @@
 
 (defpage project-stran-page config/project-stran/update
     ("config/project-stran/update")
-    ((id             integer chk-project-stran-id                      t)
-     (title          string  (chk-project-stran-title/update title id))
-     (from-state     string  chk-project-state)
-     (to-state       string  chk-project-state)
-     (temtx          string  chk-temtx-title))
+    ((id            integer chk-project-stran-id                      t)
+     (title         string  (chk-project-stran-title/update title id))
+     (from-state-id string  chk-project-state-id)
+     (to-state-id   string  chk-project-state-id)
+     (temtx         string  chk-temtx-title))
+  (check-project-stran-parameters from-state-id to-state-id)
   (with-view-page
-    (check-project-stran-parameters from-state to-state)
     (let* ((op :update)
            (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
@@ -293,18 +306,18 @@
 
 (defpage project-stran-page actions/config/project-stran/update
     ("actions/config/project-stran/update" :request-type :post)
-    ((id             integer chk-project-stran-id                      t)
-     (title          string  (chk-project-stran-title/update title id))
-     (from-state     string  chk-project-state)
-     (to-state       string  chk-project-state)
-     (temtx          string  chk-temtx-title))
+    ((id            integer chk-project-stran-id                      t)
+     (title         string  (chk-project-stran-title/update title id))
+     (from-state-id string  chk-project-state-id)
+     (to-state-id   string  chk-project-state-id)
+     (temtx         string  chk-temtx-title))
+  (check-project-stran-parameters from-state-id to-state-id)
   (with-controller-page (config/project-stran/update)
-    (check-project-stran-parameters from-state to-state)
     (let ((temtx-id (temtx-id (val temtx))))
       (execute (:update 'project-stran :set
                         'title (val title)
-                        'from-state (val from-state)
-                        'to-state (val to-state)
+                        'from-state-id (val from-state-id)
+                        'to-state-id (val to-state-id)
                         'temtx-id temtx-id
                         :where (:= 'id (val id)))))
     (see-other (config/project-stran :id (val id)))))

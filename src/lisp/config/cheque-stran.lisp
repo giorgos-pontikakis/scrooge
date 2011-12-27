@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(title from-state to-state temtx))
+    :initform '(title from-state-id to-state-id temtx))
    (filter-parameter-names
     :allocation :class
     :initform '())
@@ -28,12 +28,12 @@
         "Η περιγραφή του συμβάντος είναι κενή."
         :cheque-stran-title-exists
         "Αυτή η περιγραφή συμβάντος έχει ήδη οριστεί."))
-      (from-state
+      (from-state-id
        (:cheque-stran-from/to/payable-exists
         "Έχει ήδη οριστεί συμβάν για αυτή την αρχική και τελική κατάσταση"
         :cheque-stran-from-to-equal
         "Η τελική κατάσταση δεν μπορεί να είναι ίδια με την αρχική κατάσταση."))
-      (tem-tx
+      (temtx
        (:temtx-title-null
         "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
         :temtx-title-unknown
@@ -45,7 +45,7 @@
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate cheque-state-exists-p cheque-state id)
+(define-existence-predicate cheque-state-id-exists-p cheque-state id)
 
 (define-existence-predicate cheque-stran-exists-p cheque-stran id)
 (define-existence-predicate* cheque-stran-title-exists-p cheque-stran title id)
@@ -70,45 +70,45 @@
         ((cheque-stran-title-exists-p title id) :cheque-stran-title-exists)
         (t nil)))
 
-(defun chk-cheque-state (state)
-  (if (cheque-state-exists-p state)
+(defun chk-cheque-state-id (state-id)
+  (if (cheque-state-id-exists-p state-id)
       nil
-      :cheque-state-invalid))
+      :cheque-state-id-invalid))
 
-(defun chk-cheque-state* (state)
+(defun chk-cheque-state-id* (state-id)
   "Same with chk-cheque-state but accepts null values"
-  (if (or (eql state :null)
-          (cheque-state-exists-p state))
+  (if (or (eql state-id :null)
+          (cheque-state-id-exists-p state-id))
       nil
-      :cheque-state-invalid))
+      :cheque-state-id-invalid))
 
 
 ;;; post checks
 
-(defun cheque-stran-from/to/payable-exists-p (from-state to-state kind)
-  (if (or (null from-state) (null to-state))
+(defun cheque-stran-from/to/payable-exists-p (from-state-id to-state-id kind)
+  (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
-                :where (:and (:= 'from-state from-state)
-                             (:= 'to-state to-state)
+                :where (:and (:= 'from-state-id from-state-id)
+                             (:= 'to-state-id to-state-id)
                              (:= 'payable-p (string= kind "payable"))))
                :plists))))
 
-(defun chk-cheque-stran-from/to/payable (from-state to-state kind)
-  (if (cheque-stran-from/to/payable-exists-p from-state to-state kind)
+(defun chk-cheque-stran-from/to/payable (from-state-id to-state-id kind)
+  (if (cheque-stran-from/to/payable-exists-p from-state-id to-state-id kind)
       :cheque-stran-from/to/payable-exists
       nil))
 
-(defun check-cheque-stran-parameters (from-state to-state kind)
+(defun check-cheque-stran-parameters (from-state-id to-state-id kind)
   (validate-parameters (lambda (from to)
                          (chk-cheque-stran-from/to/payable from to kind))
-                       from-state to-state)
+                       from-state-id to-state-id)
   (validate-parameters (lambda (from to)
                          (if (string= from to)
                              :cheque-stran-from-to-equal
                              nil))
-                       from-state to-state)
+                       from-state-id to-state-id)
   nil)
 
 
@@ -154,7 +154,7 @@
 (defmethod get-records ((table cheque-stran-table))
   (with-db ()
     (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
-                               'from-state 'to-state
+                               'from-state-id 'to-state-id
                                (:as 'temtx.title 'temtx)
                        :from 'cheque-stran
                        :inner-join 'temtx
@@ -187,14 +187,14 @@
                          :value (getf record :title)
                          :disabled disabled)
           (make-instance 'dropdown
-                         :name 'from-state
+                         :name 'from-state-id
                          :value-label-alist *cheque-states*
-                         :selected (getf record :from-state)
+                         :selected (getf record :from-state-id)
                          :disabled disabled)
           (make-instance 'dropdown
-                         :name 'to-state
+                         :name 'to-state-id
                          :value-label-alist *cheque-states*
-                         :selected (getf record :to-state)
+                         :selected (getf record :to-state-id)
                          :disabled disabled)
           (make-instance 'textbox
                          :name 'temtx
@@ -251,12 +251,12 @@
 
 (defpage cheque-stran-page config/cheque-stran/create
     (("config/cheque-stran/" (kind "(receivable|payable)") "/create"))
-    ((title      string chk-cheque-stran-title/create)
-     (from-state string chk-cheque-state*)
-     (to-state   string chk-cheque-state)
-     (temtx      string chk-temtx-title))
+    ((title         string chk-cheque-stran-title/create)
+     (from-state-id string chk-cheque-state-id*)
+     (to-state-id   string chk-cheque-state-id)
+     (temtx         string chk-temtx-title))
+  (check-cheque-stran-parameters from-state-id to-state-id kind)
   (with-view-page
-    (check-cheque-stran-parameters from-state to-state kind)
     (let* ((op :create)
            (cheque-stran-table (make-instance 'cheque-stran-table
                                               :kind kind
@@ -279,18 +279,18 @@
 
 (defpage cheque-stran-page actions/config/cheque-stran/create
     (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/create") :request-type :post)
-    ((title          string  chk-cheque-stran-title/create)
-     (from-state     string  chk-cheque-state*)
-     (to-state       string  chk-cheque-state)
-     (temtx          string  chk-temtx-title))
+    ((title         string chk-cheque-stran-title/create)
+     (from-state-id string chk-cheque-state-id*)
+     (to-state-id   string chk-cheque-state-id)
+     (temtx         string chk-temtx-title))
+  (check-cheque-stran-parameters from-state-id to-state-id kind)
   (with-controller-page (config/cheque-stran/create kind)
-    (check-cheque-stran-parameters from-state to-state kind)
     (let* ((temtx-id (temtx-id (val temtx)))
            (new-cheque-stran (make-instance 'cheque-stran
                                             :title (val title)
                                             :payable-p (string= kind "payable")
-                                            :from-state (val from-state)
-                                            :to-state (val to-state)
+                                            :from-state-id (val from-state-id)
+                                            :to-state-id (val to-state-id)
                                             :temtx-id temtx-id)))
       (insert-dao new-cheque-stran)
       (see-other (config/cheque-stran kind :id (cheque-stran-id new-cheque-stran))))))
@@ -305,11 +305,11 @@
     (("config/cheque-stran/" (kind "(receivable|payable)") "/update"))
     ((id             integer chk-cheque-stran-id                      t)
      (title          string  (chk-cheque-stran-title/update title id))
-     (from-state     string  chk-cheque-state*)
-     (to-state       string  chk-cheque-state)
+     (from-state-id     string  chk-cheque-state-id*)
+     (to-state-id       string  chk-cheque-state-id)
      (temtx          string  chk-temtx-title))
+  (check-cheque-stran-parameters from-state-id to-state-id kind)
   (with-view-page
-    (check-cheque-stran-parameters from-state to-state kind)
     (let* ((op :update)
            (cheque-stran-table (make-instance 'cheque-stran-table
                                               :kind kind
@@ -337,16 +337,16 @@
      :request-type :post)
     ((id             integer chk-cheque-stran-id                      t)
      (title          string  (chk-cheque-stran-title/update title id))
-     (from-state     string  chk-cheque-state*)
-     (to-state       string  chk-cheque-state)
+     (from-state-id     string  chk-cheque-state-id*)
+     (to-state-id       string  chk-cheque-state-id)
      (temtx          string  chk-temtx-title))
+  (check-cheque-stran-parameters from-state-id to-state-id kind)
   (with-controller-page (config/cheque-stran/update kind)
-    (check-cheque-stran-parameters from-state to-state kind)
     (let ((temtx-id (temtx-id (val temtx))))
       (execute (:update 'cheque-stran :set
                         'title (val title)
-                        'from-state (val from-state)
-                        'to-state (val to-state)
+                        'from-state-id (val from-state-id)
+                        'to-state-id (val to-state-id)
                         'temtx-id temtx-id
                         :where (:= 'id (val id)))))
     (see-other (config/cheque-stran kind :id (val id)))))

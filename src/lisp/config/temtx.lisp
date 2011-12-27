@@ -64,9 +64,12 @@
         (t nil)))
 
 (defun chk-temtx-title (title)
-  (if (or (eql title :null) (temtx-title-exists-p title))
-      nil
-      :temtx-title-unknown))
+  (cond ((eql title :null)
+         :temtx-title-null)
+        ((temtx-title-exists-p title)
+         nil)
+        (t
+         :temtx-title-unknown)))
 
 
 

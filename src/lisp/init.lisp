@@ -1,17 +1,37 @@
 (in-package :scrooge)
 
+
+
+;;; ----------------------------------------------------------------------
+;;; Time
+;;; ----------------------------------------------------------------------
+
+(define-timezone +UTC+ #p"/usr/share/zoneinfo/UTC")
+
+(cl-postgres:set-sql-datetime-readers :timestamp-with-timezone
+                                      (lambda (sec)
+                                        (timestamp+ (encode-timestamp 0 0 0 0 1 1 2000
+                                                                      :timezone +UTC+)
+                                                    (/ sec 1000000) :sec)))
+
+
 ;;; ----------------------------------------------------------------------
 ;;; Acceptor configuration
 ;;; ----------------------------------------------------------------------
 
-(define-acceptor *scrooge* (veil-acceptor)
+(defclass scrooge-acceptor (veil-acceptor)
+  ())
+
+(define-acceptor *scrooge* (scrooge-acceptor)
+  :document-root #p"/home/gnp/www/scrooge/public"
+  :access-log-destination nil
+  :message-log-destination nil
   :packages '(:scrooge)
   :port 3001
   :db-connection-spec '(:dbname "scrooge"
                         :dbhost "localhost"
                         :dbuser "gnp"
                         :dbpass "gnp!p0stgresql")
-  :doc-root #p"/home/gnp/www/scrooge/public"
   :web-root "/scrooge/"
   :web-paths '((css  . "css/")
                (js   . "js/")

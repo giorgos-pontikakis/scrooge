@@ -312,7 +312,8 @@
            (filter (params->filter))
            (company-table (make-instance 'company-table
                                          :op op
-                                         :filter filter)))
+                                         :filter filter
+                                         :start-index (val start))))
       (if (or (null (rows company-table))
               (cdr (rows company-table)))
           (with-document ()
@@ -328,8 +329,7 @@
                          (:div :class "title"  "Κατάλογος")
                          (company-actions op (val id) filter)
                          (display company-table
-                                  :key (val id)
-                                  :start (val start)))
+                                  :key (val id)))
                    (footer))))
           (redirect (company/details :id (key (first (rows company-table)))
                                      :search (val search)))))))
