@@ -242,9 +242,6 @@ excluded for the search - useful for updates."
                 10)
            control-digit)))))
 
-(defun today ()
-  (universal-time-to-timestamp (get-universal-time)))
-
 (defun chk-amount (float)
   (cond ((eql float :null)
          :empty-amount)

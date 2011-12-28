@@ -62,6 +62,9 @@
 ;;; Validation
 ;;; ----------------------------------------------------------------------
 
+;;; This one should be moved to project-stran (if project-stran is used)
+(define-existence-predicate project-state-id-exists-p project-state id)
+
 (define-existence-predicate project-id-exists-p project id)
 (define-existence-predicate bill-id-exists-p bill id)
 (define-existence-predicate* project-description-exists-p project description id)

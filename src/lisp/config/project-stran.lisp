@@ -45,8 +45,6 @@
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate project-state-id-exists-p project-state id)
-
 (define-existence-predicate project-stran-exists-p project-stran id)
 (define-existence-predicate* project-stran-title-exists-p project-stran title id)
 
