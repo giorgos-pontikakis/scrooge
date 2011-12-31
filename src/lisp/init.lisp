@@ -3,16 +3,11 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Time
+;;; integration for local-time and cl-postgres
 ;;; ----------------------------------------------------------------------
 
-(define-timezone +UTC+ #p"/usr/share/zoneinfo/UTC")
+(set-local-time-cl-postgres-readers)
 
-(cl-postgres:set-sql-datetime-readers :timestamp-with-timezone
-                                      (lambda (sec)
-                                        (timestamp+ (encode-timestamp 0 0 0 0 1 1 2000
-                                                                      :timezone +UTC+)
-                                                    (/ sec 1000000) :sec)))
 
 
 ;;; ----------------------------------------------------------------------
@@ -28,7 +23,7 @@
   :message-log-destination nil
   :packages '(:scrooge)
   :port 3001
-  :db-connection-spec '(:dbname "scrooge"
+  :db-connection-spec '(:dbname "official"
                         :dbhost "localhost"
                         :dbuser "gnp"
                         :dbpass "gnp!p0stgresql")

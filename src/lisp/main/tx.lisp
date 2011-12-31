@@ -69,8 +69,14 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
+(defun auto-tx-p (tx-id)
+  (with-db ()
+    (query (:select 'tx-id
+            :from 'cheque-event
+            :where (:= 'tx-id tx-id)))))
+
 (defun tx-actions (op id filter)
-  (let ((auto-p (if id (auto (get-dao 'tx id)) nil)))
+  (let ((auto-p (if id (auto-tx-p id) nil)))
     (actions-menu (crud-actions-spec (apply #'tx/create filter)
                                      (if auto-p
                                          nil
@@ -91,6 +97,7 @@
   (with-html
     (:div :class "filters"
           (datebox #'tx filter))))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -288,8 +295,7 @@
                                   :company-id company-id
                                   :amount (val amount)
                                   :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id
-                                  :auto nil)))
+                                  :debit-acc-id debit-acc-id)))
       (insert-dao new-tx)
       (see-other (apply #'tx :id (tx-id new-tx) (params->filter))))))
 

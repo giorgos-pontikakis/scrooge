@@ -172,7 +172,7 @@
 (defclass cheque-table (scrooge-table)
   ((kind        :accessor kind :initarg :kind)
    (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
-                               "Ημερομηνία<br />πληρωμής" "<br />Ποσό" "<br />Κατάσταση"))
+                               "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "cheque-paginator"
                                             :css-class "paginator")))
@@ -190,7 +190,9 @@
                                :inner-join bank
                                :on (:= bank.id cheque.bank-id)
                                :inner-join company
-                               :on (:= company.id cheque.company-id)))
+                               :on (:= company.id cheque.company-id)
+                               :inner-join cheque-event
+                               :on (:= cheque-event.cheque-id cheque.id)))
          (where nil))
     (when search
       (push `(:or (:ilike company.title ,(ilike search))
@@ -252,11 +254,6 @@
           (make-instance 'textbox
                          :name 'amount
                          :value (getf record :amount)
-                         :disabled (not enabled-p))
-          (make-instance 'dropdown
-                         :name 'state
-                         :value-label-alist *cheque-states*
-                         :selected (getf record :state)
                          :disabled (not enabled-p)))))
 
 (defmethod controls ((row cheque-row) controls-p)
@@ -335,8 +332,7 @@
      (bank       string  chk-bank-title)
      (due-date   date    chk-date)
      (company    string  chk-company-title)
-     (amount     float   chk-amount)
-     (state      string  chk-cheque-state-id))
+     (amount     float   chk-amount))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
@@ -375,39 +371,38 @@
      (bank       string  chk-bank-title)
      (company    string  chk-company-title t)
      (due-date   date    chk-date          t)
-     (amount     float   chk-amount        t)
-     (state      string  chk-cheque-state-id  t))
+     (amount     float   chk-amount        t))
   (with-controller-page (cheque/create)
     (check-cheque-accounts)
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
            (cheque-stran (select-dao-unique 'cheque-stran
-                                            (:is-null 'from-state)))
-           (temtx (select-dao 'temtx
-                              (:= 'id (temtx-id cheque-stran))))
+                             (:= 'from-state-id "nil")))
+           (temtx (select-dao-unique 'temtx
+                      (:= 'id (temtx-id cheque-stran))))
            (new-tx (make-instance 'tx
-                                  :tx-date (today)
-                                  :description (title temtx)
-                                  :company-id company-id
-                                  :amount (val amount)
-                                  :credit-acc-id (credit-acc-id temtx)
-                                  :debit-acc-id (debit-acc-id temtx)
-                                  :auto t))
-           (new-cheque (make-instance 'cheque
-                                      :bank-id bank-id
-                                      :company-id company-id
-                                      :due-date (val due-date)
-                                      :amount (val amount)
-                                      :state (val state)
-                                      :payable-p (string= kind "payable"))))
+                                   :tx-date (today)
+                                   :description (title temtx)
+                                   :company-id company-id
+                                   :amount (val amount)
+                                   :credit-acc-id (credit-acc-id temtx)
+                                   :debit-acc-id (debit-acc-id temtx)))
+            (new-cheque (make-instance 'cheque
+                                       :bank-id bank-id
+                                       :company-id company-id
+                                       :due-date (val due-date)
+                                       :amount (val amount)
+                                       :payable-p (string= kind "payable"))))
       (with-transaction ()
         (insert-dao new-cheque)
         (insert-dao new-tx)
         (insert-dao (make-instance 'cheque-event
-                                   :event-date (today)
-                                   :cheque-id (id new-cheque)
-                                   :cheque-stran-id (id cheque-stran)
-                                   :tx-id (id new-tx)))))))
+                                   :tstamp (now)
+                                   :cheque-id (cheque-id new-cheque)
+                                   :from-state-id (from-state-id cheque-stran)
+                                   :to-state-id (to-state-id cheque-stran)
+                                   :tx-id (tx-id new-tx))))
+      (see-other (apply #'cheque/create kind :id (cheque-id new-cheque) (params->filter))))))
 
 
 
