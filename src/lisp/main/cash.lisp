@@ -298,10 +298,10 @@
                (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))
-    ((search      string)
-     (since       date)
-     (until       date)
-     (id          integer chk-tx-id t))
+    ((search string)
+     (since  date)
+     (until  date)
+     (id     integer chk-tx-id t))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :details)

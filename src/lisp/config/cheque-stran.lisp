@@ -107,7 +107,7 @@
                :plists))))
 
 (defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id kind)
-  (if (cheque-stran-from/to/payable-exists-p from-state-id to-state-id kind)
+  (if (cheque-stran-from/to/payable-exists-p/create from-state-id to-state-id kind)
       :cheque-stran-from/to/payable-exists
       nil))
 
