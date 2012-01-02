@@ -17,15 +17,14 @@
 
 (defmethod get-records ((table account-tx-table))
   (let ((account-id (filter table)))
-    (with-db ()
-      (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)
-                      'debit-acc-id 'credit-acc-id 'amount
-                      :from 'tx
-                      :left-join 'company
-                      :on (:= 'company.id 'tx.company-id)
-                      :where (:or (:= account-id 'tx.debit-acc-id)
-                                  (:= account-id 'tx.credit-acc-id)))
-             :plists))))
+    (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)
+                    'debit-acc-id 'credit-acc-id 'amount
+                    :from 'tx
+                    :left-join 'company
+                    :on (:= 'company.id 'tx.company-id)
+                    :where (:or (:= account-id 'tx.debit-acc-id)
+                                (:= account-id 'tx.credit-acc-id)))
+           :plists)))
 
 
 (defclass account-tx-row (scrooge-row/plist)

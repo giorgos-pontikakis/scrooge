@@ -70,10 +70,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defun auto-tx-p (tx-id)
-  (with-db ()
-    (query (:select 'tx-id
-            :from 'cheque-event
-            :where (:= 'tx-id tx-id)))))
+  (query (:select 'tx-id
+          :from 'cheque-event
+          :where (:= 'tx-id tx-id))))
 
 (defun tx-actions (op id filter)
   (let ((auto-p (if id (auto-tx-p id) nil)))
@@ -145,9 +144,8 @@
       (push `(:<= tx-date ,until) where))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
                            (:desc tx-date))))
-      (with-db ()
-        (query (sql-compile sql)
-               :plists)))))
+      (query (sql-compile sql)
+             :plists))))
 
 
 ;;; rows
@@ -424,24 +422,23 @@
 
 (defmethod get-record ((type (eql 'tx)) id)
   (declare (ignore type))
-  (with-db ()
-    (query (:select 'tx.id 'tx-date
-                    (:as 'company.title 'company)
-                    'description
-                    (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
-                    (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
-                    'tx.debit-acc-id
-                    'tx.credit-acc-id
-                    'amount
-            :from 'tx
-            :left-join 'company
-            :on (:= 'tx.company-id 'company.id)
-            :left-join (:as 'account 'non-chq-debit-acc)
-            :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
-            :left-join (:as 'account 'non-chq-credit-acc)
-            :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
-            :where (:= 'tx.id id))
-           :plist)))
+  (query (:select 'tx.id 'tx-date
+                  (:as 'company.title 'company)
+                  'description
+                  (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
+                  (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
+                  'tx.debit-acc-id
+                  'tx.credit-acc-id
+                  'amount
+                  :from 'tx
+                  :left-join 'company
+                  :on (:= 'tx.company-id 'company.id)
+                  :left-join (:as 'account 'non-chq-debit-acc)
+                  :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
+                  :left-join (:as 'account 'non-chq-credit-acc)
+                  :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
+                  :where (:= 'tx.id id))
+         :plist))
 
 ;; (defclass tx-form (crud-form/plist)
 ;;   ())

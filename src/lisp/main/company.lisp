@@ -205,18 +205,17 @@
 
 (defmethod get-record ((type (eql 'company)) id)
   (declare (ignore type))
-  (with-db ()
-    (query (:select 'company.title 'occupation
-                    'tin (:as 'tof.title 'tof)
-                    'address (:as 'city.title 'city)
-                    'zipcode 'pobox 'notes
-            :from 'company
-            :left-join 'city
-            :on (:= 'company.city-id 'city.id)
-            :left-join 'tof
-            :on (:=  'company.tof-id 'tof.id)
-            :where (:= 'company.id id))
-           :plist)))
+  (query (:select 'company.title 'occupation
+                  'tin (:as 'tof.title 'tof)
+                  'address (:as 'city.title 'city)
+                  'zipcode 'pobox 'notes
+                  :from 'company
+                  :left-join 'city
+                  :on (:= 'company.city-id 'city.id)
+                  :left-join 'tof
+                  :on (:=  'company.tof-id 'tof.id)
+                  :where (:= 'company.id id))
+         :plist))
 
 
 
@@ -259,9 +258,8 @@
                                                     (:ilike contact.tag ,ilike-term))))
                               base-query))
          (final-query `(:order-by ,composite-query company.title)))
-    (with-db ()
-      (query (sql-compile final-query)
-             :plists))))
+    (query (sql-compile final-query)
+           :plists)))
 
 ;;; rows
 

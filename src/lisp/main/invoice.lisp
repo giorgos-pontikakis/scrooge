@@ -114,9 +114,8 @@
                                            (:and (:= ,@(acc-kind kind))
                                                  ,@where))
                              (:desc tx-date))))
-        (with-db ()
-          (query (sql-compile sql)
-                 :plists))))))
+        (query (sql-compile sql)
+               :plists)))))
 
 
 ;;; rows

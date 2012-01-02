@@ -172,16 +172,15 @@
   (:default-initargs :item-class 'cheque-stran-row))
 
 (defmethod get-records ((table cheque-stran-table))
-  (with-db ()
-    (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
-                               'from-state-id 'to-state-id
-                               (:as 'temtx.title 'temtx)
-                       :from 'cheque-stran
-                       :inner-join 'temtx
-                       :on (:= 'temtx-id 'temtx.id)
-                       :where (:= 'payable-p (string= (kind table) "payable")))
-                      'cheque-stran.title)
-           :plists)))
+  (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
+                             'from-state-id 'to-state-id
+                             (:as 'temtx.title 'temtx)
+                             :from 'cheque-stran
+                             :inner-join 'temtx
+                             :on (:= 'temtx-id 'temtx.id)
+                             :where (:= 'payable-p (string= (kind table) "payable")))
+                    'cheque-stran.title)
+         :plists))
 
 
 ;;; rows

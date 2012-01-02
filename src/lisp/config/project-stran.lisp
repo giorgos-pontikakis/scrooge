@@ -136,15 +136,14 @@
   (:default-initargs :item-class 'project-stran-row))
 
 (defmethod get-records ((table project-stran-table))
-  (with-db ()
-    (query (:order-by (:select 'project-stran.id 'project-stran.title
-                               'from-state-id 'to-state-id
-                               (:as 'temtx.title 'temtx)
-                       :from 'project-stran
-                       :left-join 'temtx
-                       :on (:= 'temtx-id 'temtx.id))
-                      'project-stran.title)
-           :plists)))
+  (query (:order-by (:select 'project-stran.id 'project-stran.title
+                             'from-state-id 'to-state-id
+                             (:as 'temtx.title 'temtx)
+                             :from 'project-stran
+                             :left-join 'temtx
+                             :on (:= 'temtx-id 'temtx.id))
+                    'project-stran.title)
+         :plists))
 
 
 ;;; rows

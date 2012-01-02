@@ -213,7 +213,8 @@
    (company-id :col-type integer       :accessor company-id :initarg :company-id)
    (due-date   :col-type date          :accessor due-date   :initarg :due-date)
    (amount     :col-type (numeric 9 2) :accessor amount     :initarg :amount)
-   (payable-p  :col-type boolean       :accessor payable-p  :initarg :payable-p))
+   (payable-p  :col-type boolean       :accessor payable-p  :initarg :payable-p)
+   (state-id   :col-type (string 32)   :accessor state-id   :initarg :state-id))
   (:metaclass dao-class)
   (:keys id))
 

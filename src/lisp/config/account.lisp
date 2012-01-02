@@ -153,11 +153,10 @@
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
-  (with-db ()
-    (query (:select 'id 'title 'parent-id
-            :from 'account
-            :where (:= 'debit-p (getf (filter tree) :debit-p)))
-           :plists)))
+  (query (:select 'id 'title 'parent-id
+          :from 'account
+          :where (:= 'debit-p (getf (filter tree) :debit-p)))
+         :plists))
 
 
 ;;; nodes

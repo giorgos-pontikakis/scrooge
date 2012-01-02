@@ -120,7 +120,7 @@
            nil))))
 
 (defun chk-project-state (state)
-  (if (project-state-exists-p state)
+  (if (project-state-id-exists-p state)
       nil
       :project-state-invalid))
 
@@ -215,15 +215,14 @@
 
 (defmethod get-record ((type (eql 'project)) id)
   (declare (ignore type))
-  (with-db ()
-    (query (:select 'project.id (:as 'company.title 'company)
-                    'description 'location 'state 'quote-date
-                    'start-date 'end-date 'price 'vat 'project.notes
-            :from 'project
-            :left-join 'company
-            :on (:= 'project.company-id 'company.id)
-            :where (:= 'project.id id))
-           :plist)))
+  (query (:select 'project.id (:as 'company.title 'company)
+                  'description 'location 'state 'quote-date
+                  'start-date 'end-date 'price 'vat 'project.notes
+                  :from 'project
+                  :left-join 'company
+                  :on (:= 'project.company-id 'company.id)
+                  :where (:= 'project.id id))
+         :plist))
 
 
 
@@ -271,9 +270,8 @@
                                             ((member cstate
                                                      (list "finished" "archived") :test #'string=)
                                              'end-date))))))
-      (with-db ()
-        (query (sql-compile final-query)
-               :plists)))))
+      (query (sql-compile final-query)
+             :plists))))
 
 
 ;;; rows
@@ -589,5 +587,8 @@
      (search string)
      (cstate string chk-project-state))
   (with-controller-page (project/delete)
-    (delete-dao (get-dao 'project (val id)))
+    (with-transaction ()
+      (execute (:delete-from 'bill
+                :where (:= 'project-id (val id))))
+      (delete-dao (get-dao 'project (val id))))
     (see-other (apply #'project (params->filter)))))

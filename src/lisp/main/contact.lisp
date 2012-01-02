@@ -35,12 +35,11 @@
   (:default-initargs :item-class 'contact-row :id "contact-table"))
 
 (defmethod get-records ((table contact-table))
-  (with-db ()
-    (query (:order-by (:select (:as 'id 'contact-id) 'tag 'phone 'rank
-                       :from 'contact
-                       :where (:= 'company-id (company-id table)))
-                      'rank)
-           :plists)))
+  (query (:order-by (:select (:as 'id 'contact-id) 'tag 'phone 'rank
+                             :from 'contact
+                             :where (:= 'company-id (company-id table)))
+                    'rank)
+         :plists))
 
 
 ;;; rows

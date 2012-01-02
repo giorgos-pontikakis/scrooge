@@ -256,9 +256,3 @@ excluded for the search - useful for updates."
           (realp float))
       nil
       :non-positive-amount))
-
-(defun possible-next-states (table current-state)
-  (with-db ()
-    (query (:select 'to-state :from table
-            :where (:= 'from-state current-state))
-           :column)))

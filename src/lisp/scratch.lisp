@@ -40,10 +40,3 @@
 
 (defun make-all-project-events ()
   (mapc #'make-events-for-project-dao (select-dao 'project)))
-
-
-(defun possible-next-project-states (project-state)
-  (with-db ()
-    (query (:select 'project-stran
-                    :where (:= 'project-stran.from-state project-state))
-           :list)))

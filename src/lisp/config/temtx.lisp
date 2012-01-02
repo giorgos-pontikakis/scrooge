@@ -98,17 +98,16 @@
   (:default-initargs :item-class 'temtx-row))
 
 (defmethod get-records ((table temtx-table))
-  (with-db ()
-    (query (:order-by (:select 'temtx.id 'temtx.title
-                               (:as 'debit-account.title 'debit-account)
-                               (:as 'credit-account.title 'credit-account)
-                               :from 'temtx
-                               :inner-join (:as 'account 'debit-account)
-                               :on (:= 'debit-acc-id 'debit-account.id)
-                               :inner-join (:as 'account 'credit-account)
-                               :on (:= 'credit-acc-id 'credit-account.id))
-                      'temtx.title)
-           :plists)))
+  (query (:order-by (:select 'temtx.id 'temtx.title
+                             (:as 'debit-account.title 'debit-account)
+                             (:as 'credit-account.title 'credit-account)
+                             :from 'temtx
+                             :inner-join (:as 'account 'debit-account)
+                             :on (:= 'debit-acc-id 'debit-account.id)
+                             :inner-join (:as 'account 'credit-account)
+                             :on (:= 'credit-acc-id 'credit-account.id))
+                    'temtx.title)
+         :plists))
 
 
 ;;; rows

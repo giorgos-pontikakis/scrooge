@@ -40,12 +40,11 @@
   (:default-initargs :item-class 'bill-row :id "bill-table"))
 
 (defmethod get-records ((table bill-table))
-  (with-db ()
-    (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
-                               :from 'bill
-                               :where (:= 'project-id (project-id table)))
-                      'rank)
-           :plists)))
+  (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
+                             :from 'bill
+                             :where (:= 'project-id (project-id table)))
+                    'rank)
+         :plists))
 
 
 ;;; rows

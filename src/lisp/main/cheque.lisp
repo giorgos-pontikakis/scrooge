@@ -163,7 +163,8 @@
          (lit (label-input-text disabled record styles))
          (events (get-cheque-events (getf record :id)))
          (following (following-cheque-states (getf record :state-id)
-                                             (getf record :payable-p))))
+                                             (getf record :payable-p)))
+         (tstamp-format '((:day 2) #\- (:month 2) #\- (:year 4) " --- " (:hour 2) ":" (:min 2))))
     (with-html
       (:div :id "cheque-data-form" :class "data-form"
             (:div :class "grid_6 alpha"
@@ -172,23 +173,23 @@
                   (display lit 'bank "Τράπεζα" "ac-bank")
                   (display lit 'amount "Ποσό"))
             (:div :class "grid_6 omega"
-                  (:table
-                   (iter
-                     (for ev in events)
-                     (htm (:tr
-                           (:td (str (assoc-value *cheque-states*
-                                                  (getf ev :to-state-id)
-                                                  :test #'string=)))
-                           (:td (str (getf ev :tstamp)))))
-                     (unless disabled
-                       (htm (:tr
-                             (:td (dropdown 'state-id
-                                            (acons nil " " following)))
-                             (:td (textbox 'tstamp :css-class "datepicker")))))
-                     (:div :class "data-form-buttons"
-                           (unless disabled
-                             (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                             (cancel-button (cancel-url form) :body "Άκυρο"))))))))))
+                  (:table :class "crud-table"
+                          (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
+                          (iter
+                            (for ev in events)
+                            (htm (:tr
+                                  (:td (str (assoc-value *cheque-states*
+                                                         (getf ev :to-state-id)
+                                                         :test #'string=)))
+                                  (:td (str (format-timestring nil (getf ev :tstamp)
+                                                               :format tstamp-format)))))))
+                  (when (and following (not disabled))
+                    (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
+                                                             (acons "nil" "" following))))))
+            (:div :class "grid_12 data-form-buttons"
+                  (unless disabled
+                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
 (defun following-cheque-states (from-state-id payable-p)
   (lists->alist
@@ -207,25 +208,23 @@
 
 (defmethod get-record ((type (eql 'cheque)) id)
   (declare (ignore type))
-  (with-db ()
-    (query (:select 'cheque.id (:as 'bank.title 'bank)
-                    'due-date (:as 'company.title 'company)
-                    'amount 'payable-p 'state-id
-                    :from 'cheque
-                    :left-join 'bank
-                    :on (:= 'bank.id 'cheque.bank-id)
-                    :inner-join 'company
-                    :on (:= 'company.id 'cheque.company-id)
-                    :where (:= 'cheque.id id))
-           :plist)))
+  (query (:select 'cheque.id (:as 'bank.title 'bank)
+                  'due-date (:as 'company.title 'company)
+                  'amount 'payable-p 'state-id
+                  :from 'cheque
+                  :left-join 'bank
+                  :on (:= 'bank.id 'cheque.bank-id)
+                  :inner-join 'company
+                  :on (:= 'company.id 'cheque.company-id)
+                  :where (:= 'cheque.id id))
+         :plist))
 
 (defun get-cheque-events (cheque-id)
-  (with-db ()
-    (query (:order-by (:select 'to-state-id 'tstamp
-                       :from 'cheque-event
-                       :where (:= 'cheque-id cheque-id))
-                      'tstamp)
-           :plists)))
+  (query (:order-by (:select 'to-state-id 'tstamp
+                             :from 'cheque-event
+                             :where (:= 'cheque-id cheque-id))
+                    'tstamp)
+         :plists))
 
 
 
@@ -273,9 +272,8 @@
                                          (:and (:= cheque.payable-p ,payable-p)
                                                ,@where))
                            (:desc due-date))))
-      (with-db ()
-        (query (sql-compile sql)
-               :plists)))))
+      (query (sql-compile sql)
+             :plists))))
 
 
 ;;; rows
@@ -388,7 +386,7 @@
      (since  date    chk-date)
      (until  date    chk-date)
      (start  integer)
-     (id     integer chk-cheque-id))
+     (id     integer chk-cheque-id       t))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :details)
@@ -409,7 +407,7 @@
                (main-navbar 'cheque)
                (cheque-subnavbar op kind filter)
                (:div :id "cheque-window" :class "window grid_12"
-                     (:div :class "title" "Λεπτομέρειες")
+                     (:div :class "title" (str page-title))
                      (cheque-actions op kind (val id) filter)
                      (display cheque-form))
                (footer)))))))
@@ -565,37 +563,43 @@
      (state-id string  chk-cheque-state-id))
   (with-controller-page (cheque/update kind)
     (check-cheque-accounts)
-    (check-cheque-state-change)
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
-           (cheque-dao (get-dao 'cheque (val id)))
-           (cheque-stran (select-dao-unique 'cheque-stran
-                             (:and (:= 'from-state-id (state cheque-dao))
-                                   (:= 'to-state-id (val state-id)))))
-           (temtx (select-dao 'temtx
-                      (:= 'id (temtx-id cheque-stran))))
-           (new-tx (if (string= (val state-id) nil)
-                       nil
-                       (make-instance 'tx
-                                      :tx-date (today)
-                                      :description (title temtx)
-                                      :company-id company-id
-                                      :amount (val amount)
-                                      :credit-acc-id (credit-acc-id temtx)
-                                      :debit-acc-id (debit-acc-id temtx)))))
-      (with-transaction ()
-        (setf (bank-id cheque-dao) bank-id
-              (company-id cheque-dao) company-id
-              (due-date cheque-dao) (val due-date)
-              (amount cheque-dao) (val amount))
-        (update-dao cheque-dao)
-        (when new-tx
-          (insert-dao new-tx)
-          (insert-dao (make-instance 'cheque-event
-                                     :tstamp (today)
-                                     :cheque-id (id cheque-dao)
-                                     :cheque-stran-id (id cheque-stran)
-                                     :tx-id (id new-tx))))))))
+           (cheque-dao (get-dao 'cheque (val id))))
+      (let ((from-state-id (state-id cheque-dao)))
+        (with-transaction ()
+          ;; When a new state is requested, update the state of cheque-dao and create a new
+          ;; event and the corresponding tx
+          (unless (string= (val state-id) "nil")
+            (let* ((cheque-stran (select-dao-unique 'cheque-stran
+                                     (:and (:= 'from-state-id from-state-id)
+                                           (:= 'to-state-id (val state-id)))))
+                   (temtx (select-dao-unique 'temtx
+                              (:= 'id (temtx-id cheque-stran))))
+                   (new-tx (make-instance 'tx
+                                          :tx-date (today)
+                                          :description (title temtx)
+                                          :company-id company-id
+                                          :amount (val amount)
+                                          :credit-acc-id (credit-acc-id temtx)
+                                          :debit-acc-id (debit-acc-id temtx))))
+
+              (insert-dao new-tx)
+              (insert-dao (make-instance 'cheque-event
+                                         :tstamp (now)
+                                         :cheque-id (cheque-id cheque-dao)
+                                         :from-state-id (from-state-id cheque-stran)
+                                         :to-state-id (to-state-id cheque-stran)
+                                         :tx-id (tx-id new-tx)))
+              (setf (state-id cheque-dao) (val state-id))))
+          ;; In any case, update cheque's data
+          (setf (bank-id cheque-dao) bank-id
+                (company-id cheque-dao) company-id
+                (due-date cheque-dao) (val due-date)
+                (amount cheque-dao) (val amount))
+          (update-dao cheque-dao))
+        ;; Finally redirect
+        (see-other (apply #'cheque/details kind :id (val id) (params->filter)))))))
 
 
 
