@@ -23,7 +23,7 @@
   :message-log-destination nil
   :packages '(:scrooge)
   :port 3001
-  :db-connection-spec '(:dbname "official"
+  :db-connection-spec '(:dbname "scrooge"
                         :dbhost "localhost"
                         :dbuser "gnp"
                         :dbpass "gnp!p0stgresql")
