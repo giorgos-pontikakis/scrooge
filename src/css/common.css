@@ -25,6 +25,11 @@ h3 {
     font-size: 17px;
 }
 
+
+/* ---------------------------------------------------------------------- */
+/* form elements */
+/* ---------------------------------------------------------------------- */
+
 input {
     border: 1px solid #bbb;
     padding: 2px 5px;
@@ -44,30 +49,30 @@ input:focus, textarea:focus {
     background-color: #fff;
 }
 
-input[disabled], input[readonly] {
+input:disabled, textarea:disabled{
     color: #222;
-    background-color: #f0f0f0;
+    background-color: #f5f5f5;
+    -webkit-text-fill-color: #222;
 }
 
-textarea[disabled], textarea[readonly] {
-    color: #000;
-    background-color: #f0f0f0;
+input:readonly, textarea:readonly {
+    color: #222;
+    background-color: #f5f5f5;
 }
 
 button, select {
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
-/* line-height: 20px; */
-/* padding: 2px 5px 1px 5px; */
 }
 
 select option {
     height: 18px;
 }
 
-select[disabled] {
-    color: #000;
+select:disabled {
+    color: #222;
 }
+
 
 
 /* ---------------------------------------------------------------------- */
