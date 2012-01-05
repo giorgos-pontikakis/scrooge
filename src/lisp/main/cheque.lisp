@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(bank due-date company amount tstamp))
+    :initform '(bank due-date company amount tstamp serial))
    (filter-parameter-names
     :allocation :class
     :initform '(search since until cstate))
@@ -82,6 +82,10 @@
       :date-null
       nil))
 
+(defun chk-cheque-serial (serial)
+  (declare (ignore serial))
+  ;; do nothing for the time being
+  nil)
 
 
 ;;; ----------------------------------------------------------------------
@@ -168,6 +172,7 @@
     (with-html
       (:div :id "cheque-data-form" :class "data-form"
             (:div :class "grid_6 alpha"
+                  (display lit 'serial "Σειριακός Αριθμός")
                   (display lit 'due-date "Ημερομηνία" "datepicker")
                   (display lit 'company "Εταιρία" "ac-company")
                   (display lit 'bank "Τράπεζα" "ac-bank")
@@ -210,7 +215,7 @@
   (declare (ignore type))
   (query (:select 'cheque.id (:as 'bank.title 'bank)
                   'due-date (:as 'company.title 'company)
-                  'amount 'payable-p 'state-id
+                  'amount 'payable-p 'state-id 'serial
                   :from 'cheque
                   :left-join 'bank
                   :on (:= 'bank.id 'cheque.bank-id)
@@ -236,7 +241,7 @@
 
 (defclass cheque-table (scrooge-table)
   ((kind        :accessor kind :initarg :kind)
-   (header-labels  :initform '("" "<br />Εταιρία" "<br />Τράπεζα"
+   (header-labels  :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "cheque-paginator"
@@ -299,6 +304,10 @@
 (defmethod payload ((row cheque-row) enabled-p)
   (let ((record (record row)))
     (list (make-instance 'textbox
+                         :name 'serial
+                         :value (getf record :serial)
+                         :disabled (not enabled-p))
+          (make-instance 'textbox
                          :name 'company
                          :value (getf record :company)
                          :css-class "ac-company"
@@ -419,14 +428,15 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-page cheque/create (("cheque/" (kind  "(receivable|payable)") "/create"))
-    ((search     string)
-     (cstate     string  chk-cheque-state-id)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (bank       string  chk-bank-title)
-     (due-date   date    chk-date)
-     (company    string  chk-company-title)
-     (amount     float   chk-amount))
+    ((search   string)
+     (cstate   string  chk-cheque-state-id)
+     (since    date    chk-date)
+     (until    date    chk-date)
+     (serial   string  chk-cheque-serial)
+     (bank     string  chk-bank-title)
+     (due-date date    chk-date)
+     (company  string  chk-company-title)
+     (amount   float   chk-amount))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
@@ -447,7 +457,8 @@
                (cheque-subnavbar op kind filter)
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
-                     (cheque-actions op kind nil filter))
+                     (cheque-actions op kind nil filter)
+                     (notifications))
                (with-form (actions/cheque/create kind
                                                  :search (val search)
                                                  :since (val since)
@@ -458,15 +469,16 @@
 
 (defpage cheque-page actions/cheque/create
     (("actions/cheque/" (kind "(receivable|payable)") "/create") :request-type :post)
-    ((search     string)
-     (cstate     string  chk-cheque-state-id)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (bank       string  chk-bank-title)
-     (company    string  chk-company-title t)
-     (due-date   date    chk-date          t)
-     (amount     float   chk-amount        t))
-  (with-controller-page (cheque/create)
+    ((search   string)
+     (cstate   string  chk-cheque-state-id)
+     (since    date    chk-date)
+     (until    date    chk-date)
+     (bank     string  chk-bank-title)
+     (serial   string  chk-cheque-serial)
+     (company  string  chk-company-title t)
+     (due-date date    chk-date          t)
+     (amount   float   chk-amount        t))
+  (with-controller-page (cheque/create kind)
     (check-cheque-accounts)
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
@@ -475,19 +487,20 @@
            (temtx (select-dao-unique 'temtx
                       (:= 'id (temtx-id cheque-stran))))
            (new-tx (make-instance 'tx
-                                   :tx-date (today)
-                                   :description (title temtx)
-                                   :company-id company-id
-                                   :amount (val amount)
-                                   :credit-acc-id (credit-acc-id temtx)
-                                   :debit-acc-id (debit-acc-id temtx)))
-            (new-cheque (make-instance 'cheque
-                                       :bank-id bank-id
-                                       :company-id company-id
-                                       :due-date (val due-date)
-                                       :amount (val amount)
-                                       :payable-p (string= kind "payable")
-                                       :state-id "pending")))
+                                  :tx-date (today)
+                                  :description (title temtx)
+                                  :company-id company-id
+                                  :amount (val amount)
+                                  :credit-acc-id (credit-acc-id temtx)
+                                  :debit-acc-id (debit-acc-id temtx)))
+           (new-cheque (make-instance 'cheque
+                                      :serial (val serial)
+                                      :bank-id bank-id
+                                      :company-id company-id
+                                      :due-date (val due-date)
+                                      :amount (val amount)
+                                      :payable-p (string= kind "payable")
+                                      :state-id "pending")))
       (with-transaction ()
         (insert-dao new-cheque)
         (insert-dao new-tx)
@@ -511,6 +524,7 @@
      (since    date    chk-date)
      (until    date    chk-date)
      (id       integer chk-cheque-id     t)
+     (serial   string  chk-cheque-serial)
      (bank     string  chk-bank-title)
      (company  string  chk-company-title)
      (due-date date    chk-date)
@@ -556,6 +570,7 @@
      (since    date    chk-date)
      (until    date    chk-date)
      (id       integer chk-cheque-id     t)
+     (serial   string  chk-cheque-serial)
      (bank     string  chk-bank-title)
      (company  string  chk-company-title t)
      (due-date date    chk-date          t)
@@ -593,7 +608,8 @@
                                          :tx-id (tx-id new-tx)))
               (setf (state-id cheque-dao) (val state-id))))
           ;; In any case, update cheque's data
-          (setf (bank-id cheque-dao) bank-id
+          (setf (serial cheque-dao) (val serial)
+                (bank-id cheque-dao) bank-id
                 (company-id cheque-dao) company-id
                 (due-date cheque-dao) (val due-date)
                 (amount cheque-dao) (val amount))

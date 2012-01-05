@@ -94,10 +94,10 @@
 (defun logout-menu (config-p)
   (with-html
     (:div :id "logout"
-        (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
-              (:a :class (if config-p "active" "")
-                  :href (if config-p (home) (config/city)) "Ρυθμίσεις"))
-             (:li (:a :href (logout) "Έξοδος"))))))
+          (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
+                    (:a :class (if config-p "active" "")
+                        :href (if config-p (home) (config/city)) "Ρυθμίσεις"))
+               (:li (:a :href (logout) "Έξοδος"))))))
 
 (defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)

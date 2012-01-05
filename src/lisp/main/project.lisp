@@ -156,15 +156,27 @@
                (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
              (getf filter :cstate))))))
 
-(defun project-subnavbar (op filter)
+(defun project-subnavbar (op filter &optional id)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (if (member op '(:catalogue :delete))
               (project-filters filter)
               (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'project filter)
+                         (:ul (:li (:a :href (apply #'project :id id filter)
                                        "Κατάλογος"))))))
-          (searchbox #'project filter "ac-project"))))
+          (searchbox #'actions/project/search filter "ac-project"))))
+
+(defpage project-page actions/project/search ("actions/project/search" :request-type :get)
+    ((search string)
+     (cstate string chk-project-state))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (records (get-records (make-instance 'project-table
+                                                :filter filter))))
+      (if (or (not records)
+              (and records (cdr records)))
+          (see-other (apply #'project filter))
+          (see-other (apply #'project/details :id (getf (first records) :id) filter))))))
 
 
 
@@ -325,12 +337,7 @@
            (project-table (make-instance 'project-table
                                          :op op
                                          :filter filter
-                                         :start-index (val start)))
-           #|(rows (rows project-table))|#)
-      #|(if (and (val search) rows (not (cdr rows)))
-      (redirect (apply #'project/details :id (key (first (rows project-table)))
-      filter))
-      )|#
+                                         :start-index (val start))))
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")
@@ -339,7 +346,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter)
+               (project-subnavbar op filter (val id))
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (project-actions op (val id) filter)
@@ -371,7 +378,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter)
+               (project-subnavbar op filter (val id))
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Λεπτομέρειες")
                      (project-actions op (val id) filter)
@@ -498,7 +505,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter)
+               (project-subnavbar op filter (val id))
                (:div :id "project-window" :class "window grid_6"
                      (:p :class "title" "Επεξεργασία")
                      (project-actions op (val id) filter)
@@ -571,7 +578,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter)
+               (project-subnavbar op filter (val id))
                (:div :id "project-window" :class "window grid_12"
                      (:div :class "title" "Έργο » Διαγραφή")
                      (project-actions op (val id) filter)
