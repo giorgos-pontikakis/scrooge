@@ -325,27 +325,28 @@
            (project-table (make-instance 'project-table
                                          :op op
                                          :filter filter
-                                         :start-index (val start))))
-      (if (or (null (rows project-table))
-              (cdr (rows project-table)))
-          (with-document ()
-            (:head
-             (:title "Έργα » Κατάλογος")
-             (main-headers))
-            (:body
-             (:div :id "container" :class "container_12"
-                   (header)
-                   (main-navbar 'project)
-                   (project-subnavbar op filter)
-                   (:div :id "project-window" :class "window grid_12"
-                         (:div :class "title" "Κατάλογος")
-                         (project-actions op (val id) filter)
-                         (display project-table
-                                  :key (val id)
-                                  :start (val start)))
-                   (footer))))
-          (redirect (apply #'project/details :id (key (first (rows project-table)))
-                           filter))))))
+                                         :start-index (val start)))
+           #|(rows (rows project-table))|#)
+      #|(if (and (val search) rows (not (cdr rows)))
+      (redirect (apply #'project/details :id (key (first (rows project-table)))
+      filter))
+      )|#
+      (with-document ()
+        (:head
+         (:title "Έργα » Κατάλογος")
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'project)
+               (project-subnavbar op filter)
+               (:div :id "project-window" :class "window grid_12"
+                     (:div :class "title" "Κατάλογος")
+                     (project-actions op (val id) filter)
+                     (display project-table
+                              :key (val id)
+                              :start (val start)))
+               (footer)))))))
 
 (defpage project-page project/details ("project/details")
     ((search  string)
