@@ -85,11 +85,14 @@
                                          (apply #'tx/delete :id id filter)))
                   (crud-actions-enabled/disabled op id))))
 
-(defun tx-subnavbar (filter)
+(defun tx-subnavbar (filter &optional id)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (tx-filters filter)
-          (searchbox #'tx filter "ac-company"))))
+          (searchbox #'tx #'(lambda (&rest args)
+                              (apply #'tx :id id args))
+                     filter
+                     "ac-company"))))
 
 
 (defun tx-filters (filter)
@@ -222,7 +225,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter)
+               (tx-subnavbar filter (val id))
                (:div :class "window grid_12"
                      (:div :class "title" "Κατάλογος")
                      (tx-actions op (val id) filter)
@@ -328,7 +331,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter)
+               (tx-subnavbar filter (val id))
                (:div :class "window grid_12"
                      (:div :class "title" "Επεξεργασία")
                      (tx-actions op (val id) filter)
@@ -392,7 +395,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter)
+               (tx-subnavbar filter (val id))
                (:div :class "window grid_12"
                      (:div :class "title" "Διαγραφή")
                      (tx-actions op (val id) filter)
@@ -439,51 +442,3 @@
                   :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
                   :where (:= 'tx.id id))
          :plist))
-
-;; (defclass tx-form (crud-form/plist)
-;;   ())
-
-;; (defmethod display ((form tx-form) &key styles)
-;;   (let* ((disabled (eql (op form) :details))
-;;          (record (record form))
-;;          (lit (label-input-text disabled record styles)))
-;;     (with-html
-;;       (:div :class "data-form tx-form"
-;;             (display lit 'date "Ημερομηνία" "datepicker")
-;;             (display lit 'company "Εταιρία" "ac-company")
-;;             (display lit 'description "Περιγραφή")
-;;             (display lit 'non-chq-debit-acc "Λογαριασμός χρέωσης" "ac-non-chq-account")
-;;             (display lit 'non-chq-credit-acc "Λογαριασμός πίστωσης" "ac-non-chq-account")
-;;             (display lit 'amount "Ποσό"))
-;;       (:div :class "data-form-buttons"
-;;             (if disabled
-;;                 (cancel-button (cancel-url form)
-;;                                :body "Επιστροφή στον Κατάλογο Συναλλαγών")
-;;                 (progn
-;;                   (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-;;                   (cancel-button (cancel-url form) :body "Άκυρο")))))))
-
-
-;; (defpage tx-page tx/details ("tx/details")
-;;     ((search     string)
-;;      (id         integer chk-tx-id t))
-;;   (with-view-page
-;;     (let* ((filter (params->filter))
-;;            (tx-form (make-instance 'tx-form
-;;                                    :op :read
-;;                                    :record (get-record 'tx (val id))
-;;                                    :cancel-url (apply #'tx :id (val id) filter))))
-;;       (with-document ()
-;;         (:head
-;;          (:title "Συναλλαγή » Λεπτομέρειες")
-;;          (main-headers))
-;;         (:body
-;;          (:div :id "container" :class "container_12"
-;;                (header)
-;;                (main-navbar 'tx)
-;;                (:div :class "window grid_12"
-;;                      (:div :class "title" "Συναλλαγή » Λεπτομέρειες")
-;;                      (tx-actions (val id)
-;;                               filter
-;;                               '(:details :create))
-;;                      (display tx-form :payload (get-record 'tx (val id))))))))))

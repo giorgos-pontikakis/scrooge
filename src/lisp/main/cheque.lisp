@@ -139,18 +139,33 @@
                                         "Σφραγισμένες"))
                             (getf filter :cstate))))))
 
-(defun cheque-subnavbar (op kind filter)
+(defun cheque-subnavbar (op kind filter &optional id)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (if (member op '(:catalogue :delete))
               (cheque-filters kind filter)
               (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'cheque kind filter)
+                         (:ul (:li (:a :href (apply #'cheque kind :id id filter)
                                        "Κατάλογος"))))))
           (searchbox #'(lambda (&rest args)
-                         (apply #'cheque kind args))
+                         (apply #'actions/cheque/search kind args))
+                     #'(lambda (&rest args)
+                         (apply #'cheque kind :id id args))
                      filter
                      "ac-company"))))
+
+(defpage cheque-page actions/cheque/search
+    (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (records (get-records (make-instance 'cheque-table
+                                                :kind kind
+                                                :filter filter))))
+      (if (or (not records)
+              (and records (cdr records)))
+          (see-other (apply #'cheque kind filter))
+          (see-other (apply #'cheque/details kind :id (getf (first records) :id) filter))))))
 
 
 
@@ -254,7 +269,7 @@
          (until (getf (filter table) :until))
          (cstate (getf (filter table) :cstate))
          (payable-p (string= (kind table) "payable"))
-         (base-query `(:select cheque.id (:as bank.title bank)
+         (base-query `(:select cheque.id (:as bank.title bank) serial
                                due-date (:as company.title company) amount payable-p
                                :from cheque
                                :inner-join bank
@@ -379,7 +394,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar op kind filter (val id))
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cheque-actions op kind (val id) filter)
@@ -414,7 +429,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar op kind filter (val id))
                (:div :id "cheque-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cheque-actions op kind (val id) filter)
@@ -548,7 +563,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar op kind filter (val id))
                (:div :id "cheque-window" :class "window grid_12"
                      (:p :class "title" (str page-title))
                      (cheque-actions op kind (val id) filter)
@@ -646,7 +661,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter)
+               (cheque-subnavbar op kind filter (val id))
                (:div :class "window"
                      (:div :class "window grid_12"
                            (:div :class "title" (str page-title))

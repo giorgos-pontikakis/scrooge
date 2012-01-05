@@ -158,7 +158,11 @@
               (company-filters filter)
               (htm (:div :class "options"
                          (:ul (:li (:a :href (apply #'company :id id filter) "Κατάλογος"))))))
-          (searchbox #'actions/company/search filter "ac-company"))))
+          (searchbox #'actions/company/search
+                     #'(lambda (&rest args)
+                         (apply #'company :id id args))
+                     filter
+                     "ac-company"))))
 
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string))
@@ -168,8 +172,8 @@
                                                 :filter filter))))
       (if (or (not records)
               (and records (cdr records)))
-          (see-other (apply #'company/details :id (getf (first records) :id) filter))
-          (see-other (apply #'company filter))))))
+          (see-other (apply #'company filter))
+          (see-other (apply #'company/details :id (getf (first records) :id) filter))))))
 
 
 

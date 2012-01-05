@@ -178,7 +178,7 @@
           :active active
           :test #'string-equal))
 
-(defun searchbox (submit-fn filter &optional css-class)
+(defun searchbox (submit-fn cancel-fn filter &optional css-class)
   (let ((hidden (remove-from-plist filter :search))
         (term (getf filter :search)))
     (form (funcall submit-fn)
@@ -192,7 +192,7 @@
                       (:button :type "submit"
                                (img "magnifier.png"))
                       (:a :class "cancel"
-                          :href (apply submit-fn hidden)
+                          :href (apply cancel-fn hidden)
                           (img "cross.png")))))
           :hidden hidden)))
 

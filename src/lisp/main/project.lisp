@@ -164,11 +164,15 @@
               (htm (:div :class "options"
                          (:ul (:li (:a :href (apply #'project :id id filter)
                                        "Κατάλογος"))))))
-          (searchbox #'actions/project/search filter "ac-project"))))
+          (searchbox #'actions/project/search
+                     #'(lambda (&rest args)
+                         (apply #'project :id id args))
+                     filter
+                     "ac-project"))))
 
 (defpage project-page actions/project/search ("actions/project/search" :request-type :get)
     ((search string)
-     (cstate string chk-project-state))
+     (cstate string  chk-project-state))
   (with-db ()
     (let* ((filter (params->filter))
            (records (get-records (make-instance 'project-table

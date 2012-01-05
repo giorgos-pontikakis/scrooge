@@ -98,18 +98,20 @@
                                  (:as company.title company)
                                  (:as company.id 'company-id)
                                  description amount
-                         :from tx
-                         :left-join company
-                         :on (:= tx.company-id company.id)))
+                                 :from tx
+                                 :left-join company
+                                 :on (:= tx.company-id company.id)))
            (where nil))
       (when search
         (push `(:or (:ilike description ,(ilike search))
                     (:ilike company.title ,(ilike search)))
               where))
       (when (and since (not (eql since :null)))
-        (push `(:<= ,since tx-date) where))
+        (push `(:<= ,since tx-date)
+              where))
       (when (and until (not (eql until :null)))
-        (push `(:<= tx-date ,until) where))
+        (push `(:<= tx-date ,until)
+              where))
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(acc-kind kind))
                                                  ,@where))
@@ -200,18 +202,34 @@
                      (apply #'cash kind args))
                    filter))))
 
-(defun cash-subnavbar (op kind filter)
+(defun cash-subnavbar (op kind filter &optional id)
   (with-html
     (:div :class "section-subnavbar grid_12"
           (if (member op '(:catalogue :delete))
               (cash-filters kind filter)
               (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'cash kind filter)
+                         (:ul (:li (:a :href (apply #'cash kind :id id filter)
                                        "Κατάλογος"))))))
 
           (searchbox #'(lambda (&rest args)
-                         (apply #'cash kind args))
-                     filter))))
+                         (apply #'actions/cash/search kind args))
+                     #'(lambda (&rest args)
+                         (apply #'cash kind :id id args))
+                     filter
+                     "ac-company"))))
+
+(defpage cash-page actions/cash/search
+    (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (records (get-records (make-instance 'cash-tx-table
+                                                :kind kind
+                                                :filter filter))))
+      (if (or (not records)
+              (and records (cdr records)))
+          (see-other (apply #'cash kind filter))
+          (see-other (apply #'cash/details kind :id (getf (first records) :id) filter))))))
 
 
 
@@ -286,7 +304,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter)
+               (cash-subnavbar op kind filter (val id))
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cash-actions op kind (val id) filter)
@@ -319,7 +337,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter)
+               (cash-subnavbar op kind filter (val id))
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" "Λεπτομέρειες")
                      (cash-actions op kind (val id) filter)
@@ -438,7 +456,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter)
+               (cash-subnavbar op kind filter (val id))
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cash-actions op kind (val id) filter)
@@ -511,7 +529,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter)
+               (cash-subnavbar op kind filter (val id))
                (:div :id "cash-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (cash-actions op kind (val id) filter)

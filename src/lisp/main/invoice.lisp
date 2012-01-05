@@ -99,17 +99,20 @@
                                  (:as company.title company)
                                  (:as company.id 'company-id)
                                  description amount
-                         :from tx
-                         :left-join company
-                         :on (:= tx.company-id company.id)))
+                                 :from tx
+                                 :left-join company
+                                 :on (:= tx.company-id company.id)))
            (where nil))
       (when search
-        `(:or (:ilike description ,(ilike search))
-              (:ilike company.title ,(ilike search))))
+        (push `(:or (:ilike description ,(ilike search))
+                    (:ilike company.title ,(ilike search)))
+              where))
       (when (and since (not (eql since :null)))
-        (push `(:<= ,since tx-date) where))
+        (push `(:<= ,since tx-date)
+              where))
       (when (and until (not (eql until :null)))
-        (push `(:<= tx-date ,until) where))
+        (push `(:<= tx-date ,until)
+              where))
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(acc-kind kind))
                                                  ,@where))
@@ -200,18 +203,35 @@
                      (apply #'invoice kind args))
                    filter))))
 
-(defun invoice-subnavbar (op kind filter)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (if (member op '(:catalogue :delete))
-              (invoice-filters kind filter)
-              (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'invoice kind filter)
-                                       "Κατάλογος"))))))
-          (searchbox #'(lambda (&rest args)
-                         (apply #'invoice kind args))
-                     filter
-                     "ac-company"))))
+(defun invoice-subnavbar (op kind filter &optional id)
+  (let ()
+    (with-html
+      (:div :class "section-subnavbar grid_12"
+            (if (member op '(:catalogue :delete))
+                (invoice-filters kind filter)
+                (htm (:div :class "options"
+                           (:ul (:li (:a :href (apply #'invoice kind :id id filter)
+                                         "Κατάλογος"))))))
+            (searchbox #'(lambda (&rest args)
+                           (apply #'actions/invoice/search kind args))
+                       #'(lambda (&rest args)
+                           (apply #'invoice kind :id id args))
+                       filter
+                       "ac-company")))))
+
+(defpage invoice-page actions/invoice/search
+    (("actions/invoice/" (kind "(receivable|payable)") "/search") :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (records (get-records (make-instance 'invoice-tx-table
+                                                :kind kind
+                                                :filter filter))))
+      (if (or (not records)
+              (and records (cdr records)))
+          (see-other (apply #'invoice kind filter))
+          (see-other (apply #'invoice/details kind :id (getf (first records) :id) filter))))))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -285,7 +305,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter)
+               (invoice-subnavbar op kind filter (val id))
                (:div :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (invoice-actions op kind (val id) filter)
@@ -318,7 +338,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter)
+               (invoice-subnavbar op kind filter (val id))
                (:div :id "invoice-window" :class "window grid_12"
                      (:p :class "title" "Λεπτομέρειες")
                      (invoice-actions op kind (val id) filter)
@@ -438,7 +458,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter)
+               (invoice-subnavbar op kind filter (val id))
                (:div :id "invoice-window" :class "window grid_12"
                      (:p :class "title" "Επεξεργασία")
                      (invoice-actions op kind (val id) filter)
@@ -512,7 +532,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter)
+               (invoice-subnavbar op kind filter (val id))
                (:div :id "invoice-window" :class "window grid_12"
                      (:div :class "title" (str page-title))
                      (invoice-actions op kind (val id) filter)
