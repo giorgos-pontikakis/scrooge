@@ -80,7 +80,7 @@
    (kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'scrooge-paginator
                                        :css-class "paginator")))
-  (:default-initargs :item-class 'cash-tx-row))
+  (:default-initargs :item-class 'cash-tx-row :id "cash-tx-table"))
 
 (defmethod get-records ((table cash-tx-table))
   (flet ((acc-kind (kind)
@@ -292,7 +292,6 @@
            (filter (params->filter))
            (page-title (conc (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
-                                         :id "cash-tx-table"
                                          :kind kind
                                          :op op
                                          :filter filter)))
