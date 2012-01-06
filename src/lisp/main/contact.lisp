@@ -32,7 +32,7 @@
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
-  (:default-initargs :item-class 'contact-row :id "contact-table"))
+  (:default-initargs :item-class 'contact-row :id "contact-table" :create-pos :last))
 
 (defmethod get-records ((table contact-table))
   (query (:order-by (:select (:as 'id 'contact-id) 'tag 'phone 'rank
