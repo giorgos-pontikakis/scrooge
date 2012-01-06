@@ -132,13 +132,14 @@
 ;;; ------------------------------------------------------------
 
 (defun account-actions (op id debitp)
-  (actions-menu (crud-actions-spec (config/account/create :debitp debitp :parent-id id)
-                                   (config/account/update :id id)
-                                   (if (or (null id)
-                                           (acc-referenced-p id))
-                                       nil
-                                       (config/account/delete :id id)))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud (config/account/create :debitp debitp :parent-id id)
+                                      (config/account/update :id id)
+                                      (if (or (null id)
+                                              (acc-referenced-p id))
+                                          nil
+                                          (config/account/delete :id id))))
+                (enabled-actions/crud op id)))
 
 
 

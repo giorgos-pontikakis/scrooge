@@ -137,11 +137,12 @@
 ;;; ------------------------------------------------------------
 
 (defun project-actions (op id filter)
-  (actions-menu (crud+details-actions-spec (apply #'project/create filter)
-                                           (apply #'project/details :id id filter)
-                                           (apply #'project/update :id id filter)
-                                           (apply #'project/delete :id id filter))
-                (crud+details-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud+details (apply #'project/create filter)
+                                              (apply #'project/details :id id filter)
+                                              (apply #'project/update :id id filter)
+                                              (apply #'project/delete :id id filter)))
+                (enabled-actions/crud+details op id)))
 
 (defun project-filters (filter)
   (let ((filter* (remove-from-plist filter :cstate)))

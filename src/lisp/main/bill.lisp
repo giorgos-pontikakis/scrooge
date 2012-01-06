@@ -117,8 +117,7 @@
                                  :hidden `(:id ,id :bill-id ,bill-id ,@filter)
                                  :body (make-instance 'submit
                                                       :body "Κάτω" :css-class "down"))))
-   (crud+ranks-actions-enabled/disabled op bill-id)
-   #'menu))
+   (enabled-actions/crud+ranks op bill-id)))
 
 
 

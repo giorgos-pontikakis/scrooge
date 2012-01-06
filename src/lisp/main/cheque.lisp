@@ -107,11 +107,12 @@
 
 
 (defun cheque-actions (op kind id filter)
-  (actions-menu (crud+details-actions-spec (apply #'cheque/create kind filter)
-                                           (apply #'cheque/details kind :id id filter)
-                                           (apply #'cheque/update kind :id id filter)
-                                           (apply #'cheque/delete kind :id id filter))
-                (crud+details-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud+details (apply #'cheque/create kind filter)
+                                              (apply #'cheque/details kind :id id filter)
+                                              (apply #'cheque/update kind :id id filter)
+                                              (apply #'cheque/delete kind :id id filter)))
+                (enabled-actions/crud+details op id)))
 
 (defun cheque-filters (kind filter)
   (let ((filter* (remove-from-plist filter :cstate)))

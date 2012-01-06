@@ -76,13 +76,14 @@
 ;;; ------------------------------------------------------------
 
 (defun city-actions (op id filter)
-  (actions-menu (crud-actions-spec (apply #'config/city/create filter)
-                                   (apply #'config/city/update :id id filter)
-                                   (if (or (null id)
-                                           (city-referenced-p id))
-                                       nil
-                                       (apply #'config/city/delete :id id filter)))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud (apply #'config/city/create filter)
+                                      (apply #'config/city/update :id id filter)
+                                      (if (or (null id)
+                                              (city-referenced-p id))
+                                          nil
+                                          (apply #'config/city/delete :id id filter))))
+                (enabled-actions/crud op id)))
 
 (defun city-subnavbar (filter)
   (with-html

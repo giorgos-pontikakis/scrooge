@@ -114,60 +114,65 @@
 
 ;;; actions menu
 
-(defun crud-actions-spec (create update delete)
+(defun action-anchors/crud (create update delete)
   `((:create ,create "Δημιουργία")
     (:update ,update "Επεξεργασία")
     (:delete ,delete "Διαγραφή")))
 
-(defun crud+details-actions-spec (create details update delete)
+(defun action-anchors/crud+details (create details update delete)
   `((:create  ,create  "Δημιουργία")
     (:details ,details "Λεπτομέρειες")
     (:update  ,update  "Επεξεργασία")
     (:delete  ,delete  "Διαγραφή")))
 
-(defun crud-actions-enabled/disabled (op id)
-  (let ((enabled (ecase op
-                   (:catalogue (if id
-                                   '(:create :update :delete)
-                                   '(:create)))
-                   (:create '())
-                   (:update '())
-                   (:delete '()))))
-    (list enabled (set-difference '(:create :update :delete)
-                                  enabled))))
+(defun enabled-actions/crud (op id)
+  (ecase op
+    (:catalogue (if id
+                    '(:create :update :delete)
+                    '(:create)))
+    (:create '())
+    (:update '())
+    (:delete '())))
 
-(defun crud+details-actions-enabled/disabled (op id)
-  (let ((enabled (ecase op
-                   (:catalogue (if id
-                                   '(:create :details :delete)
-                                   '(:create)))
-                   (:details '(:update))
-                   (:create '())
-                   (:update '(:details))
-                   (:delete '()))))
-    (list enabled (set-difference '(:create :details :update :delete)
-                                  enabled))))
+(defun enabled-actions/crud+details (op id &rest extra-ids)
+  (ecase op
+    (:catalogue (if id
+                    `(:create :details :delete ,@extra-ids)
+                    '(:create)))
+    (:details `(:update ,@extra-ids))
+    (:create '())
+    (:update '(:details))
+    (:delete '())))
 
-(defun crud+ranks-actions-enabled/disabled (op id)
-  (let ((enabled (ecase op
-                   (:catalogue (if id
-                                   '(:create :update :delete :rank-up :rank-down)
-                                   '(:create)))
-                   (:create '())
-                   (:update '())
-                   (:delete '()))))
-    (list enabled (set-difference '(:create :update :delete :rank-up :rank-down)
-                                  enabled))))
+(defun enabled-actions/crud+ranks (op id)
+  (ecase op
+    (:catalogue (if id
+                    '(:create :update :delete :rank-up :rank-down)
+                    '(:create)))
+    (:create '())
+    (:update '())
+    (:delete '())))
 
-(defun actions-menu (spec enabled/disabled &optional (menu-fn #'anchor-menu))
-  (if (first enabled/disabled)
-      (funcall menu-fn spec
-               :css-class "hmenu actions"
-               :disabled (second enabled/disabled))
+(defun actions-menu (spec enabled)
+  (if (emptyp enabled)
       (with-html
         (:div :class "hmenu actions"
               (:ul
-               (:li :class "invisible" "No available action."))))))
+               (:li :class "invisible" "No available action."))))
+      (let ((disabled (set-difference (mapcar #'first spec) enabled)))
+        (funcall #'menu spec
+                 :css-class "hmenu actions"
+                 :disabled disabled))))
+
+(defun make-menu-spec (anchor-spec)
+  (mapcar (lambda (item)
+            (destructuring-bind (action href label) item
+              (list action
+                    (html ()
+                      (:a :href href
+                          :class (string-downcase action)
+                          (str label))))))
+          anchor-spec))
 
 
 ;;; filters

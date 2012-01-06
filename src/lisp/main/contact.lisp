@@ -114,8 +114,7 @@
                                  :hidden `(:id ,id :contact-id ,contact-id ,@filter)
                                  :body (make-instance 'submit
                                                       :body "Κάτω" :css-class "down"))))
-   (crud+ranks-actions-enabled/disabled op contact-id)
-   #'menu))
+   (enabled-actions/crud+ranks op contact-id)))
 
 
 

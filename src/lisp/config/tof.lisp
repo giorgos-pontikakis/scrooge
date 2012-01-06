@@ -77,13 +77,14 @@
 
 (defun tof-actions (op id filter)
   (with-html
-    (actions-menu (crud-actions-spec (apply #'config/tof/create filter)
-                                     (apply #'config/tof/update :id id filter)
-                                     (if (or (null id)
-                                             (tof-referenced-p id))
-                                         nil
-                                         (apply #'config/tof/delete :id id filter)))
-                  (crud-actions-enabled/disabled op id))))
+    (actions-menu (make-menu-spec
+                   (action-anchors/crud (apply #'config/tof/create filter)
+                                        (apply #'config/tof/update :id id filter)
+                                        (if (or (null id)
+                                                (tof-referenced-p id))
+                                            nil
+                                            (apply #'config/tof/delete :id id filter))))
+                  (enabled-actions/crud op id))))
 
 (defun tof-subnavbar (filter)
   (with-html

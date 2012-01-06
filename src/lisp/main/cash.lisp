@@ -186,11 +186,12 @@
         (t (error "Internal error in cash-page-title"))))
 
 (defun cash-actions (op kind id filter)
-  (actions-menu (crud+details-actions-spec (apply #'cash/create kind filter)
-                                           (apply #'cash/details kind :id id filter)
-                                           (apply #'cash/update kind :id id filter)
-                                           (apply #'cash/delete kind :id id filter))
-                (crud+details-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud+details (apply #'cash/create kind filter)
+                                              (apply #'cash/details kind :id id filter)
+                                              (apply #'cash/update kind :id id filter)
+                                              (apply #'cash/delete kind :id id filter)))
+                (enabled-actions/crud+details op id)))
 
 (defun cash-filters (kind filter)
   (with-html

@@ -187,11 +187,12 @@
         (t (error "Internal error in invoice-page-title"))))
 
 (defun invoice-actions (op kind id filter)
-  (actions-menu (crud+details-actions-spec (apply #'invoice/create kind filter)
-                                           (apply #'invoice/details kind :id id filter)
-                                           (apply #'invoice/update kind :id id filter)
-                                           (apply #'invoice/delete kind :id id filter))
-                (crud+details-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud+details (apply #'invoice/create kind filter)
+                                              (apply #'invoice/details kind :id id filter)
+                                              (apply #'invoice/update kind :id id filter)
+                                              (apply #'invoice/delete kind :id id filter)))
+                (enabled-actions/crud+details op id)))
 
 (defun invoice-filters (kind filter)
   (with-html

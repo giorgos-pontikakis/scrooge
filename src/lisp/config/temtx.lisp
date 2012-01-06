@@ -78,10 +78,11 @@
 ;;; ------------------------------------------------------------
 
 (defun temtx-actions (op id)
-  (actions-menu (crud-actions-spec (config/temtx/create)
-                                   (config/temtx/update :id id)
-                                   (config/temtx/delete :id id))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud (config/temtx/create)
+                                      (config/temtx/update :id id)
+                                      (config/temtx/delete :id id)))
+                (enabled-actions/crud op id)))
 
 
 

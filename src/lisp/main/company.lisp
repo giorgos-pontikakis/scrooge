@@ -138,13 +138,20 @@
 ;;; ------------------------------------------------------------
 
 (defun company-actions (op id filter)
-  (actions-menu (crud+details-actions-spec (apply #'company/create filter)
-                                           (apply #'company/details :id id filter)
-                                           (apply #'company/update :id id filter)
-                                           (if (chk-company-id/ref id)
-                                               nil
-                                               (apply #'company/delete :id id filter)))
-                (crud+details-actions-enabled/disabled op id)))
+  (actions-menu (append (make-menu-spec
+                         (action-anchors/crud+details (apply #'company/create filter)
+                                                      (apply #'company/details :id id filter)
+                                                      (apply #'company/update :id id filter)
+                                                      (if (chk-company-id/ref id)
+                                                          nil
+                                                          (apply #'company/delete :id id filter))))
+                        `((:create-project
+                           ,(html ()
+                              (:a :href (project/create :company (and id
+                                                                      (title (get-dao 'company id))))
+                                  :class "create"
+                                  "Δημιουργία Έργου")))))
+                (enabled-actions/crud+details op id :create-project)))
 
 (defun company-filters (filter)
   (with-html

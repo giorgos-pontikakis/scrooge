@@ -76,14 +76,15 @@
 
 (defun tx-actions (op id filter)
   (let ((auto-p (if id (auto-tx-p id) nil)))
-    (actions-menu (crud-actions-spec (apply #'tx/create filter)
-                                     (if auto-p
-                                         nil
-                                         (apply #'tx/update :id id filter))
-                                     (if auto-p
-                                         nil
-                                         (apply #'tx/delete :id id filter)))
-                  (crud-actions-enabled/disabled op id))))
+    (actions-menu (make-menu-spec
+                   (action-anchors/crud (apply #'tx/create filter)
+                                        (if auto-p
+                                            nil
+                                            (apply #'tx/update :id id filter))
+                                        (if auto-p
+                                            nil
+                                            (apply #'tx/delete :id id filter))))
+                  (enabled-actions/crud op id))))
 
 (defun tx-subnavbar (filter &optional id)
   (with-html

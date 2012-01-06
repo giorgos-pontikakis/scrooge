@@ -44,11 +44,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defun account-role-actions (op id)
-  (actions-menu `((:catalogue ,(config/account-role :id id)        "Προβολή")
-                  (:update    ,(config/account-role/update :id id) "Επεξεργασία"))
+  (actions-menu (make-menu-spec
+                 `((:catalogue ,(config/account-role :id id)        "Προβολή")
+                   (:update    ,(config/account-role/update :id id) "Επεξεργασία")))
                 (ecase op
-                  (:update '(nil (:update)))
-                  (:catalogue '(:update (:catalogue))))))
+                  (:update '(:catalogue))
+                  (:catalogue '(:update)))))
 
 
 

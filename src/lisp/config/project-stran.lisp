@@ -115,10 +115,11 @@
 ;;; ------------------------------------------------------------
 
 (defun project-stran-actions (op id)
-  (actions-menu (crud-actions-spec (config/project-stran/create)
-                                   (config/project-stran/update :id id)
-                                   (config/project-stran/delete :id id))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud (config/project-stran/create)
+                                      (config/project-stran/update :id id)
+                                      (config/project-stran/delete :id id)))
+                (enabled-actions/crud op id)))
 
 
 

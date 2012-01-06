@@ -76,13 +76,14 @@
 ;;; ------------------------------------------------------------
 
 (defun bank-actions (op id filter)
-  (actions-menu (crud-actions-spec (apply #'config/bank/create filter)
-                                   (apply #'config/bank/update :id id filter)
-                                   (if (or (null id)
-                                           (bank-referenced-p id))
-                                       nil
-                                       (apply #'config/bank/delete :id id filter)))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud (apply #'config/bank/create filter)
+                                      (apply #'config/bank/update :id id filter)
+                                      (if (or (null id)
+                                              (bank-referenced-p id))
+                                          nil
+                                          (apply #'config/bank/delete :id id filter))))
+                (enabled-actions/crud op id)))
 
 (defun bank-subnavbar (filter)
   (with-html

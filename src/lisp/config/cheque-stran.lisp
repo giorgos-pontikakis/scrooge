@@ -138,10 +138,11 @@
 ;;; ------------------------------------------------------------
 
 (defun cheque-stran-actions (op kind id)
-  (actions-menu (crud-actions-spec (config/cheque-stran/create kind)
-                                   (config/cheque-stran/update kind :id id)
-                                   (config/cheque-stran/delete kind :id id))
-                (crud-actions-enabled/disabled op id)))
+  (actions-menu (make-menu-spec
+                 (action-anchors/crud (config/cheque-stran/create kind)
+                                      (config/cheque-stran/update kind :id id)
+                                      (config/cheque-stran/delete kind :id id)))
+                (enabled-actions/crud op id)))
 
 (defun cheque-stran-filters (kind)
   (with-html
