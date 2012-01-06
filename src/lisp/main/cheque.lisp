@@ -385,7 +385,8 @@
                                         :id "cheque-table"
                                         :kind kind
                                         :op op
-                                        :filter filter)))
+                                        :filter filter
+                                        :start-index (val start))))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -400,8 +401,7 @@
                      (cheque-actions op kind (val id) filter)
                      (display cheque-table
                               :key (val id)
-                              :payload nil
-                              :start (val start)))
+                              :payload nil))
                (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))

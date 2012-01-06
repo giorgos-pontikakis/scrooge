@@ -79,7 +79,7 @@
 (defclass invoice-tx-table (tx-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
-   (paginator :initform (make-instance 'scrooge-paginator
+   (paginator :initform (make-instance 'invoice-paginator
                                        :css-class "paginator")))
   (:default-initargs :item-class 'invoice-tx-row :id "invoice-tx-table"))
 
@@ -284,8 +284,8 @@
 (defpage invoice-page invoice (("invoice/" (kind "(receivable|payable)")))
     ((search    string)
      (start     integer)
-     (since     date    )
-     (until     date    )
+     (since     date)
+     (until     date)
      (id        integer chk-tx-id))
   (with-view-page
     (check-invoice-accounts)
@@ -295,7 +295,8 @@
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :kind kind
                                             :op :catalogue
-                                            :filter filter)))
+                                            :filter filter
+                                            :start-index (val start))))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -310,8 +311,7 @@
                      (invoice-actions op kind (val id) filter)
                      (display invoice-tx-table
                               :key (val id)
-                              :payload nil
-                              :start (val start)))
+                              :payload nil))
                (footer)))))))
 
 (defpage invoice-page invoice/details (("invoice/" (kind "(receivable|payable)") "/details"))

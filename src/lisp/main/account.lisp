@@ -111,7 +111,8 @@
         (let ((account-title (with-db ()
                                (title (get-dao 'account (val id)))))
               (tx-table (make-instance 'account-tx-table
-                                       :filter (val id))))
+                                       :filter (val id)
+                                       :start-index (val start))))
           (with-document ()
             (:head
              (:title "Λογαριασμοί » Λεπτομέρειες")
@@ -124,8 +125,7 @@
                          (:div :class "title"
                                (str (conc "Ανάλυση Λογαριασμού: "
                                           account-title)))
-                         (display tx-table
-                                  :start (val start)))))))
+                         (display tx-table))))))
         (see-other (notfound)))))
 
 (defpage dynamic-page account/print ("account/print")

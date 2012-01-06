@@ -111,7 +111,7 @@
 (defclass tx-table (scrooge-table)
   ((header-labels  :initform '("" "Ημ/νία" "Εταιρία" "Περιγραφή"
                                "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
-   (paginator      :initform (make-instance 'scrooge-paginator
+   (paginator      :initform (make-instance 'tx-paginator
                                             :id "tx-paginator"
                                             :css-class "paginator")))
   (:default-initargs :item-class 'tx-row :id "tx-table"))
@@ -216,7 +216,8 @@
            (filter (params->filter))
            (tx-table (make-instance 'tx-table
                                     :op op
-                                    :filter filter)))
+                                    :filter filter
+                                    :start-index (val start))))
       (with-document ()
         (:head
          (:title "Συναλλαγές")
@@ -230,8 +231,7 @@
                      (:div :class "title" "Κατάλογος")
                      (tx-actions op (val id) filter)
                      (display tx-table
-                              :key (val id)
-                              :start (val start)))
+                              :key (val id)))
                (footer)))))))
 
 

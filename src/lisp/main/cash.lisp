@@ -78,7 +78,7 @@
 (defclass cash-tx-table (tx-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
-   (paginator :initform (make-instance 'scrooge-paginator
+   (paginator :initform (make-instance 'cash-paginator
                                        :css-class "paginator")))
   (:default-initargs :item-class 'cash-tx-row :id "cash-tx-table"))
 
@@ -294,7 +294,8 @@
            (cash-tx-table (make-instance 'cash-tx-table
                                          :kind kind
                                          :op op
-                                         :filter filter)))
+                                         :filter filter
+                                         :start-index (val start))))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -309,8 +310,7 @@
                      (cash-actions op kind (val id) filter)
                      (display cash-tx-table
                               :key (val id)
-                              :payload nil
-                              :start (val start)))
+                              :payload nil))
                (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))

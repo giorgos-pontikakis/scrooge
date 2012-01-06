@@ -355,8 +355,7 @@
                      (:div :class "title" "Κατάλογος")
                      (project-actions op (val id) filter)
                      (display project-table
-                              :key (val id)
-                              :start (val start)))
+                              :key (val id)))
                (footer)))))))
 
 (defpage project-page project/details ("project/details")
