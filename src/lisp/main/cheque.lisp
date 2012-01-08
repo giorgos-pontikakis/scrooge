@@ -273,7 +273,7 @@
          (base-query `(:select cheque.id (:as bank.title bank) serial
                                due-date (:as company.title company) amount payable-p
                                :from cheque
-                               :inner-join bank
+                               :left-join bank
                                :on (:= bank.id cheque.bank-id)
                                :inner-join company
                                :on (:= company.id cheque.company-id)))
