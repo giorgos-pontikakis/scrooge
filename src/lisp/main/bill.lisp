@@ -37,7 +37,7 @@
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (project-id     :accessor project-id :initarg :project-id))
-  (:default-initargs :item-class 'bill-row :id "bill-table" :create-pos :last)))
+  (:default-initargs :item-class 'bill-row :id "bill-table" :create-pos :last))
 
 (defmethod get-records ((table bill-table))
   (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
