@@ -7,10 +7,6 @@
 ;;; ----------------------------------------------------------------------
 
 (set-local-time-cl-postgres-readers)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (define-timezone "+GREEK-ZONE+" #p"/usr/share/zoneinfo/Europe/Athens"))
-
-(setf *default-timezone* +greek-zone+)
 
 
 ;;; ----------------------------------------------------------------------
