@@ -259,7 +259,7 @@
   ((kind        :accessor kind :initarg :kind)
    (header-labels  :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
-   (paginator      :initform (make-instance 'scrooge-paginator
+   (paginator      :initform (make-instance 'cheque-paginator
                                             :id "cheque-paginator"
                                             :css-class "paginator")))
   (:default-initargs :item-class 'cheque-row))
