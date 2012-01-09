@@ -6,7 +6,15 @@
 ;;; integration for local-time and cl-postgres
 ;;; ----------------------------------------------------------------------
 
+;; in cl-postgres+local-time integration package offered by local-time, this encodes in UTC
+;; which is a bug
+
+(defmethod cl-postgres:to-sql-string ((arg local-time:timestamp))
+  (format nil "'~a'"
+          (local-time:format-rfc3339-timestring nil arg)))
+
 (set-local-time-cl-postgres-readers)
+
 
 
 ;;; ----------------------------------------------------------------------

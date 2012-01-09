@@ -157,9 +157,9 @@
    (description :col-type string        :accessor description :initarg :description)
    (location    :col-type string        :accessor location    :initarg :location)
    (price       :col-type (numeric 9 2) :accessor price       :initarg :price)
-   (quote-date  :col-type date          :accessor quote-date  :initarg :quote-date)
-   (start-date  :col-type date          :accessor start-date  :initarg :start-date)
-   (end-date    :col-type date          :accessor end-date    :initarg :end-date)
+   (quote-date  :col-type timestamp     :accessor quote-date  :initarg :quote-date)
+   (start-date  :col-type timestamp     :accessor start-date  :initarg :start-date)
+   (end-date    :col-type timestamp     :accessor end-date    :initarg :end-date)
    (state       :col-type string        :accessor state       :initarg :state)
    (vat         :col-type (numeric 9 2) :accessor vat         :initarg :vat)
    (notes       :col-type string        :accessor notes       :initarg :notes))
@@ -211,7 +211,7 @@
   ((id         :col-type integer       :reader   cheque-id)
    (bank-id    :col-type string        :accessor bank-id    :initarg :bank-id)
    (company-id :col-type integer       :accessor company-id :initarg :company-id)
-   (due-date   :col-type date          :accessor due-date   :initarg :due-date)
+   (due-date   :col-type timestamp     :accessor due-date   :initarg :due-date)
    (amount     :col-type (numeric 9 2) :accessor amount     :initarg :amount)
    (payable-p  :col-type boolean       :accessor payable-p  :initarg :payable-p)
    (state-id   :col-type (string 32)   :accessor state-id   :initarg :state-id)
@@ -220,14 +220,13 @@
   (:keys id))
 
 
-
 ;;; ------------------------------------------------------------
 ;;; Transactions & Templates
 ;;; ------------------------------------------------------------
 
 (defclass tx ()
   ((id            :col-type integer       :reader   tx-id)
-   (tx-date       :col-type date          :accessor tx-date       :initarg :tx-date)
+   (tx-date       :col-type timestamp     :accessor tx-date       :initarg :tx-date)
    (description   :col-type string        :accessor description   :initarg :description)
    (debit-acc-id  :col-type integer       :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type integer       :accessor credit-acc-id :initarg :credit-acc-id)
