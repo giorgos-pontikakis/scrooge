@@ -185,32 +185,33 @@
          (following (following-cheque-states (getf record :state-id)
                                              (getf record :payable-p)))
          (tstamp-format '((:day 2) #\- (:month 2) #\- (:year 4) " --- " (:hour 2) ":" (:min 2))))
-    (with-html
-      (:div :id "cheque-data-form" :class "data-form"
-            (:div :class "grid_6 alpha"
-                  (display lit 'serial "Σειριακός Αριθμός")
-                  (display lit 'due-date "Ημερομηνία" "datepicker")
-                  (display lit 'company "Εταιρία" "ac-company")
-                  (display lit 'bank "Τράπεζα" "ac-bank")
-                  (display lit 'amount "Ποσό"))
-            (:div :class "grid_6 omega"
-                  (:table :class "crud-table"
-                          (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
-                          (iter
-                            (for ev in events)
-                            (htm (:tr
-                                  (:td (str (assoc-value *cheque-states*
-                                                         (getf ev :to-state-id)
-                                                         :test #'string=)))
-                                  (:td (str (format-timestring nil (getf ev :tstamp)
-                                                               :format tstamp-format)))))))
-                  (when (and following (not disabled))
-                    (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
-                                                             (acons "nil" "" following))))))
-            (:div :class "grid_12 data-form-buttons"
-                  (unless disabled
-                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (cancel-url form) :body "Άκυρο")))))))
+    (let ((*default-timezone* +greek-zone+))
+      (with-html
+        (:div :id "cheque-data-form" :class "data-form"
+              (:div :class "grid_6 alpha"
+                    (display lit 'serial "Σειριακός Αριθμός")
+                    (display lit 'due-date "Ημερομηνία" "datepicker")
+                    (display lit 'company "Εταιρία" "ac-company")
+                    (display lit 'bank "Τράπεζα" "ac-bank")
+                    (display lit 'amount "Ποσό"))
+              (:div :class "grid_6 omega"
+                    (:table :class "crud-table"
+                            (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
+                            (iter
+                              (for ev in events)
+                              (htm (:tr
+                                    (:td (str (assoc-value *cheque-states*
+                                                           (getf ev :to-state-id)
+                                                           :test #'string=)))
+                                    (:td (str (format-timestring nil (getf ev :tstamp)
+                                                                 :format tstamp-format)))))))
+                    (when (and following (not disabled))
+                      (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
+                                                               (acons "nil" "" following))))))
+              (:div :class "grid_12 data-form-buttons"
+                    (unless disabled
+                      (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                      (cancel-button (cancel-url form) :body "Άκυρο"))))))))
 
 (defun following-cheque-states (from-state-id payable-p)
   (lists->alist
@@ -292,7 +293,7 @@
     (let ((sql `(:order-by (,@base-query :where
                                          (:and (:= cheque.payable-p ,payable-p)
                                                ,@where))
-                           (:desc due-date))))
+                           due-date)))
       (query (sql-compile sql)
              :plists))))
 

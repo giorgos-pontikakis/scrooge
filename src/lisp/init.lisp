@@ -8,6 +8,8 @@
 
 (set-local-time-cl-postgres-readers)
 
+(define-timezone "+GREEK-ZONE+" #p"/usr/share/zoneinfo/Europe/Athens")
+
 
 
 ;;; ----------------------------------------------------------------------
