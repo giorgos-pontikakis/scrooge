@@ -76,20 +76,27 @@
 ;;; table
 
 (defclass cash-tx-table (tx-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "" ""))
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "Λογαριασμός" "" ""))
    (kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'cash-paginator
                                        :css-class "paginator")))
   (:default-initargs :item-class 'cash-tx-row :id "cash-tx-table"))
 
 (defmethod get-records ((table cash-tx-table))
-  (flet ((acc-kind (kind)
+  (flet ((acc-filter (kind)
            (cond ((string-equal kind "revenue")
                   `(debit-acc-id ,*cash-acc-id*))
                  ((string-equal kind "expense")
                   `(credit-acc-id ,*cash-acc-id*))
                  (t
-                  (error "internal error in acc-kind")))))
+                  (error "internal error in acc-filter"))))
+         (acc-join (kind)
+           (cond ((string-equal kind "revenue")
+                  'tx.credit-acc-id)
+                 ((string-equal kind "expense")
+                  'tx.debit-acc-id)
+                 (t
+                  (error "internal error in acc-join")))))
     (let* ((search (getf (filter table) :search))
            (since (getf (filter table) :since))
            (until (getf (filter table) :until))
@@ -97,10 +104,13 @@
            (base-query `(:select tx.id tx-date
                                  (:as company.title company)
                                  (:as company.id 'company-id)
+                                 (:as account.title account)
                                  description amount
-                                 :from tx
-                                 :left-join company
-                                 :on (:= tx.company-id company.id)))
+                         :from tx
+                         :left-join company
+                         :on (:= tx.company-id company.id)
+                         :left-join account
+                         :on (:= ,(acc-join kind) account.id)))
            (where nil))
       (when search
         (push `(:or (:ilike description ,(ilike search))
@@ -113,7 +123,7 @@
         (push `(:<= tx-date ,until)
               where))
       (let ((sql `(:order-by (,@base-query :where
-                                           (:and (:= ,@(acc-kind kind))
+                                           (:and (:= ,@(acc-filter kind))
                                                  ,@where))
                              (:desc tx-date))))
         (query (sql-compile sql)
@@ -149,7 +159,7 @@
                                           :name name
                                           :value (getf record (make-keyword name))
                                           :disabled (not enabled-p)))
-                         '(tx-date description amount)))))
+                         '(tx-date description amount account)))))
 
 (defmethod controls ((row cash-tx-row) controls-p)
   (let* ((id (key row))
