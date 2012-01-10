@@ -303,7 +303,10 @@
   (with-controller-page (config/account/create)
     (with-db ()
       (let ((new-dao (make-instance 'account
-                                    :parent-id (or (val parent-id) :null)
+                                    :parent-id (or (val parent-id) 
+                                                   (and (val debitp)
+                                                        (account-id *debit-accounts-root*))
+                                                   (account-id *credit-accounts-root*))
                                     :title (val title)
                                     :debit-p (val debitp)
                                     :chequing-p (val chequing-p))))

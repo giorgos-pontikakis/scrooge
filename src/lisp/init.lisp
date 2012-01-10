@@ -62,6 +62,14 @@
 
 
 (with-db ()
+  ;; debit accounts root
+  (defparameter *debit-accounts-root* 
+    (select-dao-unique 'account (:and (:is-null 'parent-id)
+                                      (:= 'debit-p t))))
+  ;; debit accounts root
+  (defparameter *credit-accounts-root* 
+    (select-dao-unique 'account (:and (:is-null 'parent-id)
+                                      (:= 'debit-p nil))))
   ;; cash
   (defparameter *cash-acc-id*
     (account-id (get-dao 'account-role "cash-account")))
