@@ -31,7 +31,9 @@
                     "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία."
                     :company-title-null
                     "Η επωνυμία της εταιρίας είναι κενή"))
-      (price       (:non-positive-amount
+      (price       (:price-missing-for-archived-project
+                    "Δεν μπορεί να αρχειοθετηθεί έργο χωρίς τιμή."
+                    :non-positive-amount
                     "Το ποσό της τιμής δεν είναι θετικός αριθμός."
                     :parse-error
                     "Το ποσό της τιμής περιέχει άκυρους χαρακτήρες."))
@@ -140,6 +142,13 @@
            (bill-id-exists-p bill-id))
       nil
       :bill-id-invalid))
+
+(defun chk-price (price state)
+  (or (chk-amount* price)
+      (if (and (string-equal state "archived")
+               (eql price :null))
+          :price-missing-for-archived-project
+          nil)))
 
 
 
@@ -417,7 +426,7 @@
      (company     string chk-company-title)
      (description string (chk-project-description/create description company))
      (location    string)
-     (price       float  chk-amount*)
+     (price       float  (chk-price price state))
      (vat         float  chk-amount*)
      (state       string)
      (quote-date  date   (chk-quote-date quote-date state))
@@ -457,7 +466,7 @@
      (company     string chk-company-title)
      (description string (chk-project-description/create description company))
      (location    string)
-     (price       float  chk-amount*)
+     (price       float  (chk-price price state))
      (vat         float  chk-amount*)
      (state       string)
      (quote-date  date   (chk-quote-date quote-date state))
@@ -495,7 +504,7 @@
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company id))
      (location    string)
-     (price       float   chk-amount*)
+     (price       float   (chk-price price state))
      (vat         float   chk-amount*)
      (state       string)
      (quote-date  date    (chk-quote-date quote-date state))
@@ -545,7 +554,7 @@
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company id))
      (location    string)
-     (price       float   chk-amount*)
+     (price       float   (chk-price price state))
      (vat         float   chk-amount*)
      (state       string)
      (quote-date  date    (chk-quote-date quote-date state))
