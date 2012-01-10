@@ -201,7 +201,7 @@
       (:div :class "data-form project-form"
             (:div :class "data-form-title"
                   (display lit 'description "Περιγραφή")
-                  (display lit 'company "Εταιρία" "ac-company"))
+                  (display lit 'company "Εταιρία" :extra-styles "ac-company"))
             (:div :class "grid_3 alpha project-form-details"
                   (:fieldset
                    (:legend "Οικονομικά")

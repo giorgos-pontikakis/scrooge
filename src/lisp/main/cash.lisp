@@ -265,9 +265,9 @@
     (with-html
       (:div :id "cash-data-form" :class "data-form"
             (:div :class "grid_6 alpha"
-                  (display lit 'tx-date "Ημερομηνία" "datepicker")
+                  (display lit 'tx-date "Ημερομηνία":extra-styles "datepicker" :value (today))
                   (display lit 'description "Περιγραφή")
-                  (display lit 'company "Εταιρία" "ac-company")
+                  (display lit 'company "Εταιρία" :extra-styles "ac-company")
                   (display lit 'amount "Ποσό")
                   (unless disabled
                     (htm (:div :class "data-form-buttons"

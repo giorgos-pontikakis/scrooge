@@ -190,9 +190,9 @@
         (:div :id "cheque-data-form" :class "data-form"
               (:div :class "grid_6 alpha"
                     (display lit 'serial "Σειριακός Αριθμός")
-                    (display lit 'due-date "Ημερομηνία" "datepicker")
-                    (display lit 'company "Εταιρία" "ac-company")
-                    (display lit 'bank "Τράπεζα" "ac-bank")
+                    (display lit 'due-date "Ημερομηνία" :extra-styles "datepicker")
+                    (display lit 'company "Εταιρία" :extra-styles "ac-company")
+                    (display lit 'bank "Τράπεζα" :extra-styles "ac-bank")
                     (display lit 'amount "Ποσό"))
               (:div :class "grid_6 omega"
                     (:table :class "crud-table"
