@@ -26,12 +26,14 @@
     '((description (:project-description-null
                     "Η περιγραφή του έργου είναι κενή."
                     :project-description-exists
-                    "Υπάρχει ήδη έργο με αυτή την περιγραφή."))
+                    "Για την εταιρία αυτή, υπάρχει ήδη έργο με την ίδια περιγραφή."))
       (company     (:company-title-unknown
                     "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία."
                     :company-title-null
                     "Η επωνυμία της εταιρίας είναι κενή"))
-      (price       (:non-positive-amount
+      (price       (:price-missing-for-archived-project
+                    "Δεν μπορεί να αρχειοθετηθεί έργο χωρίς τιμή."
+                    :non-positive-amount
                     "Το ποσό της τιμής δεν είναι θετικός αριθμός."
                     :parse-error
                     "Το ποσό της τιμής περιέχει άκυρους χαρακτήρες."))
@@ -67,26 +69,37 @@
 
 (define-existence-predicate project-id-exists-p project id)
 (define-existence-predicate bill-id-exists-p bill id)
-(define-existence-predicate* project-description-exists-p project description id)
+
+(defun project-description-exists-p (description company &optional id)
+  (unless  (chk-company-title company)
+    ;; Don't even bother to check without a valid company title
+    (let ((company-id (company-id company)))
+      (with-db ()
+        (if id
+            (query
+             (:select 1 :from 'project :where
+                      (:and (:= 'description description)
+                            (:= company-id 'company-id)
+                            (:not (:= 'id id))))
+             :single)
+            (query (:select 1 :from 'project
+                    :where (:and (:= 'description description)
+                                 (:= company-id 'company-id)))
+                   :single))))))
 
 (defun chk-project-id (id)
   (if (project-id-exists-p id)
       nil
       :project-id-unknown))
 
-(defun chk-project-description/create (description)
+(defun chk-project-description/create (description company)
   (cond ((eql :null description) :project-description-null)
-        ((project-description-exists-p description) :project-description-exists)
+        ((project-description-exists-p description company) :project-description-exists)
         (t nil)))
 
-(defun chk-project-description/update (description id)
+(defun chk-project-description/update (description company id)
   (cond ((eql :null description) :project-description-null)
-        ((project-description-exists-p description id) :project-description-exists)
-        (t nil)))
-
-(defun chk-project-description (description)
-  (cond ((eql :null description) :project-description-null)
-        ((not (project-description-exists-p description)) :project-description-unknown)
+        ((project-description-exists-p description company id) :project-description-exists)
         (t nil)))
 
 (defun chk-quote-date (date state)
@@ -129,6 +142,13 @@
            (bill-id-exists-p bill-id))
       nil
       :bill-id-invalid))
+
+(defun chk-price (price state)
+  (or (chk-amount* price)
+      (if (and (string-equal state "archived")
+               (eql price :null))
+          :price-missing-for-archived-project
+          nil)))
 
 
 
@@ -201,7 +221,7 @@
       (:div :class "data-form project-form"
             (:div :class "data-form-title"
                   (display lit 'description "Περιγραφή")
-                  (display lit 'company "Εταιρία" "ac-company"))
+                  (display lit 'company "Εταιρία" :extra-styles "ac-company"))
             (:div :class "grid_3 alpha project-form-details"
                   (:fieldset
                    (:legend "Οικονομικά")
@@ -217,9 +237,9 @@
                   (:fieldset
                    (:legend "Χρονοδιάγραμμα")
                    (:ul
-                    (:li (display lit 'quote-date "Ημερομηνία προσφοράς" "datepicker"))
-                    (:li (display lit 'start-date "Ημερομηνία έναρξης" "datepicker"))
-                    (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης" "datepicker")))))
+                    (:li (display lit 'quote-date "Ημερομηνία προσφοράς" :extra-styles "datepicker"))
+                    (:li (display lit 'start-date "Ημερομηνία έναρξης" :extra-styles "datepicker"))
+                    (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης" :extra-styles "datepicker")))))
             (:div :class "clear" "")
             (:div :id "project-notes"
                   (label 'notes "Σημειώσεις")
@@ -404,9 +424,9 @@
     ((search      string)
      (cstate      string chk-project-state)
      (company     string chk-company-title)
-     (description string chk-project-description/create)
+     (description string (chk-project-description/create description company))
      (location    string)
-     (price       float  chk-amount*)
+     (price       float  (chk-price price state))
      (vat         float  chk-amount*)
      (state       string)
      (quote-date  date   (chk-quote-date quote-date state))
@@ -444,9 +464,9 @@
     ((search      string)
      (cstate      string chk-project-state)
      (company     string chk-company-title)
-     (description string chk-project-description/create)
+     (description string (chk-project-description/create description company))
      (location    string)
-     (price       float  chk-amount*)
+     (price       float  (chk-price price state))
      (vat         float  chk-amount*)
      (state       string)
      (quote-date  date   (chk-quote-date quote-date state))
@@ -482,9 +502,9 @@
      (id          integer chk-project-id)
      (bill-id     integer (chk-bill-id id bill-id))
      (company     string  chk-company-title)
-     (description string  (chk-project-description/update description id))
+     (description string  (chk-project-description/update description company id))
      (location    string)
-     (price       float   chk-amount*)
+     (price       float   (chk-price price state))
      (vat         float   chk-amount*)
      (state       string)
      (quote-date  date    (chk-quote-date quote-date state))
@@ -532,9 +552,9 @@
      (cstate      string  chk-project-state)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
-     (description string  (chk-project-description/update description id))
+     (description string  (chk-project-description/update description company id))
      (location    string)
-     (price       float   chk-amount*)
+     (price       float   (chk-price price state))
      (vat         float   chk-amount*)
      (state       string)
      (quote-date  date    (chk-quote-date quote-date state))

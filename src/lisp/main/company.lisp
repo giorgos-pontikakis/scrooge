@@ -201,17 +201,17 @@
                   (display lit 'title "Επωνυμία"))
             (:fieldset
              (:legend "Φορολογικά στοιχεία")
-             (display lit 'occupation "Επάγγελμα" "ac-occupation")
+             (display lit 'occupation "Επάγγελμα" :extra-styles "ac-occupation")
              (:div :id "tin"
                    (display lit 'tin "Α.Φ.Μ."))
              (:div :id "tof-div"
-                   (display lit 'tof "Δ.Ο.Υ." "ac-tof")))
+                   (display lit 'tof "Δ.Ο.Υ." :extra-styles "ac-tof")))
             (:fieldset
              (:legend "Διεύθυνση")
              (:div :id "address"
                    (display lit 'address "Οδός"))
              (:div :id "city"
-                   (display lit 'city "Πόλη" "ac-city"))
+                   (display lit 'city "Πόλη" :extra-styles "ac-city"))
              (:div :id "zipcode"
                    (display lit 'zipcode "Ταχυδρομικός κωδικός"))
              (:div :id "pobox"

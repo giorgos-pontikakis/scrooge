@@ -225,9 +225,9 @@
 ;;; label-input-text for forms
 
 (defun label-input-text (disabled record styles)
-  (html (name label &optional extra-styles)
+  (html (name label &key value extra-styles)
     (label name label)
     (input-text name
-                :value (getf record (make-keyword name))
+                :value (or (getf record (make-keyword name)) value)
                 :disabled disabled
                 :css-class (conc (getf styles (make-keyword name)) " " extra-styles))))

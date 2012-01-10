@@ -253,6 +253,6 @@ excluded for the search - useful for updates."
 (defun chk-amount* (float)
   "Same as chk-amount but allow null values or zeros"
   (if (or (eql float :null)
-          (realp float))
+          (positive-real-p float))
       nil
       :non-positive-amount))
