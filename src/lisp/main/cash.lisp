@@ -281,6 +281,9 @@
                                            (if revenues-p "εσόδων" "εξόδων")))
                   ;; Display the tree. If needed, preselect the first account of the tree.
                   (display tree :key (or (getf record :account-id)
+                                         (getf record (if revenues-p
+                                                          :credit-acc-id
+                                                          :debit-acc-id))
                                          (root-key tree))))))))
 
 
@@ -351,6 +354,7 @@
                      (cash-actions op kind (val id) filter)
                      (display cash-form))
                (footer)))))))
+
 
 
 ;;; ----------------------------------------------------------------------
