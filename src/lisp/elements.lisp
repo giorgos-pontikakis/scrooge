@@ -139,7 +139,7 @@
     (:catalogue (if id
                     `(:create :details :delete ,@extra-ids)
                     '(:create)))
-    (:details `(:update ,@extra-ids))
+    (:details `(:update :create ,@extra-ids))
     (:create '())
     (:update '(:details))
     (:delete '())))

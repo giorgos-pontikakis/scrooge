@@ -52,14 +52,14 @@
 (defclass bill-row (scrooge-row/plist)
   ())
 
-(defmethod selector ((row bill-row) enabled-p)
+(defmethod selector ((row bill-row) selected-p)
   (let ((table (collection row))
         (bill-id (getf (record row) :bill-id)))
     (html ()
-      (:a :href (if enabled-p
+      (:a :href (if selected-p
                     (project/details :id (project-id table))
                     (project/details :id (project-id table) :bill-id bill-id))
-          (selector-img enabled-p)))))
+          (selector-img selected-p)))))
 
 (defmethod payload ((row bill-row) enabled-p)
   (let ((record (record row))

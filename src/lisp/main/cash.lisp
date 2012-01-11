@@ -280,9 +280,7 @@
                   (label 'account-id (conc "Λογαριασμός "
                                            (if revenues-p "εσόδων" "εξόδων")))
                   ;; Display the tree. If needed, preselect the first account of the tree.
-                  (display tree :key (or (getf record (if revenues-p
-                                                          :credit-acc-id
-                                                          :debit-acc-id))
+                  (display tree :key (or (getf record :account-id)
                                          (root-key tree))))))))
 
 
@@ -376,7 +374,6 @@
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
-                                     :record nil
                                      :cancel-url (apply #'cash kind filter)))
            (page-title (conc (cash-page-title kind) " » Δημιουργία")))
       (with-document ()

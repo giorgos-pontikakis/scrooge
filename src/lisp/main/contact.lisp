@@ -47,14 +47,14 @@
 (defclass contact-row (scrooge-row/plist)
   ())
 
-(defmethod selector ((row contact-row) enabled-p)
+(defmethod selector ((row contact-row) selected-p)
   (let ((table (collection row))
         (contact-id (getf (record row) :contact-id)))
     (html ()
-      (:a :href (if enabled-p
+      (:a :href (if selected-p
                     (company/details :id (company-id table))
                     (company/details :id (company-id table) :contact-id contact-id))
-          (selector-img enabled-p)))))
+          (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
   (let ((record (record row))

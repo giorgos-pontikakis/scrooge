@@ -281,9 +281,7 @@
                   (label 'account-id (conc "Λογαριασμός "
                                            (if receivable-p "εσόδων" "εξόδων")))
                   ;; Display the tree. If needed, preselect the first account of the tree.
-                  (display tree :key (or (getf record (if receivable-p
-                                                          :credit-acc-id
-                                                          :debit-acc-id))
+                  (display tree :key (or (getf record :account-id)
                                          (root-key tree))))))))
 
 

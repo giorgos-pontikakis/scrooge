@@ -32,13 +32,13 @@
 (defclass rev/exp-account-node (account-node)
   ())
 
-(defmethod selector ((node rev/exp-account-node) enabled-p)
+(defmethod selector ((node rev/exp-account-node) selected-p)
   (make-instance 'input-radio
                  :disabled (disabled (collection node))
                  :name 'account-id
                  :value (key node)
                  :body nil
-                 :checked enabled-p))
+                 :checked selected-p))
 
 (defmethod payload ((node rev/exp-account-node) enabled-p)
   (html ()

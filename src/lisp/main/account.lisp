@@ -30,8 +30,8 @@
 (defclass account-tx-row (scrooge-row/plist)
   ())
 
-(defmethod selector ((row account-tx-row) enabled-p)
-  (declare (ignore row enabled-p))
+(defmethod selector ((row account-tx-row) selected-p)
+  (declare (ignore row selected-p))
   (list nil nil))
 
 (defmethod payload ((row account-tx-row) enabled-p)

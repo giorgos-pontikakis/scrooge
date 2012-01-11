@@ -179,16 +179,16 @@
 ;;; selector and controls for crud collections
 ;;; ------------------------------------------------------------
 
-(defun simple-selector (row enabled-p url-fn)
+(defun simple-selector (row selected-p url-fn)
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
-      (:a :href (if enabled-p
+      (:a :href (if selected-p
                     (apply url-fn :start start filter)
                     (apply url-fn :id id filter))
-          (selector-img enabled-p)))))
+          (selector-img selected-p)))))
 
 (defun simple-controls (row enabled-p url-fn)
   (let ((id (key row))
