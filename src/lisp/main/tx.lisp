@@ -70,9 +70,11 @@
 ;;; ----------------------------------------------------------------------
 
 (defun auto-tx-p (tx-id)
-  (query (:select 'tx-id
-          :from 'cheque-event
-          :where (:= 'tx-id tx-id))))
+  (if tx-id
+      (query (:select 'tx-id
+              :from 'cheque-event
+              :where (:= 'tx-id tx-id)))
+      nil))
 
 (defun tx-actions (op id filter)
   (let ((auto-p (if id (auto-tx-p id) nil)))
@@ -84,7 +86,13 @@
                                         (if auto-p
                                             nil
                                             (apply #'tx/delete :id id filter))))
-                  (enabled-actions/crud op id))))
+                  (ecase op
+                    (:catalogue (if (or (not id) auto-p)
+                                    '(:create)
+                                    '(:create :update :delete)))
+                    (:create '())
+                    (:update '())
+                    (:delete '())))))
 
 (defun tx-subnavbar (filter &optional id)
   (with-html
@@ -318,6 +326,9 @@
      (amount             float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
+  ;; post validation - prevent update if automatically created
+  (with-db ()
+    (validate-parameters #'auto-tx-p id))
   (with-view-page
     (let* ((op :update)
            (filter (params->filter))
@@ -382,6 +393,9 @@
      (since  date)
      (until  date)
      (search string))
+  ;; post validation - prevent delete if automatically created
+  (with-db ()
+    (validate-parameters #'auto-tx-p id))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
