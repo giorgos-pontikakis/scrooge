@@ -630,7 +630,17 @@
                 (company-id cheque-dao) company-id
                 (due-date cheque-dao) (val due-date)
                 (amount cheque-dao) (val amount))
-          (update-dao cheque-dao))
+          (update-dao cheque-dao)
+          ;; Also update the corresponding tx's data
+          (let* ((cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (cheque-id cheque-dao))))
+                 (tx-daos (mapcar (compose (lambda (tx-id) (get-dao 'tx tx-id))
+                                           #'tx-id)
+                                  cheque-event-daos)))
+            (mapc (lambda (tx-dao)
+                    (setf (amount tx-dao) (val amount)
+                          (company-id tx-dao) company-id)
+                    (update-dao tx-dao))
+                  tx-daos)))
         ;; Finally redirect
         (see-other (apply #'cheque/details kind :id (val id) (params->filter)))))))
 
