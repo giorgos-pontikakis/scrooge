@@ -33,6 +33,8 @@
         "Το ποσό της συναλλαγής είναι κενό"
         :non-positive-amount
         "Το ποσό της συναλλαγής δεν είναι θετικός αριθμός"
+        :amount-overflow
+        "Το ποσό της συναλλαγής είναι δεν πρέπει να ξεπερνά το 9,999,999.99"
         :parse-error
         "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
       (non-chq-debit-acc
@@ -131,6 +133,7 @@
          (until (getf (filter table) :until))
          (base-query `(:select tx.id
                                (:as company.title company)
+                               (:as company.id company-id)
                                (:as debit-acc.title non-chq-debit-acc)
                                (:as credit-acc.title non-chq-credit-acc)
                                tx-date
