@@ -276,15 +276,28 @@
                                                     "Δημιουργία"))
                                (cancel-button (cancel-url form)
                                               :body "Άκυρο")))))
-            (:div :class "grid_6 omega"
-                  (label 'account-id (conc "Λογαριασμός "
-                                           (if revenues-p "εσόδων" "εξόδων")))
-                  ;; Display the tree. If needed, preselect the first account of the tree.
-                  (display tree :key (or (getf record :account-id)
-                                         (getf record (if revenues-p
-                                                          :credit-acc-id
-                                                          :debit-acc-id))
-                                         (root-key tree))))))))
+            ;; Display the tree. If needed, preselect the first account of the tree.
+            (let ((account-id (getf record :account-id))
+                  (recv/pay-acc-id (if revenues-p
+                                       *invoice-receivable-acc-id*
+                                       *invoice-payable-acc-id*)))
+              (htm (:div :class "grid_6 omega"
+                         (:h3 (str (conc "Λογαριασμός "
+                                         (if revenues-p "πίστωσης" "χρέωσης"))))
+                         (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
+                         (input-radio 'account-id
+                                      recv/pay-acc-id
+                                      (html ()
+                                        (str (title (get-dao 'account recv/pay-acc-id))))
+                                      :disabled disabled
+                                      :checked (or (eql recv/pay-acc-id account-id)
+                                                   (not account-id)))
+                         (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
+                                         (if revenues-p "εσόδων" "εξόδων"))))
+                         (display tree :key (or (getf record :account-id)
+                                                (getf record (if revenues-p
+                                                                 :credit-acc-id
+                                                                 :debit-acc-id)))))))))))
 
 
 

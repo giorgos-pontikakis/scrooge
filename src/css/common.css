@@ -23,7 +23,17 @@ h2 {
 
 h3 {
     font-size: 17px;
+    margin: 20px 0px 10px 0px;
+
 }
+
+h4 {
+    font-size: 13px;
+    font-weight: bold;
+    margin: 10px 0px 5px 0px;
+    color: #633;
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -270,7 +280,7 @@ select:disabled {
 }
 
 .data-form input {
-    display: block;
+    /* display: block; */
     margin-bottom: 10px;
 }
 
