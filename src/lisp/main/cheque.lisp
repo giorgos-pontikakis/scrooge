@@ -604,7 +604,7 @@
         (with-transaction ()
           ;; When a new state is requested, update the state of cheque-dao and create a new
           ;; event and the corresponding tx
-          (unless (string= (val state-id) "nil")
+          (when (val state-id)
             (let* ((cheque-stran (select-dao-unique 'cheque-stran
                                      (:and (:= 'from-state-id from-state-id)
                                            (:= 'to-state-id (val state-id)))))
