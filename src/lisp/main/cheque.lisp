@@ -604,9 +604,10 @@
         (with-transaction ()
           ;; When a new state is requested, update the state of cheque-dao and create a new
           ;; event and the corresponding tx
-          (when (val state-id)
+          (unless (string= (val state-id) "nil")
             (let* ((cheque-stran (select-dao-unique 'cheque-stran
-                                     (:and (:= 'from-state-id from-state-id)
+                                     (:and (:= 'payable-p (string= kind "payable"))
+                                           (:= 'from-state-id from-state-id)
                                            (:= 'to-state-id (val state-id)))))
                    (temtx (select-dao-unique 'temtx
                               (:= 'id (temtx-id cheque-stran))))

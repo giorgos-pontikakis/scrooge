@@ -254,7 +254,9 @@ excluded for the search - useful for updates."
 
 (defun chk-amount* (float)
   "Same as chk-amount but allow null values or zeros"
-  (cond ((non-positive-real-p float)
+  (cond ((eql float :null)
+         nil)
+        ((non-positive-real-p float)
          :non-positive-amount)
         ((> float 9999999)
          :amount-overflow)
