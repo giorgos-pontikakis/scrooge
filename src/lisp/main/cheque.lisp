@@ -502,7 +502,8 @@
     (let* ((bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
            (cheque-stran (select-dao-unique 'cheque-stran
-                             (:= 'from-state-id "nil")))
+                             (:and (:= 'from-state-id "nil")
+                                   (:= 'payable-p (string= kind "payable")))))
            (temtx (select-dao-unique 'temtx
                       (:= 'id (temtx-id cheque-stran))))
            (new-tx (make-instance 'tx
