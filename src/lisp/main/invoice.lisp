@@ -207,8 +207,8 @@
 (defun invoice-filters (kind filter)
   (with-html
     (:div :class "filters"
-          (filters-navbar `((receivable ,(apply #'invoice "receivable" filter) "Προς είσπραξη")
-                            (payable ,(apply #'invoice "payable" filter) "Προς πληρωμή"))
+          (filters-navbar `((receivable ,(apply #'invoice "receivable" filter) "Χρεώσεις")
+                            (payable ,(apply #'invoice "payable" filter) "Πιστώσεις"))
                           kind)
           (datebox (lambda (&rest args)
                      (apply #'invoice kind args))
