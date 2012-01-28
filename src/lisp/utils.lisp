@@ -238,9 +238,10 @@ excluded for the search - useful for updates."
                        (for i from 1)
                        (reducing (* d (expt 2 i))
                                  by #'+))))
-        (= (mod (mod sum 11)
-                10)
-           control-digit)))))
+        (and (= len 9)
+             (= (mod (mod sum 11)
+                     10)
+                control-digit))))))
 
 (defun chk-amount (float)
   (cond ((eql float :null)
