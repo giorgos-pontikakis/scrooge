@@ -165,13 +165,14 @@
                  :disabled disabled))))
 
 (defun make-menu-spec (anchor-spec)
-  (mapcar (lambda (item)
+  (mapcan (lambda (item)
             (destructuring-bind (action href label) item
-              (list action
-                    (html ()
-                      (:a :href href
-                          :class (string-downcase action)
-                          (str label))))))
+              (when href
+                (list (list action
+                            (html ()
+                              (:a :href href
+                                  :class (string-downcase action)
+                                  (str label))))))))
           anchor-spec))
 
 

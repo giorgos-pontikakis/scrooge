@@ -581,3 +581,78 @@
       (delete-dao (get-dao 'company (val id))))
     (see-other (apply #'company
                       (params->filter)))))
+
+;; (defun company-debits (company-id)
+;;   (query (:select 'tx.id 'tx.description 'tx.amount
+;;           :from 'tx
+;;           :inner-join (:as 'account 'debit-account)
+;;           :on (:= 'debit-account.id 'tx.debit-acc-id)
+;;           :inner-join (:as 'account 'credit-account)
+;;           :on (:= 'credit-account.id 'tx.credit-acc-id)
+;;           :where (:and (:= 'tx.company-id company-id)
+
+;;                        (:= 'credit-account.id *cash-acc-id*
+;;                            (:= 'credit-account.id *cheque-payable-acc-id*))
+;;                        (:in 'debit-account.id (:set (list *invoice-receivable-acc-id*)))))))
+
+;; (defun company-credits (company-id)
+;;   (query (:select 'tx.id 'tx.description 'tx.amount
+;;           :from 'tx
+;;           :inner-join (:as 'account 'debit-account)
+;;           :on (:= 'debit-account.id 'tx.debit-acc-id)
+;;           :inner-join (:as 'account 'credit-account)
+;;           :on (:= 'credit-account.id 'tx.credit-acc-id)
+;;           :where (:and (:= 'tx.company-id company-id)
+;;                        (:= 'debit-account.id *cash-acc-id*)
+;;                        (:= 'debit-account.id *cheque-receivable-acc-id*)
+;;                        (:= 'credit-account.id *invoice-payable-acc-id*)))))
+
+;; ;; (defun company-credits (company-id)
+;; ;;   (sql-compile `(:select tx.id tx.description tx.amount
+;; ;;                  :from tx
+;; ;;                  :inner-join (:as account debit-account)
+;; ;;                  :on (:= debit-account.id tx.debit-acc-id)
+;; ;;                  :inner-join (:as account credit-account)
+;; ;;                  :on (:= credit-account.id tx.credit-acc-id)
+;; ;;                  :where (:and (:= tx.company-id ,company-id)
+;; ;;                               (:in debit-account.id (:set (,*cash-acc-id* ,*cheque-receivable-acc-id*)))
+;; ;;                               (:in credit-account.id (:set (list ,*invoice-payable-acc-id*)))))))
+
+;; (defun dfs (expanded fringe)
+;;   (let ((head (first fringe))
+;;         (tail (rest fringe)))
+;;     (if head
+;;         (dfs (append expanded (list head))
+;;              (append (children head) tail))
+;;         expanded)))
+
+
+;; (defun tree-search (tree)
+;;   (if (children head)))
+
+;; (with-db ()
+;;   (let ((root (root (make-instance 'account-tree :root-key *expenses-root-acc-id* :filter '(:debit-p t)))))
+;;     (mapcar (compose (lambda (rec) (getf rec :title)) #'record)
+;;             (dfs '() (list root)))))
+
+
+;; (defun descendant-p (root-key key)
+;;   (let ((node (get-dao 'account key)))
+;;     (cond ((equal (root-parent-key (tree node)) (parent-key node))
+;;            nil)
+;;           ((equal (parent-key node) (key root-node))
+;;            t)
+;;           (descendant-p root-node (get-dao )))))
+
+
+;; (mapcar (lambda (node)
+;;           (key node))
+;;         (children))
+
+
+;; (defun depth-first-flatten-tree (fringe)
+;;   (let ((expanded (first fringe)))
+;;     (if (null expanded)
+;;         fringe
+;;         (depth-first-flatten-tree (append (children expanded)
+;;                                           fringe)))))
