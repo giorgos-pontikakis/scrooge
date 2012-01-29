@@ -12,6 +12,7 @@
              (header)
              (main-navbar 'home)
              (:div :class "clear")
-             (:div :id "home-window" :class "window grid_12"
-                   (:p "Home content not yet available"))
+             (:div :class "grid_12"
+                   (:div :id "home-window" :class "window"
+                         (:p "Home content not yet available")))
              (footer))))))

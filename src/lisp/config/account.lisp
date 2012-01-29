@@ -246,15 +246,16 @@
                                                     :filter `(:debit-p ,debit-p)))
                  (let ()
                    (htm
-                    (:div :id div-id :class "window grid_6"
-                          (:div :class "title" (str window-title))
-                          (notifications)
-                          (account-actions op
-                                           (if id-debit-p
-                                               (val id)
-                                               nil)
-                                           debit-p)
-                          (display account-tree :key (val id) :hide-root-p t)))))
+                    (:div :class "grid_6"
+                          (:div :id div-id :class "window"
+                                (:div :class "title" (str window-title))
+                                (notifications)
+                                (account-actions op
+                                                 (if id-debit-p
+                                                     (val id)
+                                                     nil)
+                                                 debit-p)
+                                (display account-tree :key (val id) :hide-root-p t))))))
                (footer)))))))
 
 
@@ -282,16 +283,17 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'account)
-               (:div :class "window grid_12"
-                     (:div :class "title" "Λογαριασμός » Δημιουργία")
-                     (notifications)
-                     (account-actions op
-                                      (val parent-id)
-                                      debitp)
-                     (with-form (actions/config/account/create :parent-id (val parent-id)
-                                                               :debitp (val debitp))
-                       (display account-form :payload (params->payload)
-                                             :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Λογαριασμός » Δημιουργία")
+                           (notifications)
+                           (account-actions op
+                                            (val parent-id)
+                                            debitp)
+                           (with-form (actions/config/account/create :parent-id (val parent-id)
+                                                                     :debitp (val debitp))
+                             (display account-form :payload (params->payload)
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage account-page actions/config/account/create ("actions/account/create"
@@ -303,7 +305,7 @@
   (with-controller-page (config/account/create)
     (with-db ()
       (let ((new-dao (make-instance 'account
-                                    :parent-id (or (val parent-id) 
+                                    :parent-id (or (val parent-id)
                                                    (and (val debitp)
                                                         (account-id *debit-accounts-root*))
                                                    (account-id *credit-accounts-root*))
@@ -337,16 +339,17 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'account)
-               (:div :class "window grid_12"
-                     (:div :class "title" "Λογαριασμός » Επεξεργασία")
-                     (notifications)
-                     (account-actions op
-                                      (val id)
-                                      (debit-p (with-db ()
-                                                 (get-dao 'account (val id)))))
-                     (with-form (actions/config/account/update :id (val id))
-                       (display account-form :payload (params->payload)
-                                             :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Λογαριασμός » Επεξεργασία")
+                           (notifications)
+                           (account-actions op
+                                            (val id)
+                                            (debit-p (with-db ()
+                                                       (get-dao 'account (val id)))))
+                           (with-form (actions/config/account/update :id (val id))
+                             (display account-form :payload (params->payload)
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
@@ -388,12 +391,13 @@
                                                     :op op
                                                     :filter `(:debit-p ,debit-p)))
                  (htm
-                  (:div :id div-id :class "window grid_6"
-                        (:div :class "title" (str window-title))
-                        (notifications)
-                        (account-actions op (val id) debit-p)
-                        (with-form (actions/config/account/delete :id (val id))
-                          (display account-tree :key (val id) :hide-root-p t)))))
+                  (:div :class "grid_6"
+                        (:div :id div-id :class "window"
+                              (:div :class "title" (str window-title))
+                              (notifications)
+                              (account-actions op (val id) debit-p)
+                              (with-form (actions/config/account/delete :id (val id))
+                                (display account-tree :key (val id) :hide-root-p t))))))
                (footer)))))))
 
 (defpage account-page actions/config/account/delete ("actions/config/account/delete"

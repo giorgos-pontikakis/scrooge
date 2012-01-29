@@ -37,7 +37,10 @@
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (project-id     :accessor project-id :initarg :project-id))
-  (:default-initargs :item-class 'bill-row :id "bill-table" :create-pos :last))
+  (:default-initargs :item-class 'bill-row
+                     :id "bill-table"
+                     :css-class "crud-table crud-table-half"
+                     :create-pos :last))
 
 (defmethod get-records ((table bill-table))
   (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
@@ -177,17 +180,19 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar :details filter)
-               (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (project-actions :details (val id) filter)
-                     (display project-form))
-               (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Δημιουργία")
-                     (bill-actions :create (val id) nil filter)
-                     (notifications)
-                     (with-form (actions/bill/create :id (val id))
-                       (display bill-table
-                                :payload (params->payload))))
+               (:div :class "grid_6"
+                     (:div :id "project-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (project-actions :details (val id) filter)
+                           (display project-form)))
+               (:div :class "grid_6"
+                     (:div :id "bill-window" :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (bill-actions :create (val id) nil filter)
+                           (notifications)
+                           (with-form (actions/bill/create :id (val id))
+                             (display bill-table
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
@@ -237,17 +242,19 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar :details filter)
-               (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (project-actions :details (val id) filter)
-                     (display project-form))
-               (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Επεξεργασία")
-                     (bill-actions :update (val id) (val bill-id) filter)
-                     (with-form (actions/bill/update :id (val id)
-                                                     :bill-id (val bill-id))
-                       (display bill-table :key (val bill-id)
-                                           :payload (params->payload))))
+               (:div :class "grid_6"
+                     (:div :id "project-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (project-actions :details (val id) filter)
+                           (display project-form)))
+               (:div :class "grid_6"
+                     (:div :id "bill-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (bill-actions :update (val id) (val bill-id) filter)
+                           (with-form (actions/bill/update :id (val id)
+                                                           :bill-id (val bill-id))
+                             (display bill-table :key (val bill-id)
+                                                 :payload (params->payload)))))
                (footer)))))))
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
@@ -295,16 +302,18 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar :details filter)
-               (:div :id "project-window" :class "window grid_6"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (project-actions :details (val id) filter)
-                     (display project-form))
-               (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Διαγραφή")
-                     (bill-actions :delete (val id) (val bill-id) filter)
-                     (with-form (actions/bill/delete :id (val id)
-                                                     :bill-id (val bill-id))
-                       (display bill-table :key (val bill-id))))
+               (:div :class "grid_6"
+                     (:div :id "project-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (project-actions :details (val id) filter)
+                           (display project-form)))
+               (:div :class "grid_6"
+                     (:div :id "bill-window" :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (bill-actions :delete (val id) (val bill-id) filter)
+                           (with-form (actions/bill/delete :id (val id)
+                                                           :bill-id (val bill-id))
+                             (display bill-table :key (val bill-id)))))
                (footer)))))))
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"

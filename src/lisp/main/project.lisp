@@ -270,7 +270,7 @@
 ;;; table
 
 (defclass project-table (scrooge-table)
-  ((header-labels  :initform '("" "Περιγραφή" "Εταιρία" "Τιμή"))
+  ((header-labels  :initform '("" "Περιγραφή" "Εταιρία" "Τιμή" "" ""))
    (paginator      :initform (make-instance 'project-paginator
                                             :id "project-paginator"
                                             :css-class "paginator")))
@@ -376,11 +376,12 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar op filter (val id))
-               (:div :id "project-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (project-actions op (val id) filter)
-                     (display project-table
-                              :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "project-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (project-actions op (val id) filter)
+                           (display project-table
+                                    :key (val id))))
                (footer)))))))
 
 (defpage project-page project/details ("project/details")
@@ -407,15 +408,17 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar op filter (val id))
-               (:div :id "project-window" :class "window grid_6"
-                     (:p :class "title" "Λεπτομέρειες")
-                     (project-actions op (val id) filter)
-                     (display project-form :payload (get-record 'project (val id))))
-               (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση")
-                     (bill-actions :catalogue (val id) (val bill-id) filter)
-                     (display bill-table
-                              :key (val bill-id)))
+               (:div :class "grid_6"
+                     (:div :id "project-window" :class "window"
+                           (:p :class "title" "Λεπτομέρειες")
+                           (project-actions op (val id) filter)
+                           (display project-form :payload (get-record 'project (val id)))))
+               (:div :class "grid_6"
+                     (:div :id "bill-window" :class "window"
+                           (:div :class "title" "Κοστολόγηση")
+                           (bill-actions :catalogue (val id) (val bill-id) filter)
+                           (display bill-table
+                                    :key (val bill-id))))
                (footer)))))))
 
 
@@ -453,14 +456,15 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar op filter)
-               (:div :id "project-window" :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (project-actions op nil filter)
-                     (notifications)
-                     (with-form (actions/project/create :search (val search)
-                                                        :cstate (val cstate))
-                       (display project-form :payload (params->payload)
-                                             :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :id "project-window" :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (project-actions op nil filter)
+                           (notifications)
+                           (with-form (actions/project/create :search (val search)
+                                                              :cstate (val cstate))
+                             (display project-form :payload (params->payload)
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage project-page actions/project/create ("actions/project/create"
@@ -534,20 +538,22 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar op filter (val id))
-               (:div :id "project-window" :class "window grid_6"
-                     (:p :class "title" "Επεξεργασία")
-                     (project-actions op (val id) filter)
-                     (notifications)
-                     (with-form (actions/project/update :id (val id)
-                                                        :search (val search)
-                                                        :cstate (val cstate))
-                       (display project-form :payload (params->payload)
-                                             :styles (params->styles))))
-               (:div :id "bill-window" :class "window grid_6"
-                     (:div :class "title" "Κοστολόγηση")
-                     (bill-actions :catalogue (val id) (val bill-id) filter)
-                     (display bill-table
-                              :key (val bill-id)))
+               (:div :class "grid_6"
+                     (:div :id "project-window" :class "window"
+                           (:p :class "title" "Επεξεργασία")
+                           (project-actions op (val id) filter)
+                           (notifications)
+                           (with-form (actions/project/update :id (val id)
+                                                              :search (val search)
+                                                              :cstate (val cstate))
+                             (display project-form :payload (params->payload)
+                                                   :styles (params->styles)))))
+               (:div :class "grid_6"
+                     (:div :id "bill-window" :class "window"
+                           (:div :class "title" "Κοστολόγηση")
+                           (bill-actions :catalogue (val id) (val bill-id) filter)
+                           (display bill-table
+                                    :key (val bill-id))))
                (footer)))))))
 
 (defpage project-page actions/project/update ("actions/project/update"
@@ -607,14 +613,15 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar op filter (val id))
-               (:div :id "project-window" :class "window grid_12"
-                     (:div :class "title" "Έργο » Διαγραφή")
-                     (project-actions op (val id) filter)
-                     (with-form (actions/project/delete :id (val id)
-                                                        :search (val search)
-                                                        :cstate (val cstate))
-                       (display project-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "project-window" :class "window"
+                           (:div :class "title" "Έργο » Διαγραφή")
+                           (project-actions op (val id) filter)
+                           (with-form (actions/project/delete :id (val id)
+                                                              :search (val search)
+                                                              :cstate (val cstate))
+                             (display project-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/project/delete"

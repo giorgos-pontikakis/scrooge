@@ -154,11 +154,12 @@
                (header 'config)
                (config-navbar 'city)
                (city-subnavbar filter)
-               (:div :id "city-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (city-actions op (val id) filter)
-                     (notifications)
-                     (display city-table :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "city-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (city-actions op (val id) filter)
+                           (notifications)
+                           (display city-table :key (val id))))
                (footer)))))))
 
 
@@ -185,13 +186,14 @@
                (header 'config)
                (config-navbar 'city)
                (city-subnavbar filter)
-               (:div :id "city-window" :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (city-actions op nil filter)
-                     (notifications)
-                     (with-form (actions/config/city/create :search (val search))
-                       (display city-table
-                                :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "city-window" :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (city-actions op nil filter)
+                           (notifications)
+                           (with-form (actions/config/city/create :search (val search))
+                             (display city-table
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage city-page actions/config/city/create ("actions/config/city/create" :request-type :post)
@@ -227,14 +229,15 @@
                (header 'config)
                (config-navbar 'city)
                (city-subnavbar filter)
-               (:div :id "city-window" :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (city-actions op (val id) filter)
-                     (with-form (actions/config/city/update :id (val id)
-                                                            :search (val search))
-                       (display city-table
-                                :key (val id)
-                                :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "city-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (city-actions op (val id) filter)
+                           (with-form (actions/config/city/update :id (val id)
+                                                                  :search (val search))
+                             (display city-table
+                                      :key (val id)
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
@@ -271,13 +274,14 @@
                (header 'config)
                (config-navbar 'city)
                (city-subnavbar filter)
-               (:div :id "city-window" :class "window grid_12"
-                     (:div :class "title" "Διαγραφή")
-                     (city-actions op (val id) filter)
-                     (with-form (actions/config/city/delete :id (val id)
-                                                            :search (val search))
-                       (display city-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "city-window" :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (city-actions op (val id) filter)
+                           (with-form (actions/config/city/delete :id (val id)
+                                                                  :search (val search))
+                             (display city-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage city-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)

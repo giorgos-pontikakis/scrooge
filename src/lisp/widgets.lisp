@@ -8,7 +8,7 @@
 
 (defclass scrooge-table (crud-table)
   ()
-  (:default-initargs :css-class "crud-table"))
+  (:default-initargs :css-class "crud-table crud-table-full"))
 
 ;;; crud rows with records being daos
 

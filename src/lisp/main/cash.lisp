@@ -340,12 +340,13 @@
                (header)
                (main-navbar 'cash)
                (cash-subnavbar op kind filter (val id))
-               (:div :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (cash-actions op kind (val id) filter)
-                     (display cash-tx-table
-                              :key (val id)
-                              :payload nil))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (cash-actions op kind (val id) filter)
+                           (display cash-tx-table
+                                    :key (val id)
+                                    :payload nil)))
                (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))
@@ -372,10 +373,11 @@
                (header)
                (main-navbar 'cash)
                (cash-subnavbar op kind filter (val id))
-               (:div :id "cash-window" :class "window grid_12"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (cash-actions op kind (val id) filter)
-                     (display cash-form))
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (cash-actions op kind (val id) filter)
+                           (display cash-form)))
                (footer)))))))
 
 
@@ -412,16 +414,17 @@
                (header)
                (main-navbar 'cash)
                (cash-subnavbar op kind filter)
-               (:div :id "cash-window" :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (cash-actions op kind nil filter)
-                     (notifications)
-                     (with-form (actions/cash/create kind
-                                                     :search (val search)
-                                                     :since (val since)
-                                                     :until (val until))
-                       (display cash-form :payload (params->payload)
-                                          :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (cash-actions op kind nil filter)
+                           (notifications)
+                           (with-form (actions/cash/create kind
+                                                           :search (val search)
+                                                           :since (val since)
+                                                           :until (val until))
+                             (display cash-form :payload (params->payload)
+                                                :styles (params->styles)))))
                (footer)))))))
 
 (defpage cash-page actions/cash/create
@@ -491,17 +494,18 @@
                (header)
                (main-navbar 'cash)
                (cash-subnavbar op kind filter (val id))
-               (:div :id "cash-window" :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (cash-actions op kind (val id) filter)
-                     (notifications)
-                     (with-form (actions/cash/update kind
-                                                     :id (val id)
-                                                     :search (val search)
-                                                     :since (val since)
-                                                     :until (val until))
-                       (display cash-form :payload (params->payload)
-                                          :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (cash-actions op kind (val id) filter)
+                           (notifications)
+                           (with-form (actions/cash/update kind
+                                                           :id (val id)
+                                                           :search (val search)
+                                                           :since (val since)
+                                                           :until (val until))
+                             (display cash-form :payload (params->payload)
+                                                :styles (params->styles)))))
                (footer)))))))
 
 (defpage cash-page actions/cash/update
@@ -564,16 +568,17 @@
                (header)
                (main-navbar 'cash)
                (cash-subnavbar op kind filter (val id))
-               (:div :id "cash-window" :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (cash-actions op kind (val id) filter)
-                     (with-form (actions/cash/delete kind
-                                                     :id (val id)
-                                                     :search (val search)
-                                                     :since (val since)
-                                                     :until (val until))
-                       (display cash-tx-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (cash-actions op kind (val id) filter)
+                           (with-form (actions/cash/delete kind
+                                                           :id (val id)
+                                                           :search (val search)
+                                                           :since (val since)
+                                                           :until (val until))
+                             (display cash-tx-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage cash-page actions/cash/delete

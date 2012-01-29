@@ -171,11 +171,12 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (:div :id "temtx-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (temtx-actions op (val id))
-                     (display temtx-table
-                              :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "temtx-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (temtx-actions op (val id))
+                           (display temtx-table
+                                    :key (val id))))
                (footer)))))))
 
 
@@ -200,12 +201,13 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (:div :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (temtx-actions op nil)
-                     (notifications)
-                     (with-form (actions/config/temtx/create)
-                       (display temtx-table :payload (params->payload))))))))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (temtx-actions op nil)
+                           (notifications)
+                           (with-form (actions/config/temtx/create)
+                             (display temtx-table :payload (params->payload)))))))))))
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
     ((title          string chk-temtx-title/create)
@@ -244,13 +246,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (:div :id "temtx-window" :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (temtx-actions op (val id))
-                     (notifications)
-                     (with-form (actions/config/temtx/update :id (val id))
-                       (display temtx-table :key (val id)
-                                            :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "temtx-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (temtx-actions op (val id))
+                           (notifications)
+                           (with-form (actions/config/temtx/update :id (val id))
+                             (display temtx-table :key (val id)
+                                                  :payload (params->payload)))))
                (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
@@ -288,11 +291,12 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (:div :id "temtx-window" :class "window grid_12"
-                     (:div :class "title" "Διαγραφή")
-                     (temtx-actions op (val id))
-                     (with-form (actions/config/temtx/delete :id (val id))
-                       (display temtx-table :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "temtx-window" :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (temtx-actions op (val id))
+                           (with-form (actions/config/temtx/delete :id (val id))
+                             (display temtx-table :key (val id)))))
                (footer)))))))
 
 (defpage temtx-page actions/config/temtx/delete ("actions/config/temtx/delete" :request-type :post)

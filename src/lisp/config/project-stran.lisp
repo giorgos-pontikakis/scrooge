@@ -213,11 +213,12 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'project-stran)
-               (:div :id "project-stran-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (project-stran-actions op (val id))
-                     (display project-stran-table
-                              :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "project-stran-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (project-stran-actions op (val id))
+                           (display project-stran-table
+                                    :key (val id))))
                (footer)))))))
 
 
@@ -244,12 +245,13 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'project-stran)
-               (:div :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (project-stran-actions op nil)
-                     (notifications)
-                     (with-form (actions/config/project-stran/create)
-                       (display project-stran-table :payload (params->payload))))))))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (project-stran-actions op nil)
+                           (notifications)
+                           (with-form (actions/config/project-stran/create)
+                             (display project-stran-table :payload (params->payload)))))))))))
 
 (defpage project-stran-page actions/config/project-stran/create
     ("actions/config/project-stran/create" :request-type :post)
@@ -293,13 +295,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'project-stran)
-               (:div :id "project-stran-window" :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (project-stran-actions op (val id))
-                     (notifications)
-                     (with-form (actions/config/project-stran/update :id (val id))
-                       (display project-stran-table :key (val id)
-                                                    :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "project-stran-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (project-stran-actions op (val id))
+                           (notifications)
+                           (with-form (actions/config/project-stran/update :id (val id))
+                             (display project-stran-table :key (val id)
+                                                          :payload (params->payload)))))
                (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/update
@@ -340,12 +343,13 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'project-stran)
-               (:div :id "project-stran-window" :class "window grid_10"
-                     (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
-                     (project-stran-actions op (val id))
-                     (with-form (actions/config/project-stran/delete :id (val id))
-                       (display project-stran-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "project-stran-window" :class "window"
+                           (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
+                           (project-stran-actions op (val id))
+                           (with-form (actions/config/project-stran/delete :id (val id))
+                             (display project-stran-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/delete

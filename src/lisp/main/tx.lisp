@@ -239,11 +239,12 @@
                (header)
                (main-navbar 'tx)
                (tx-subnavbar filter (val id))
-               (:div :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (tx-actions op (val id) filter)
-                     (display tx-table
-                              :key (val id)))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (tx-actions op (val id) filter)
+                           (display tx-table
+                                    :key (val id))))
                (footer)))))))
 
 
@@ -277,14 +278,15 @@
                (header)
                (main-navbar 'tx)
                (tx-subnavbar filter)
-               (:div :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (tx-actions op nil filter)
-                     (notifications)
-                     (with-form (actions/tx/create :search (val search)
-                                                   :since (val since)
-                                                   :until (val until))
-                       (display tx-table :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (tx-actions op nil filter)
+                           (notifications)
+                           (with-form (actions/tx/create :search (val search)
+                                                         :since (val since)
+                                                         :until (val until))
+                             (display tx-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/create ("actions/tx/create"
@@ -347,16 +349,17 @@
                (header)
                (main-navbar 'tx)
                (tx-subnavbar filter (val id))
-               (:div :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (tx-actions op (val id) filter)
-                     (notifications)
-                     (with-form (actions/tx/update :id (val id)
-                                                   :search (val search)
-                                                   :since (val since)
-                                                   :until (val until))
-                       (display tx-table :key (val id)
-                                         :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (tx-actions op (val id) filter)
+                           (notifications)
+                           (with-form (actions/tx/update :id (val id)
+                                                         :search (val search)
+                                                         :since (val since)
+                                                         :until (val until))
+                             (display tx-table :key (val id)
+                                               :payload (params->payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
@@ -414,14 +417,15 @@
                (header)
                (main-navbar 'tx)
                (tx-subnavbar filter (val id))
-               (:div :class "window grid_12"
-                     (:div :class "title" "Διαγραφή")
-                     (tx-actions op (val id) filter)
-                     (with-form (actions/tx/delete :id (val id)
-                                                   :search (val search)
-                                                   :since (val since)
-                                                   :until (val until))
-                       (display tx-table :key (val id))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (tx-actions op (val id) filter)
+                           (with-form (actions/tx/delete :id (val id)
+                                                         :search (val search)
+                                                         :since (val since)
+                                                         :until (val until))
+                             (display tx-table :key (val id)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/delete ("actions/tx/delete"

@@ -156,11 +156,12 @@
                (header 'config)
                (config-navbar 'bank)
                (bank-subnavbar filter)
-               (:div :id "bank-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (bank-actions op (val id) filter)
-                     (display bank-table
-                              :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (bank-actions op (val id) filter)
+                           (display bank-table
+                                    :key (val id))))
                (footer)))))))
 
 
@@ -187,13 +188,14 @@
                (header 'config)
                (config-navbar 'bank)
                (bank-subnavbar filter)
-               (:div :id "bank-window" :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (bank-actions op nil filter)
-                     (with-form (actions/config/bank/create :search (val search))
-                       (display bank-table
-                                :key nil
-                                :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (bank-actions op nil filter)
+                           (with-form (actions/config/bank/create :search (val search))
+                             (display bank-table
+                                      :key nil
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
@@ -229,14 +231,15 @@
                (header 'config)
                (config-navbar 'bank)
                (bank-subnavbar filter)
-               (:div :id "bank-window" :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (bank-actions op (val id) filter)
-                     (with-form (actions/config/bank/update :id (val id)
-                                                            :search (val search))
-                       (display bank-table
-                                :key (val id)
-                                :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (bank-actions op (val id) filter)
+                           (with-form (actions/config/bank/update :id (val id)
+                                                                  :search (val search))
+                             (display bank-table
+                                      :key (val id)
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
@@ -273,13 +276,14 @@
                (header 'config)
                (config-navbar 'bank)
                (bank-subnavbar filter)
-               (:div :id "bank-window" :class "window grid_12"
-                     (:div :class "title" "Διαγραφή")
-                     (bank-actions op (val id) filter)
-                     (with-form (actions/config/bank/delete :id (val id)
-                                                            :search (val search))
-                       (display bank-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (bank-actions op (val id) filter)
+                           (with-form (actions/config/bank/delete :id (val id)
+                                                                  :search (val search))
+                             (display bank-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)

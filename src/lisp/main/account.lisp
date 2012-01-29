@@ -93,13 +93,14 @@
                (for account-tree = (make-instance 'account-ro-tree
                                                   :filter `(:debit-p ,flag)))
                (htm
-                (:div :id div-id :class "window grid_6"
-                      (:div :class "title" (str window-title))
-                      (account-ro-menu (val id)
-                                       (if (and (val id) (eql flag (debit-p (val id))))
-                                           '(:overview)
-                                           '(:overview :details :print)))
-                      (display account-tree :selected-id (val id))))))))))
+                (:div :class "grid_6"
+                      (:div :id div-id :class "window"
+                            (:div :class "title" (str window-title))
+                            (account-ro-menu (val id)
+                                             (if (and (val id) (eql flag (debit-p (val id))))
+                                                 '(:overview)
+                                                 '(:overview :details :print)))
+                            (display account-tree :selected-id (val id)))))))))))
 
 
 (defpage dynamic-page account/details ("account/details")
@@ -121,11 +122,12 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'account)
-                   (:div :class "window grid_9"
-                         (:div :class "title"
-                               (str (conc "Ανάλυση Λογαριασμού: "
-                                          account-title)))
-                         (display tx-table))))))
+                   (:div :class "grid_9"
+                         (:div :class "window"
+                               (:div :class "title"
+                                     (str (conc "Ανάλυση Λογαριασμού: "
+                                                account-title)))
+                               (display tx-table)))))))
         (see-other (notfound)))))
 
 (defpage dynamic-page account/print ("account/print")
@@ -154,7 +156,8 @@
            (:div :id "container" :class "container_12"
                  (header)
                  (main-navbar 'account)
-                 (:div :class "window grid_9"
-                       (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
-                                                  account-title)
-                             (str account-tx))))))))))
+                 (:div :class "grid_9"
+                       (:div :class "window"
+                             (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
+                                                        account-title)
+                                   (str account-tx)))))))))))

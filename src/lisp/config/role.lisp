@@ -120,10 +120,11 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'account-role)
-               (:div :id "bank-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (account-role-actions op (val id))
-                     (display account-role-table :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (account-role-actions op (val id))
+                           (display account-role-table :key (val id))))
                (footer)))))))
 
 
@@ -147,13 +148,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'account-role)
-               (:div :id "account-role-window" :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (account-role-actions op (val id))
-                     (with-form (actions/config/account-role/update :id (val id))
-                       (display account-role-table :key (val id)
-                                                   :payload (params->payload)
-                                                   :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :id "account-role-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (account-role-actions op (val id))
+                           (with-form (actions/config/account-role/update :id (val id))
+                             (display account-role-table :key (val id)
+                                                         :payload (params->payload)
+                                                         :styles (params->styles)))))
                (footer)))))))
 
 (defpage acc-role-page actions/config/account-role/update

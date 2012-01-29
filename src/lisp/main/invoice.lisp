@@ -328,12 +328,13 @@
                (header)
                (main-navbar 'invoice)
                (invoice-subnavbar op kind filter (val id))
-               (:div :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (invoice-actions op kind (val id) filter)
-                     (display invoice-tx-table
-                              :key (val id)
-                              :payload nil))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (invoice-actions op kind (val id) filter)
+                           (display invoice-tx-table
+                                    :key (val id)
+                                    :payload nil)))
                (footer)))))))
 
 (defpage invoice-page invoice/details (("invoice/" (kind "(receivable|payable)") "/details"))
@@ -360,10 +361,11 @@
                (header)
                (main-navbar 'invoice)
                (invoice-subnavbar op kind filter (val id))
-               (:div :id "invoice-window" :class "window grid_12"
-                     (:p :class "title" "Λεπτομέρειες")
-                     (invoice-actions op kind (val id) filter)
-                     (display invoice-form))
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:p :class "title" "Λεπτομέρειες")
+                           (invoice-actions op kind (val id) filter)
+                           (display invoice-form)))
                (footer)))))))
 
 
@@ -400,16 +402,17 @@
                (header)
                (main-navbar 'invoice)
                (invoice-subnavbar op kind filter)
-               (:div :id "invoice-window" :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (invoice-actions op kind nil filter)
-                     (notifications)
-                     (with-form (actions/invoice/create kind
-                                                        :search (val search)
-                                                        :since (val since)
-                                                        :until (val until))
-                       (display invoice-form :payload (params->payload)
-                                             :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (invoice-actions op kind nil filter)
+                           (notifications)
+                           (with-form (actions/invoice/create kind
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                             (display invoice-form :payload (params->payload)
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/create
@@ -480,17 +483,18 @@
                (header)
                (main-navbar 'invoice)
                (invoice-subnavbar op kind filter (val id))
-               (:div :id "invoice-window" :class "window grid_12"
-                     (:p :class "title" "Επεξεργασία")
-                     (invoice-actions op kind (val id) filter)
-                     (notifications)
-                     (with-form (actions/invoice/update kind
-                                                        :id (val id)
-                                                        :search (val search)
-                                                        :since (val since)
-                                                        :until (val until))
-                       (display invoice-form :payload (params->payload)
-                                             :styles (params->styles))))
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:p :class "title" "Επεξεργασία")
+                           (invoice-actions op kind (val id) filter)
+                           (notifications)
+                           (with-form (actions/invoice/update kind
+                                                              :id (val id)
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                             (display invoice-form :payload (params->payload)
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/update
@@ -554,16 +558,17 @@
                (header)
                (main-navbar 'invoice)
                (invoice-subnavbar op kind filter (val id))
-               (:div :id "invoice-window" :class "window grid_12"
-                     (:div :class "title" (str page-title))
-                     (invoice-actions op kind (val id) filter)
-                     (with-form (actions/invoice/delete kind
-                                                        :id (val id)
-                                                        :search (val search)
-                                                        :since (val since)
-                                                        :until (val until))
-                       (display invoice-tx-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (invoice-actions op kind (val id) filter)
+                           (with-form (actions/invoice/delete kind
+                                                              :id (val id)
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                             (display invoice-tx-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/delete

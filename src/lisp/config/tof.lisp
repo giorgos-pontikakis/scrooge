@@ -157,10 +157,11 @@
                (header 'config)
                (config-navbar 'tof)
                (tof-subnavbar filter)
-               (:div :id "tof-window" :class "window grid_12"
-                     (:div :class "title" "Κατάλογος")
-                     (tof-actions op (val id) filter)
-                     (display tof-table :key (val id)))
+               (:div :class "grid_12"
+                     (:div :id "tof-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (tof-actions op (val id) filter)
+                           (display tof-table :key (val id))))
                (footer)))))))
 
 
@@ -187,13 +188,14 @@
                (header 'config)
                (config-navbar 'tof)
                (tof-subnavbar filter)
-               (:div :id "tof-window" :class "window grid_12"
-                     (:div :class "title" "Δημιουργία")
-                     (tof-actions op nil filter)
-                     (with-form (actions/config/tof/create :search (val search))
-                       (display tof-table
-                                :key nil
-                                :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "tof-window" :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (tof-actions op nil filter)
+                           (with-form (actions/config/tof/create :search (val search))
+                             (display tof-table
+                                      :key nil
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
@@ -229,14 +231,15 @@
                (header 'config)
                (config-navbar 'tof)
                (tof-subnavbar filter)
-               (:div :id "tof-window" :class "window grid_12"
-                     (:div :class "title" "Επεξεργασία")
-                     (tof-actions op (val id) filter)
-                     (with-form (actions/config/tof/update :id (val id)
-                                                           :filter (val search))
-                       (display tof-table
-                                :key (val id)
-                                :payload (params->payload))))
+               (:div :class "grid_12"
+                     (:div :id "tof-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (tof-actions op (val id) filter)
+                           (with-form (actions/config/tof/update :id (val id)
+                                                                 :filter (val search))
+                             (display tof-table
+                                      :key (val id)
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
@@ -273,13 +276,14 @@
                (header 'config)
                (config-navbar 'tof)
                (tof-subnavbar filter)
-               (:div :id "tof-window" :class "window grid_12"
-                     (:div :class "title" "Διαγραφή")
-                     (tof-actions op (val id) filter)
-                     (with-form (actions/config/tof/delete :id (val id)
-                                                    :search (val search))
-                       (display tof-table
-                                :key (val id))))
+               (:div :class "grid_12"
+                     (:div :id "tof-window" :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (tof-actions op (val id) filter)
+                           (with-form (actions/config/tof/delete :id (val id)
+                                                                 :search (val search))
+                             (display tof-table
+                                      :key (val id)))))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)

@@ -32,7 +32,10 @@
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
-  (:default-initargs :item-class 'contact-row :id "contact-table" :create-pos :last))
+  (:default-initargs :item-class 'contact-row
+                     :id "contact-table"
+                     :css-class "crud-table crud-table-half"
+                     :create-pos :last))
 
 (defmethod get-records ((table contact-table))
   (query (:order-by (:select (:as 'id 'contact-id) 'tag 'phone 'rank
@@ -173,15 +176,17 @@
                (header)
                (main-navbar 'company)
                (company-subnavbar :details filter)
-               (:div :id "company-window" :class "window grid_6"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (company-actions :details (val id) filter)
-                     (display company-form))
-               (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Δημιουργία")
-                     (contact-actions :create (val id) nil filter)
-                     (with-form (actions/contact/create :id (val id))
-                       (display contact-table)))
+               (:div :class "grid_6"
+                     (:div :id "company-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (company-actions :details (val id) filter)
+                           (display company-form)))
+               (:div :class "grid_6"
+                     (:div :id "contact-window" :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (contact-actions :create (val id) nil filter)
+                           (with-form (actions/contact/create :id (val id))
+                             (display contact-table))))
                (footer)))))))
 
 (defpage contact-page actions/contact/create ("actions/contact/create" :request-type :post)
@@ -229,16 +234,18 @@
                (header)
                (main-navbar 'company)
                (company-subnavbar :details filter)
-               (:div :id "company-window" :class "window grid_6"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (company-actions :details (val id) filter)
-                     (display company-form))
-               (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Επεξεργασία")
-                     (contact-actions :update (val id) (val contact-id) filter)
-                     (with-form (actions/contact/update :id (val id)
-                                                        :contact-id (val contact-id))
-                       (display contact-table :key (val contact-id))))
+               (:div :class "grid_6"
+                     (:div :id "company-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (company-actions :details (val id) filter)
+                           (display company-form)))
+               (:div :class "grid_6"
+                     (:div :id "contact-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (contact-actions :update (val id) (val contact-id) filter)
+                           (with-form (actions/contact/update :id (val id)
+                                                              :contact-id (val contact-id))
+                             (display contact-table :key (val contact-id)))))
                (footer)))))))
 
 (defpage contact-page actions/contact/update ("actions/contact/update"
@@ -284,16 +291,18 @@
                (header)
                (main-navbar 'company)
                (company-subnavbar :details filter)
-               (:div :id "company-window" :class "window grid_6"
-                     (:div :class "title" "Λεπτομέρειες")
-                     (company-actions :details (val id) filter)
-                     (display company-form))
-               (:div :id "contact-window" :class "window grid_6"
-                     (:div :class "title" "Διαγραφή")
-                     (contact-actions :delete (val id) (val contact-id) filter)
-                     (with-form (actions/contact/delete :id (val id)
-                                                        :contact-id (val contact-id))
-                       (display contact-table :key (val contact-id))))
+               (:div :class "grid_6"
+                     (:div :id "company-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (company-actions :details (val id) filter)
+                           (display company-form)))
+               (:div :class "grid_6"
+                     (:div :id "contact-window" :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (contact-actions :delete (val id) (val contact-id) filter)
+                           (with-form (actions/contact/delete :id (val id)
+                                                              :contact-id (val contact-id))
+                             (display contact-table :key (val contact-id)))))
                (footer)))))))
 
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
