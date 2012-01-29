@@ -126,7 +126,7 @@
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(acc-filter kind))
                                                  ,@where))
-                             (:desc tx-date))))
+                             (:desc tx-date) account company description)))
         (query (sql-compile sql)
                :plists)))))
 
@@ -309,6 +309,16 @@
                                             :op :catalogue
                                             :filter filter
                                             :start-index (val start))))
+      ;; if id exists and is not found among records, ignore search term
+      (when (and (val id)
+                 (not (find (val id) (rows invoice-tx-table) :key #'key)))
+        (let ((tx (get-dao 'tx (val id))))
+          (see-other (invoice (cond ((eql (debit-acc-id tx) *invoice-receivable-acc-id*)
+                                     "receivable")
+                                    ((eql (credit-acc-id tx) *invoice-payable-acc-id*)
+                                     "payable")
+                                    (t (error 'bad-request-error)))
+                              :id (val id)))))
       (with-document ()
         (:head
          (:title (str page-title))

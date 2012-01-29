@@ -158,7 +158,7 @@
     (when (and until (not (eql until :null)))
       (push `(:<= tx-date ,until) where))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
-                           (:desc tx-date))))
+                           (:desc tx-date) non-chq-debit-acc non-chq-credit-acc company description)))
       (query (sql-compile sql)
              :plists))))
 

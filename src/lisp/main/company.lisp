@@ -335,6 +335,10 @@
                                          :op op
                                          :filter filter
                                          :start-index (val start))))
+      ;; if id exists and is not found among records, ignore search term
+      (when (and (val id)
+                 (not (find (val id) (rows company-table) :key #'key)))
+        (see-other (company :id (val id))))
       (with-document ()
             (:head
              (:title "Εταιρίες » Κατάλογος")

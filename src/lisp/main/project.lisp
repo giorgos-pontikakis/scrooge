@@ -363,6 +363,10 @@
                                          :op op
                                          :filter filter
                                          :start-index (val start))))
+      ;; if id exists and is not found among records, ignore search term
+      (when (and (val id)
+                 (not (find (val id) (rows project-table) :key #'key)))
+        (see-other (project :id (val id) :cstate (state (get-dao 'project (val id))))))
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")

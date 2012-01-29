@@ -273,7 +273,7 @@
          (until (getf (filter table) :until))
          (cstate (getf (filter table) :cstate))
          (payable-p (string= (kind table) "payable"))
-         (base-query `(:select cheque.id (:as bank.title bank) serial
+         (base-query `(:select cheque.id (:as bank.title bank) serial state-id
                                due-date (:as company.title company) amount payable-p
                                :from cheque
                                :left-join bank
@@ -391,6 +391,13 @@
                                         :op op
                                         :filter filter
                                         :start-index (val start))))
+      ;; if id exists and is not found among records, ignore search term
+      (when (and (val id)
+                 (not (find (val id) (rows cheque-table) :key #'key)))
+        (let ((dao (get-dao 'cheque (val id))))
+          (see-other (cheque (if (payable-p dao "payable" "receivable"))
+                             :id (val id)
+                             :cstate (state-id dao)))))
       (with-document ()
         (:head
          (:title (str page-title))
