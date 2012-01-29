@@ -395,7 +395,7 @@
       (when (and (val id)
                  (not (find (val id) (rows cheque-table) :key #'key)))
         (let ((dao (get-dao 'cheque (val id))))
-          (see-other (cheque (if (payable-p dao "payable" "receivable"))
+          (see-other (cheque (if (payable-p dao) "payable" "receivable")
                              :id (val id)
                              :cstate (state-id dao)))))
       (with-document ()
