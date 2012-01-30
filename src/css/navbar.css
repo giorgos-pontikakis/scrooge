@@ -1,41 +1,4 @@
 /* ---------------------------------------------------------------------- */
-/* vertical navbars */
-/* ---------------------------------------------------------------------- */
-
-.vnavbar {
-    margin-bottom: 26px;
-}
-
-.vnavbar ul li {
-    list-style: none;
-}
-
-.vnavbar ul li {
-    background-color: #bcd;
-    line-height: 26px;
-}
-
-.vnavbar ul li a {
-    display: block;
-    padding-left: 10px;
-    color: #000;
-}
-
-.vnavbar ul li a:hover {
-    text-decoration: underline;
-}
-
-.vnavbar ul li span {
-    display: block;
-    padding-left: 10px;
-    color: maroon;
-    font-weight: bold;
-    background-color: #bcd;
-}
-
-
-
-/* ---------------------------------------------------------------------- */
 /* horizontal navbars */
 /* ---------------------------------------------------------------------- */
 
@@ -103,7 +66,7 @@
 
 
 .actions {
-    background-color: #f5f5f5;
+    background-color: #def;
 }
 
 .actions p {

@@ -6,8 +6,8 @@ a, a:hover img {
 }
 
 body {
-    background-color: #fff;
-    color: #000;
+    background-color: #eee;
+    color: #222;
     line-height: 1;
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
@@ -41,7 +41,8 @@ h4 {
 /* ---------------------------------------------------------------------- */
 
 input {
-    border: 1px solid #f5f5f5;
+    background-color: #eee;
+    border: 1px solid #bbb;
     padding: 2px 5px;
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
@@ -50,24 +51,21 @@ input {
 textarea {
     font-family: "Liberation Mono", "Andale Mono", "Courier New", "monospace";
     font-size: 13px;
+    background-color: #eee;
     border: 1px solid #bbb;
     padding: 3px 5px 3px 5px;
 }
 
 input:focus, textarea:focus {
-    border: solid 1px #aaa;
-    background-color: #fff;
+    background-color: #ffd;
 }
 
 input:disabled, textarea:disabled{
-    color: #222;
-    background-color: #f5f5f5;
     -webkit-text-fill-color: #222;
 }
 
 input:readonly, textarea:readonly {
-    color: #222;
-    background-color: #f5f5f5;
+    -webkit-text-fill-color: #222;
 }
 
 button, select {
@@ -160,7 +158,6 @@ select:disabled {
 
 #container {
     height: 100%;
-    background-color: #ffffff;
 }
 
 #footer {
@@ -170,10 +167,7 @@ select:disabled {
 }
 
 #header {
-    background-color: #fff;
-    color: #321;
-    font-size: 12px;
-    /* border: 1px solid #234; */
+    color: #222;
 }
 
 
@@ -183,10 +177,9 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    /* border: solid 5px #234; */
-    background-color: #ffffff;
-    border: 1px solid #e5e5e5;
+    border: 2px solid #8ac;
     margin: 10px 0px;
+    border-radius: 5px;
 }
 
 .window button {
@@ -195,8 +188,7 @@ select:disabled {
 
 .title {
     font-weight: bold;
-    background-color: #f4faff;
-    color: #222;
+    background-color: #8ac;
     line-height: 26px;
     padding-left: 10px;
     padding-right: 10px;
@@ -232,25 +224,25 @@ select:disabled {
     margin: 0px 2px;
     padding: 5px;
     text-decoration: none;
-    color: #321;
+    color: #222;
 }
 
 #logout a:hover, #logout a.active:hover {
     border-radius: 3px;
-    color: #321;
-    background-color: #bcd;
+    color: #222;
+    background-color: #fdd;
 }
 
 #logout a.active {
     border-radius: 3px;
-    color: #321;
-    background-color: #bcd;
+    color: #222;
+    background-color: #fdd;
 }
 
 #logout span {
     margin: 0px 2px;
     padding: 5px;
-    color: #321;
+    color: #222;
 }
 
 
