@@ -6,7 +6,7 @@ a, a:hover img {
 }
 
 body {
-    background-color: #eee;
+    background-color: #fff;
     color: #222;
     line-height: 1;
     font-size: 13px;
@@ -41,7 +41,7 @@ h4 {
 /* ---------------------------------------------------------------------- */
 
 input {
-    background-color: #eee;
+    background-color: #fff;
     border: 1px solid #bbb;
     padding: 2px 5px;
     font-size: 13px;
@@ -51,7 +51,7 @@ input {
 textarea {
     font-family: "Liberation Mono", "Andale Mono", "Courier New", "monospace";
     font-size: 13px;
-    background-color: #eee;
+    background-color: #fff;
     border: 1px solid #bbb;
     padding: 3px 5px 3px 5px;
 }

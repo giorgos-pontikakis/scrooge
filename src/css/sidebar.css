@@ -39,31 +39,28 @@
 
 .section-navbar ul li {
     background-color: #eee;
-    border-right: 1px solid #bbb;
-    border-left: 1px solid #bbb;
-    border-top: 1px solid #bbb;
-    border-radius: 0px 0px 0px 0px;
     margin: 0px 2px;
     width: 125px;
     text-align: center;
-    border-radius: 5px 5px 0px 0px;
 }
 
 .section-navbar ul li a {
     padding: 12px 10px;
     color: #555;
     font-weight: bold;
-    border-radius: 5px 5px 0px 0px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
 }
 
 .section-navbar ul li span {
     padding: 12px 10px;
-    color: #000;
+    color: #fff;
+    text-shadow: #024 1px 1px 1px;
     font-weight: bold;
     background-color: #8ac;
-    border-radius: 5px 5px 0px 0px;
+    border: 1px solid #8ac;
+    border-radius: 5px;
 }
-
 
 .section-navbar ul li a:hover {
     color: black;
@@ -145,7 +142,7 @@
 
 .filters ul li a {
     color: #333;
-    background-color: #ddd;
+    background-color: #eee;
     border: 1px solid #bbb;
 }
 

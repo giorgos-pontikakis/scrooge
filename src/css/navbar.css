@@ -66,9 +66,9 @@
 
 
 .actions {
-    background-color: #def;
+    background-color: #eee;
+    border-bottom: 1px solid #bbb;
 }
-
 .actions p {
     padding: 5px 10px;
 }
