@@ -128,7 +128,6 @@ select:disabled {
 }
 
 
-
 /* ---------------------------------------------------------------------- */
 /* miscellaneous */
 /* ---------------------------------------------------------------------- */
@@ -143,6 +142,10 @@ select:disabled {
 
 .inline {
     display: inline;
+}
+
+.clear {
+    clear: both;
 }
 
 .cancel-button {
@@ -177,7 +180,7 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    border: 2px solid #8ac;
+    border: 1px solid #8ac;
     margin: 10px 0px;
     border-radius: 5px;
 }
@@ -192,6 +195,8 @@ select:disabled {
     line-height: 26px;
     padding-left: 10px;
     padding-right: 10px;
+    color: #fff;
+    text-shadow: #024 1px 1px 1px;
 }
 
 

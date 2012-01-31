@@ -6,15 +6,17 @@
 ;;; ----------------------------------------------------------------------
 
 (defun main-navbar (&optional active)
-  (navbar `((home    ,(home)                 "Αρχική")
-            (company ,(company)              "Εταιρίες")
-            (project ,(project)              "Έργα")
-            (cash    ,(cash "revenue")       "Μετρητά")
-            (cheque  ,(cheque "receivable")  "Επιταγές")
-            (invoice ,(invoice "receivable") "Χρεωπιστώσεις")
-            (tx      ,(tx)                   "Συναλλαγές"))
-          :css-class "section-navbar hnavbar grid_12"
-          :active active))
+  (with-html
+    (:div :class "grid_12 section-navbar"
+          (navbar `((home    ,(home)                 "Αρχική")
+                    (company ,(company)              "Εταιρίες")
+                    (project ,(project)              "Έργα")
+                    (cash    ,(cash "revenue")       "Μετρητά")
+                    (cheque  ,(cheque "receivable")  "Επιταγές")
+                    (invoice ,(invoice "receivable") "Χρεωπιστώσεις")
+                    (tx      ,(tx)                   "Συναλλαγές"))
+                  :css-class "hnavbar"
+                  :active active))))
 
 
 

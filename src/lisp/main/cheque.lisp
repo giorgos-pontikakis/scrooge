@@ -143,19 +143,18 @@
                             (getf filter :cstate))))))
 
 (defun cheque-subnavbar (op kind filter &optional id)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (if (member op '(:catalogue :delete))
-              (cheque-filters kind filter)
-              (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'cheque kind :id id filter)
-                                       "Κατάλογος"))))))
-          (searchbox #'(lambda (&rest args)
-                         (apply #'actions/cheque/search kind args))
-                     #'(lambda (&rest args)
-                         (apply #'cheque kind :id id args))
-                     filter
-                     "ac-company"))))
+  (subnavbar (html ()
+               (if (member op '(:catalogue :delete))
+                   (cheque-filters kind filter)
+                   (htm (:div :class "options"
+                              (:ul (:li (:a :href (apply #'cheque kind :id id filter)
+                                            "Κατάλογος"))))))
+               (searchbox #'(lambda (&rest args)
+                              (apply #'actions/cheque/search kind args))
+                          #'(lambda (&rest args)
+                              (apply #'cheque kind :id id args))
+                          filter
+                          "ac-company"))))
 
 (defpage cheque-page actions/cheque/search
     (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)

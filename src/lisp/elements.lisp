@@ -112,6 +112,13 @@
 ;;; Misc UI elements
 ;;; ------------------------------------------------------------
 
+(defun subnavbar (widget)
+  (with-html
+    (:div :class "grid_12"
+          (:div :class "section-subnavbar"
+                (display widget)
+                (:div :class "clear" "")))))
+
 ;;; actions menu
 
 (defun action-anchors/crud (create update delete)

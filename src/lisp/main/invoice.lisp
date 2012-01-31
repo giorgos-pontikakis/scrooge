@@ -215,20 +215,18 @@
                    filter))))
 
 (defun invoice-subnavbar (op kind filter &optional id)
-  (let ()
-    (with-html
-      (:div :class "section-subnavbar grid_12"
-            (if (member op '(:catalogue :delete))
-                (invoice-filters kind filter)
-                (htm (:div :class "options"
-                           (:ul (:li (:a :href (apply #'invoice kind :id id filter)
-                                         "Κατάλογος"))))))
-            (searchbox #'(lambda (&rest args)
-                           (apply #'actions/invoice/search kind args))
-                       #'(lambda (&rest args)
-                           (apply #'invoice kind :id id args))
-                       filter
-                       "ac-company")))))
+  (subnavbar (html ()
+               (if (member op '(:catalogue :delete))
+                   (invoice-filters kind filter)
+                   (htm (:div :class "options"
+                              (:ul (:li (:a :href (apply #'invoice kind :id id filter)
+                                            "Κατάλογος"))))))
+               (searchbox #'(lambda (&rest args)
+                              (apply #'actions/invoice/search kind args))
+                          #'(lambda (&rest args)
+                              (apply #'invoice kind :id id args))
+                          filter
+                          "ac-company"))))
 
 (defpage invoice-page actions/invoice/search
     (("actions/invoice/" (kind "(receivable|payable)") "/search") :request-type :get)

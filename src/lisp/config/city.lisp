@@ -86,9 +86,8 @@
                 (enabled-actions/crud op id)))
 
 (defun city-subnavbar (filter)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (searchbox #'config/city #'config/city filter "ac-city"))))
+  (subnavbar (html ()
+               (searchbox #'config/city #'config/city filter "ac-city"))))
 
 ;;; ------------------------------------------------------------
 ;;; City table

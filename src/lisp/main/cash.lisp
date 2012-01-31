@@ -214,20 +214,19 @@
                    filter))))
 
 (defun cash-subnavbar (op kind filter &optional id)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (if (member op '(:catalogue :delete))
-              (cash-filters kind filter)
-              (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'cash kind :id id filter)
-                                       "Κατάλογος"))))))
+  (subnavbar (html ()
+               (if (member op '(:catalogue :delete))
+                   (cash-filters kind filter)
+                   (htm (:div :class "options"
+                              (:ul (:li (:a :href (apply #'cash kind :id id filter)
+                                            "Κατάλογος"))))))
 
-          (searchbox #'(lambda (&rest args)
-                         (apply #'actions/cash/search kind args))
-                     #'(lambda (&rest args)
-                         (apply #'cash kind :id id args))
-                     filter
-                     "ac-company"))))
+               (searchbox #'(lambda (&rest args)
+                              (apply #'actions/cash/search kind args))
+                          #'(lambda (&rest args)
+                              (apply #'cash kind :id id args))
+                          filter
+                          "ac-company"))))
 
 (defpage cash-page actions/cash/search
     (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)

@@ -87,9 +87,8 @@
                   (enabled-actions/crud op id))))
 
 (defun tof-subnavbar (filter)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (searchbox #'config/tof #'config/tof filter "ac-tof"))))
+  (subnavbar (html ()
+               (searchbox #'config/tof #'config/tof filter "ac-tof"))))
 
 
 

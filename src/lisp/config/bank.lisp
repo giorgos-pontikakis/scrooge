@@ -86,9 +86,8 @@
                 (enabled-actions/crud op id)))
 
 (defun bank-subnavbar (filter)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (searchbox #'config/bank #'config/bank filter "ac-bank"))))
+  (subnavbar (html ()
+               (searchbox #'config/bank #'config/bank filter "ac-bank"))))
 
 
 

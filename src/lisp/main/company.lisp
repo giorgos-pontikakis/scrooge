@@ -159,17 +159,16 @@
           (filters-navbar `((nil ,(apply #'company filter) "Όλες"))))))
 
 (defun company-subnavbar (op filter &optional id)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (if (member op '(:catalogue :delete))
-              (company-filters filter)
-              (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'company :id id filter) "Κατάλογος"))))))
-          (searchbox #'actions/company/search
-                     #'(lambda (&rest args)
-                         (apply #'company :id id args))
-                     filter
-                     "ac-company"))))
+  (subnavbar (html ()
+               (if (member op '(:catalogue :delete))
+                   (company-filters filter)
+                   (htm (:div :class "options"
+                              (:ul (:li (:a :href (apply #'company :id id filter) "Κατάλογος"))))))
+               (searchbox #'actions/company/search
+                          #'(lambda (&rest args)
+                              (apply #'company :id id args))
+                          filter
+                          "ac-company"))))
 
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string))

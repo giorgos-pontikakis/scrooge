@@ -178,18 +178,17 @@
              (getf filter :cstate))))))
 
 (defun project-subnavbar (op filter &optional id)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (if (member op '(:catalogue :delete))
-              (project-filters filter)
-              (htm (:div :class "options"
-                         (:ul (:li (:a :href (apply #'project :id id filter)
-                                       "Κατάλογος"))))))
-          (searchbox #'actions/project/search
-                     #'(lambda (&rest args)
-                         (apply #'project :id id args))
-                     filter
-                     "ac-project"))))
+  (subnavbar (html ()
+               (if (member op '(:catalogue :delete))
+                   (project-filters filter)
+                   (htm (:div :class "options"
+                              (:ul (:li (:a :href (apply #'project :id id filter)
+                                            "Κατάλογος"))))))
+               (searchbox #'actions/project/search
+                          #'(lambda (&rest args)
+                              (apply #'project :id id args))
+                          filter
+                          "ac-project"))))
 
 (defpage project-page actions/project/search ("actions/project/search" :request-type :get)
     ((search string)

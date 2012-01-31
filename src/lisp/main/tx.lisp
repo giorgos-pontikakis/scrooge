@@ -97,13 +97,12 @@
                     (:delete '())))))
 
 (defun tx-subnavbar (filter &optional id)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (tx-filters filter)
-          (searchbox #'tx #'(lambda (&rest args)
-                              (apply #'tx :id id args))
-                     filter
-                     "ac-company"))))
+  (subnavbar (html ()
+               (tx-filters filter)
+               (searchbox #'tx #'(lambda (&rest args)
+                                   (apply #'tx :id id args))
+                          filter
+                          "ac-company"))))
 
 
 (defun tx-filters (filter)
