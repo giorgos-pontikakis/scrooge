@@ -119,6 +119,7 @@
                 (display widget)
                 (:div :class "clear" "")))))
 
+
 ;;; actions menu
 
 (defun action-anchors/crud (create update delete)

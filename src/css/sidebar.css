@@ -57,8 +57,8 @@
     color: #fff;
     text-shadow: #024 1px 1px 1px;
     font-weight: bold;
-    background-color: #8ac;
-    border: 1px solid #8ac;
+    background-color: #369;
+    border: 1px solid #369;
     border-radius: 5px;
 }
 
@@ -75,7 +75,7 @@
 .section-subnavbar {
     line-height: 30px;
     padding: 10px 0px;
-    border: 1px solid #8ac;
+    border: 1px solid #369;
     border-radius: 5px;
     margin-top: 10px;
 }
@@ -134,9 +134,8 @@
 
 .filters ul li a, .filters ul li span {
     line-height: 23px;
-    margin-right: 10px;
-    padding: 0px 7px;
-    text-decoration: none;
+    margin-right: 3px;
+    padding: 2px 8px;
     border-radius: 3px;
 }
 
@@ -148,8 +147,16 @@
 
 .filters ul li a:hover, .filters ul li span {
     color: #fff;
-    background-color: #8ac;
-    border: 1px solid #8ac;
+    border: 1px solid #369;
+}
+
+.filters ul li span {
+    background-color: #369;
+}
+
+.filters ul li a:hover {
+    color: #234;
+    background-color: #cde;
 }
 
 .filters label {

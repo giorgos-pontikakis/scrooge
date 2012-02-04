@@ -1,4 +1,4 @@
-/* global */
++/* global */
 
 a, a:hover img {
     text-decoration: none;
@@ -11,6 +11,10 @@ body {
     line-height: 1;
     font-size: 13px;
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
+}
+
+body a {
+    text-decoration: none;
 }
 
 h1 {
@@ -180,7 +184,7 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    border: 1px solid #8ac;
+    border: 1px solid #369;
     margin: 10px 0px;
     border-radius: 5px;
 }
@@ -191,7 +195,7 @@ select:disabled {
 
 .title {
     font-weight: bold;
-    background-color: #8ac;
+    background-color: #369;
     line-height: 26px;
     padding-left: 10px;
     padding-right: 10px;
