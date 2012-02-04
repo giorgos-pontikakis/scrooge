@@ -1,4 +1,4 @@
-`(in-package :scrooge)
+(in-package :scrooge)
 
 
 
