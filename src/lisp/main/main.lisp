@@ -16,7 +16,8 @@
                     (invoice ,(invoice "receivable") "Χρεωπιστώσεις")
                     (tx      ,(tx)                   "Συναλλαγές"))
                   :css-class "hnavbar"
-                  :active active))))
+                  :active active))
+    (clear)))
 
 
 

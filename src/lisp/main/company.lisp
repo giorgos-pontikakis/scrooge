@@ -137,10 +137,33 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun company-top-actions (op id filter)
+  (top-actions (html ()
+                 (menu `((catalogue ,(html ()
+                                       (:a :href (apply #'company :id id filter)
+                                           (:img :src "/scrooge/img/application_view_list.png")
+                                           "Κατάλογος")))
+                         (create ,(html ()
+                                    (:a :href (company/create)
+                                        (:img :src "/scrooge/img/add.png")
+                                        "Νέα Εταιρία"))))
+                       :css-class "hmenu"
+                       :disabled (cond ((member op '(:catalogue :delete))
+                                        '(catalogue))
+                                       ((eql op :create)
+                                        '(create))
+                                       (t
+                                        nil))))
+               (html ()
+                 (searchbox #'actions/company/search
+                            #'(lambda (&rest args)
+                                (apply #'company :id id args))
+                            filter
+                            "ac-company"))))
+
 (defun company-actions (op id filter)
   (actions-menu (append (make-menu-spec
-                         (action-anchors/crud+details (apply #'company/create filter)
-                                                      (apply #'company/details :id id filter)
+                         (action-anchors/crud+details (apply #'company/details :id id filter)
                                                       (apply #'company/update :id id filter)
                                                       (if (chk-company-id/ref id)
                                                           nil
@@ -150,25 +173,33 @@
                               (:a :href (project/create :company (and id
                                                                       (title (get-dao 'company id))))
                                   :class "create"
-                                  "Δημιουργία Έργου")))))
+                                  "Νέο Έργο")))))
                 (enabled-actions/crud+details op id :create-project)))
 
 (defun company-filters (filter)
-  (with-html
-    (:div :class "filters"
-          (filters-navbar `((nil ,(apply #'company filter) "Όλες"))))))
+  (filter-area (filter-navbar `((nil ,(apply #'company filter) "Όλες")))))
 
-(defun company-subnavbar (op filter &optional id)
-  (subnavbar (html ()
-               (if (member op '(:catalogue :delete))
-                   (company-filters filter)
-                   (htm (:div :class "options"
-                              (:ul (:li (:a :href (apply #'company :id id filter) "Κατάλογος"))))))
-               (searchbox #'actions/company/search
-                          #'(lambda (&rest args)
-                              (apply #'company :id id args))
-                          filter
-                          "ac-company"))))
+(defun company-tabs (id filter active content)
+  (with-html
+    (:div :class "grid_12"
+          (:div :class "company"
+                (:div :class "company-titlebar"
+                      (if id
+                          (htm
+                           (:h3 :class "grid_8 alpha"
+                                (str (title (get-dao 'company id)))))
+                          (htm
+                           (:h3 :class "grid_8 alpha" "")))
+                      (navbar
+                       `((data ,(apply #'company/details :id id filter)
+                               "Στοιχεία")
+                         (transactions ,(apply #'company/details/transactions :id id filter)
+                                       "Συναλλαγές"))
+                       :css-class "hnavbar grid_3 omega"
+                       :active active)
+                      (clear))
+                (display content)
+                (clear)))))
 
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string))
@@ -181,15 +212,6 @@
           (see-other (apply #'company filter))
           (see-other (apply #'company/details :id (getf (first records) :id) filter))))))
 
-;; (defun company-tabs (id active content)
-;;   (with-html
-;;     (:div :class "grid_12"
-;;           (:div :class "company-tabs"
-;;                 (navbar `((details ,(company/details :id id) "Στοιχεία")
-;;                           (money ,(company/details/money :id id) "Συναλλαγές"))
-;;                         :css-class "hnavbar"
-;;                         :active active)
-;;                 (display content)))))
 
 
 ;;; ------------------------------------------------------------
@@ -355,7 +377,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op filter (val id))
+               (company-top-actions op (val id) filter)
+               (company-filters filter)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title"  "Κατάλογος")
@@ -376,7 +399,8 @@
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
                                          :op :catalogue
-                                         :company-id (val id))))
+                                         :company-id (val id)))
+           (op :details))
       (with-document ()
         (:head
          (:title "Εταιρία » Λεπτομέρειες")
@@ -385,54 +409,41 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details filter (val id))
-               (:div :class "grid_6"
-                     (:div :id "company-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (company-actions :details (val id) filter)
-                           (display company-form)))
-               (:div :class "grid_6"
-                     (:div :id "contact-window" :class "window"
-                           (:div :class "title" "Επαφές")
-                           (contact-actions :catalogue (val id) (val contact-id) filter)
-                           (display contact-table
-                                    :key (val contact-id))))
+               (company-top-actions op (val id) filter)
+               (company-tabs (val id) filter 'data
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "company-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (company-actions :details (val id) filter)
+                                           (display company-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "contact-window" :class "window"
+                                           (:div :class "title" "Επαφές")
+                                           (contact-actions :catalogue
+                                                            (val id)
+                                                            (val contact-id)
+                                                            filter)
+                                           (display contact-table
+                                                    :key (val contact-id))))))
                (footer)))))))
 
-;; (defpage company-page company/details/transactions ("company/details/transactions")
-;;     ((search     string)
-;;      (id         integer chk-company-id t)
-;;      (contact-id integer (chk-contact-id id contact-id)))
-;;   (with-view-page
-;;     (let* ((filter (params->filter))
-;;            (company-form (make-instance 'company-form
-;;                                         :op :details
-;;                                         :record (get-record 'company (val id))
-;;                                         :cancel-url (apply #'company :id (val id) filter)))
-;;            (contact-table (make-instance 'contact-table
-;;                                          :op :catalogue
-;;                                          :company-id (val id))))
-;;       (with-document ()
-;;         (:head
-;;          (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
-;;          (main-headers))
-;;         (:body
-;;          (:div :id "container" :class "container_12"
-;;                (header)
-;;                (main-navbar 'company)
-;;                (company-subnavbar :details filter (val id))
-;;                (:div :class "grid_6"
-;;                      (:div :id "company-window" :class "window"
-;;                            (:div :class "title" "Λεπτομέρειες")
-;;                            (company-actions :details (val id) filter)
-;;                            (display company-form)))
-;;                (:div :class "grid_6"
-;;                      (:div :id "contact-window" :class "window"
-;;                            (:div :class "title" "Επαφές")
-;;                            (contact-actions :catalogue (val id) (val contact-id) filter)
-;;                            (display contact-table
-;;                                     :key (val contact-id))))
-;;                (footer)))))))
+(defpage company-page company/details/transactions ("company/details/transactions")
+    ((search     string)
+     (id         integer chk-company-id t))
+  (with-view-page
+    (let* ((filter (params->filter)))
+      (with-document ()
+        (:head
+         (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'company)
+               (filter-navbar  filter (val id))
+               (:p "money")
+               (footer)))))))
 
 
 
@@ -466,15 +477,17 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op filter)
-               (:div :class "grid_6"
-                     (:div :id "company-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (company-actions op nil filter)
-                           (notifications)
-                           (with-form (actions/company/create :search (val search))
-                             (display company-form :payload (params->payload)
-                                                   :styles (params->styles)))))
+               (company-top-actions op nil filter)
+               (company-tabs nil filter 'data
+                             (html ()
+                               (:div :class "grid_6"
+                                     (:div :id "company-window" :class "window"
+                                           (:div :class "title" "Νέα εταιρία")
+                                           (company-actions op nil filter)
+                                           (notifications)
+                                           (with-form (actions/company/create :search (val search))
+                                             (display company-form :payload (params->payload)
+                                                                   :styles (params->styles)))))))
                (footer)))))))
 
 (defpage company-page actions/company/create ("actions/company/create"
@@ -526,9 +539,9 @@
      (zipcode    integer chk-zipcode)
      (notes      string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((op :update) (filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :update
+                                        :op op
                                         :record (get-record 'company (val id))
                                         :cancel-url (apply #'company/details :id (val id) filter)))
            (contact-table (make-instance 'contact-table
@@ -542,22 +555,27 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :update filter (val id))
-               (:div :class "grid_6"
-                     (:div :id "company-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (company-actions :update (val id) filter)
-                           (notifications)
-                           (with-form (actions/company/update :id (val id)
-                                                              :search (val search))
-                             (display company-form :payload (params->payload)
-                                                   :styles (params->styles)))))
-               (:div :class "grid_6"
-                     (:div :id "contact-window" :class "window"
-                           (:div :class "title" "Επαφές")
-                           (contact-actions :catalogue (val id) (val contact-id) filter)
-                           (display contact-table
-                                    :key (val contact-id))))
+               (company-top-actions op (val id) filter)
+               (company-tabs (val id) filter 'data
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "company-window" :class "window"
+                                           (:div :class "title" "Επεξεργασία")
+                                           (company-actions :update (val id) filter)
+                                           (notifications)
+                                           (with-form (actions/company/update :id (val id)
+                                                                              :search (val search))
+                                             (display company-form :payload (params->payload)
+                                                                   :styles (params->styles)))))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "contact-window" :class "window"
+                                           (:div :class "title" "Επαφές")
+                                           (contact-actions :catalogue
+                                                            (val id)
+                                                            (val contact-id)
+                                                            filter)
+                                           (display contact-table
+                                                    :key (val contact-id))))))
                (footer)))))))
 
 (defpage company-page actions/company/update ("actions/company/update"
@@ -613,7 +631,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar op filter (val id))
+               (company-top-actions op (val id) filter)
+               (company-filters filter)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title" "Εταιρία » Διαγραφή")

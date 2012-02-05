@@ -65,10 +65,12 @@ input:focus, textarea:focus {
 }
 
 input:disabled, textarea:disabled{
+    background-color: transparent;
     -webkit-text-fill-color: #222;
 }
 
 input:readonly, textarea:readonly {
+    background-color: transparent;
     -webkit-text-fill-color: #222;
 }
 
@@ -184,8 +186,8 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    border: 1px solid #369;
-    margin: 10px 0px;
+    border: 1px solid #999;
+    margin: 10px 10px;
     border-radius: 5px;
 }
 
@@ -195,12 +197,12 @@ select:disabled {
 
 .title {
     font-weight: bold;
-    background-color: #369;
+    background-color: #ddd;
     line-height: 26px;
     padding-left: 10px;
     padding-right: 10px;
-    color: #fff;
-    text-shadow: #024 1px 1px 1px;
+    color: #444;
+    border-radius: 5px 5px 0px 0px;
 }
 
 

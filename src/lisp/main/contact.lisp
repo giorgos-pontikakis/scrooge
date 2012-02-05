@@ -94,12 +94,12 @@
                  (:a :class "create"
                      :href (apply #'contact/create
                                   :id id filter)
-                     "Δημιουργία")))
+                     "Νέα Επαφή")))
      (:update ,(html ()
                  (:a :class "update"
                      :href (apply #'contact/update
                                   :id id :contact-id contact-id filter)
-                     "Επεξεργασία")))
+                     "Αλλαγή")))
      (:delete ,(html ()
                  (:a :class "delete"
                      :href (apply #'contact/delete
@@ -175,18 +175,20 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details filter)
-               (:div :class "grid_6"
-                     (:div :id "company-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (company-actions :details (val id) filter)
-                           (display company-form)))
-               (:div :class "grid_6"
-                     (:div :id "contact-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (contact-actions :create (val id) nil filter)
-                           (with-form (actions/contact/create :id (val id))
-                             (display contact-table))))
+               (company-top-actions :details (val id) filter)
+               (company-tabs (val id) filter 'details
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "company-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (company-actions :details (val id) filter)
+                                           (display company-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "contact-window" :class "window"
+                                           (:div :class "title" "Δημιουργία")
+                                           (contact-actions :create (val id) nil filter)
+                                           (with-form (actions/contact/create :id (val id))
+                                             (display contact-table))))))
                (footer)))))))
 
 (defpage contact-page actions/contact/create ("actions/contact/create" :request-type :post)
@@ -233,19 +235,21 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details filter)
-               (:div :class "grid_6"
-                     (:div :id "company-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (company-actions :details (val id) filter)
-                           (display company-form)))
-               (:div :class "grid_6"
-                     (:div :id "contact-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (contact-actions :update (val id) (val contact-id) filter)
-                           (with-form (actions/contact/update :id (val id)
-                                                              :contact-id (val contact-id))
-                             (display contact-table :key (val contact-id)))))
+               (company-top-actions :details (val id) filter)
+               (company-tabs (val id) filter 'details
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "company-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (company-actions :details (val id) filter)
+                                           (display company-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "contact-window" :class "window"
+                                           (:div :class "title" "Επεξεργασία")
+                                           (contact-actions :update (val id) (val contact-id) filter)
+                                           (with-form (actions/contact/update :id (val id)
+                                                                              :contact-id (val contact-id))
+                                             (display contact-table :key (val contact-id)))))))
                (footer)))))))
 
 (defpage contact-page actions/contact/update ("actions/contact/update"
@@ -290,19 +294,21 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-subnavbar :details filter)
-               (:div :class "grid_6"
-                     (:div :id "company-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (company-actions :details (val id) filter)
-                           (display company-form)))
-               (:div :class "grid_6"
-                     (:div :id "contact-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (contact-actions :delete (val id) (val contact-id) filter)
-                           (with-form (actions/contact/delete :id (val id)
-                                                              :contact-id (val contact-id))
-                             (display contact-table :key (val contact-id)))))
+               (company-top-actions :details (val id) filter)
+               (company-tabs (val id) filter 'details
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "company-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (company-actions :details (val id) filter)
+                                           (display company-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "contact-window" :class "window"
+                                           (:div :class "title" "Διαγραφή")
+                                           (contact-actions :delete (val id) (val contact-id) filter)
+                                           (with-form (actions/contact/delete :id (val id)
+                                                                              :contact-id (val contact-id))
+                                             (display contact-table :key (val contact-id)))))))
                (footer)))))))
 
 (defpage contact-page actions/contact/delete ("actions/contact/delete"

@@ -11,7 +11,7 @@
        (:div :id "container" :class "container_12"
              (header)
              (main-navbar 'home)
-             (:div :class "clear")
+             (clear)
              (:div :class "grid_12"
                    (:div :id "home-window" :class "window"
                          (:p "Home content not yet available")))

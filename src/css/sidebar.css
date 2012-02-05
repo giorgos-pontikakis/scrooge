@@ -34,32 +34,37 @@
 /* ---------------------------------------------------------------------- */
 
 .section-navbar {
-    margin-top: 10px;
+    margin: 10px 10px 0px 10px;
+    border-bottom: 1px solid #bbb;
 }
 
 .section-navbar ul li {
-    background-color: #eee;
+    /* background-color: #eee; */
     margin: 0px 2px;
-    width: 125px;
+    /* width: 100px; */
     text-align: center;
+    margin-right: 10px;
 }
 
 .section-navbar ul li a {
-    padding: 12px 10px;
+    padding: 12px 15px;
     color: #555;
     font-weight: bold;
-    border: 1px solid #bbb;
+    /* border: 1px solid #bbb; */
     border-radius: 5px;
 }
 
 .section-navbar ul li span {
-    padding: 12px 10px;
-    color: #fff;
-    text-shadow: #024 1px 1px 1px;
+    padding: 10px 20px 12px 20px;
+    color: #000;
+    /* text-shadow: #024 1px 1px 1px; */
     font-weight: bold;
-    background-color: #369;
-    border: 1px solid #369;
-    border-radius: 5px;
+    /* background-color: #369; */
+    border: 1px solid #bbb;
+    border-radius: 5px 5px 0px 0px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: -1px;
+    background-color: #ddd;
 }
 
 .section-navbar ul li a:hover {
@@ -72,15 +77,12 @@
 /* Section SUB-navbar */
 /* ---------------------------------------------------------------------- */
 
-.section-subnavbar {
-    line-height: 30px;
-    padding: 10px 0px;
-    border: 1px solid #369;
-    border-radius: 5px;
-    margin-top: 10px;
-}
 
-.section-subnavbar button {
+/* ---------------------------------------------------------------------- */
+/* inline forms */
+/* ---------------------------------------------------------------------- */
+
+.inline-form button {
     line-height: 19px;
     vertical-align: baseline;
     border: none;
@@ -88,28 +90,28 @@
     cursor: pointer;
 }
 
-.section-subnavbar img {
+.inline-form img {
     vertical-align: bottom;
     padding: 0px 0px 0px 0px;
 }
 
-.section-subnavbar input {
+.inline-form input {
     padding: 3px 5px;
     border-radius: 4px;
 }
 
-.section-subnavbar button[type="submit"] {
+.inline-form button[type="submit"] {
     width: 25px;
     margin: 0px -2px 0px 6px;
 }
 
-.section-subnavbar a.cancel, .section-subnavbar a.cancel:hover {
+.inline-form a.cancel, .section-subnavbar a.cancel:hover {
     background: transparent;
     padding: 0px;
     border: none;
 }
 
-.section-subnavbar a.cancel img {
+.inline-form a.cancel img {
     padding: 0px 4px;
     vertical-align: middle;
 }
@@ -118,60 +120,94 @@
 
 
 /* ---------------------------------------------------------------------- */
-/* Section sub-navbar */
+/* Filter area */
 /* ---------------------------------------------------------------------- */
 
-.filters {
+.filter-area {
+    line-height: 30px;
+    padding: 10px 0px;
+    /* border: 1px solid #369; */
+    border-radius: 5px;
+    margin-top: 10px;
+    border: 1px solid #bbb;
+    background-color: #eee;
+}
+
+.filter-navbar {
     color: #222;
     float: left;
     width: 590px;
 }
 
-.filters ul {
+.filter-navbar ul {
     line-height: 28px;
     margin: 0px 0px 0px 10px;
 }
 
-.filters ul li a, .filters ul li span {
+.filter-navbar ul li a, .filter-navbar ul li span {
     line-height: 23px;
     margin-right: 3px;
     padding: 2px 8px;
     border-radius: 3px;
 }
 
-.filters ul li a {
+.filter-navbar ul li a {
     color: #333;
     background-color: #eee;
-    border: 1px solid #bbb;
+    border: 1px solid #999;
 }
 
-.filters ul li a:hover, .filters ul li span {
-    color: #fff;
-    border: 1px solid #369;
+.filter-navbar ul li a:hover, .filter-navbar ul li span {
+    color: #222;
+    border: 1px solid #ddd;
 }
 
-.filters ul li span {
-    background-color: #369;
+.filter-navbar ul li span {
+    background-color: #ddd;
+    border: 1px solid #999;
 }
 
-.filters ul li a:hover {
+.filter-navbar ul li a:hover {
     color: #234;
-    background-color: #cde;
+    background-color: #eee;
 }
 
-.filters label {
+.filter-navbar label {
     margin-left: 10px;
 }
 
-.filters input.datepicker {
+.filter-navbar input.datepicker {
     width: 70px;
 }
 
-.filters form {
+.filter-navbar form {
     display: inline;
 }
 
 
+/* ---------------------------------------------------------------------- */
+/* top-actions */
+/* ---------------------------------------------------------------------- */
+
+.top-actions {
+    background-color: #ddd;
+    padding-top: 12px;
+    padding-bottom: 10px;
+
+}
+
+.top-actions .hmenu li a {
+    border: solid 1px #bbb;
+    padding: 7px 7px 7px 4px;
+    border-radius: 5px;
+    background-color: #eee;
+    margin-left: 10px;
+}
+
+.top-actions .hmenu li a:hover {
+    background-color: #fff;
+    color: #000;
+}
 
 /* ---------------------------------------------------------------------- */
 /* options */
@@ -201,12 +237,6 @@
 /* search */
 /* ---------------------------------------------------------------------- */
 
-#searchbox {
-    float: right;
-    color: #222;
-    margin-right: 5px;
-}
-
 .search input {
-    width: 200px;
+    width: 150px;
 }

@@ -9,6 +9,10 @@
   (with-html
     (:img :src (url 'img href))))
 
+(defun clear ()
+  (with-html
+    (:div :class "clear" "")))
+
 
 ;;; ------------------------------------------------------------
 ;;; HTML Head
@@ -112,25 +116,34 @@
 ;;; Misc UI elements
 ;;; ------------------------------------------------------------
 
-(defun subnavbar (widget)
+(defun filter-area (widget)
   (with-html
     (:div :class "grid_12"
-          (:div :class "section-subnavbar"
+          (:div :class "filter-area"
                 (display widget)
-                (:div :class "clear" "")))))
+                (clear)))))
+
+(defun top-actions (actions search)
+  (with-html ()
+    (:div :class "grid_12 top-actions"
+          (:div :class "grid_8 alpha"
+                (display actions))
+          (:div :class "grid_4 omega"
+                (display search))
+          (clear))))
+
 
 
 ;;; actions menu
 
 (defun action-anchors/crud (create update delete)
   `((:create ,create "Δημιουργία")
-    (:update ,update "Επεξεργασία")
+    (:update ,update "Αλλαγή")
     (:delete ,delete "Διαγραφή")))
 
-(defun action-anchors/crud+details (create details update delete)
-  `((:create  ,create  "Δημιουργία")
-    (:details ,details "Λεπτομέρειες")
-    (:update  ,update  "Επεξεργασία")
+(defun action-anchors/crud+details (details update delete)
+  `((:details ,details "Λεπτομέρειες")
+    (:update  ,update  "Αλλαγή")
     (:delete  ,delete  "Διαγραφή")))
 
 (defun enabled-actions/crud (op id)
@@ -147,9 +160,8 @@
     (:catalogue (if id
                     `(:create :details :delete ,@extra-ids)
                     '(:create)))
-    (:details `(:update :create ,@extra-ids))
-    (:create '())
-    (:update '(:details))
+    (:details `(:update :delete ,@extra-ids))
+    (:update '())
     (:delete '())))
 
 (defun enabled-actions/crud+ranks (op id)
@@ -184,20 +196,22 @@
           anchor-spec))
 
 
-;;; filters
+;;; widgets
 
-(defun filters-navbar (spec &optional active)
-  (navbar spec
-          :css-class "hnavbar"
-          :active active
-          :test #'string-equal))
+(defun filter-navbar (spec &optional active)
+  (html ()
+    (:div :class "filter-navbar"
+          (navbar spec
+                  :css-class "hnavbar"
+                  :active active
+                  :test #'string-equal))))
 
 (defun searchbox (submit-fn cancel-fn filter &optional css-class)
   (let ((hidden (remove-from-plist filter :search))
         (term (getf filter :search)))
     (form (funcall submit-fn)
           (html ()
-            (:div :id "searchbox"
+            (:div :id "searchbox" :class "inline-form"
                   (:p :class "search"
                       "Αναζήτηση: "
                       (input-text 'search :id "search-input"

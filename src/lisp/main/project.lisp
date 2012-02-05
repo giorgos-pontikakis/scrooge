@@ -239,7 +239,7 @@
                     (:li (display lit 'quote-date "Ημερομηνία προσφοράς" :extra-styles "datepicker"))
                     (:li (display lit 'start-date "Ημερομηνία έναρξης" :extra-styles "datepicker"))
                     (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης" :extra-styles "datepicker")))))
-            (:div :class "clear" "")
+            (clear)
             (:div :id "project-notes"
                   (label 'notes "Σημειώσεις")
                   (:textarea :name 'notes :disabled disabled

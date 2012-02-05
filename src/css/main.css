@@ -1,28 +1,82 @@
 /* ---------------------------------------------------------------------- */
+/* Company Tabs */
+/* ---------------------------------------------------------------------- */
+
+.company {
+    background-color: #fff;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.company-titlebar {
+    background-color: #ddd;
+    color: #444;
+    /* text-shadow: #024 2px 2px 2px; */
+    border-top: 1px solid #999;
+    border-bottom: 1px solid #999;
+    /* border-radius: 5px; */
+}
+
+.company-titlebar h3 {
+    margin: 15px 0px 0px 30px;
+    font-size: 21px;
+}
+
+.company .hnavbar {
+    margin-top: 15px;
+}
+
+.company .hnavbar li {
+    margin-left: 2px;
+    text-shadow: none;
+}
+
+.company .hnavbar span {
+    background-color: #fff;
+    padding: 8px 20px 10px 20px;
+    border-radius: 5px 5px 0px 0px;
+    color: #222;
+    border: 1px solid #999;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+}
+
+.company .hnavbar a {
+    padding: 8px 20px 10px 20px;
+    color: #444;
+}
+
+.company .hnavbar a:hover {
+    background-color: #58b;
+    border-radius: 5px 5px 0px 0px;
+}
+
+
+/* ---------------------------------------------------------------------- */
 /* Company Form */
 /* ---------------------------------------------------------------------- */
 
 .company-form input  {
-    width: 406px;
+    width: 385px;
 }
 
 #tin {
-    width: 112px;
+    width: 100px;
     float: left;
 }
 
 #tin input {
-    width: 100px;
+    width: 90px;
 }
 
 #tof-div {
     padding-left: 20px;
-    width: 286px;
+    width: 275;
     float: left;
 }
 
 #tof-div input {
-    width: 276px;
+    width: 265px;
 }
 
 .company-data fieldset {
@@ -31,17 +85,17 @@
 
 #pobox {
     margin-left: 20px;
-    width: 199px;
+    width: 150px;
     float: left;
 }
 
 #zipcode {
-    width: 199px;
+    width: 150px;
     float: left;
 }
 
 #pobox input, #zipcode input {
-    width: 187px;
+    width: 120px;
 }
 
 #company-notes {
@@ -49,7 +103,7 @@
 }
 
 #company-notes textarea {
-    width: 408px;
+    width: 390px;
     height: 150px;
 }
 
@@ -68,7 +122,7 @@
 }
 
 #contact-table td.payload input {
-    width: 160px;
+    width: 150px;
 }
 
 
