@@ -179,20 +179,22 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar :details filter)
-               (:div :class "grid_6"
-                     (:div :id "project-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (project-actions :details (val id) filter)
-                           (display project-form)))
-               (:div :class "grid_6"
-                     (:div :id "bill-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (bill-actions :create (val id) nil filter)
-                           (notifications)
-                           (with-form (actions/bill/create :id (val id))
-                             (display bill-table
-                                      :payload (params->payload)))))
+               (project-top-actions :details (val id) filter)
+               (project-tabs (val id) filter 'details
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "project-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (project-actions :details (val id) filter)
+                                           (display project-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "bill-window" :class "window"
+                                           (:div :class "title" "Δημιουργία")
+                                           (bill-actions :create (val id) nil filter)
+                                           (notifications)
+                                           (with-form (actions/bill/create :id (val id))
+                                             (display bill-table
+                                                      :payload (params->payload)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
@@ -241,20 +243,22 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar :details filter)
-               (:div :class "grid_6"
-                     (:div :id "project-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (project-actions :details (val id) filter)
-                           (display project-form)))
-               (:div :class "grid_6"
-                     (:div :id "bill-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (bill-actions :update (val id) (val bill-id) filter)
-                           (with-form (actions/bill/update :id (val id)
-                                                           :bill-id (val bill-id))
-                             (display bill-table :key (val bill-id)
-                                                 :payload (params->payload)))))
+               (project-top-actions :details (val id) filter)
+               (project-tabs (val id) filter 'details
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "project-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (project-actions :details (val id) filter)
+                                           (display project-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "bill-window" :class "window"
+                                           (:div :class "title" "Επεξεργασία")
+                                           (bill-actions :update (val id) (val bill-id) filter)
+                                           (with-form (actions/bill/update :id (val id)
+                                                                           :bill-id (val bill-id))
+                                             (display bill-table :key (val bill-id)
+                                                                 :payload (params->payload)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
@@ -301,19 +305,21 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar :details filter)
-               (:div :class "grid_6"
-                     (:div :id "project-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (project-actions :details (val id) filter)
-                           (display project-form)))
-               (:div :class "grid_6"
-                     (:div :id "bill-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (bill-actions :delete (val id) (val bill-id) filter)
-                           (with-form (actions/bill/delete :id (val id)
-                                                           :bill-id (val bill-id))
-                             (display bill-table :key (val bill-id)))))
+               (project-top-actions :details (val id) filter)
+               (project-tabs (val id) filter 'details
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "project-window" :class "window"
+                                           (:div :class "title" "Λεπτομέρειες")
+                                           (project-actions :details (val id) filter)
+                                           (display project-form)))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "bill-window" :class "window"
+                                           (:div :class "title" "Διαγραφή")
+                                           (bill-actions :delete (val id) (val bill-id) filter)
+                                           (with-form (actions/bill/delete :id (val id)
+                                                                           :bill-id (val bill-id))
+                                             (display bill-table :key (val bill-id)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"

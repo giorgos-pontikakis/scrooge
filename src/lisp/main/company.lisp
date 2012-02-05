@@ -182,8 +182,8 @@
 (defun company-tabs (id filter active content)
   (with-html
     (:div :class "grid_12"
-          (:div :class "company"
-                (:div :class "company-titlebar"
+          (:div :class "tabbar"
+                (:div :class "tabbar-title"
                       (if id
                           (htm
                            (:h3 :class "grid_8 alpha"

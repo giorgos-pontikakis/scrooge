@@ -1,14 +1,14 @@
 /* ---------------------------------------------------------------------- */
-/* Company Tabs */
+/* Tabbar Tabs */
 /* ---------------------------------------------------------------------- */
 
-.company {
+.tabbar {
     background-color: #fff;
     margin-top: 10px;
     border-radius: 5px;
 }
 
-.company-titlebar {
+.tabbar-title {
     background-color: #ddd;
     color: #444;
     /* text-shadow: #024 2px 2px 2px; */
@@ -17,21 +17,21 @@
     /* border-radius: 5px; */
 }
 
-.company-titlebar h3 {
-    margin: 15px 0px 0px 30px;
+.tabbar-title h3 {
+    margin: 15px 0px 15px 30px;
     font-size: 21px;
 }
 
-.company .hnavbar {
+.tabbar .hnavbar {
     margin-top: 15px;
 }
 
-.company .hnavbar li {
+.tabbar .hnavbar li {
     margin-left: 2px;
     text-shadow: none;
 }
 
-.company .hnavbar span {
+.tabbar .hnavbar span {
     background-color: #fff;
     padding: 8px 20px 10px 20px;
     border-radius: 5px 5px 0px 0px;
@@ -41,12 +41,12 @@
     margin-bottom: -1px;
 }
 
-.company .hnavbar a {
+.tabbar .hnavbar a {
     padding: 8px 20px 10px 20px;
     color: #444;
 }
 
-.company .hnavbar a:hover {
+.tabbar .hnavbar a:hover {
     background-color: #58b;
     border-radius: 5px 5px 0px 0px;
 }
@@ -131,11 +131,16 @@
 /* ---------------------------------------------------------------------- */
 
 .project-form input {
-    width: 406px;
+    width: 390px;
+}
+
+.project-form-details {
+    float: left;
+    margin: 20px 0px 10px 20px;
 }
 
 .project-form-details input {
-    width: 168px;
+    width: 150px;
 }
 
 #project-notes {
@@ -167,7 +172,7 @@
 }
 
 #bill-table td:nth-child(2) input {
-    width: 270px;
+    width: 250px;
 }
 
 #bill-table td:nth-child(3) {

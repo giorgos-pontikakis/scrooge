@@ -130,7 +130,7 @@
     border-radius: 5px;
     margin-top: 10px;
     border: 1px solid #bbb;
-    background-color: #eee;
+    background-color: #ddd;
 }
 
 .filter-navbar {
@@ -159,17 +159,15 @@
 
 .filter-navbar ul li a:hover, .filter-navbar ul li span {
     color: #222;
-    border: 1px solid #ddd;
-}
-
-.filter-navbar ul li span {
-    background-color: #ddd;
     border: 1px solid #999;
 }
 
+.filter-navbar ul li span {
+    background-color: #bbb;
+}
+
 .filter-navbar ul li a:hover {
-    color: #234;
-    background-color: #eee;
+    background-color: #bbb;
 }
 
 .filter-navbar label {

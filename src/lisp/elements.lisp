@@ -158,8 +158,8 @@
 (defun enabled-actions/crud+details (op id &rest extra-ids)
   (ecase op
     (:catalogue (if id
-                    `(:create :details :delete ,@extra-ids)
-                    '(:create)))
+                    `(:details :delete ,@extra-ids)
+                    '()))
     (:details `(:update :delete ,@extra-ids))
     (:update '())
     (:delete '())))

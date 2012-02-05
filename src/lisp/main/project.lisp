@@ -156,39 +156,62 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun project-top-actions (op id filter)
+  (top-actions (html ()
+                 (menu `((catalogue ,(html ()
+                                       (:a :href (apply #'project :id id filter)
+                                           (:img :src "/scrooge/img/application_view_list.png")
+                                           "Κατάλογος")))
+                         (create ,(html ()
+                                    (:a :href (project/create)
+                                        (:img :src "/scrooge/img/add.png")
+                                        "Νέα Εταιρία"))))
+                       :css-class "hmenu"
+                       :disabled (cond ((member op '(:catalogue :delete))
+                                        '(catalogue))
+                                       ((eql op :create)
+                                        '(create))
+                                       (t
+                                        nil))))
+               (html ()
+                 (searchbox #'actions/project/search
+                            #'(lambda (&rest args)
+                                (apply #'project :id id args))
+                            filter
+                            "ac-project"))))
 (defun project-actions (op id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'project/create filter)
-                                              (apply #'project/details :id id filter)
+                 (action-anchors/crud+details (apply #'project/details :id id filter)
                                               (apply #'project/update :id id filter)
                                               (apply #'project/delete :id id filter)))
                 (enabled-actions/crud+details op id)))
 
 (defun project-filters (filter)
   (let ((filter* (remove-from-plist filter :cstate)))
-    (with-html
-      (:div :class "filters"
-            (filters-navbar
-             `((nil      ,(project)                                    "Όλα")
-               (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
-               (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
-               (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
-               (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
-               (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
-             (getf filter :cstate))))))
+    (filter-area (filter-navbar
+                  `((nil      ,(project)                                    "Όλα")
+                    (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
+                    (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
+                    (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
+                    (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
+                    (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
+                  (getf filter :cstate)))))
 
-(defun project-subnavbar (op filter &optional id)
-  (subnavbar (html ()
-               (if (member op '(:catalogue :delete))
-                   (project-filters filter)
-                   (htm (:div :class "options"
-                              (:ul (:li (:a :href (apply #'project :id id filter)
-                                            "Κατάλογος"))))))
-               (searchbox #'actions/project/search
-                          #'(lambda (&rest args)
-                              (apply #'project :id id args))
-                          filter
-                          "ac-project"))))
+(defun project-tabs (id filter active content)
+  (declare (ignore filter active))
+  (with-html
+    (:div :class "grid_12"
+          (:div :class "tabbar"
+                (:div :class "tabbar-title"
+                      (if id
+                          (htm
+                           (:h3 :class "grid_8 alpha"
+                                (str (description (get-dao 'project id)))))
+                          (htm
+                           (:h3 :class "grid_8 alpha" "")))
+                      (clear))
+                (display content)
+                (clear)))))
 
 (defpage project-page actions/project/search ("actions/project/search" :request-type :get)
     ((search string)
@@ -211,7 +234,6 @@
 (defclass project-form (crud-form/plist)
   ())
 
-
 (defmethod display ((form project-form) &key styles)
   (let* ((disabled (eql (op form) :details))
          (record (record form))
@@ -221,7 +243,7 @@
             (:div :class "data-form-title"
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" :extra-styles "ac-company"))
-            (:div :class "grid_3 alpha project-form-details"
+            (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Οικονομικά")
                    (:ul
@@ -232,13 +254,16 @@
                                    :disabled disabled))
                     (:li (display lit 'price "Τιμή"))
                     (:li (display lit 'vat "Φ.Π.Α.")))))
-            (:div :class "grid_3 omega project-form-details"
+            (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Χρονοδιάγραμμα")
                    (:ul
-                    (:li (display lit 'quote-date "Ημερομηνία προσφοράς" :extra-styles "datepicker"))
-                    (:li (display lit 'start-date "Ημερομηνία έναρξης" :extra-styles "datepicker"))
-                    (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης" :extra-styles "datepicker")))))
+                    (:li (display lit 'quote-date "Ημερομηνία προσφοράς"
+                                  :extra-styles "datepicker"))
+                    (:li (display lit 'start-date "Ημερομηνία έναρξης"
+                                  :extra-styles "datepicker"))
+                    (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης"
+                                  :extra-styles "datepicker")))))
             (clear)
             (:div :id "project-notes"
                   (label 'notes "Σημειώσεις")
@@ -374,7 +399,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter (val id))
+               (project-top-actions op (val id) filter)
+               (project-filters filter)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -406,18 +432,21 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter (val id))
-               (:div :class "grid_6"
-                     (:div :id "project-window" :class "window"
-                           (:p :class "title" "Λεπτομέρειες")
-                           (project-actions op (val id) filter)
-                           (display project-form :payload (get-record 'project (val id)))))
-               (:div :class "grid_6"
-                     (:div :id "bill-window" :class "window"
-                           (:div :class "title" "Κοστολόγηση")
-                           (bill-actions :catalogue (val id) (val bill-id) filter)
-                           (display bill-table
-                                    :key (val bill-id))))
+               (project-top-actions op (val id) filter)
+               (project-tabs (val id) filter nil
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "project-window" :class "window"
+                                           (:p :class "title" "Λεπτομέρειες")
+                                           (project-actions op (val id) filter)
+                                           (display project-form
+                                                    :payload (get-record 'project (val id)))))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "bill-window" :class "window"
+                                           (:div :class "title" "Κοστολόγηση")
+                                           (bill-actions :catalogue (val id) (val bill-id) filter)
+                                           (display bill-table
+                                                    :key (val bill-id))))))
                (footer)))))))
 
 
@@ -455,15 +484,17 @@
                (header)
                (main-navbar 'project)
                (project-subnavbar op filter)
-               (:div :class "grid_12"
-                     (:div :id "project-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (project-actions op nil filter)
-                           (notifications)
-                           (with-form (actions/project/create :search (val search)
-                                                              :cstate (val cstate))
-                             (display project-form :payload (params->payload)
-                                                   :styles (params->styles)))))
+               (project-tabs nil filter nil
+                             (html ()
+                               (:div :class "grid_12"
+                                     (:div :id "project-window" :class "window"
+                                           (:div :class "title" "Δημιουργία")
+                                           (project-actions op nil filter)
+                                           (notifications)
+                                           (with-form (actions/project/create :search (val search)
+                                                                              :cstate (val cstate))
+                                             (display project-form :payload (params->payload)
+                                                                   :styles (params->styles)))))))
                (footer)))))))
 
 (defpage project-page actions/project/create ("actions/project/create"
@@ -536,23 +567,25 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter (val id))
-               (:div :class "grid_6"
-                     (:div :id "project-window" :class "window"
-                           (:p :class "title" "Επεξεργασία")
-                           (project-actions op (val id) filter)
-                           (notifications)
-                           (with-form (actions/project/update :id (val id)
-                                                              :search (val search)
-                                                              :cstate (val cstate))
-                             (display project-form :payload (params->payload)
-                                                   :styles (params->styles)))))
-               (:div :class "grid_6"
-                     (:div :id "bill-window" :class "window"
-                           (:div :class "title" "Κοστολόγηση")
-                           (bill-actions :catalogue (val id) (val bill-id) filter)
-                           (display bill-table
-                                    :key (val bill-id))))
+               (project-top-actions op (val id) filter)
+               (project-tabs (val id) filter nil
+                             (html ()
+                               (:div :class "grid_6 alpha"
+                                     (:div :id "project-window" :class "window"
+                                           (:p :class "title" "Επεξεργασία")
+                                           (project-actions op (val id) filter)
+                                           (notifications)
+                                           (with-form (actions/project/update :id (val id)
+                                                                              :search (val search)
+                                                                              :cstate (val cstate))
+                                             (display project-form :payload (params->payload)
+                                                                   :styles (params->styles)))))
+                               (:div :class "grid_6 omega"
+                                     (:div :id "bill-window" :class "window"
+                                           (:div :class "title" "Κοστολόγηση")
+                                           (bill-actions :catalogue (val id) (val bill-id) filter)
+                                           (display bill-table
+                                                    :key (val bill-id))))))
                (footer)))))))
 
 (defpage project-page actions/project/update ("actions/project/update"
@@ -611,7 +644,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter (val id))
+               (project-top-actions op (val id) filter)
+               (project-filters filter )
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Έργο » Διαγραφή")
