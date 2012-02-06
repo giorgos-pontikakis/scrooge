@@ -107,54 +107,87 @@
         (t
          (error "Internal error in get-debit-credit-acc-id"))))
 
-
+(defun cheque-top-actions (op kind id filter)
+  (top-actions (html ()
+                 (menu `((catalogue ,(html ()
+                                       (:a :href (apply #'cheque kind :id id filter)
+                                           (:img :src "/scrooge/img/application_view_list.png")
+                                           "Κατάλογος")))
+                         (create ,(html ()
+                                    (:a :href (apply #'cheque/create kind filter)
+                                        (:img :src "/scrooge/img/add.png")
+                                        (str (conc "Νέα "
+                                                   (if (string-equal kind "receivable")
+                                                       "Εισπρακτέα"
+                                                       "Πληρωτέα")
+                                                   " Επιταγή "))))))
+                       :css-class "hmenu"
+                       :disabled (cond ((member op '(:catalogue :delete))
+                                        '(catalogue))
+                                       ((eql op :create)
+                                        '(create))
+                                       (t
+                                        nil))))
+               (html ()
+                 (searchbox #'(lambda (&rest args)
+                                (apply #'actions/cheque/search kind args))
+                            #'(lambda (&rest args)
+                                (apply #'cheque kind :id id args))
+                            filter
+                            "ac-company"))))
 (defun cheque-actions (op kind id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'cheque/create kind filter)
-                                              (apply #'cheque/details kind :id id filter)
+                 (action-anchors/crud+details (apply #'cheque/details kind :id id filter)
                                               (apply #'cheque/update kind :id id filter)
                                               (apply #'cheque/delete kind :id id filter)))
                 (enabled-actions/crud+details op id)))
 
 (defun cheque-filters (kind filter)
-  (let ((filter* (remove-from-plist filter :cstate)))
+  (let* ((filter* (remove-from-plist filter :cstate))
+         (filter-spec `((nil      ,(apply #'cheque kind filter*)
+                                  "Όλες")
+                        (pending  ,(apply #'cheque kind :cstate "pending" filter*)
+                                  "Σε εκκρεμότητα")
+                        (paid     ,(apply #'cheque kind :cstate "paid" filter*)
+                                  "Πληρωμένες")
+                        (bounced  ,(apply #'cheque kind :cstate "bounced" filter*)
+                                  "Ακάλυπτες")
+                        (returned ,(apply #'cheque kind :cstate "returned" filter*)
+                                  "Επιστραμμένες")
+                        (stamped  ,(apply #'cheque kind :cstate "stamped" filter*)
+                                  "Σφραγισμένες"))))
     (with-html
-      (:div :class "filters"
-            (filter-group `((receivable ,(apply #'cheque "receivable" filter)
-                                        "Προς είσπραξη")
-                            (payable ,(apply #'cheque "payable" filter)
-                                     "Προς πληρωμή"))
-                          kind)
-            (datebox (lambda (&rest args)
-                       (apply #'cheque kind args))
-                     filter)
-            (filter-group `((nil      ,(apply #'cheque kind filter*)
-                                      "Όλες")
-                            (pending  ,(apply #'cheque kind :cstate "pending" filter*)
-                                      "Σε εκκρεμότητα")
-                            (paid     ,(apply #'cheque kind :cstate "paid" filter*)
-                                      "Πληρωμένες")
-                            (bounced  ,(apply #'cheque kind :cstate "bounced" filter*)
-                                      "Ακάλυπτες")
-                            (returned ,(apply #'cheque kind :cstate "returned" filter*)
-                                      "Επιστραμμένες")
-                            (stamped  ,(apply #'cheque kind :cstate "stamped" filter*)
-                                      "Σφραγισμένες"))
-                          (getf filter :cstate))))))
+      (filter-area (html ()
+                     (:div :class "grid_12"
+                           (display
+                            (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
+                                                         "Προς είσπραξη")
+                                             (payable ,(apply #'cheque "payable" filter)
+                                                      "Προς πληρωμή"))
+                                           kind)))
+                     (:div :class "grid_8"
+                           (display
+                            (filter-navbar filter-spec
+                                           (getf filter :cstate))))
+                     (:div :class "grid_4"
+                           (datebox (lambda (&rest args)
+                                      (apply #'cheque kind args))
+                                    filter)))))))
 
-(defun cheque-subnavbar (op kind filter &optional id)
-  (subnavbar (html ()
-               (if (member op '(:catalogue :delete))
-                   (cheque-filters kind filter)
-                   (htm (:div :class "options"
-                              (:ul (:li (:a :href (apply #'cheque kind :id id filter)
-                                            "Κατάλογος"))))))
-               (searchbox #'(lambda (&rest args)
-                              (apply #'actions/cheque/search kind args))
-                          #'(lambda (&rest args)
-                              (apply #'cheque kind :id id args))
-                          filter
-                          "ac-company"))))
+(defun cheque-tabs (id content)
+  (with-html
+    (:div :class "grid_12"
+          (:div :class "tabbar"
+                (:div :class "tabbar-title"
+                      (if id
+                          (htm
+                           (:h3 :class "grid_8 alpha"
+                                (str (serial (get-dao 'cheque id)))))
+                          (htm
+                           (:h3 :class "grid_8 alpha" "")))
+                      (clear))
+                (display content)
+                (clear)))))
 
 (defpage cheque-page actions/cheque/search
     (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
@@ -189,13 +222,13 @@
     (let ((*default-timezone* +greek-zone+))
       (with-html
         (:div :id "cheque-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
+              (:div :class "grid_5 prefix_1 alpha"
                     (display lit 'serial "Σειριακός Αριθμός")
                     (display lit 'due-date "Ημερομηνία" :extra-styles "datepicker")
                     (display lit 'company "Εταιρία" :extra-styles "ac-company")
                     (display lit 'bank "Τράπεζα" :extra-styles "ac-bank")
                     (display lit 'amount "Ποσό"))
-              (:div :class "grid_6 omega"
+              (:div :class "prefix_1 grid_4 omega"
                     (:table :class "crud-table"
                             (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
                             (iter
@@ -209,10 +242,11 @@
                     (when (and following (not disabled))
                       (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
                                                                (acons "nil" "" following))))))
-              (:div :class "grid_12 data-form-buttons"
+              (:div :class "data-form-buttons"
                     (unless disabled
                       (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                      (cancel-button (cancel-url form) :body "Άκυρο"))))))))
+                      (cancel-button (cancel-url form) :body "Άκυρο")))
+              (clear))))))
 
 (defun following-cheque-states (from-state-id payable-p)
   (lists->alist
@@ -405,7 +439,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter (val id))
+               (cheque-top-actions op kind (val id) filter)
+               (cheque-filters kind filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -440,12 +475,13 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-subnavbar op kind filter (val id))
-               (:div :class "grid_12"
-                     (:div :id "cheque-window" :class "window"
-                           (:div :class "title" (str page-title))
-                           (cheque-actions op kind (val id) filter)
-                           (display cheque-form)))
+               (cheque-top-actions op kind (val id) filter)
+               (cheque-tabs (val id)
+                            (html ()
+                              (:div :id "cheque-window" :class "window"
+                                    (:div :class "title" (str page-title))
+                                    (cheque-actions op kind (val id) filter)
+                                    (display cheque-form))))
                (footer)))))))
 
 

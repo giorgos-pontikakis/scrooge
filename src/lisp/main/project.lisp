@@ -163,7 +163,7 @@
                                            (:img :src "/scrooge/img/application_view_list.png")
                                            "Κατάλογος")))
                          (create ,(html ()
-                                    (:a :href (project/create)
+                                    (:a :href (apply #'project/create filter)
                                         (:img :src "/scrooge/img/add.png")
                                         "Νέα Εταιρία"))))
                        :css-class "hmenu"
@@ -483,7 +483,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-subnavbar op filter)
+               (project-top-actions op nil filter)
                (project-tabs nil filter nil
                              (html ()
                                (:div :class "grid_12"

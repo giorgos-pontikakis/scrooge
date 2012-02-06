@@ -135,13 +135,13 @@
 
 .filter-navbar {
     color: #222;
-    float: left;
-    width: 590px;
+    /* float: left; */
+    /* width: 590px; */
 }
 
 .filter-navbar ul {
     line-height: 28px;
-    margin: 0px 0px 0px 10px;
+    /* margin: 0px 0px 0px 10px; */
 }
 
 .filter-navbar ul li a, .filter-navbar ul li span {
@@ -237,4 +237,8 @@
 
 .search input {
     width: 150px;
+}
+
+#datebox input {
+    width: 70px;
 }

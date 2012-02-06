@@ -144,7 +144,7 @@
                                            (:img :src "/scrooge/img/application_view_list.png")
                                            "Κατάλογος")))
                          (create ,(html ()
-                                    (:a :href (company/create)
+                                    (:a :href (apply #'company/create filter)
                                         (:img :src "/scrooge/img/add.png")
                                         "Νέα Εταιρία"))))
                        :css-class "hmenu"

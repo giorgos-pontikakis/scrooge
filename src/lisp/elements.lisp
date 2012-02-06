@@ -226,22 +226,23 @@
 
 (defun datebox (submit-fn filter)
   (let ((hidden (remove-from-plist filter :since :until)))
-    (form (funcall submit-fn)
-          (html ()
-            (:div :id "datebox" :class "hnavbar"
-                  (:ul
-                   (:li (label 'since "Από: ")
-                        (input-text 'since :value (getf filter :since)
-                                           :css-class "datepicker"))
-                   (:li (label 'since "Εώς: ")
-                        (input-text 'until :value (getf filter :until)
-                                           :css-class "datepicker"))
-                   (:li (:button :type "submit"
-                                 (img "tick.png")))
-                   (:li (:a :class "cancel"
-                            :href (apply submit-fn hidden)
-                            (img "cross.png"))))))
-          :hidden hidden)))
+    (with-html ()
+      (:div :id "datebox" :class "inline-form"
+            (form (funcall submit-fn)
+                  (html ()
+                    (:p
+                     (label 'since "Από: ")
+                     (input-text 'since :value (getf filter :since)
+                                        :css-class "datepicker")
+                     (label 'since "Εώς: ")
+                     (input-text 'until :value (getf filter :until)
+                                        :css-class "datepicker")
+                     (:button :type "submit"
+                              (img "tick.png"))
+                     (:a :class "cancel"
+                         :href (apply submit-fn hidden)
+                         (img "cross.png"))))
+                  :hidden hidden)))))
 
 
 
