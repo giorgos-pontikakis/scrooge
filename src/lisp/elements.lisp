@@ -116,12 +116,10 @@
 ;;; Misc UI elements
 ;;; ------------------------------------------------------------
 
-(defun filter-area (widget)
+(defun filter-area (&rest widgets)
   (with-html
-    (:div :class "grid_12"
-          (:div :class "filter-area"
-                (display widget)
-                (clear)))))
+    (:div :class "grid_12 filter-area"
+          (mapc #'display widgets))))
 
 (defun top-actions (actions search)
   (with-html ()
@@ -129,8 +127,7 @@
           (:div :class "grid_8 alpha"
                 (display actions))
           (:div :class "grid_4 omega"
-                (display search))
-          (clear))))
+                (display search)))))
 
 
 
@@ -161,6 +158,7 @@
                     `(:details :delete ,@extra-ids)
                     '()))
     (:details `(:update :delete ,@extra-ids))
+    (:create '())
     (:update '())
     (:delete '())))
 
@@ -209,24 +207,25 @@
 (defun searchbox (submit-fn cancel-fn filter &optional css-class)
   (let ((hidden (remove-from-plist filter :search))
         (term (getf filter :search)))
-    (form (funcall submit-fn)
-          (html ()
-            (:div :id "searchbox" :class "inline-form"
-                  (:p :class "search"
-                      "Αναζήτηση: "
-                      (input-text 'search :id "search-input"
-                                          :value term
-                                          :css-class css-class)
-                      (:button :type "submit"
-                               (img "magnifier.png"))
-                      (:a :class "cancel"
-                          :href (apply cancel-fn hidden)
-                          (img "cross.png")))))
-          :hidden hidden)))
+    (make-instance 'form
+                   :action (funcall submit-fn)
+                   :body (html ()
+                           (:div :id "searchbox" :class "inline-form"
+                                 (:p :class "search"
+                                     "Αναζήτηση: "
+                                     (input-text 'search :id "search-input"
+                                                         :value term
+                                                         :css-class css-class)
+                                     (:button :type "submit"
+                                              (img "magnifier.png"))
+                                     (:a :class "cancel"
+                                         :href (apply cancel-fn hidden)
+                                         (img "cross.png")))))
+                   :hidden hidden)))
 
 (defun datebox (submit-fn filter)
   (let ((hidden (remove-from-plist filter :since :until)))
-    (with-html ()
+    (html ()
       (:div :id "datebox" :class "inline-form"
             (form (funcall submit-fn)
                   (html ()

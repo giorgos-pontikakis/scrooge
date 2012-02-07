@@ -266,6 +266,8 @@ select:disabled {
     border: 1px solid #bbb;
     padding: 10px 10px;
     /* margin: 15px 0px 15px 15px; */
+;
+    margin: 20px 10px;
 }
 
 .data-form legend {

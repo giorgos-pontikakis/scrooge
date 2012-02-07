@@ -138,28 +138,29 @@
 ;;; ------------------------------------------------------------
 
 (defun company-top-actions (op id filter)
-  (top-actions (html ()
-                 (menu `((catalogue ,(html ()
-                                       (:a :href (apply #'company :id id filter)
-                                           (:img :src "/scrooge/img/application_view_list.png")
-                                           "Κατάλογος")))
-                         (create ,(html ()
-                                    (:a :href (apply #'company/create filter)
-                                        (:img :src "/scrooge/img/add.png")
-                                        "Νέα Εταιρία"))))
-                       :css-class "hmenu"
-                       :disabled (cond ((member op '(:catalogue :delete))
-                                        '(catalogue))
-                                       ((eql op :create)
-                                        '(create))
-                                       (t
-                                        nil))))
-               (html ()
-                 (searchbox #'actions/company/search
-                            #'(lambda (&rest args)
-                                (apply #'company :id id args))
-                            filter
-                            "ac-company"))))
+  (top-actions (make-instance 'menu
+                              :spec `((catalogue
+                                       ,(html ()
+                                          (:a :href (apply #'company :id id filter)
+                                              (:img :src "/scrooge/img/application_view_list.png")
+                                              "Κατάλογος")))
+                                      (create
+                                       ,(html ()
+                                          (:a :href (apply #'company/create filter)
+                                              (:img :src "/scrooge/img/add.png")
+                                              "Νέα Εταιρία"))))
+                              :css-class "hmenu"
+                              :disabled (cond ((member op '(:catalogue :delete))
+                                               '(catalogue))
+                                              ((eql op :create)
+                                               '(create))
+                                              (t
+                                               nil)))
+               (searchbox #'actions/company/search
+                          #'(lambda (&rest args)
+                              (apply #'company :id id args))
+                          filter
+                          "ac-company")))
 
 (defun company-actions (op id filter)
   (actions-menu (append (make-menu-spec
@@ -183,21 +184,18 @@
   (with-html
     (:div :class "grid_12"
           (:div :class "tabbar"
-                (:div :class "tabbar-title"
-                      (if id
-                          (htm
-                           (:h3 :class "grid_8 alpha"
-                                (str (title (get-dao 'company id)))))
-                          (htm
-                           (:h3 :class "grid_8 alpha" "")))
-                      (navbar
-                       `((data ,(apply #'company/details :id id filter)
-                               "Στοιχεία")
-                         (transactions ,(apply #'company/details/transactions :id id filter)
-                                       "Συναλλαγές"))
-                       :css-class "hnavbar grid_3 omega"
-                       :active active)
-                      (clear))
+                (when id
+                  (htm (:div :class "tabbar-title"
+                             (:h3 :class "grid_8 alpha"
+                                  (str (title (get-dao 'company id))))
+                             (navbar
+                              `((data ,(apply #'company/details :id id filter)
+                                      "Στοιχεία")
+                                (transactions ,(apply #'company/details/transactions :id id filter)
+                                              "Συναλλαγές"))
+                              :css-class "hnavbar grid_3 omega"
+                              :active active)
+                             (clear))))
                 (display content)
                 (clear)))))
 
@@ -399,8 +397,7 @@
                                         :cancel-url (apply #'company :id (val id) filter)))
            (contact-table (make-instance 'contact-table
                                          :op :catalogue
-                                         :company-id (val id)))
-           (op :details))
+                                         :company-id (val id))))
       (with-document ()
         (:head
          (:title "Εταιρία » Λεπτομέρειες")
@@ -409,7 +406,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions op (val id) filter)
+               (company-top-actions :details (val id) filter)
                (company-tabs (val id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -480,7 +477,7 @@
                (company-top-actions op nil filter)
                (company-tabs nil filter 'data
                              (html ()
-                               (:div :class "grid_6"
+                               (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Νέα εταιρία")
                                            (company-actions op nil filter)
@@ -489,6 +486,7 @@
                                              (display company-form :payload (params->payload)
                                                                    :styles (params->styles)))))))
                (footer)))))))
+
 
 (defpage company-page actions/company/create ("actions/company/create"
                                               :request-type :post)

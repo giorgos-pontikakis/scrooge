@@ -157,28 +157,29 @@
 ;;; ------------------------------------------------------------
 
 (defun project-top-actions (op id filter)
-  (top-actions (html ()
-                 (menu `((catalogue ,(html ()
-                                       (:a :href (apply #'project :id id filter)
-                                           (:img :src "/scrooge/img/application_view_list.png")
-                                           "Κατάλογος")))
-                         (create ,(html ()
-                                    (:a :href (apply #'project/create filter)
-                                        (:img :src "/scrooge/img/add.png")
-                                        "Νέα Εταιρία"))))
-                       :css-class "hmenu"
-                       :disabled (cond ((member op '(:catalogue :delete))
-                                        '(catalogue))
-                                       ((eql op :create)
-                                        '(create))
-                                       (t
-                                        nil))))
-               (html ()
-                 (searchbox #'actions/project/search
-                            #'(lambda (&rest args)
-                                (apply #'project :id id args))
-                            filter
-                            "ac-project"))))
+  (top-actions (make-instance 'menu
+                              :spec `((catalogue
+                                       ,(html ()
+                                          (:a :href (apply #'project :id id filter)
+                                              (:img :src "/scrooge/img/application_view_list.png")
+                                              "Κατάλογος")))
+                                      (create
+                                       ,(html ()
+                                          (:a :href (apply #'project/create filter)
+                                              (:img :src "/scrooge/img/add.png")
+                                              "Νέο Έργο"))))
+                              :css-class "hmenu"
+                              :disabled (cond ((member op '(:catalogue :delete))
+                                               '(catalogue))
+                                              ((eql op :create)
+                                               '(create))
+                                              (t
+                                               nil)))
+               (searchbox #'actions/project/search
+                          #'(lambda (&rest args)
+                              (apply #'project :id id args))
+                          filter
+                          "ac-project")))
 (defun project-actions (op id filter)
   (actions-menu (make-menu-spec
                  (action-anchors/crud+details (apply #'project/details :id id filter)
@@ -197,19 +198,16 @@
                     (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
                   (getf filter :cstate)))))
 
-(defun project-tabs (id filter active content)
-  (declare (ignore filter active))
+(defun project-tabs (id content)
   (with-html
     (:div :class "grid_12"
           (:div :class "tabbar"
-                (:div :class "tabbar-title"
-                      (if id
-                          (htm
-                           (:h3 :class "grid_8 alpha"
-                                (str (description (get-dao 'project id)))))
-                          (htm
-                           (:h3 :class "grid_8 alpha" "")))
-                      (clear))
+                (when id
+                  (htm
+                   (:div :class "tabbar-title"
+                         (:h3 :class "grid_8 alpha"
+                              (str (description (get-dao 'project id))))
+                         (clear))))
                 (display content)
                 (clear)))))
 
@@ -433,7 +431,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions op (val id) filter)
-               (project-tabs (val id) filter nil
+               (project-tabs (val id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
@@ -484,11 +482,11 @@
                (header)
                (main-navbar 'project)
                (project-top-actions op nil filter)
-               (project-tabs nil filter nil
+               (project-tabs nil
                              (html ()
-                               (:div :class "grid_12"
+                               (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
-                                           (:div :class "title" "Δημιουργία")
+                                           (:div :class "title" "Νέο Έργο")
                                            (project-actions op nil filter)
                                            (notifications)
                                            (with-form (actions/project/create :search (val search)
@@ -568,7 +566,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions op (val id) filter)
-               (project-tabs (val id) filter nil
+               (project-tabs (val id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"

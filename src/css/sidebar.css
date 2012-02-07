@@ -19,7 +19,8 @@
 #notifications {
     background-color: #ffd;
     border: 1px solid red;
-    margin: 10px 0 20px 0px;
+    margin: 10px 10px 20px 10px;
+    border-radius: 3px;
 }
 
 #notifications li {
@@ -34,7 +35,7 @@
 /* ---------------------------------------------------------------------- */
 
 .section-navbar {
-    margin: 10px 10px 0px 10px;
+    margin: 10px 0px 0px 0px;
     border-bottom: 1px solid #bbb;
 }
 
@@ -72,15 +73,17 @@
 }
 
 
-
-/* ---------------------------------------------------------------------- */
-/* Section SUB-navbar */
-/* ---------------------------------------------------------------------- */
-
-
 /* ---------------------------------------------------------------------- */
 /* inline forms */
 /* ---------------------------------------------------------------------- */
+
+.inline-form div {
+    margin-left: 10px;
+}
+
+.inline-form label {
+    margin: 0px 0px 0px 5px;
+}
 
 .inline-form button {
     line-height: 19px;
@@ -125,7 +128,7 @@
 
 .filter-area {
     line-height: 30px;
-    padding: 10px 0px;
+    padding: 5px 0px;
     /* border: 1px solid #369; */
     border-radius: 5px;
     margin-top: 10px;
@@ -135,13 +138,13 @@
 
 .filter-navbar {
     color: #222;
-    /* float: left; */
-    /* width: 590px; */
+    margin: 3px 0px;
 }
 
 .filter-navbar ul {
     line-height: 28px;
     /* margin: 0px 0px 0px 10px; */
+    margin: 0px 10px;
 }
 
 .filter-navbar ul li a, .filter-navbar ul li span {
@@ -189,9 +192,7 @@
 
 .top-actions {
     background-color: #ddd;
-    padding-top: 12px;
-    padding-bottom: 10px;
-
+    padding: 12px 0px 10px 0px;
 }
 
 .top-actions .hmenu li a {
