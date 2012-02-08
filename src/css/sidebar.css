@@ -81,7 +81,7 @@
     margin-left: 10px;
 }
 
-.inline-form label {
+#since {
     margin: 0px 0px 0px 5px;
 }
 
@@ -237,7 +237,7 @@
 /* ---------------------------------------------------------------------- */
 
 .search input {
-    width: 150px;
+    width: 152px;
 }
 
 #datebox input {

@@ -127,7 +127,8 @@
           (:div :class "grid_8 alpha"
                 (display actions))
           (:div :class "grid_4 omega"
-                (display search)))))
+                (display search)))
+    (clear)))
 
 
 
@@ -233,7 +234,7 @@
                      (label 'since "Από: ")
                      (input-text 'since :value (getf filter :since)
                                         :css-class "datepicker")
-                     (label 'since "Εώς: ")
+                     (label 'since "Εώς: " :id "since")
                      (input-text 'until :value (getf filter :until)
                                         :css-class "datepicker")
                      (:button :type "submit"

@@ -347,8 +347,7 @@
            (invoice-form (make-instance 'invoice-form
                                         :kind kind
                                         :op op
-                                        :record (get-record 'tx (val id))
-                                        :cancel-url (apply #'tx :id (val id) filter)))
+                                        :record (get-record 'tx (val id))))
            (page-title (conc (invoice-page-title kind) " » Λεπτομέρειες")))
       (with-document ()
         (:head
@@ -470,7 +469,8 @@
                                         :kind kind
                                         :op op
                                         :record (get-record 'tx (val id))
-                                        :cancel-url (apply #'invoice kind :id (val id) filter)))
+                                        :cancel-url (apply #'invoice/details kind
+                                                           :id (val id) filter)))
            (page-title (conc (invoice-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head

@@ -417,8 +417,7 @@
            (filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op op
-                                        :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter)))
+                                        :record (get-record 'project (val id))))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
                                       :project-id (val id))))

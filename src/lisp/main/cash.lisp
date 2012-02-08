@@ -195,38 +195,54 @@
         ((string-equal kind "expense") "Έξοδα")
         (t (error "Internal error in cash-page-title"))))
 
+(defun cash-top-actions (op kind id filter)
+  (let ((new-cash-label (conc "Νέο "
+                              (cond ((string-equal kind "revenue") "Έσοδo")
+                                    ((string-equal kind "expense") "Έξοδo")
+                                    (t (error "Internal error in cash-top-actions"))))))
+    (top-actions (make-instance 'menu
+                                :spec `((catalogue
+                                         ,(html ()
+                                            (:a :href (apply #'cash kind :id id filter)
+                                                (:img :src "/scrooge/img/application_view_list.png")
+                                                "Κατάλογος")))
+                                        (create
+                                         ,(html ()
+                                            (:a :href (apply #'cash/create kind filter)
+                                                (:img :src "/scrooge/img/add.png")
+                                                (str new-cash-label)))))
+                                :css-class "hmenu"
+                                :disabled (cond ((member op '(:catalogue :delete))
+                                                 '(catalogue))
+                                                ((eql op :create)
+                                                 '(create))
+                                                (t
+                                                 nil)))
+                 (searchbox #'(lambda (&rest args)
+                                (apply #'actions/cash/search kind args))
+                            #'(lambda (&rest args)
+                                (apply #'cash kind :id id args))
+                            filter
+                            "ac-company"))))
+
 (defun cash-actions (op kind id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'cash/create kind filter)
-                                              (apply #'cash/details kind :id id filter)
+                 (action-anchors/crud+details (apply #'cash/details kind :id id filter)
                                               (apply #'cash/update kind :id id filter)
                                               (apply #'cash/delete kind :id id filter)))
                 (enabled-actions/crud+details op id)))
 
 (defun cash-filters (kind filter)
-  (with-html
-    (:div :class "filters"
-          (filters-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
-                            (expense ,(apply #'cash "expense" filter) "Έξοδα"))
-                          kind)
-          (datebox (lambda (&rest args)
-                     (apply #'cash kind args))
-                   filter))))
-
-(defun cash-subnavbar (op kind filter &optional id)
-  (subnavbar (html ()
-               (if (member op '(:catalogue :delete))
-                   (cash-filters kind filter)
-                   (htm (:div :class "options"
-                              (:ul (:li (:a :href (apply #'cash kind :id id filter)
-                                            "Κατάλογος"))))))
-
-               (searchbox #'(lambda (&rest args)
-                              (apply #'actions/cash/search kind args))
-                          #'(lambda (&rest args)
-                              (apply #'cash kind :id id args))
-                          filter
-                          "ac-company"))))
+  (filter-area (html ()
+                 (:div :class "grid_8 alpha"
+                       (display (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
+                                                 (expense ,(apply #'cash "expense" filter) "Έξοδα"))
+                                               kind))))
+               (html ()
+                 (:div :class "grid_4 omega"
+                       (display (datebox (lambda (&rest args)
+                                           (apply #'cash kind args))
+                                         filter))))))
 
 (defpage cash-page actions/cash/search
     (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
@@ -263,7 +279,7 @@
                               :filter (list :debit-p (not revenues-p)))))
     (with-html
       (:div :id "cash-data-form" :class "data-form"
-            (:div :class "grid_6 alpha"
+            (:div :class "grid_5 prefix_1 alpha"
                   (display lit 'tx-date "Ημερομηνία":extra-styles "datepicker" :value (today))
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" :extra-styles "ac-company")
@@ -280,7 +296,7 @@
                   (recv/pay-acc-id (if revenues-p
                                        *invoice-receivable-acc-id*
                                        *invoice-payable-acc-id*)))
-              (htm (:div :class "grid_6 omega"
+              (htm (:div :class "grid_5 omega"
                          (:h3 (str (conc "Λογαριασμός "
                                          (if revenues-p "πίστωσης" "χρέωσης"))))
                          (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
@@ -296,7 +312,8 @@
                          (display tree :key (or (getf record :account-id)
                                                 (getf record (if revenues-p
                                                                  :credit-acc-id
-                                                                 :debit-acc-id)))))))))))
+                                                                 :debit-acc-id)))))))
+            (clear)))))
 
 
 
@@ -330,6 +347,7 @@
                                   "expense")
                                  (t (error 'bad-request-error)))
                            :id (val id)))))
+      ;; otherwise continue as usually
       (with-document ()
         (:head
          (:title (str page-title))
@@ -338,7 +356,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter (val id))
+               (cash-top-actions op kind (val id) filter)
+               (cash-filters kind filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -371,7 +390,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter (val id))
+               (cash-top-actions op kind (val id) filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" "Λεπτομέρειες")
@@ -412,7 +431,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter)
+               (cash-top-actions op kind nil filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
@@ -482,7 +501,7 @@
                                      :kind kind
                                      :op op
                                      :record (get-record 'tx (val id))
-                                     :cancel-url (apply #'cash kind :id (val id) filter)))
+                                     :cancel-url (apply #'cash/details kind :id (val id) filter)))
            (page-title (conc (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
@@ -492,7 +511,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter (val id))
+               (cash-top-actions op kind (val id) filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
@@ -566,7 +585,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-subnavbar op kind filter (val id))
+               (cash-top-actions op kind (val id) filter)
+               (cash-filters kind filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))

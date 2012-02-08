@@ -156,35 +156,34 @@
                                   "Επιστραμμένες")
                         (stamped  ,(apply #'cheque kind :cstate "stamped" filter*)
                                   "Σφραγισμένες"))))
-    (with-html
-      (filter-area (html ()
-                     (:div :class "grid_12 alpha"
-                           (display (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
-                                                                 "Προς είσπραξη")
-                                                     (payable ,(apply #'cheque "payable" filter)
-                                                              "Προς πληρωμή"))
-                                                   kind))))
-                   (html ()
-                     (:div :class "grid_8 alpha"
-                           (display (filter-navbar filter-spec
-                                                   (getf filter :cstate)))))
-                   (html ()
-                     (:div :class "grid_4 omega"
-                           (display (datebox (lambda (&rest args)
-                                               (apply #'cheque kind args))
-                                             filter))))))))
+    (filter-area (html ()
+                   (:div :class "grid_12 alpha"
+                         (display (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
+                                                               "Προς είσπραξη")
+                                                   (payable ,(apply #'cheque "payable" filter)
+                                                            "Προς πληρωμή"))
+                                                 kind))))
+                 (html ()
+                   (:div :class "grid_8 alpha"
+                         (display (filter-navbar filter-spec
+                                                 (getf filter :cstate)))))
+                 (html ()
+                   (:div :class "grid_4 omega"
+                         (display (datebox (lambda (&rest args)
+                                             (apply #'cheque kind args))
+                                           filter)))))))
 
-(defun cheque-tabs (id content)
-  (with-html
-    (:div :class "grid_12"
-          (:div :class "tabbar"
-                (when id
-                  (htm (:div :class "tabbar-title"
-                             (:h3 :class "grid_8 alpha"
-                                  (str (serial (get-dao 'cheque id))))
-                             (clear))))
-                (display content)))
-    (clear)))
+;; (defun cheque-tabs (id content)
+;;   (with-html
+;;     (:div :class "grid_12"
+;;           (:div :class "tabbar"
+;;                 (when id
+;;                   (htm (:div :class "tabbar-title"
+;;                              (:h3 :class "grid_8 alpha"
+;;                                   (str (serial (get-dao 'cheque id))))
+;;                              (clear))))
+;;                 (display content)))
+;;     (clear)))
 
 (defpage cheque-page actions/cheque/search
     (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
@@ -224,7 +223,11 @@
                     (display lit 'due-date "Ημερομηνία" :extra-styles "datepicker")
                     (display lit 'company "Εταιρία" :extra-styles "ac-company")
                     (display lit 'bank "Τράπεζα" :extra-styles "ac-bank")
-                    (display lit 'amount "Ποσό"))
+                    (display lit 'amount "Ποσό")
+                    (:div :class "data-form-buttons"
+                          (unless disabled
+                            (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                            (cancel-button (cancel-url form) :body "Άκυρο"))))
               (:div :class "prefix_1 grid_4 omega"
                     (:table :class "crud-table"
                             (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
@@ -236,13 +239,10 @@
                                                            :test #'string=)))
                                     (:td (str (format-timestring nil (getf ev :tstamp)
                                                                  :format tstamp-format)))))))
+
                     (when (and following (not disabled))
                       (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
                                                                (acons "nil" "" following))))))
-              (:div :class "data-form-buttons"
-                    (unless disabled
-                      (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                      (cancel-button (cancel-url form) :body "Άκυρο")))
               (clear))))))
 
 (defun following-cheque-states (from-state-id payable-p)
@@ -473,12 +473,11 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val id) filter)
-               (cheque-tabs (val id)
-                            (html ()
-                              (:div :id "cheque-window" :class "window"
-                                    (:div :class "title" (str page-title))
-                                    (cheque-actions op kind (val id) filter)
-                                    (display cheque-form))))
+               (:div :class "grid_12"
+                     (:div :id "cheque-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (cheque-actions op kind (val id) filter)
+                           (display cheque-form)))
                (footer)))))))
 
 
@@ -515,18 +514,17 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind nil filter)
-               (cheque-tabs nil
-                            (html ()
-                              (:div :class "window"
-                                    (:div :class "title" (str page-title))
-                                    (cheque-actions op kind nil filter)
-                                    (notifications)
-                                    (with-form (actions/cheque/create kind
-                                                                      :search (val search)
-                                                                      :since (val since)
-                                                                      :until (val until)
-                                                                      :cstate (val cstate))
-                                      (display cheque-table :payload (params->payload))))))
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (cheque-actions op kind nil filter)
+                           (notifications)
+                           (with-form (actions/cheque/create kind
+                                                             :search (val search)
+                                                             :since (val since)
+                                                             :until (val until)
+                                                             :cstate (val cstate))
+                             (display cheque-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/create
@@ -602,7 +600,7 @@
                                        :kind kind
                                        :op op
                                        :record (get-record 'cheque (val id))
-                                       :cancel-url (apply #'cheque kind :id (val id) filter))))
+                                       :cancel-url (apply #'cheque/details kind :id (val id) filter))))
       (with-document ()
         (:head
          (:title (str page-title))
@@ -612,20 +610,19 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val id) filter)
-               (cheque-tabs (val id)
-                            (html ()
-                              (:div :id "cheque-window" :class "window"
-                                    (:p :class "title" (str page-title))
-                                    (cheque-actions op kind (val id) filter)
-                                    (notifications)
-                                    (with-form (actions/cheque/update kind
-                                                                      :id (val id)
-                                                                      :search (val search)
-                                                                      :since (val since)
-                                                                      :until (val until)
-                                                                      :cstate (val cstate))
-                                      (display cheque-form :key (val id)
-                                                           :payload (params->payload))))))
+               (:div :class "grid_12"
+                     (:div :id "cheque-window" :class "window"
+                           (:p :class "title" (str page-title))
+                           (cheque-actions op kind (val id) filter)
+                           (notifications)
+                           (with-form (actions/cheque/update kind
+                                                             :id (val id)
+                                                             :search (val search)
+                                                             :since (val since)
+                                                             :until (val until)
+                                                             :cstate (val cstate))
+                             (display cheque-form :key (val id)
+                                                  :payload (params->payload)))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/update
@@ -723,18 +720,18 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val id) filter)
-               (cheque-tabs (val id)
-                            (html ()
-                              (:div :class "window"
-                                    (:div :class "title" (str page-title))
-                                    (cheque-actions op kind (val id) filter)
-                                    (with-form (actions/cheque/delete kind
-                                                                      :id (val id)
-                                                                      :search (val search)
-                                                                      :since (val since)
-                                                                      :until (val until)
-                                                                      :cstate (val cstate))
-                                      (display cheque-table :key (val id))))))
+               (cheque-filters kind filter)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (cheque-actions op kind (val id) filter)
+                           (with-form (actions/cheque/delete kind
+                                                             :id (val id)
+                                                             :search (val search)
+                                                             :since (val since)
+                                                             :until (val until)
+                                                             :cstate (val cstate))
+                             (display cheque-table :key (val id)))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/delete
