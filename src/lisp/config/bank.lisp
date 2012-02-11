@@ -75,19 +75,29 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun bank-top-actions (id filter)
+  (top-actions
+   (make-instance 'menu
+                  :spec `((create ,(html ()
+                                     (:a :href (apply #'config/bank/create filter)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str "Νέα Τράπεζα")))))
+                  :css-class "hmenu"
+                  :disabled nil)
+   (searchbox #'config/bank
+              #'(lambda (&rest args)
+                  (apply #'config/bank :id id args))
+              filter
+              "ac-bank")))
+
 (defun bank-actions (op id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud (apply #'config/bank/create filter)
-                                      (apply #'config/bank/update :id id filter)
+                 (action-anchors/crud (apply #'config/bank/update :id id filter)
                                       (if (or (null id)
                                               (bank-referenced-p id))
                                           nil
                                           (apply #'config/bank/delete :id id filter))))
                 (enabled-actions/crud op id)))
-
-(defun bank-subnavbar (filter)
-  (subnavbar (html ()
-               (searchbox #'config/bank #'config/bank filter "ac-bank"))))
 
 
 
@@ -154,7 +164,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar filter)
+               (bank-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -186,11 +196,11 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar filter)
+               (bank-top-actions nil filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Δημιουργία")
-                           (bank-actions op nil filter)
+                            (bank-actions op nil filter)
                            (with-form (actions/config/bank/create :search (val search))
                              (display bank-table
                                       :key nil
@@ -229,7 +239,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar filter)
+               (bank-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -274,7 +284,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (bank-subnavbar filter)
+               (bank-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Διαγραφή")

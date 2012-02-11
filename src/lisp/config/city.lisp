@@ -75,19 +75,31 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun city-top-actions (id filter)
+  (top-actions
+   (make-instance 'menu
+                  :spec `((create ,(html ()
+                                     (:a :href (apply #'config/city/create filter)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str "Νέα πόλη")))))
+                  :css-class "hmenu"
+                  :disabled nil)
+   (searchbox #'config/city
+              #'(lambda (&rest args)
+                  (apply #'config/city :id id args))
+              filter
+              "ac-city")))
+
 (defun city-actions (op id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud (apply #'config/city/create filter)
-                                      (apply #'config/city/update :id id filter)
+                 (action-anchors/crud (apply #'config/city/update :id id filter)
                                       (if (or (null id)
                                               (city-referenced-p id))
                                           nil
                                           (apply #'config/city/delete :id id filter))))
                 (enabled-actions/crud op id)))
 
-(defun city-subnavbar (filter)
-  (subnavbar (html ()
-               (searchbox #'config/city #'config/city filter "ac-city"))))
+
 
 ;;; ------------------------------------------------------------
 ;;; City table
@@ -152,7 +164,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar filter)
+               (city-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -184,7 +196,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar filter)
+               (city-top-actions nil filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -227,7 +239,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar filter)
+               (city-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -272,7 +284,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-subnavbar filter)
+               (city-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Διαγραφή")

@@ -78,11 +78,25 @@
               :where (:= 'tx-id tx-id)))
       nil))
 
+(defun tx-top-actions (id filter)
+  (top-actions
+   (make-instance 'menu
+                  :spec `((create ,(html ()
+                                     (:a :href (apply #'tx/create filter)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str "Νέα Συναλλαγή")))))
+                  :css-class "hmenu"
+                  :disabled nil)
+   (searchbox #'tx
+              #'(lambda (&rest args)
+                  (apply #'tx :id id args))
+              filter
+              "ac-company")))
+
 (defun tx-actions (op id filter)
   (let ((auto-p (if id (auto-tx-p id) nil)))
     (actions-menu (make-menu-spec
-                   (action-anchors/crud (apply #'tx/create filter)
-                                        (if auto-p
+                   (action-anchors/crud (if auto-p
                                             nil
                                             (apply #'tx/update :id id filter))
                                         (if auto-p
@@ -90,25 +104,14 @@
                                             (apply #'tx/delete :id id filter))))
                   (ecase op
                     (:catalogue (if (or (not id) auto-p)
-                                    '(:create)
-                                    '(:create :update :delete)))
+                                    '()
+                                    '(:update :delete)))
                     (:create '())
                     (:update '())
                     (:delete '())))))
 
-(defun tx-subnavbar (filter &optional id)
-  (subnavbar (html ()
-               (tx-filters filter)
-               (searchbox #'tx #'(lambda (&rest args)
-                                   (apply #'tx :id id args))
-                          filter
-                          "ac-company"))))
-
-
 (defun tx-filters (filter)
-  (with-html
-    (:div :class "filters"
-          (datebox #'tx filter))))
+  (filter-area (datebox #'tx filter)))
 
 
 
@@ -237,7 +240,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter (val id))
+               (tx-top-actions (val id) filter)
+               (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -276,7 +280,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter)
+               (tx-top-actions nil filter)
+               (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -347,7 +352,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter (val id))
+               (tx-top-actions id filter)
+               (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -415,7 +421,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-subnavbar filter (val id))
+               (tx-top-actions (val id) filter)
+               (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Διαγραφή")

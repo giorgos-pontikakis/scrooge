@@ -75,20 +75,30 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun tof-top-actions (id filter)
+  (top-actions
+   (make-instance 'menu
+                  :spec `((create ,(html ()
+                                     (:a :href (apply #'config/tof/create filter)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str "Νέα Τράπεζα")))))
+                  :css-class "hmenu"
+                  :disabled nil)
+   (searchbox #'config/tof
+              #'(lambda (&rest args)
+                  (apply #'config/tof :id id args))
+              filter
+              "ac-tof")))
+
 (defun tof-actions (op id filter)
   (with-html
     (actions-menu (make-menu-spec
-                   (action-anchors/crud (apply #'config/tof/create filter)
-                                        (apply #'config/tof/update :id id filter)
+                   (action-anchors/crud (apply #'config/tof/update :id id filter)
                                         (if (or (null id)
                                                 (tof-referenced-p id))
                                             nil
                                             (apply #'config/tof/delete :id id filter))))
                   (enabled-actions/crud op id))))
-
-(defun tof-subnavbar (filter)
-  (subnavbar (html ()
-               (searchbox #'config/tof #'config/tof filter "ac-tof"))))
 
 
 
@@ -155,7 +165,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar filter)
+               (tof-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -186,7 +196,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar filter)
+               (tof-top-actions nil filter)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -229,7 +239,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar filter)
+               (tof-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -274,7 +284,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-subnavbar filter)
+               (tof-top-actions (val id) filter)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Διαγραφή")
