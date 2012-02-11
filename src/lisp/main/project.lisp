@@ -196,7 +196,7 @@
                     (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
                     (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
                     (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
-                  (getf filter :cstate)))))
+                  :active (getf filter :cstate)))))
 
 (defun project-tabs (id content)
   (with-html

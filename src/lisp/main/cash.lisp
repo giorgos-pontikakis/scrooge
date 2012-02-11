@@ -233,16 +233,13 @@
                 (enabled-actions/crud+details op id)))
 
 (defun cash-filters (kind filter)
-  (filter-area (html ()
-                 (:div :class "grid_8 alpha"
-                       (display (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
-                                                 (expense ,(apply #'cash "expense" filter) "Έξοδα"))
-                                               kind))))
-               (html ()
-                 (:div :class "grid_4 omega"
-                       (display (datebox (lambda (&rest args)
-                                           (apply #'cash kind args))
-                                         filter))))))
+  (filter-area (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
+                                (expense ,(apply #'cash "expense" filter) "Έξοδα"))
+                              :active kind
+                              :id "kind-navbar")
+               (datebox (lambda (&rest args)
+                          (apply #'cash kind args))
+                        filter)))
 
 (defpage cash-page actions/cash/search
     (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)

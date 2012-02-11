@@ -118,8 +118,9 @@
 
 (defun filter-area (&rest widgets)
   (with-html
-    (:div :class "grid_12 filter-area"
-          (mapc #'display widgets))))
+    (:div :class "grid_12"
+          (:div :class "filter-area"
+                (mapc #'display widgets)))))
 
 (defun top-actions (actions search)
   (with-html ()
@@ -127,8 +128,7 @@
           (:div :class "grid_8 alpha"
                 (display actions))
           (:div :class "grid_4 omega"
-                (display search)))
-    (clear)))
+                (display search)))))
 
 
 
@@ -197,9 +197,9 @@
 
 ;;; widgets
 
-(defun filter-navbar (spec &optional active)
+(defun filter-navbar (spec &key active id)
   (html ()
-    (:div :class "filter-navbar"
+    (:div :id id :class "filter-navbar"
           (navbar spec
                   :css-class "hnavbar"
                   :active active
@@ -227,7 +227,7 @@
 (defun datebox (submit-fn filter)
   (let ((hidden (remove-from-plist filter :since :until)))
     (html ()
-      (:div :id "datebox" :class "inline-form"
+      (:div :id "datebox" :class "inline-form filter-navbar"
             (form (funcall submit-fn)
                   (html ()
                     (:p

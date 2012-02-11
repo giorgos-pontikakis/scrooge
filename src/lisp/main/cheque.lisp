@@ -108,33 +108,33 @@
          (error "Internal error in get-debit-credit-acc-id"))))
 
 (defun cheque-top-actions (op kind id filter)
-  (top-actions (html ()
-                 (menu `((catalogue ,(html ()
-                                       (:a :href (apply #'cheque kind :id id filter)
-                                           (:img :src "/scrooge/img/application_view_list.png")
-                                           "Κατάλογος")))
-                         (create ,(html ()
-                                    (:a :href (apply #'cheque/create kind filter)
-                                        (:img :src "/scrooge/img/add.png")
-                                        (str (conc "Νέα "
-                                                   (if (string-equal kind "receivable")
-                                                       "Εισπρακτέα"
-                                                       "Πληρωτέα")
-                                                   " Επιταγή "))))))
-                       :css-class "hmenu"
-                       :disabled (cond ((member op '(:catalogue :delete))
-                                        '(catalogue))
-                                       ((eql op :create)
-                                        '(create))
-                                       (t
-                                        nil))))
-               (html ()
-                 (searchbox #'(lambda (&rest args)
-                                (apply #'actions/cheque/search kind args))
-                            #'(lambda (&rest args)
-                                (apply #'cheque kind :id id args))
-                            filter
-                            "ac-company"))))
+  (top-actions
+   (make-instance 'menu
+                  :spec `((catalogue ,(html ()
+                                        (:a :href (apply #'cheque kind :id id filter)
+                                            (:img :src "/scrooge/img/application_view_list.png")
+                                            "Κατάλογος")))
+                          (create ,(html ()
+                                     (:a :href (apply #'cheque/create kind filter)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str (conc "Νέα "
+                                                    (if (string-equal kind "receivable")
+                                                        "Εισπρακτέα"
+                                                        "Πληρωτέα")
+                                                    " Επιταγή "))))))
+                  :css-class "hmenu"
+                  :disabled (cond ((member op '(:catalogue :delete))
+                                   '(catalogue))
+                                  ((eql op :create)
+                                   '(create))
+                                  (t
+                                   nil)))
+   (searchbox #'(lambda (&rest args)
+                  (apply #'actions/cheque/search kind args))
+              #'(lambda (&rest args)
+                  (apply #'cheque kind :id id args))
+              filter
+              "ac-company")))
 (defun cheque-actions (op kind id filter)
   (actions-menu (make-menu-spec
                  (action-anchors/crud+details (apply #'cheque/details kind :id id filter)
@@ -156,34 +156,17 @@
                                   "Επιστραμμένες")
                         (stamped  ,(apply #'cheque kind :cstate "stamped" filter*)
                                   "Σφραγισμένες"))))
-    (filter-area (html ()
-                   (:div :class "grid_12 alpha"
-                         (display (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
-                                                               "Προς είσπραξη")
-                                                   (payable ,(apply #'cheque "payable" filter)
-                                                            "Προς πληρωμή"))
-                                                 kind))))
-                 (html ()
-                   (:div :class "grid_8 alpha"
-                         (display (filter-navbar filter-spec
-                                                 (getf filter :cstate)))))
-                 (html ()
-                   (:div :class "grid_4 omega"
-                         (display (datebox (lambda (&rest args)
-                                             (apply #'cheque kind args))
-                                           filter)))))))
-
-;; (defun cheque-tabs (id content)
-;;   (with-html
-;;     (:div :class "grid_12"
-;;           (:div :class "tabbar"
-;;                 (when id
-;;                   (htm (:div :class "tabbar-title"
-;;                              (:h3 :class "grid_8 alpha"
-;;                                   (str (serial (get-dao 'cheque id))))
-;;                              (clear))))
-;;                 (display content)))
-;;     (clear)))
+    (filter-area (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
+                                              "Προς είσπραξη")
+                                  (payable ,(apply #'cheque "payable" filter)
+                                           "Προς πληρωμή"))
+                                :active kind
+                                :id "kind-navbar")
+                 (filter-navbar filter-spec
+                                :active (getf filter :cstate))
+                 (datebox (lambda (&rest args)
+                            (apply #'cheque kind args))
+                          filter))))
 
 (defpage cheque-page actions/cheque/search
     (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)

@@ -1,18 +1,4 @@
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-/* SIDEBAR */
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-
-.sidebar {
-    background-color: #ddd;
-    margin-top: 10px;
-    margin-bottom: 30px;
-}
-
-
-
-/* ---------------------------------------------------------------------- */
 /* notifications */
 /* ---------------------------------------------------------------------- */
 
@@ -105,7 +91,7 @@
 
 .inline-form button[type="submit"] {
     width: 25px;
-    margin: 0px -2px 0px 6px;
+    margin: 0px -2px 0px 2px;
 }
 
 .inline-form a.cancel, .section-subnavbar a.cancel:hover {
@@ -139,6 +125,7 @@
 .filter-navbar {
     color: #222;
     margin: 3px 0px;
+    display: inline-block;
 }
 
 .filter-navbar ul {
@@ -149,7 +136,7 @@
 
 .filter-navbar ul li a, .filter-navbar ul li span {
     line-height: 23px;
-    margin-right: 3px;
+    margin: 1px 3px 1px 0px;
     padding: 2px 8px;
     border-radius: 3px;
 }
@@ -185,6 +172,10 @@
     display: inline;
 }
 
+/* override display propery for kind-navbar  */
+#kind-navbar {
+    display: block;
+}
 
 /* ---------------------------------------------------------------------- */
 /* top-actions */
@@ -208,38 +199,6 @@
     color: #000;
 }
 
-/* ---------------------------------------------------------------------- */
-/* options */
-/* ---------------------------------------------------------------------- */
-
-.options {
-    float: left;
-    line-height: 28px;
-    margin: 0px 0px 0px 10px;
-}
-
-.options a {
-    text-decoration: none;
-    color: #024;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.options a:hover {
-    color: #024;
-    background-color: #ffd;
-    text-decoration: underline;
-}
-
-
-/* ---------------------------------------------------------------------- */
-/* search */
-/* ---------------------------------------------------------------------- */
-
-.search input {
+#searchbox input {
     width: 152px;
-}
-
-#datebox input {
-    width: 70px;
 }

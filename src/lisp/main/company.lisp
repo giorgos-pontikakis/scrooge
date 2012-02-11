@@ -438,7 +438,6 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (filter-navbar  filter (val id))
                (:p "money")
                (footer)))))))
 
