@@ -196,37 +196,51 @@
         ((string-equal kind "payable") "Προς πληρωμή")
         (t (error "Internal error in invoice-page-title"))))
 
+(defun invoice-top-actions (op kind id filter)
+  (top-actions
+   (make-instance 'menu
+                  :spec `((catalogue ,(html ()
+                                        (:a :href (apply #'invoice kind :id id filter)
+                                            (:img :src "/scrooge/img/application_view_list.png")
+                                            "Κατάλογος")))
+                          (create ,(html ()
+                                     (:a :href (apply #'invoice/create kind filter)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str (conc "Νέα "
+                                                    (if (string-equal kind "receivable")
+                                                        "Χρέωση"
+                                                        "Πίστωση")))))))
+                  :css-class "hmenu"
+                  :disabled (cond ((member op '(:catalogue :delete))
+                                   '(catalogue))
+                                  ((eql op :create)
+                                   '(create))
+                                  (t
+                                   nil)))
+   (searchbox #'(lambda (&rest args)
+                  (apply #'actions/invoice/search kind args))
+              #'(lambda (&rest args)
+                  (apply #'invoice kind :id id args))
+              filter
+              "ac-company")))
+
 (defun invoice-actions (op kind id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'invoice/create kind filter)
-                                              (apply #'invoice/details kind :id id filter)
+                 (action-anchors/crud+details (apply #'invoice/details kind :id id filter)
                                               (apply #'invoice/update kind :id id filter)
                                               (apply #'invoice/delete kind :id id filter)))
                 (enabled-actions/crud+details op id)))
 
 (defun invoice-filters (kind filter)
-  (with-html
-    (:div :class "filters"
-          (filters-navbar `((receivable ,(apply #'invoice "receivable" filter) "Χρεώσεις")
-                            (payable ,(apply #'invoice "payable" filter) "Πιστώσεις"))
-                          kind)
-          (datebox (lambda (&rest args)
-                     (apply #'invoice kind args))
-                   filter))))
-
-(defun invoice-subnavbar (op kind filter &optional id)
-  (subnavbar (html ()
-               (if (member op '(:catalogue :delete))
-                   (invoice-filters kind filter)
-                   (htm (:div :class "options"
-                              (:ul (:li (:a :href (apply #'invoice kind :id id filter)
-                                            "Κατάλογος"))))))
-               (searchbox #'(lambda (&rest args)
-                              (apply #'actions/invoice/search kind args))
-                          #'(lambda (&rest args)
-                              (apply #'invoice kind :id id args))
-                          filter
-                          "ac-company"))))
+  (filter-area (filter-navbar `((receivable ,(apply #'invoice "receivable" filter)
+                                            "Χρεώσεις")
+                                (payable ,(apply #'invoice "payable" filter)
+                                         "Πιστώσεις"))
+                              :active kind
+                              :id "kind-navbar")
+               (datebox (lambda (&rest args)
+                          (apply #'invoice kind args))
+                        filter)))
 
 (defpage invoice-page actions/invoice/search
     (("actions/invoice/" (kind "(receivable|payable)") "/search") :request-type :get)
@@ -263,7 +277,7 @@
                               :filter (list :debit-p (not receivable-p)))))
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
-            (:div :class "grid_6 alpha"
+            (:div :class "grid_5 prefix_1 alpha"
                   (display lit 'tx-date "Ημερομηνία" :extra-styles "datepicker" :value (today))
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" :extra-styles "ac-company")
@@ -275,7 +289,7 @@
                                                     "Δημιουργία"))
                                (cancel-button (cancel-url form)
                                               :body "Άκυρο")))))
-            (:div :class "grid_6 omega"
+            (:div :class "grid_5 omega"
                   (label 'account-id (conc "Λογαριασμός "
                                            (if receivable-p "εσόδων" "εξόδων")))
                   ;; Display the tree. If needed, preselect the first account of the tree.
@@ -283,7 +297,8 @@
                                          (getf record (if receivable-p
                                                           :credit-acc-id
                                                           :debit-acc-id))
-                                         (root-key tree))))))))
+                                         (root-key tree))))
+            (clear)))))
 
 
 
@@ -325,7 +340,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter (val id))
+               (invoice-top-actions op kind (val id) filter)
+               (invoice-filters kind filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -357,7 +373,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter (val id))
+               (invoice-top-actions op kind (val id) filter)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:p :class "title" "Λεπτομέρειες")
@@ -398,9 +414,9 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter)
+               (invoice-top-actions op kind nil filter)
                (:div :class "grid_12"
-                     (:div :id "invoice-window" :class "window"
+                     (:div :class "window"
                            (:div :class "title" (str page-title))
                            (invoice-actions op kind nil filter)
                            (notifications)
@@ -480,7 +496,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter (val id))
+               (invoice-top-actions op kind (val id) filter)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:p :class "title" "Επεξεργασία")
@@ -555,7 +571,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-subnavbar op kind filter (val id))
+               (invoice-top-actions op kind (val id) filter)
+               (invoice-filters kind filter)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:div :class "title" (str page-title))

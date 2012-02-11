@@ -135,6 +135,7 @@
                   (apply #'cheque kind :id id args))
               filter
               "ac-company")))
+
 (defun cheque-actions (op kind id filter)
   (actions-menu (make-menu-spec
                  (action-anchors/crud+details (apply #'cheque/details kind :id id filter)
@@ -577,13 +578,13 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :update)
-           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Επεξεργασία"))
            (filter (params->filter))
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
                                        :op op
                                        :record (get-record 'cheque (val id))
-                                       :cancel-url (apply #'cheque/details kind :id (val id) filter))))
+                                       :cancel-url (apply #'cheque/details kind :id (val id) filter)))
+           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
          (:title (str page-title))

@@ -30,12 +30,8 @@ ul.crud-tree {
     padding: 0px;
 }
 
-.crud-tree li.selected, .crud-tree li.selected {
+.crud-tree li.selected {
     background-color: #ffd;
-}
-
-.crud-tree li.selected ul, .crud-tree li.selected ul {
-    background-color: #eee;
 }
 
 
