@@ -82,8 +82,7 @@
                                      (:a :href (apply #'config/bank/create filter)
                                          (:img :src "/scrooge/img/add.png")
                                          (str "Νέα Τράπεζα")))))
-                  :css-class "hmenu"
-                  :disabled nil)
+                  :css-class "hmenu")
    (searchbox #'config/bank
               #'(lambda (&rest args)
                   (apply #'config/bank :id id args))

@@ -82,8 +82,7 @@
                                      (:a :href (apply #'config/city/create filter)
                                          (:img :src "/scrooge/img/add.png")
                                          (str "Νέα πόλη")))))
-                  :css-class "hmenu"
-                  :disabled nil)
+                  :css-class "hmenu")
    (searchbox #'config/city
               #'(lambda (&rest args)
                   (apply #'config/city :id id args))

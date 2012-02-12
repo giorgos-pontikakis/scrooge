@@ -82,8 +82,7 @@
                                      (:a :href (apply #'config/tof/create filter)
                                          (:img :src "/scrooge/img/add.png")
                                          (str "Νέα Τράπεζα")))))
-                  :css-class "hmenu"
-                  :disabled nil)
+                  :css-class "hmenu")
    (searchbox #'config/tof
               #'(lambda (&rest args)
                   (apply #'config/tof :id id args))

@@ -180,7 +180,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions :details (val id) filter)
-               (project-tabs (val id) filter 'details
+               (project-tabs (val id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
@@ -244,7 +244,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions :details (val id) filter)
-               (project-tabs (val id) filter 'details
+               (project-tabs (val id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
@@ -306,7 +306,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions :details (val id) filter)
-               (project-tabs (val id) filter 'details
+               (project-tabs (val id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"

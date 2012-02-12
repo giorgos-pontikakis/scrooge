@@ -132,14 +132,20 @@
 ;;; ------------------------------------------------------------
 
 (defun account-actions (op id debitp)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud (config/account/create :debitp debitp :parent-id id)
-                                      (config/account/update :id id)
-                                      (if (or (null id)
-                                              (acc-referenced-p id))
-                                          nil
-                                          (config/account/delete :id id))))
-                (enabled-actions/crud op id)))
+  (let ((spec `((:create ,(config/account/create :debitp debitp :parent-id id) "Νέος Λογαριασμός")
+                (:update ,(config/account/update :id id) "Επεξεργασία")
+                (:delete ,(if (or (null id)
+                                  (acc-referenced-p id))
+                              nil
+                              (config/account/delete :id id)) "Διαγραφή"))))
+    (actions-menu (make-menu-spec spec)
+                  (ecase op
+                    (:catalogue (if id
+                                    '(:create :update :delete)
+                                    '()))
+                    (:create '())
+                    (:update '())
+                    (:delete '())))))
 
 
 

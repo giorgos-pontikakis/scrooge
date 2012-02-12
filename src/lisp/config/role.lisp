@@ -47,9 +47,11 @@
   (actions-menu (make-menu-spec
                  `((:catalogue ,(config/account-role :id id)        "Προβολή")
                    (:update    ,(config/account-role/update :id id) "Επεξεργασία")))
-                (ecase op
-                  (:update '(:catalogue))
-                  (:catalogue '(:update)))))
+                (if id
+                    (ecase op
+                      (:update '())
+                      (:catalogue '(:update)))
+                    nil)))
 
 
 

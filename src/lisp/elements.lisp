@@ -135,12 +135,12 @@
 ;;; actions menu
 
 (defun action-anchors/crud (update delete)
-  `((:update ,update "Αλλαγή")
+  `((:update ,update "Επεξεργασία")
     (:delete ,delete "Διαγραφή")))
 
 (defun action-anchors/crud+details (details update delete)
   `((:details ,details "Λεπτομέρειες")
-    (:update  ,update  "Αλλαγή")
+    (:update  ,update  "Επεξεργασία")
     (:delete  ,delete  "Διαγραφή")))
 
 (defun enabled-actions/crud (op id)
@@ -148,7 +148,6 @@
     (:catalogue (if id
                     '(:update :delete)
                     '()))
-    (:create '())
     (:update '())
     (:delete '())))
 

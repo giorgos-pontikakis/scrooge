@@ -13,10 +13,6 @@
     padding-right: 2px;
 }
 
-.crud-tree div {
-    display: inline;
-}
-
 .crud-tree .controls {
     float: right;
 }
@@ -30,8 +26,8 @@ ul.crud-tree {
     padding: 0px;
 }
 
-.crud-tree li.selected {
-    background-color: #ffd;
+.crud-tree li.selected > div {
+    background-color: #ffb;
 }
 
 
@@ -65,7 +61,7 @@ ul.crud-tree {
 }
 
 .crud-table tr.selected, .crud-table ul.selected {
-    background-color: #ffd;
+    background-color: #ffb;
 }
 
 .crud-table td, .crud-table th  {

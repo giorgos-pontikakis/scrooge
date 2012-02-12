@@ -137,24 +137,25 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun cheque-stran-top-actions (kind)
+  (top-actions (make-instance 'menu
+                              :spec `((create
+                                       ,(html ()
+                                          (:a :href (config/cheque-stran/create kind)
+                                              (:img :src "/scrooge/img/add.png")
+                                              "Νέα μετάπτωση"))))
+                              :css-class "hmenu")
+               nil))
+
 (defun cheque-stran-actions (op kind id)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud (config/cheque-stran/create kind)
-                                      (config/cheque-stran/update kind :id id)
-                                      (config/cheque-stran/delete kind :id id)))
+  (actions-menu (make-menu-spec (action-anchors/crud (config/cheque-stran/update kind :id id)
+                                                     (config/cheque-stran/delete kind :id id)))
                 (enabled-actions/crud op id)))
 
 (defun cheque-stran-filters (kind)
-  (with-html
-    (:div :class "filters"
-          (filters-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
-                            (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
-                          (intern (string-upcase kind))))))
-
-(defun cheque-stran-subnavbar (kind)
-  (with-html
-    (:div :class "section-subnavbar grid_12"
-          (cheque-stran-filters kind))))
+  (filter-area (filter-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
+                                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
+                              :active (intern (string-upcase kind)))))
 
 
 
@@ -255,7 +256,8 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-subnavbar kind)
+               (cheque-stran-top-actions kind)
+               (cheque-stran-filters kind)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -290,7 +292,8 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-subnavbar kind)
+               (cheque-stran-top-actions kind)
+               (cheque-stran-filters kind)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -344,7 +347,8 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-subnavbar kind)
+               (cheque-stran-top-actions kind)
+               (cheque-stran-filters kind)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -396,7 +400,8 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-subnavbar kind)
+               (cheque-stran-top-actions kind)
+               (cheque-stran-filters kind)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Διαγραφή")
