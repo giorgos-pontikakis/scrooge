@@ -34,7 +34,7 @@
                           (tof           ,(config/tof)                       "Δ.Ο.Υ.")
                           (account       ,(config/account)                   "Λογαριασμοί")
                           (account-role  ,(config/account-role)              "Ρόλοι Λογαριασμών")
-                          (temtx         ,(config/temtx)                     "Πρότυπες Συναλλαγές")
+                          (temtx         ,(config/temtx)                     "Πρότυπα Συναλλαγών")
                           (cheque-stran  ,(config/cheque-stran "receivable") "Επιταγές"))
                         :css-class "hnavbar"
                         :active active)))))

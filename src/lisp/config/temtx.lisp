@@ -77,10 +77,19 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun bank-top-actions ()
+  (top-actions
+   (make-instance 'menu
+                  :spec `((create ,(html ()
+                                     (:a :href (config/temtx/create)
+                                         (:img :src "/scrooge/img/add.png")
+                                         (str "Νέο Πρότυπο Συναλλαγής")))))
+                  :css-class "hmenu")
+   nil))
+
 (defun temtx-actions (op id)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud (config/temtx/create)
-                                      (config/temtx/update :id id)
+                 (action-anchors/crud (config/temtx/update :id id)
                                       (config/temtx/delete :id id)))
                 (enabled-actions/crud op id)))
 
@@ -165,12 +174,13 @@
                                        :id "temtx-table")))
       (with-document ()
         (:head
-         (:title "Πρότυπες Συναλλαγές » Κατάλογος")
+         (:title "Πρότυπα Συναλλαγών » Κατάλογος")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
+               (bank-top-actions)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -195,12 +205,13 @@
                                       :op :create)))
       (with-document ()
         (:head
-         (:title "Πρότυπες Συναλλαγές » Δημιουργία")
+         (:title "Πρότυπα Συναλλαγών » Δημιουργία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
+               (bank-top-actions)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -240,12 +251,13 @@
                                        :op op)))
       (with-document ()
         (:head
-         (:title "Πρότυπες Συναλλαγές » Επεξεργασία")
+         (:title "Πρότυπα Συναλλαγών » Επεξεργασία")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
+               (bank-top-actions)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -285,12 +297,13 @@
                                        :op :delete)))
       (with-document ()
         (:head
-         (:title "Πρότυπες Συναλλαγές » Διαγραφή")
+         (:title "Πρότυπα Συναλλαγών » Διαγραφή")
          (config-headers))
         (:body
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
+               (bank-top-actions)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Διαγραφή")
