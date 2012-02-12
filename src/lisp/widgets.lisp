@@ -53,7 +53,8 @@
          (len (length (rows (table pg))))
          (prev (previous-page-start pg start))
          (next (next-page-start pg start)))
-    (with-html
+    (when (rows (table pg))
+      (with-html
         (:div :class (css-class pg)
               (fmt "Record ~A–~A from ~A"
                    (1+ start)
@@ -66,7 +67,7 @@
               (if next
                   (htm (:a :href (target-url pg next)
                            (img "resultset_next.png")))
-                  (img "resultset_last.png"))))))
+                  (img "resultset_last.png")))))))
 
 
 

@@ -361,7 +361,7 @@
                   :on (:= 'credit-account.id 'tx.credit-acc-id)
                   :where (:and (:= 'tx.company-id company-id)
                                (:or (:= 'credit-account.id *cash-acc-id*)
-                                    (:= 'credit-account.id *cheque-payable-acc-id*)
+                                    #|(:= 'credit-account.id *cheque-payable-acc-id*)|#
                                     (:= 'debit-account.id *invoice-receivable-acc-id*))))
          :plists))
 
@@ -374,30 +374,36 @@
                   :on (:= 'credit-account.id 'tx.credit-acc-id)
                   :where (:and (:= 'tx.company-id company-id)
                                (:or (:= 'debit-account.id *cash-acc-id*)
-                                    (:= 'debit-account.id *cheque-receivable-acc-id*)
+                                    #|(:= 'debit-account.id *cheque-receivable-acc-id*)|#
                                     (:= 'credit-account.id *invoice-payable-acc-id*))))
          :plists))
 
 (defun company-debits/credits (company-id)
-  (sort (nconc (company-debits company-id)
-               (company-credits company-id))
-        #'local-time:timestamp>
-        :key #'(lambda (row)
-                 (getf row :tx-date))))
+  (let* ((debits (company-debits company-id))
+         (credits (company-credits company-id))
+         (debit-sum (reduce #'+ debits :key (lambda (rec)
+                                              (getf rec :debit-amount))
+                                       :initial-value 0))
+         (credit-sum (reduce #'+ credits :key (lambda (rec)
+                                                (getf rec :credit-amount))
+                                         :initial-value 0)))
+    (values (sort (nconc debits credits)
+                  #'local-time:timestamp>
+                  :key #'(lambda (rec)
+                           (getf rec :tx-date)))
+
+            debit-sum credit-sum)))
 
 
 ;;; table
 
 (defclass company-tx-table (scrooge-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Πίστωση" "Χρέωση" "" ""))
+  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "" ""))
    (paginator      :initform (make-instance 'company-tx-paginator
                                             :id "company-tx-paginator"
                                             :css-class "paginator"))
    (company-id     :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'company-tx-row :id "company-tx-table"))
-
-(defmethod get-records ((table company-tx-table))
-  (company-debits/credits (company-id table)))
 
 
 ;;; rows
@@ -433,6 +439,7 @@
                              :value (getf record (make-keyword name))
                              :disabled (not enabled-p)))
             '(tx-date description debit-amount credit-amount))))
+
 
 ;;; paginator
 
@@ -527,26 +534,33 @@
      (tx-id      integer)
      (start      integer))
   (with-view-page
-    (let* ((filter (params->filter)))
-      (with-document ()
-        (:head
-         (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'company)
-               (company-top-actions :details (val id) filter)
-               (company-tabs (val id) filter 'transactions
-                             (html ()
-                               (:div :class "window"
-                                     (:div :class "title" "Συναλλαγές")
-                                     (display (make-instance 'company-tx-table
-                                                             :company-id (val id)
-                                                             :op :details
-                                                             :filter filter)
-                                              :key (val tx-id)))))
-               (footer)))))))
+    (let ((filter (params->filter)))
+      (multiple-value-bind (records debit-sum credit-sum)
+          (company-debits/credits (val id))
+        (with-document ()
+          (:head
+           (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header)
+                 (main-navbar 'company)
+                 (company-top-actions :details (val id) filter)
+                 (company-tabs (val id) filter 'transactions
+                               (html ()
+                                 (:div :id "company-tx-window" :class "window"
+                                       (:div :class "title" "Συναλλαγές")
+                                       (display (make-instance 'company-tx-table
+                                                               :records records
+                                                               :company-id (val id)
+                                                               :op :details
+                                                               :filter filter)
+                                                :key (val tx-id))
+                                       (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
+                                       (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
+                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
+                                                                           credit-sum))))))
+                 (footer))))))))
 
 
 
