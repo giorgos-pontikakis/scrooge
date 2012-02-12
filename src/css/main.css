@@ -42,13 +42,14 @@
 }
 
 .tabbar .hnavbar a {
-    padding: 8px 20px 10px 20px;
+    padding: 11px 20px 11px 20px;
     color: #444;
+    border: 1px solid transparent;
+    margin-bottom: -1px;
 }
 
 .tabbar .hnavbar a:hover {
-    background-color: #58b;
-    border-radius: 5px 5px 0px 0px;
+    color: #000;
 }
 
 
