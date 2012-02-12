@@ -9,7 +9,7 @@
 (defclass company-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id start))
+    :initform '(id tx-id start))
    (payload-parameter-names
     :allocation :class
     :initform '(title occupation tof tin address city pobox zipcode notes))
@@ -349,6 +349,102 @@
 
 
 ;;; ------------------------------------------------------------
+;;; Company transactions table
+;;; ------------------------------------------------------------
+
+(defun company-debits (company-id)
+  (query (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'debit-amount)
+                  :from 'tx
+                  :inner-join (:as 'account 'debit-account)
+                  :on (:= 'debit-account.id 'tx.debit-acc-id)
+                  :inner-join (:as 'account 'credit-account)
+                  :on (:= 'credit-account.id 'tx.credit-acc-id)
+                  :where (:and (:= 'tx.company-id company-id)
+                               (:or (:= 'credit-account.id *cash-acc-id*)
+                                    (:= 'credit-account.id *cheque-payable-acc-id*)
+                                    (:= 'debit-account.id *invoice-receivable-acc-id*))))
+         :plists))
+
+(defun company-credits (company-id)
+  (query (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'credit-amount)
+                  :from 'tx
+                  :inner-join (:as 'account 'debit-account)
+                  :on (:= 'debit-account.id 'tx.debit-acc-id)
+                  :inner-join (:as 'account 'credit-account)
+                  :on (:= 'credit-account.id 'tx.credit-acc-id)
+                  :where (:and (:= 'tx.company-id company-id)
+                               (:or (:= 'debit-account.id *cash-acc-id*)
+                                    (:= 'debit-account.id *cheque-receivable-acc-id*)
+                                    (:= 'credit-account.id *invoice-payable-acc-id*))))
+         :plists))
+
+(defun company-debits/credits (company-id)
+  (sort (nconc (company-debits company-id)
+               (company-credits company-id))
+        #'local-time:timestamp>
+        :key #'(lambda (row)
+                 (getf row :tx-date))))
+
+
+;;; table
+
+(defclass company-tx-table (scrooge-table)
+  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Πίστωση" "Χρέωση" "" ""))
+   (paginator      :initform (make-instance 'company-tx-paginator
+                                            :id "company-tx-paginator"
+                                            :css-class "paginator"))
+   (company-id     :accessor company-id :initarg :company-id))
+  (:default-initargs :item-class 'company-tx-row :id "company-tx-table"))
+
+(defmethod get-records ((table company-tx-table))
+  (company-debits/credits (company-id table)))
+
+
+;;; rows
+
+(defclass company-tx-row (scrooge-row/plist)
+  ())
+
+(defmethod key ((row company-tx-row))
+  (getf (record row) :tx-id))
+
+(defmethod selector ((row company-tx-row) selected-p)
+  (let* ((table (collection row))
+         (tx-id (key row))
+         (company-id (company-id table))
+         (filter (filter table))
+         (start (page-start (paginator table) (index row) (start-index table))))
+    (html ()
+      (:a :href (if selected-p
+                    (apply #'company/details/transactions :id company-id
+                                                          :start start filter)
+                    (apply #'company/details/transactions :id company-id
+                                                          :tx-id tx-id filter))
+          (selector-img selected-p)))))
+
+(defmethod controls ((row company-tx-row) controls-p)
+  (simple-controls row controls-p #'company/details/transactions))
+
+(defmethod payload ((row company-tx-row) enabled-p)
+  (let ((record (record row)))
+    (mapcar (lambda (name)
+              (make-instance 'textbox
+                             :name name
+                             :value (getf record (make-keyword name))
+                             :disabled (not enabled-p)))
+            '(tx-date description debit-amount credit-amount))))
+
+;;; paginator
+
+(defclass company-tx-paginator (scrooge-paginator)
+  ())
+
+(defmethod target-url ((pg company-tx-paginator) start)
+  (apply #'company/details/transactions :start start (filter (table pg))))
+
+
+
+;;; ------------------------------------------------------------
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
@@ -427,7 +523,9 @@
 
 (defpage company-page company/details/transactions ("company/details/transactions")
     ((search     string)
-     (id         integer chk-company-id t))
+     (id         integer chk-company-id t)
+     (tx-id      integer)
+     (start      integer))
   (with-view-page
     (let* ((filter (params->filter)))
       (with-document ()
@@ -441,7 +539,13 @@
                (company-top-actions :details (val id) filter)
                (company-tabs (val id) filter 'transactions
                              (html ()
-                               (:p "money")))
+                               (:div :class "window"
+                                     (:div :class "title" "Συναλλαγές")
+                                     (display (make-instance 'company-tx-table
+                                                             :company-id (val id)
+                                                             :op :details
+                                                             :filter filter)
+                                              :key (val tx-id)))))
                (footer)))))))
 
 
@@ -655,30 +759,6 @@
     (see-other (apply #'company
                       (params->filter)))))
 
-;; (defun company-debits (company-id)
-;;   (query (:select 'tx.id 'tx.description 'tx.amount
-;;           :from 'tx
-;;           :inner-join (:as 'account 'debit-account)
-;;           :on (:= 'debit-account.id 'tx.debit-acc-id)
-;;           :inner-join (:as 'account 'credit-account)
-;;           :on (:= 'credit-account.id 'tx.credit-acc-id)
-;;           :where (:and (:= 'tx.company-id company-id)
-
-;;                        (:= 'credit-account.id *cash-acc-id*
-;;                            (:= 'credit-account.id *cheque-payable-acc-id*))
-;;                        (:in 'debit-account.id (:set (list *invoice-receivable-acc-id*)))))))
-
-;; (defun company-credits (company-id)
-;;   (query (:select 'tx.id 'tx.description 'tx.amount
-;;           :from 'tx
-;;           :inner-join (:as 'account 'debit-account)
-;;           :on (:= 'debit-account.id 'tx.debit-acc-id)
-;;           :inner-join (:as 'account 'credit-account)
-;;           :on (:= 'credit-account.id 'tx.credit-acc-id)
-;;           :where (:and (:= 'tx.company-id company-id)
-;;                        (:= 'debit-account.id *cash-acc-id*)
-;;                        (:= 'debit-account.id *cheque-receivable-acc-id*)
-;;                        (:= 'credit-account.id *invoice-payable-acc-id*)))))
 
 ;; ;; (defun company-credits (company-id)
 ;; ;;   (sql-compile `(:select tx.id tx.description tx.amount

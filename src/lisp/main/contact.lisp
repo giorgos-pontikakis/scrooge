@@ -51,12 +51,12 @@
   ())
 
 (defmethod selector ((row contact-row) selected-p)
-  (let ((table (collection row))
+  (let ((company-id (company-id (collection row)))
         (contact-id (getf (record row) :contact-id)))
     (html ()
       (:a :href (if selected-p
-                    (company/details :id (company-id table))
-                    (company/details :id (company-id table) :contact-id contact-id))
+                    (company/details :id company-id)
+                    (company/details :id company-id :contact-id contact-id))
           (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
