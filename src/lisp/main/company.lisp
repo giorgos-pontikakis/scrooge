@@ -356,14 +356,20 @@
   (query (:order-by
           (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'debit-amount)
                    :from 'tx
-                   :inner-join (:as 'account 'debit-account)
-                   :on (:= 'debit-account.id 'tx.debit-acc-id)
-                   :inner-join (:as 'account 'credit-account)
-                   :on (:= 'credit-account.id 'tx.credit-acc-id)
+                   :left-join 'cheque-event
+                   :on (:= 'cheque-event.tx-id 'tx.id)
                    :where (:and (:= 'tx.company-id company-id)
-                                (:or (:= 'credit-account.id *cash-acc-id*)
-                                     (:in 'credit-account.id
-                                          (:set (subaccount-ids *revenues-root-acc-id*))))))
+                                (:or (:= 'tx.credit-acc-id *cash-acc-id*)
+                                     (:in 'tx.credit-acc-id
+                                          (:set (subaccount-ids *revenues-root-acc-id*)))
+                                     (:and (:= 'tx.credit-acc-id *cheque-payable-acc-id*)
+                                           (:not (:exists (:select 1
+                                                           :from (:as 'tx 'tx2)
+                                                           :inner-join (:as 'cheque-event 'cheque-event2)
+                                                           :on (:= 'cheque-event2.tx-id 'tx2.id)
+                                                           :where (:and
+                                                                   (:= 'cheque-event2.cheque-id 'cheque-event.cheque-id)
+                                                                   (:= 'tx.debit-acc-id *cheque-payable-acc-id*)))))))))
           'tx.description)
          :plists))
 
@@ -371,14 +377,21 @@
   (query (:order-by
           (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'credit-amount)
                    :from 'tx
-                   :inner-join (:as 'account 'debit-account)
-                   :on (:= 'debit-account.id 'tx.debit-acc-id)
-                   :inner-join (:as 'account 'credit-account)
-                   :on (:= 'credit-account.id 'tx.credit-acc-id)
+                   :left-join 'cheque-event
+                   :on (:= 'cheque-event.tx-id 'tx.id)
                    :where (:and (:= 'tx.company-id company-id)
-                                (:or (:= 'debit-account.id *cash-acc-id*)
-                                     (:in 'debit-account.id
-                                          (:set (subaccount-ids *expenses-root-acc-id*))))))
+                                (:or (:= 'tx.debit-acc-id *cash-acc-id*)
+                                     (:in 'tx.debit-acc-id
+                                          (:set (subaccount-ids *expenses-root-acc-id*)))
+                                     (:and (:= 'tx.debit-acc-id *cheque-receivable-acc-id*)
+                                           (:not
+                                            (:exists (:select 1
+                                                      :from (:as 'tx 'tx2)
+                                                      :inner-join (:as 'cheque-event 'cheque-event2)
+                                                      :on (:= 'cheque-event2.tx-id 'tx2.id)
+                                                      :where (:and
+                                                              (:= 'cheque-event2.cheque-id 'cheque-event.cheque-id)
+                                                              (:= 'tx2.credit-acc-id *cheque-receivable-acc-id*)))))))))
           'tx.description)
          :plists))
 
