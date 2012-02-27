@@ -353,27 +353,33 @@
 ;;; ------------------------------------------------------------
 
 (defun company-debits (company-id)
-  (query (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'debit-amount)
-                  :from 'tx
-                  :inner-join (:as 'account 'debit-account)
-                  :on (:= 'debit-account.id 'tx.debit-acc-id)
-                  :inner-join (:as 'account 'credit-account)
-                  :on (:= 'credit-account.id 'tx.credit-acc-id)
-                  :where (:and (:= 'tx.company-id company-id)
-                               (:or (:= 'credit-account.id *cash-acc-id*)
-                                    (:= 'credit-account.id *revenues-root-acc-id*))))
+  (query (:order-by
+          (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'debit-amount)
+                   :from 'tx
+                   :inner-join (:as 'account 'debit-account)
+                   :on (:= 'debit-account.id 'tx.debit-acc-id)
+                   :inner-join (:as 'account 'credit-account)
+                   :on (:= 'credit-account.id 'tx.credit-acc-id)
+                   :where (:and (:= 'tx.company-id company-id)
+                                (:or (:= 'credit-account.id *cash-acc-id*)
+                                     (:in 'credit-account.id
+                                          (:set (subaccount-ids *revenues-root-acc-id*))))))
+          'tx.description)
          :plists))
 
 (defun company-credits (company-id)
-  (query (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'credit-amount)
-                  :from 'tx
-                  :inner-join (:as 'account 'debit-account)
-                  :on (:= 'debit-account.id 'tx.debit-acc-id)
-                  :inner-join (:as 'account 'credit-account)
-                  :on (:= 'credit-account.id 'tx.credit-acc-id)
-                  :where (:and (:= 'tx.company-id company-id)
-                               (:or (:= 'debit-account.id *cash-acc-id*)
-                                    (:= 'debit-account.id *expenses-root-acc-id*))))
+  (query (:order-by
+          (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'credit-amount)
+                   :from 'tx
+                   :inner-join (:as 'account 'debit-account)
+                   :on (:= 'debit-account.id 'tx.debit-acc-id)
+                   :inner-join (:as 'account 'credit-account)
+                   :on (:= 'credit-account.id 'tx.credit-acc-id)
+                   :where (:and (:= 'tx.company-id company-id)
+                                (:or (:= 'debit-account.id *cash-acc-id*)
+                                     (:in 'debit-account.id
+                                          (:set (subaccount-ids *expenses-root-acc-id*))))))
+          'tx.description)
          :plists))
 
 (defun company-debits/credits (company-id)
@@ -385,10 +391,10 @@
          (credit-sum (reduce #'+ credits :key (lambda (rec)
                                                 (getf rec :credit-amount))
                                          :initial-value 0)))
-    (values (sort (nconc debits credits)
-                  #'local-time:timestamp>
-                  :key #'(lambda (rec)
-                           (getf rec :tx-date)))
+    (values (stable-sort (nconc credits debits)
+                         #'local-time:timestamp>
+                         :key #'(lambda (rec)
+                                  (getf rec :tx-date)))
 
             debit-sum credit-sum)))
 

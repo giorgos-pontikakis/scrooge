@@ -62,12 +62,15 @@
 
 
 (with-db ()
+  ;; accounts
+  (defparameter *accounts*
+    (query (:select '* :from 'account) :plists))
   ;; debit accounts root
-  (defparameter *debit-accounts-root* 
+  (defparameter *debit-accounts-root*
     (select-dao-unique 'account (:and (:is-null 'parent-id)
                                       (:= 'debit-p t))))
   ;; debit accounts root
-  (defparameter *credit-accounts-root* 
+  (defparameter *credit-accounts-root*
     (select-dao-unique 'account (:and (:is-null 'parent-id)
                                       (:= 'debit-p nil))))
   ;; cash

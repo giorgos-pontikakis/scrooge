@@ -1,6 +1,19 @@
 (in-package :scrooge)
 
 
+(defun dfs (expander-fn root)
+  "Depth first search"
+  (labels ((dfs-aux (expanded fringe)
+             (if (null fringe)
+                 expanded
+                 (let ((head (first fringe))
+                       (tail (rest fringe)))
+                   (dfs-aux (list* head expanded)
+                            (append (funcall expander-fn head)
+                                    tail))))))
+    (dfs-aux nil (list root))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; HTTP-PARAMETER UTILITIES
