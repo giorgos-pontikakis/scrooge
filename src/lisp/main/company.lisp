@@ -352,6 +352,22 @@
 ;;; Company transactions table
 ;;; ------------------------------------------------------------
 
+(defun subaccounts (account-id)
+  (flet ((get-children (records id)
+           (remove-if-not (lambda (rec)
+                            (eql (getf rec :parent-id) id))
+                          records)))
+    (dfs (lambda (head)
+           (get-children *accounts*
+                         (getf head :id)))
+         (find account-id *accounts* :key (lambda (row)
+                                            (getf row :id))))))
+
+(defun subaccount-ids (account-id)
+  (mapcar (lambda (plist)
+            (getf plist :id))
+          (subaccounts account-id)))
+
 (defun company-debits (company-id)
   (query (:order-by
           (:select 'tx-date (:as 'tx.id 'tx-id) 'tx.description (:as 'tx.amount 'debit-amount)

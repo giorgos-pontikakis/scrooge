@@ -89,22 +89,6 @@
 
 (define-surrogate-key-readers account ((title string)) account-id)
 
-(defun subaccounts (account-id)
-  (flet ((get-children (records id)
-           (remove-if-not (lambda (rec)
-                            (eql (getf rec :parent-id) id))
-                          records)))
-    (dfs (lambda (head)
-           (get-children *accounts*
-                         (getf head :id)))
-         (find account-id *accounts* :key (lambda (row)
-                                            (getf row :id))))))
-
-(defun subaccount-ids (account-id)
-  (mapcar (lambda (plist)
-            (getf plist :id))
-          (subaccounts account-id)))
-
 
 
 ;;; ------------------------------------------------------------
@@ -138,6 +122,7 @@
    (rank       :col-type integer :accessor rank       :initarg :rank))
   (:metaclass dao-class)
   (:keys id))
+
 
 
 ;;; ------------------------------------------------------------
