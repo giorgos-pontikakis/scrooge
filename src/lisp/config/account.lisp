@@ -156,13 +156,15 @@
 ;;; tree
 
 (defclass account-tree (scrooge-tree)
-  ()
+  ((debit-p :accessor debit-p
+            :initarg :debit-p
+            :initform (error "While making an account-tree instance, debit-p slot is unbound")))
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
   (query (:select 'id 'title 'parent-id
           :from 'account
-          :where (:= 'debit-p (getf (filter tree) :debit-p)))
+          :where (:= 'debit-p (debit-p tree)))
          :plists))
 
 
@@ -249,7 +251,7 @@
                  (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                  (for account-tree = (make-instance 'account-tree
                                                     :op op
-                                                    :filter `(:debit-p ,debit-p)))
+                                                    :debit-p debit-p))
                  (let ()
                    (htm
                     (:div :class "grid_6"
@@ -395,7 +397,7 @@
                  (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                  (for account-tree = (make-instance 'account-tree
                                                     :op op
-                                                    :filter `(:debit-p ,debit-p)))
+                                                    :debit-p debit-p))
                  (htm
                   (:div :class "grid_6"
                         (:div :id div-id :class "window"

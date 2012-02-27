@@ -274,7 +274,7 @@
                               :root-key (if receivable-p
                                             *revenues-root-acc-id*
                                             *expenses-root-acc-id*)
-                              :filter (list :debit-p (not receivable-p)))))
+                              :debit-p (not receivable-p))))
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"

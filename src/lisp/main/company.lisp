@@ -361,8 +361,7 @@
                   :on (:= 'credit-account.id 'tx.credit-acc-id)
                   :where (:and (:= 'tx.company-id company-id)
                                (:or (:= 'credit-account.id *cash-acc-id*)
-                                    #|(:= 'credit-account.id *cheque-payable-acc-id*)|#
-                                    (:= 'debit-account.id *invoice-receivable-acc-id*))))
+                                    (:= 'credit-account.id *revenues-root-acc-id*))))
          :plists))
 
 (defun company-credits (company-id)
@@ -374,8 +373,7 @@
                   :on (:= 'credit-account.id 'tx.credit-acc-id)
                   :where (:and (:= 'tx.company-id company-id)
                                (:or (:= 'debit-account.id *cash-acc-id*)
-                                    #|(:= 'debit-account.id *cheque-receivable-acc-id*)|#
-                                    (:= 'credit-account.id *invoice-payable-acc-id*))))
+                                    (:= 'debit-account.id *expenses-root-acc-id*))))
          :plists))
 
 (defun company-debits/credits (company-id)

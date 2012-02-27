@@ -91,7 +91,7 @@
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-ro-tree
-                                                  :filter `(:debit-p ,flag)))
+                                                  :debit-p flag))
                (htm
                 (:div :class "grid_6"
                       (:div :id div-id :class "window"

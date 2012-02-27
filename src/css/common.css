@@ -1,9 +1,6 @@
-+/* global */
-
-a, a:hover img {
-    text-decoration: none;
-    color: blue;
-}
+/* ---------------------------------------------------------------------- */
+/* global */
+/* ---------------------------------------------------------------------- */
 
 body {
     background-color: #fff;
@@ -15,6 +12,11 @@ body {
 
 body a {
     text-decoration: none;
+}
+
+a, a:hover img {
+    text-decoration: none;
+    color: blue;
 }
 
 h1 {
