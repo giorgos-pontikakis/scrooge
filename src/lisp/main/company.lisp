@@ -373,7 +373,7 @@
             (getf plist :id))
           (subaccounts account-id)))
 
-(defun company-debits (company-id since until)
+(defun company-debits (company-id &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description (:as tx.amount debit-amount)
                       :from tx
                       :left-join cheque-event
@@ -405,7 +405,7 @@
       (query (sql-compile sql)
              :plists))))
 
-(defun company-credits (company-id since until)
+(defun company-credits (company-id &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description (:as tx.amount credit-amount)
                       :from tx
                       :left-join cheque-event
@@ -439,25 +439,39 @@
              :plists))))
 
 (defun company-debits/credits (company-id since until)
-  (let* ((debits (company-debits company-id since until))
-         (credits (company-credits company-id since until))
-         (debit-sum (reduce #'+ debits :key (lambda (rec)
-                                              (getf rec :debit-amount))
-                                       :initial-value 0))
-         (credit-sum (reduce #'+ credits :key (lambda (rec)
-                                                (getf rec :credit-amount))
-                                         :initial-value 0)))
-    (values (stable-sort (nconc credits debits)
-                         #'local-time:timestamp>
-                         :key #'(lambda (rec)
-                                  (getf rec :tx-date)))
-            debit-sum credit-sum)))
+  (flet ((get-date (row)
+           (getf row :tx-date)))
+    (let* ((sorted (stable-sort (nconc (company-debits company-id)
+                                       (company-credits company-id))
+                                #'local-time:timestamp<
+                                :key #'get-date))
+           (truncated (remove-if (lambda (row)
+                                   (or (and since
+                                            (not (eql since :null))
+                                            (timestamp< (get-date row) since))
+                                       (and until
+                                            (not (eql until :null))
+                                            (timestamp> (get-date row) until))))
+                                 sorted)))
+
+      (let ((total 0)
+            (debit-sum 0)
+            (credit-sum 0))
+        (dolist (row sorted)
+          (let* ((debit (getf row :debit-amount 0))
+                 (credit (getf row :credit-amount 0))
+                 (delta (- debit credit )))
+            (setf total (+ total delta))
+            (setf debit-sum (+ debit-sum debit))
+            (setf credit-sum (+ credit-sum credit))
+            (nconc row (list :total total))))
+        (values (nreverse truncated) debit-sum credit-sum total)))))
 
 
 ;;; table
 
 (defclass company-tx-table (scrooge-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "" ""))
+  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" ""))
    (paginator      :initform (make-instance 'company-tx-paginator
                                             :id "company-tx-paginator"
                                             :css-class "paginator")
@@ -498,7 +512,7 @@
                              :name name
                              :value (getf record (make-keyword name))
                              :disabled (not enabled-p)))
-            '(tx-date description debit-amount credit-amount))))
+            '(tx-date description debit-amount credit-amount total))))
 
 
 ;;; paginator
@@ -599,7 +613,7 @@
     (let ((filter (params->filter))
           (system (params->plist #'val-or-raw (list id tx-id)))
           (dates  (params->plist #'val-or-raw (list since until))))
-      (multiple-value-bind (records debit-sum credit-sum)
+      (multiple-value-bind (records debit-sum credit-sum total)
           (company-debits/credits (val id) (val since) (val until))
         (with-document ()
           (:head
@@ -623,10 +637,9 @@
                                                                :op :details
                                                                :filter filter)
                                                 :key (val tx-id))
-                                       (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
-                                       (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
-                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
-                                                                              credit-sum))))))
+                                       (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                                       (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
                  (footer))))))))
 
 (defpage company-page company/details/transactions/print ("company/details/transactions/print")
