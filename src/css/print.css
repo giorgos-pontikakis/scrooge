@@ -8,8 +8,11 @@
 
 
 @media print {
-    #back {
+    a, button {
         display: none;
+    }
+    input {
+        border: none;
     }
 }
 
