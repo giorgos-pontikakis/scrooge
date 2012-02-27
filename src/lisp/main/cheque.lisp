@@ -24,7 +24,7 @@
     :reader messages
     :initform
     '((due-date (:date-null
-                 "Η ημερομηνία είναι κενή"
+                 "Η ημερομηνία της επιταγής είναι κενή"
                  :parse-error
                  "Η ημερομηνία της επιταγής είναι άκυρη"))
       (bank (:bank-title-null
@@ -78,11 +78,6 @@
   (if (cheque-id-exists-p id)
       nil
       :cheque-id-unknown))
-
-(defun chk-date (date)
-  (if (eql :null date)
-      :date-null
-      nil))
 
 (defun chk-cheque-serial (serial)
   (declare (ignore serial))

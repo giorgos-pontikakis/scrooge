@@ -15,7 +15,7 @@
                           (cash    ,(cash "revenue")       "Μετρητά")
                           (cheque  ,(cheque "receivable")  "Επιταγές")
                           (invoice ,(invoice "receivable") "Χρεωπιστώσεις")
-                          (tx      ,(tx)                   "Συναλλαγές"))
+                          (tx      ,(tx)                   "Ημερολόγιο"))
                         :css-class "hnavbar"
                         :active active)))))
 

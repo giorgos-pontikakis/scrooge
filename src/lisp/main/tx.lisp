@@ -48,7 +48,9 @@
         :account-title-unknown
         "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
       (tx-date
-       (:parse-error
+       (:date-null
+        "Η ημερομηνία της συναλλαγής είναι κενή"
+        :parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
 
@@ -222,8 +224,8 @@
 (defpage tx-page tx ("tx")
     ((id     integer chk-tx-id)
      (search string)
-     (since  date    chk-date)
-     (until  date    chk-date)
+     (since  date)
+     (until  date)
      (start  integer))
   (with-view-page
     (let* ((op :catalogue)
@@ -258,9 +260,9 @@
 
 (defpage tx-page tx/create ("tx/create")
     ((search             string)
-     (since              date   chk-date)
-     (until              date   chk-date)
-     (tx-date            date)
+     (since              date)
+     (until              date)
+     (tx-date            date   chk-date)
      (description        string)
      (company            string chk-company-title)
      (amount             float  chk-amount)
@@ -296,9 +298,9 @@
 (defpage tx-page actions/tx/create ("actions/tx/create"
                                     :request-type :post)
     ((search         string)
-     (since          date   chk-date)
-     (until          date   chk-date)
-     (tx-date        date)
+     (since          date)
+     (until          date)
+     (tx-date        date    chk-date)
      (description    string)
      (company        string  chk-company-title)
      (amount         float   chk-amount)
@@ -327,9 +329,9 @@
 (defpage tx-page tx/update ("tx/update")
     ((search             string)
      (id                 integer chk-tx-id             t)
-     (since              date    chk-date)
-     (until              date    chk-date)
-     (tx-date            date)
+     (since              date)
+     (until              date)
+     (tx-date            date    chk-date)
      (description        string)
      (company            string  chk-company-title)
      (amount             float   chk-amount)
@@ -370,10 +372,10 @@
 (defpage tx-page actions/tx/update ("actions/tx/update"
                                     :request-type :post)
     ((search         string)
-     (since          date    chk-date)
-     (until          date    chk-date)
+     (since          date)
+     (until          date)
      (id             integer chk-tx-id t)
-     (tx-date        date)
+     (tx-date        date    chk-date)
      (description    string)
      (company        string  chk-company-title)
      (amount         float   chk-amount)
@@ -401,8 +403,8 @@
 
 (defpage tx-page tx/delete ("tx/delete")
     ((id     integer chk-tx-id t)
-     (since  date    chk-date)
-     (until  date    chk-date)
+     (since  date)
+     (until  date)
      (search string))
   ;; post validation - prevent delete if automatically created
   (with-db ()
@@ -437,8 +439,8 @@
 (defpage tx-page actions/tx/delete ("actions/tx/delete"
                                     :request-type :post)
     ((id     integer chk-tx-id t)
-     (since  date    chk-date)
-     (until  date    chk-date)
+     (since  date)
+     (until  date)
      (search string))
   (with-controller-page (tx/delete)
     (delete-dao (get-dao 'tx (val id)))

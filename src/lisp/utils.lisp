@@ -1,20 +1,6 @@
 (in-package :scrooge)
 
 
-(defun dfs (expander-fn root)
-  "Depth first search"
-  (labels ((dfs-aux (expanded fringe)
-             (if (null fringe)
-                 expanded
-                 (let ((head (first fringe))
-                       (tail (rest fringe)))
-                   (dfs-aux (list* head expanded)
-                            (append (funcall expander-fn head)
-                                    tail))))))
-    (dfs-aux nil (list root))))
-
-
-
 ;;; ------------------------------------------------------------
 ;;; HTTP-PARAMETER UTILITIES
 ;;; ------------------------------------------------------------
@@ -228,6 +214,18 @@ excluded for the search - useful for updates."
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun dfs (expander-fn root)
+  "Depth first search"
+  (labels ((dfs-aux (expanded fringe)
+             (if (null fringe)
+                 expanded
+                 (let ((head (first fringe))
+                       (tail (rest fringe)))
+                   (dfs-aux (list* head expanded)
+                            (append (funcall expander-fn head)
+                                    tail))))))
+    (dfs-aux nil (list root))))
+
 (defun lists->alist (lists)
   (mapcar (lambda (list)
             (cons (car list)
@@ -255,6 +253,11 @@ excluded for the search - useful for updates."
              (= (mod (mod sum 11)
                      10)
                 control-digit))))))
+
+(defun chk-date (date)
+  (if (eql :null date)
+      :date-null
+      nil))
 
 (defun chk-amount (float)
   (cond ((eql float :null)
