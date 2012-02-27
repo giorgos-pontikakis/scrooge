@@ -63,6 +63,12 @@
   (jquery-autocomplete)
   (css (url 'css "main.css")))
 
+(defun print-headers ()
+  (global-headers)
+  (css (url 'css "main.css"))
+  (css (url 'css "print.css"))
+  (with-html
+    (:link :media "screen" :rel "stylesheet" :href (url 'css "print.css") )))
 
 
 

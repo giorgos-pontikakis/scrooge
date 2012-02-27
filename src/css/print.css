@@ -1,0 +1,19 @@
+
+@media screen {
+    #back {
+        display: block;
+        padding: 10px;
+    }
+}
+
+
+@media print {
+    #back {
+        display: none;
+    }
+}
+
+h3 {
+    margin: 0px;
+    padding: 5px 10px;
+}

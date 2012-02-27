@@ -148,14 +148,19 @@
                                        ,(html ()
                                           (:a :href (apply #'company/create filter)
                                               (:img :src "/scrooge/img/add.png")
-                                              "Νέα Εταιρία"))))
+                                              "Νέα Εταιρία")))
+                                      (print
+                                       ,(html ()
+                                          (:a :href (apply #'company/details/transactions/print
+                                                           :id id filter)
+                                              (:img :src "/scrooge/img/printer.png")
+                                              "Εκτύπωση"))))
                               :css-class "hmenu"
-                              :disabled (cond ((member op '(:catalogue :delete))
-                                               '(catalogue))
-                                              ((eql op :create)
-                                               '(create))
-                                              (t
-                                               nil)))
+                              :disabled (ecase op
+                                          ((:catalogue :delete) '(catalogue print))
+                                          ((:create '(create print)))
+                                          ((:update :details) '(print))
+                                          ((:transactions) nil)))
                (searchbox #'actions/company/search
                           #'(lambda (&rest args)
                               (apply #'company :id id args))
@@ -434,7 +439,8 @@
   ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "" ""))
    (paginator      :initform (make-instance 'company-tx-paginator
                                             :id "company-tx-paginator"
-                                            :css-class "paginator"))
+                                            :css-class "paginator")
+                   :initarg :paginator)
    (company-id     :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'company-tx-row :id "company-tx-table"))
 
@@ -578,7 +584,7 @@
            (:div :id "container" :class "container_12"
                  (header)
                  (main-navbar 'company)
-                 (company-top-actions :details (val id) filter)
+                 (company-top-actions :transactions (val id) filter)
                  (company-tabs (val id) filter 'transactions
                                (html ()
                                  (:div :id "company-tx-window" :class "window"
@@ -594,6 +600,40 @@
                                        (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
                                                                            credit-sum))))))
                  (footer))))))))
+
+(defpage company-page company/details/transactions/print ("company/details/transactions/print")
+    ((search     string)
+     (tx-id      integer)
+     (id         integer chk-company-id t))
+  (with-view-page
+    (let ((filter (params->filter)))
+      (multiple-value-bind (records debit-sum credit-sum)
+          (company-debits/credits (val id))
+        (with-document ()
+          (:head
+           (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
+           (print-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (:div :class "grid_12"
+                       (:a :id "back"
+                           :href (company/details/transactions :id (val id)
+                                                               :tx-id (val tx-id)
+                                                               :search (val search))
+                           "« Επιστροφή")
+                       (:div :id "company-tx-window" :class "window"
+                             (:div :class "title"
+                                   (:h3 (str (title (get-dao 'company (val id))))))
+                             (display (make-instance 'company-tx-table
+                                                     :records records
+                                                     :company-id (val id)
+                                                     :op :details
+                                                     :filter filter
+                                                     :paginator nil))
+                             (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
+                             (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
+                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
+                                                                    credit-sum))))))))))))
 
 
 
@@ -690,7 +730,8 @@
      (zipcode    integer chk-zipcode)
      (notes      string))
   (with-view-page
-    (let* ((op :update) (filter (params->filter))
+    (let* ((op :update)
+           (filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op op
                                         :record (get-record 'company (val id))
