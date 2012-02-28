@@ -81,7 +81,7 @@
                   :spec `((create ,(html ()
                                      (:a :href (apply #'config/tof/create filter)
                                          (:img :src "/scrooge/img/add.png")
-                                         (str "Νέα Τράπεζα")))))
+                                         (str "Νέα Δ.Ο.Υ.")))))
                   :css-class "hmenu")
    (searchbox #'config/tof
               #'(lambda (&rest args)

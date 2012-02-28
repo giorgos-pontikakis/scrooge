@@ -270,7 +270,7 @@
 (defclass cheque-table (scrooge-table)
   ((kind        :accessor kind :initarg :kind)
    (header-labels  :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
-                               "Ημερομηνία<br />πληρωμής" "<br />Ποσό"))
+                               "Ημερομηνία<br />λήξης" "<br />Ποσό"))
    (paginator      :initform (make-instance 'cheque-paginator
                                             :id "cheque-paginator"
                                             :css-class "paginator")))

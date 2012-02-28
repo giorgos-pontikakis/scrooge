@@ -382,7 +382,7 @@
         (where-tx `(:or (:= tx.credit-acc-id ,*cash-acc-id*)
                         (:in tx.credit-acc-id
                              (:set ,@(subaccount-ids *revenues-root-acc-id*)))
-                        (:and (:= 'tx.credit-acc-id ,*cheque-payable-acc-id*)
+                        (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
                               (:not (:exists (:select 1
                                               :from (:as tx tx2)
                                               :inner-join (:as cheque-event cheque-event2)
@@ -390,7 +390,7 @@
                                               :where (:and
                                                       (:= cheque-event2.cheque-id
                                                           cheque-event.cheque-id)
-                                                      (:= tx.debit-acc-id
+                                                      (:= tx2.debit-acc-id
                                                           ,*cheque-payable-acc-id*))))))))
         (where-dates nil))
     (when (and since (not (eql since :null)))
@@ -415,16 +415,15 @@
                         (:in tx.debit-acc-id
                              (:set ,@(subaccount-ids *expenses-root-acc-id*)))
                         (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
-                              (:not
-                               (:exists (:select 1
-                                         :from (:as tx tx2)
-                                         :inner-join (:as cheque-event cheque-event2)
-                                         :on (:= cheque-event2.tx-id tx2.id)
-                                         :where (:and
-                                                 (:= cheque-event2.cheque-id
-                                                     cheque-event.cheque-id)
-                                                 (:= tx2.credit-acc-id
-                                                     ,*cheque-receivable-acc-id*))))))))
+                              (:not (:exists (:select 1
+                                              :from (:as tx tx2)
+                                              :inner-join (:as cheque-event cheque-event2)
+                                              :on (:= cheque-event2.tx-id tx2.id)
+                                              :where (:and
+                                                      (:= cheque-event2.cheque-id
+                                                          cheque-event.cheque-id)
+                                                      (:= tx2.credit-acc-id
+                                                          ,*cheque-receivable-acc-id*))))))))
         (where-dates nil))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))

@@ -77,7 +77,7 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun bank-top-actions ()
+(defun temtx-top-actions ()
   (top-actions
    (make-instance 'menu
                   :spec `((create ,(html ()
@@ -180,7 +180,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (bank-top-actions)
+               (temtx-top-actions)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -211,7 +211,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (bank-top-actions)
+               (temtx-top-actions)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -257,7 +257,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (bank-top-actions)
+               (temtx-top-actions)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -303,7 +303,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (bank-top-actions)
+               (temtx-top-actions)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Διαγραφή")

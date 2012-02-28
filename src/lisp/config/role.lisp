@@ -67,11 +67,11 @@
   (:default-initargs :item-class 'account-role-row :id "account-role-table"))
 
 (defmethod get-records ((table account-role-table))
-  (query (:order-by (:select 'account-role.id (:as 'account.title 'account) 'description
+  (query (:order-by (:select 'account-role.id (:as 'account.title 'account) 'description 'rank
                      :from 'account-role
                      :inner-join 'account
                      :on (:= 'account-id 'account.id))
-                    'description)
+                    'rank)
          :plists))
 
 
