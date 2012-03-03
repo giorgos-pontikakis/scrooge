@@ -634,7 +634,8 @@
                                                                :records records
                                                                :company-id (val id)
                                                                :op :details
-                                                               :filter filter)
+                                                               :filter (append system filter dates)
+                                                               :start-index (val start))
                                                 :key (val tx-id))
                                        (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
                                        (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
@@ -672,7 +673,7 @@
                                                      :records records
                                                      :company-id (val id)
                                                      :op :details
-                                                     :filter filter
+                                                     :filter (append system filter dates)
                                                      :paginator nil))
                              (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
                              (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
