@@ -110,7 +110,9 @@
                          :left-join company
                          :on (:= tx.company-id company.id)
                          :left-join account
-                         :on (:= ,(acc-join kind) account.id)))
+                         :on (:= ,(acc-join kind) account.id)
+                         :left-join 'cheque-event
+                         :on (:= 'cheque-event.tx-id 'tx.id)))
            (where nil))
       (when search
         (push `(:or (:ilike description ,(ilike search))
@@ -124,6 +126,7 @@
               where))
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(acc-filter kind))
+                                                 (:is-null 'cheque-event.cheque-id)
                                                  ,@where))
                              (:desc tx-date) account company description)))
         (query (sql-compile sql)
