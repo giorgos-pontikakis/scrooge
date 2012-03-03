@@ -15,7 +15,7 @@
     :initform '(title occupation tof tin address city pobox zipcode notes))
    (filter-parameter-names
     :allocation :class
-    :initform '(search))
+    :initform '(search subset))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))
@@ -183,7 +183,17 @@
                 (enabled-actions/crud+details op id :create-project)))
 
 (defun company-filters (filter)
-  (filter-area (filter-navbar `((nil ,(apply #'company filter) "Όλες")))))
+  (let* ((filter* (remove-from-plist filter :subset))
+         (filter-spec `(("nil"      ,(apply #'company filter*)
+                                    "Όλες")
+                        ("projects" ,(apply #'company :subset "projects" filter*)
+                                    "Με ενεργά έργα")
+                        ("debt"     ,(apply #'company :subset "debt" filter*)
+                                    "Με χρέος")
+                        ("credit"   ,(apply #'company :subset "credit" filter*)
+                                    "Με πίστωση"))))
+    (filter-area (filter-navbar filter-spec
+                                :active (getf filter :subset)))))
 
 (defun company-tabs (id filter active content)
   (with-html
@@ -289,33 +299,46 @@
 
 (defmethod get-records ((table company-table))
   (let* ((search (getf (filter table) :search))
+         (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
                                address occupation
                                (:as city.title city-name)
                        :distinct
-                       :from company
-                       :left-join city
-                       :on (:= city.id company.city-id)
-                       :left-join tof
-                       :on (:= tof.id company.tof-id)
-                       :left-join contact
-                       :on (:= contact.company-id company.id)))
-         (composite-query (if search
-                              (append base-query
-                                      `(:where (:or (:ilike company.title ,ilike-term)
-                                                    (:ilike tin ,ilike-term)
-                                                    (:ilike address ,ilike-term)
-                                                    (:ilike city.title ,ilike-term)
-                                                    (:ilike occupation ,ilike-term)
-                                                    (:ilike company.notes ,ilike-term)
-                                                    (:ilike contact.tag ,ilike-term)
-                                                    (:ilike contact.phone ,ilike-term))))
-                              base-query))
-         (final-query `(:order-by ,composite-query company.title)))
-    (query (sql-compile final-query)
-           :plists)))
+                               :from company
+                               :left-join city
+                               :on (:= city.id company.city-id)
+                               :left-join tof
+                               :on (:= tof.id company.tof-id)
+                               :left-join contact
+                               :on (:= contact.company-id company.id)
+                               :left-join project
+                               :on (:= project.company-id company.id)))
+         (where nil))
+    (when search
+      (push `(:or (:ilike company.title ,ilike-term)
+                  (:ilike tin ,ilike-term)
+                  (:ilike address ,ilike-term)
+                  (:ilike city.title ,ilike-term)
+                  (:ilike occupation ,ilike-term)
+                  (:ilike company.notes ,ilike-term)
+                  (:ilike contact.tag ,ilike-term)
+                  (:ilike contact.phone ,ilike-term))
+            where))
+    (when subset
+      (when-let (form (cond
+                        ((string= subset "projects")
+                         `(:= project.state "ongoing"))
+                        (t nil)))
+        (push form where)))
+    (let ((sql `(:order-by (,@base-query :where
+                                         (:and t
+                                               ,@where))
+                           company.title)))
+      #|(break "~A" sql)|#
+      (query (sql-compile sql)
+             :plists))))
 
 ;;; rows
 
@@ -531,6 +554,7 @@
 (defpage company-page company ("company")
     ((id     integer chk-company-id)
      (search string)
+     (subset string)
      (start  integer))
   (with-view-page
     (let* ((op :catalogue)
@@ -563,6 +587,7 @@
 
 (defpage company-page company/details ("company/details")
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id)))
   (with-view-page
@@ -603,6 +628,7 @@
 
 (defpage company-page company/details/transactions ("company/details/transactions")
     ((search string)
+     (subset string)
      (id     integer chk-company-id t)
      (tx-id  integer)
      (since  date)
@@ -644,6 +670,7 @@
 
 (defpage company-page company/details/transactions/print ("company/details/transactions/print")
     ((search string)
+     (subset string)
      (tx-id  integer)
      (since  date)
      (until  date)
@@ -688,6 +715,7 @@
 
 (defpage company-page company/create ("company/create")
     ((search     string)
+     (subset     string)
      (title      string  chk-company-title/create)
      (occupation string)
      (tof        string  chk-tof-title)
@@ -729,6 +757,7 @@
 (defpage company-page actions/company/create ("actions/company/create"
                                               :request-type :post)
     ((search     string)
+     (subset     string)
      (title      string  chk-company-title/create)
      (occupation string)
      (tof        string  chk-tof-title)
@@ -763,6 +792,7 @@
 
 (defpage company-page company/update ("company/update")
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id t)
      (contact-id integer (chk-contact-id id contact-id))
      (title      string  (chk-company-title/update title id))
@@ -818,6 +848,7 @@
 (defpage company-page actions/company/update ("actions/company/update"
                                               :request-type :post)
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id)
      (title      string  (chk-company-title/update title id))
      (occupation string)
@@ -853,7 +884,8 @@
 
 (defpage company-page company/delete ("company/delete")
     ((id     integer chk-company-id/ref t)
-     (search string))
+     (search string)
+     (subset string))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
@@ -883,7 +915,8 @@
 (defpage company-page actions/company/delete ("actions/company/delete"
                                               :request-type :post)
     ((id     integer chk-company-id)
-     (search string))
+     (search string)
+     (subset string))
   (with-controller-page (company/delete)
     (with-transaction ()
       (execute (:delete-from 'contact

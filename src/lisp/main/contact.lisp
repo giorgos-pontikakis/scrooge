@@ -127,6 +127,7 @@
 
 (defpage contact-page action/contact/rank-inc ("action/contact/rank-inc" :request-type :post)
     ((search     string)
+     (subset     string)
      (cstate     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
@@ -138,6 +139,7 @@
 
 (defpage contact-page action/contact/rank-dec ("action/contact/rank-dec" :request-type :post)
     ((search     string)
+     (subset     string)
      (cstate     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
@@ -155,6 +157,7 @@
 
 (defpage contact-page contact/create ("company/details/contact/create")
     ((search string)
+     (subset string)
      (id     integer chk-company-id t)
      (tag    string)
      (phone  string))
@@ -193,6 +196,7 @@
 
 (defpage contact-page actions/contact/create ("actions/contact/create" :request-type :post)
     ((search string)
+     (subset string)
      (id     integer chk-company-id)
      (tag    string)
      (phone  string))
@@ -214,6 +218,7 @@
 
 (defpage contact-page contact/update ("company/details/contact/update")
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t)
      (tag        string)
@@ -255,6 +260,7 @@
 (defpage contact-page actions/contact/update ("actions/contact/update"
                                               :request-type :post)
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t)
      (tag        string)
@@ -275,6 +281,7 @@
 
 (defpage contact-page contact/delete ("company/details/contact/delete")
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
   (with-view-page
@@ -314,6 +321,7 @@
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
                                               :request-type :post)
     ((search     string)
+     (subset     string)
      (id         integer chk-company-id                 t)
      (contact-id integer (chk-contact-id id contact-id) t))
   (with-controller-page (contact/delete)
