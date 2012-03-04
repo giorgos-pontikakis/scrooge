@@ -336,7 +336,6 @@
                                          (:and t
                                                ,@where))
                            company.title)))
-      #|(break "~A" sql)|#
       (query (sql-compile sql)
              :plists))))
 
