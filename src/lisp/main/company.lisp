@@ -379,22 +379,6 @@
 ;;; Company transactions table
 ;;; ------------------------------------------------------------
 
-(defun subaccounts (account-id)
-  (flet ((get-children (records id)
-           (remove-if-not (lambda (rec)
-                            (eql (getf rec :parent-id) id))
-                          records)))
-    (dfs (lambda (head)
-           (get-children *accounts*
-                         (getf head :id)))
-         (find account-id *accounts* :key (lambda (row)
-                                            (getf row :id))))))
-
-(defun subaccount-ids (account-id)
-  (mapcar (lambda (plist)
-            (getf plist :id))
-          (subaccounts account-id)))
-
 (defun company-debits (company-id &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description (:as tx.amount debit-amount)
                       :from tx
@@ -403,7 +387,7 @@
         (where-base `(:= tx.company-id ,company-id))
         (where-tx `(:or (:= tx.credit-acc-id ,*cash-acc-id*)
                         (:in tx.credit-acc-id
-                             (:set ,@(subaccount-ids *revenues-root-acc-id*)))
+                             (:set ,@*revenues-accounts*))
                         (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
                               (:not (:exists (:select 1
                                               :from (:as tx tx2)
@@ -435,7 +419,7 @@
         (where-base `(:= tx.company-id ,company-id))
         (where-tx `(:or (:= tx.debit-acc-id ,*cash-acc-id*)
                         (:in tx.debit-acc-id
-                             (:set ,@(subaccount-ids *expenses-root-acc-id*)))
+                             (:set ,@*expense-accounts*))
                         (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
                               (:not (:exists (:select 1
                                               :from (:as tx tx2)

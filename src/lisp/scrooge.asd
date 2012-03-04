@@ -8,8 +8,8 @@
   :components ((:file "package")
                (:file "utils")
                (:file "tables")
-
                (:file "init")
+               (:file "globals")
                (:file "widgets")
                (:file "errors")
                ;; -- Here come the pages! --
