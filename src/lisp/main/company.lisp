@@ -189,9 +189,9 @@
                         ("projects" ,(apply #'company :subset "projects" filter*)
                                     "Με ενεργά έργα")
                         ("debt"     ,(apply #'company :subset "debt" filter*)
-                                    "Με χρέος")
+                                    "Με χρεωστικό υπόλοιπο")
                         ("credit"   ,(apply #'company :subset "credit" filter*)
-                                    "Με πίστωση"))))
+                                    "Με πιστωτικό υπόλοιπο"))))
     (filter-area (filter-navbar filter-spec
                                 :active (getf filter :subset)))))
 
@@ -330,6 +330,26 @@
       (when-let (form (cond
                         ((string= subset "projects")
                          `(:= project.state "ongoing"))
+                        ((member subset (list "credit" "debt") :test #'string=)
+                         `(,(if (string= subset "credit") :< :>)
+                           (:select (sum tx.amount)
+                            :from tx
+                            :left-join cheque-event
+                            :on (:= cheque-event.tx-id tx.id)
+                            :where (:and
+                                    (:= tx.company-id company.id)
+                                    (:or (:= tx.credit-acc-id ,*cash-acc-id*)
+                                         (:in tx.credit-acc-id
+                                              (:set ,@*revenues-accounts*)))))
+                           (:select (sum tx.amount)
+                            :from tx
+                            :left-join cheque-event
+                            :on (:= cheque-event.tx-id tx.id)
+                            :where (:and
+                                    (:= tx.company-id company.id)
+                                    (:or (:= tx.debit-acc-id ,*cash-acc-id*)
+                                         (:in tx.debit-acc-id
+                                              (:set ,@*expense-accounts*)))))))
                         (t nil)))
         (push form where)))
     (let ((sql `(:order-by (,@base-query :where
