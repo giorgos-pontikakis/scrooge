@@ -400,10 +400,13 @@
 ;;; ------------------------------------------------------------
 
 (defun company-debits (company-id &optional since until)
-  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description (:as tx.amount debit-amount)
+  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
+                      (:as tx.amount debit-amount) cheque.due-date
                       :from tx
                       :left-join cheque-event
-                      :on (:= cheque-event.tx-id tx.id)))
+                      :on (:= cheque-event.tx-id tx.id)
+                      :left-join cheque
+                      :on (:= cheque.id cheque-event.cheque-id)))
         (where-base `(:= tx.company-id ,company-id))
         (where-tx `(:or (:= tx.credit-acc-id ,*cash-acc-id*)
                         (:in tx.credit-acc-id
@@ -432,10 +435,13 @@
              :plists))))
 
 (defun company-credits (company-id &optional since until)
-  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description (:as tx.amount credit-amount)
+  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
+                      (:as tx.amount credit-amount) cheque.due-date
                       :from tx
                       :left-join cheque-event
-                      :on (:= cheque-event.tx-id tx.id)))
+                      :on (:= cheque-event.tx-id tx.id)
+                      :left-join cheque
+                      :on (:= cheque.id cheque-event.cheque-id)))
         (where-base `(:= tx.company-id ,company-id))
         (where-tx `(:or (:= tx.debit-acc-id ,*cash-acc-id*)
                         (:in tx.debit-acc-id
@@ -485,10 +491,17 @@
         (dolist (row sorted)
           (let* ((debit (getf row :debit-amount 0))
                  (credit (getf row :credit-amount 0))
-                 (delta (- debit credit )))
+                 (delta (- debit credit)))
             (setf total (+ total delta))
             (setf debit-sum (+ debit-sum debit))
             (setf credit-sum (+ credit-sum credit))
+            (unless (eql (getf row :due-date) :null)
+              (setf (getf row :description)
+                    (concatenate 'string
+                                 (getf row :description)
+                                 " (Λήξη: "
+                                 (lisp->html (getf row :due-date))
+                                 ")")))
             (nconc row (list :total total))))
         (values (nreverse truncated) debit-sum credit-sum total)))))
 
