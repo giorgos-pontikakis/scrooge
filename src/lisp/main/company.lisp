@@ -331,31 +331,52 @@
                   (:ilike contact.phone ,ilike-term))
             where))
     (when subset
-      (when-let (form (cond
-                        ((string= subset "projects")
-                         `(:= project.state "ongoing"))
-                        ((member subset (list "credit" "debt") :test #'string=)
-                         `(,(if (string= subset "credit") :< :>)
-                           (:select (sum tx.amount)
-                            :from tx
-                            :left-join cheque-event
-                            :on (:= cheque-event.tx-id tx.id)
-                            :where (:and
-                                    (:= tx.company-id company.id)
-                                    (:or (:= tx.credit-acc-id ,*cash-acc-id*)
-                                         (:in tx.credit-acc-id
-                                              (:set ,@*revenues-accounts*)))))
-                           (:select (sum tx.amount)
-                            :from tx
-                            :left-join cheque-event
-                            :on (:= cheque-event.tx-id tx.id)
-                            :where (:and
-                                    (:= tx.company-id company.id)
-                                    (:or (:= tx.debit-acc-id ,*cash-acc-id*)
-                                         (:in tx.debit-acc-id
-                                              (:set ,@*expense-accounts*)))))))
-                        (t nil)))
-        (push form where)))
+      (cond
+        ((string= subset "projects")
+         (push `(:= project.state "ongoing")
+               where))
+        ((member subset (list "credit" "debt") :test #'string=)
+         (push `(,(if (string= subset "credit") :< :>)
+                  (:select (coalesce (sum tx.amount) 0)
+                   :from tx
+                   :left-join cheque-event
+                   :on (:= cheque-event.tx-id tx.id)
+                   :where (:and
+                           (:= tx.company-id company.id)
+                           (:or (:= tx.credit-acc-id ,*cash-acc-id*)
+                                (:in tx.credit-acc-id
+                                     (:set ,@*revenues-accounts*))
+                                (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
+                                      (:not (:exists (:select 1
+                                                      :from (:as tx tx2)
+                                                      :inner-join (:as cheque-event cheque-event2)
+                                                      :on (:= cheque-event2.tx-id tx2.id)
+                                                      :where (:and
+                                                              (:= cheque-event2.cheque-id
+                                                                  cheque-event.cheque-id)
+                                                              (:= tx2.debit-acc-id
+                                                                  ,*cheque-payable-acc-id*)))))))))
+                  (:select (coalesce (sum tx.amount) 0)
+                   :from tx
+                   :left-join cheque-event
+                   :on (:= cheque-event.tx-id tx.id)
+                   :where (:and
+                           (:= tx.company-id company.id)
+                           (:or (:= tx.debit-acc-id ,*cash-acc-id*)
+                                (:in tx.debit-acc-id
+                                     (:set ,@*expense-accounts*))
+                                (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
+                                      (:not (:exists (:select 1
+                                                      :from (:as tx tx2)
+                                                      :inner-join (:as cheque-event cheque-event2)
+                                                      :on (:= cheque-event2.tx-id tx2.id)
+                                                      :where (:and
+                                                              (:= cheque-event2.cheque-id
+                                                                  cheque-event.cheque-id)
+                                                              (:= tx2.credit-acc-id
+                                                                  ,*cheque-receivable-acc-id*))))))))))
+               where))
+        (t nil)))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and t
                                                ,@where))
