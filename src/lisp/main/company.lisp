@@ -218,6 +218,43 @@
                 (display content)
                 (clear)))))
 
+(defun company-cheques-filters (filter)
+  (let* ((url-fn #'company/details/cheques)
+         (filter* (remove-from-plist filter :cstate))
+         (filter-spec `((nil      ,(apply url-fn filter*)
+                                  "Όλες")
+                        (pending  ,(apply url-fn :cstate "pending" filter*)
+                                  "Σε εκκρεμότητα")
+                        (paid     ,(apply url-fn :cstate "paid" filter*)
+                                  "Πληρωμένες")
+                        (bounced  ,(apply url-fn :cstate "bounced" filter*)
+                                  "Ακάλυπτες")
+                        (returned ,(apply url-fn :cstate "returned" filter*)
+                                  "Επιστραμμένες")
+                        (stamped  ,(apply url-fn :cstate "stamped" filter*)
+                                  "Σφραγισμένες"))))
+    (display (filter-navbar filter-spec
+                            :active (getf filter :cstate)))
+    (display (datebox (lambda (&rest args)
+                        (apply url-fn args))
+                      filter))))
+
+(defun company-tx-filters (filter)
+  (let* ((url-fn #'company/details/transactions)
+         (filter* (remove-from-plist filter :role))
+         (filter-spec `((nil      ,(apply url-fn filter*)
+                                  "Μικτός ρόλος")
+                        (customer  ,(apply url-fn :role "customer" filter*)
+                                   "Πελάτης")
+                        (supplier ,(apply url-fn :role "supplier" filter*)
+                                  "Προμηθευτής"))))
+    (display (filter-navbar filter-spec
+                            :active (getf filter :role)))
+    (display (datebox (lambda (&rest args)
+                        (apply url-fn args))
+                      filter))))
+
+
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string))
   (with-db ()
@@ -384,6 +421,8 @@
       (query (sql-compile sql)
              :plists))))
 
+
+
 ;;; rows
 
 (defclass company-row (scrooge-row/plist)
@@ -424,7 +463,45 @@
 ;;; Company transactions table
 ;;; ------------------------------------------------------------
 
-(defun company-debits (company-id &optional since until)
+(defun customer-debits ()
+  `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
+
+(defun supplier-debits ()
+  `(:= tx.credit-acc-id ,*cash-acc-id*))
+
+(defun supplier-cheque-debits ()
+  ;; subquery receives cheque-event.cheque-id from main query
+  `(:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
+         (:not (:exists (:select 1
+                         :from (:as tx tx2)
+                         :inner-join (:as cheque-event cheque-event2)
+                         :on (:= cheque-event2.tx-id tx2.id)
+                         :where (:and
+                                 (:= cheque-event2.cheque-id
+                                     cheque-event.cheque-id)
+                                 (:= tx2.debit-acc-id
+                                     ,*cheque-payable-acc-id*)))))))
+
+(defun customer-credits ()
+  `(:= tx.debit-acc-id ,*cash-acc-id*))
+
+(defun supplier-credits ()
+  `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
+
+(defun customer-cheque-credits ()
+  ;; subquery receives cheque-event.cheque-id from main query
+  `(:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
+         (:not (:exists (:select 1
+                         :from (:as tx tx2)
+                         :inner-join (:as cheque-event cheque-event2)
+                         :on (:= cheque-event2.tx-id tx2.id)
+                         :where (:and
+                                 (:= cheque-event2.cheque-id
+                                     cheque-event.cheque-id)
+                                 (:= tx2.credit-acc-id
+                                     ,*cheque-receivable-acc-id*)))))))
+
+(defun company-debits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
                       (:as tx.amount debit-amount) cheque.due-date
                       :from tx
@@ -433,33 +510,26 @@
                       :left-join cheque
                       :on (:= cheque.id cheque-event.cheque-id)))
         (where-base `(:= tx.company-id ,company-id))
-        (where-tx `(:or (:= tx.credit-acc-id ,*cash-acc-id*)
-                        (:in tx.credit-acc-id
-                             (:set ,@*revenues-accounts*))
-                        (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
-                              (:not (:exists (:select 1
-                                              :from (:as tx tx2)
-                                              :inner-join (:as cheque-event cheque-event2)
-                                              :on (:= cheque-event2.tx-id tx2.id)
-                                              :where (:and
-                                                      (:= cheque-event2.cheque-id
-                                                          cheque-event.cheque-id)
-                                                      (:= tx2.debit-acc-id
-                                                          ,*cheque-payable-acc-id*))))))))
+        (where-tx '())
         (where-dates nil))
+    (when (member :customer roles)
+      (push (customer-debits) where-tx))
+    (when (member :supplier roles)
+      (push (supplier-debits) where-tx)
+      (push (supplier-cheque-debits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
     (when (and until (not (eql until :null)))
       (push `(:<= tx-date ,until) where-dates))
     (let ((sql `(:order-by (,@base-query
                             :where (:and ,where-base
-                                         ,where-tx
+                                         (:or ,@where-tx)
                                          ,@where-dates))
                            'tx.description)))
       (query (sql-compile sql)
              :plists))))
 
-(defun company-credits (company-id &optional since until)
+(defun company-credits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
                       (:as tx.amount credit-amount) cheque.due-date
                       :from tx
@@ -468,37 +538,30 @@
                       :left-join cheque
                       :on (:= cheque.id cheque-event.cheque-id)))
         (where-base `(:= tx.company-id ,company-id))
-        (where-tx `(:or (:= tx.debit-acc-id ,*cash-acc-id*)
-                        (:in tx.debit-acc-id
-                             (:set ,@*expense-accounts*))
-                        (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
-                              (:not (:exists (:select 1
-                                              :from (:as tx tx2)
-                                              :inner-join (:as cheque-event cheque-event2)
-                                              :on (:= cheque-event2.tx-id tx2.id)
-                                              :where (:and
-                                                      (:= cheque-event2.cheque-id
-                                                          cheque-event.cheque-id)
-                                                      (:= tx2.credit-acc-id
-                                                          ,*cheque-receivable-acc-id*))))))))
+        (where-tx `())
         (where-dates nil))
+    (when (member :customer roles)
+      (push (customer-credits) where-tx)
+      (push (customer-cheque-credits) where-tx))
+    (when (member :supplier roles)
+      (push (supplier-credits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
     (when (and until (not (eql until :null)))
       (push `(:<= tx-date ,until) where-dates))
     (let ((sql `(:order-by (,@base-query
                             :where (:and ,where-base
-                                         ,where-tx
+                                         (:or ,@where-tx)
                                          ,@where-dates))
                            'tx.description)))
       (query (sql-compile sql)
              :plists))))
 
-(defun company-debits/credits (company-id since until)
+(defun company-debits/credits (company-id roles since until)
   (flet ((get-date (row)
            (getf row :tx-date)))
-    (let* ((sorted (stable-sort (nconc (company-debits company-id)
-                                       (company-credits company-id))
+    (let* ((sorted (stable-sort (nconc (company-debits company-id roles)
+                                       (company-credits company-id roles))
                                 #'local-time:timestamp<
                                 :key #'get-date))
            (truncated (remove-if (lambda (row)
@@ -706,15 +769,16 @@
   (with-view-page
     (let* ((filter (params->filter))
            (system (params->plist #'val-or-raw (list id cheque-id)))
-           (dates  (params->plist #'val-or-raw (list since until)))
+           (dates (params->plist #'val-or-raw (list since until)))
+           (state (params->plist #'val-or-raw (list cstate)))
            (payable-table (make-instance 'company-cheques-table
                                          :op :details
-                                         :filter (append system filter dates)
+                                         :filter (append system filter state dates)
                                          :start-index (val start)
                                          :kind "payable"))
            (receivable-table (make-instance 'company-cheques-table
                                             :op :details
-                                            :filter (append system filter dates)
+                                            :filter (append system filter state dates)
                                             :start-index (val start)
                                             :kind "receivable")))
       (with-document ()
@@ -729,7 +793,7 @@
                (company-tabs (val id) filter 'cheques
                              (html ()
                                (:div :class "secondary-filter-area"
-                                     (company-cheques-filters (append system filter dates)))
+                                     (company-cheques-filters (append system filter state dates)))
                                (:div :id "company-tx-window"
                                      (when (records payable-table)
                                        (htm (:div :class "window"
@@ -743,27 +807,6 @@
                                                            :key (val cheque-id))))))))
                (footer)))))))
 
-(defun company-cheques-filters (filter)
-  (let* ((url-fn #'company/details/cheques)
-         (filter* (remove-from-plist filter :cstate))
-         (filter-spec `((nil      ,(apply url-fn filter*)
-                                  "Όλες")
-                        (pending  ,(apply url-fn :cstate "pending" filter*)
-                                  "Σε εκκρεμότητα")
-                        (paid     ,(apply url-fn :cstate "paid" filter*)
-                                  "Πληρωμένες")
-                        (bounced  ,(apply url-fn :cstate "bounced" filter*)
-                                  "Ακάλυπτες")
-                        (returned ,(apply url-fn :cstate "returned" filter*)
-                                  "Επιστραμμένες")
-                        (stamped  ,(apply url-fn :cstate "stamped" filter*)
-                                  "Σφραγισμένες"))))
-    (display (filter-navbar filter-spec
-                            :active (getf filter :cstate)))
-    (display (datebox (lambda (&rest args)
-                        (apply url-fn args))
-                      filter))))
-
 (defpage company-page company/details/transactions ("company/details/transactions")
     ((search string)
      (subset string)
@@ -771,13 +814,17 @@
      (tx-id  integer)
      (since  date)
      (until  date)
-     (start  integer))
+     (start  integer)
+     (role   string))
   (with-view-page
     (let ((filter (params->filter))
           (system (params->plist #'val-or-raw (list id tx-id)))
-          (dates  (params->plist #'val-or-raw (list since until))))
+          (misc  (params->plist #'val-or-raw (list role since until)))
+          (roles (if (val role)
+                     (list (make-keyword (string-upcase (val role))))
+                     (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val id) (val since) (val until))
+          (company-debits/credits (val id) roles (val since) (val until))
         (with-document ()
           (:head
            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
@@ -786,19 +833,18 @@
            (:div :id "container" :class "container_12"
                  (header)
                  (main-navbar 'company)
-                 (company-top-actions :transactions (val id) filter dates)
+                 (company-top-actions :transactions (val id) filter misc)
                  (company-tabs (val id) filter 'transactions
                                (html ()
                                  (:div :class "secondary-filter-area"
-                                       (display (datebox #'company/details/transactions
-                                                         (append system filter dates))))
+                                       (company-tx-filters (append system filter misc)))
                                  (:div :id "company-tx-window" :class "window"
                                        (:div :class "title" "Συναλλαγές")
                                        (display (make-instance 'company-tx-table
                                                                :records records
                                                                :company-id (val id)
                                                                :op :details
-                                                               :filter (append system filter dates)
+                                                               :filter (append system filter misc)
                                                                :start-index (val start))
                                                 :key (val tx-id))
                                        (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
@@ -812,13 +858,17 @@
      (id     integer chk-company-id t)
      (tx-id  integer)
      (since  date)
-     (until  date))
+     (until  date)
+     (role   string))
   (with-view-page
     (let ((filter (params->filter))
           (system (params->plist #'val-or-raw (list id tx-id)))
-          (dates  (params->plist #'val-or-raw (list since until))))
+          (misc  (params->plist #'val-or-raw (list since until)))
+          (roles (if (val role)
+                     (list (make-keyword (string-upcase (val role))))
+                     (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum)
-          (company-debits/credits (val id) (val since) (val until))
+          (company-debits/credits (val id) roles (val since) (val until))
         (with-document ()
           (:head
            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
@@ -827,18 +877,18 @@
            (:div :id "container" :class "container_12"
                  (:div :class "grid_12"
                        (:a :id "back"
-                           :href (apply #'company/details/transactions (append system filter dates))
+                           :href (apply #'company/details/transactions (append system filter misc))
                            "« Επιστροφή")
                        (:div :id "company-tx-window" :class "window"
                              (:div :class "title"
                                    (:h3 (str (title (get-dao 'company (val id)))))
                                    (display (datebox #'company/details/transactions/print
-                                                     (append system filter dates))))
+                                                     (append system filter misc))))
                              (display (make-instance 'company-tx-table
                                                      :records records
                                                      :company-id (val id)
                                                      :op :details
-                                                     :filter (append system filter dates)
+                                                     :filter (append system filter misc)
                                                      :paginator nil))
                              (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
                              (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
