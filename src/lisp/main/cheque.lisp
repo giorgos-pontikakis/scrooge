@@ -268,16 +268,19 @@
 ;;; table
 
 (defclass cheque-table (scrooge-table)
-  ((kind        :accessor kind :initarg :kind)
-   (header-labels  :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
-                               "Ημερομηνία<br />λήξης" "<br />Ποσό"))
-   (paginator      :initform (make-instance 'cheque-paginator
-                                            :id "cheque-paginator"
-                                            :css-class "paginator")))
-  (:default-initargs :item-class 'cheque-row))
+  ((kind      :accessor kind      :initarg :kind)
+   (paginator :accessor paginator :initarg :paginator)
+   (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
+                               "Ημερομηνία<br />λήξης" "<br />Ποσό")))
+  (:default-initargs :item-class 'cheque-row
+                     :kind nil
+                     :paginator (make-instance 'cheque-paginator
+                                              :id "cheque-paginator"
+                                              :css-class "paginator")))
 
 (defmethod get-records ((table cheque-table))
   (let* ((search (getf (filter table) :search))
+         (id (getf (filter table) :id))
          (since (getf (filter table) :since))
          (until (getf (filter table) :until))
          (cstate (getf (filter table) :cstate))
@@ -301,9 +304,13 @@
       (push `(:<= ,since due-date) where))
     (when (and until (not (eql until :null)))
       (push `(:<= due-date ,until) where))
+    (when id
+      (push `(:= company.id ,id) where))
+    (when (kind table)
+      (push `(:= cheque.payable-p ,payable-p) where))
     (let ((sql `(:order-by (,@base-query :where
-                                         (:and (:= cheque.payable-p ,payable-p)
-                                               ,@where))
+                                         (:and
+                                          ,@where))
                            due-date)))
       (query (sql-compile sql)
              :plists))))

@@ -1,14 +1,14 @@
 /* ---------------------------------------------------------------------- */
-/* Tabbar Tabs */
+/* Company Area */
 /* ---------------------------------------------------------------------- */
 
-.tabbar {
+#company-area {
     background-color: #fff;
     margin-top: 10px;
     border-radius: 5px;
 }
 
-.tabbar-title {
+#company-title {
     background-color: #ddd;
     color: #444;
     /* text-shadow: #024 2px 2px 2px; */
@@ -17,21 +17,21 @@
     /* border-radius: 5px; */
 }
 
-.tabbar-title h3 {
-    margin: 15px 0px 15px 30px;
+#company-title h3 {
+    margin: 15px 0px 0px 30px;
     font-size: 21px;
 }
 
-.tabbar .hnavbar {
-    margin-top: 15px;
+#company-tabs {
+    margin-top: 10px;
 }
 
-.tabbar .hnavbar li {
+#company-tabs li {
     margin-left: 2px;
     text-shadow: none;
 }
 
-.tabbar .hnavbar span {
+#company-tabs span {
     background-color: #fff;
     padding: 11px 20px 11px 20px;
     border-radius: 5px 5px 0px 0px;
@@ -41,14 +41,14 @@
     margin-bottom: -1px;
 }
 
-.tabbar .hnavbar a {
+#company-tabs a {
     padding: 11px 20px 11px 20px;
     color: #444;
     border: 1px solid transparent;
     margin-bottom: -1px;
 }
 
-.tabbar .hnavbar a:hover {
+#company-tabs a:hover {
     color: #000;
 }
 

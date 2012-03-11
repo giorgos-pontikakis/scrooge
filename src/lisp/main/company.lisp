@@ -198,18 +198,22 @@
 (defun company-tabs (id filter active content)
   (with-html
     (:div :class "grid_12"
-          (:div :class "tabbar"
+          (:div :id "company-area"
                 (when id
-                  (htm (:div :class "tabbar-title"
-                             (:h3 :class "grid_8 alpha"
+                  (htm (:div :id "company-title"
+                             (:h3 :class "grid_12"
                                   (str (title (get-dao 'company id))))
                              (navbar
                               `((data ,(apply #'company/details :id id filter)
                                       "Στοιχεία")
                                 (transactions ,(apply #'company/details/transactions :id id filter)
-                                              "Συναλλαγές"))
-                              :css-class "hnavbar grid_3 omega"
-                              :active active)
+                                              "Συναλλαγές")
+                                (cheques ,(apply #'company/details/cheques :id id filter)
+                                         "Επιταγές"))
+                              :css-class "hnavbar grid_5 prefix_7"
+                              :active active
+                              :id "company-tabs"
+                              :css-class "hnavbar")
                              (clear))))
                 (display content)
                 (clear)))))
@@ -506,6 +510,7 @@
         (values (nreverse truncated) debit-sum credit-sum total)))))
 
 
+
 ;;; table
 
 (defclass company-tx-table (scrooge-table)
@@ -560,6 +565,32 @@
 
 (defmethod target-url ((pg company-tx-paginator) start)
   (apply #'company/details/transactions :start start (filter (table pg))))
+
+
+
+;;; ------------------------------------------------------------
+;;; Company cheques table
+;;; ------------------------------------------------------------
+
+(defclass company-cheques-table (cheque-table)
+  ((paginator :accessor paginator :initarg :paginator))
+  (:default-initargs :item-class 'company-cheques-row
+                     :paginator (make-instance 'company-cheques-paginator
+                                               :id "cheque-paginator"
+                                               :css-class "paginator")))
+
+(defclass company-cheques-row (cheque-row)
+  ())
+
+(defclass company-cheques-paginator (scrooge-paginator)
+  ())
+
+(defmethod target-url ((pg company-cheques-paginator) start)
+  (let ((table (table pg)))
+    (apply #'company/details/cheques (kind table) :start start (filter table))))
+
+(defmethod selector ((row company-cheques-row) selected-p)
+  nil)
 
 
 
@@ -642,6 +673,76 @@
                                                     :key (val contact-id))))))
                (footer)))))))
 
+(defpage company-page company/details/cheques ("company/details/cheques")
+    ((search    string)
+     (subset    string)
+     (id        integer chk-company-id t)
+     (cheque-id integer)
+     (since     date)
+     (until     date)
+     (start     integer)
+     (cstate    string))
+  (with-view-page
+    (let* ((filter (params->filter))
+           (system (params->plist #'val-or-raw (list id cheque-id)))
+           (dates  (params->plist #'val-or-raw (list since until)))
+           (payable-table (make-instance 'company-cheques-table
+                                         :op :details
+                                         :filter (append system filter dates)
+                                         :start-index (val start)
+                                         :kind "payable"))
+           (receivable-table (make-instance 'company-cheques-table
+                                            :op :details
+                                            :filter (append system filter dates)
+                                            :start-index (val start)
+                                            :kind "receivable")))
+      (with-document ()
+        (:head
+         (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'company)
+               (company-top-actions :transactions (val id) filter dates)
+               (company-tabs (val id) filter 'cheques
+                             (html ()
+                               (:div :class "secondary-filter-area"
+                                     (company-cheques-filters (append system filter dates)))
+                               (:div :id "company-tx-window"
+                                     (when (records payable-table)
+                                       (htm (:div :class "window"
+                                                  (:div :class "title" "Προς είσπραξη")
+                                                  (display payable-table
+                                                           :key (val cheque-id)))))
+                                     (when (records receivable-table)
+                                       (htm (:div :class "window"
+                                                  (:div :class "title" "Προς πληρωμή")
+                                                  (display receivable-table
+                                                           :key (val cheque-id))))))))
+               (footer)))))))
+
+(defun company-cheques-filters (filter)
+  (let* ((url-fn #'company/details/cheques)
+         (filter* (remove-from-plist filter :cstate))
+         (filter-spec `((nil      ,(apply url-fn filter*)
+                                  "Όλες")
+                        (pending  ,(apply url-fn :cstate "pending" filter*)
+                                  "Σε εκκρεμότητα")
+                        (paid     ,(apply url-fn :cstate "paid" filter*)
+                                  "Πληρωμένες")
+                        (bounced  ,(apply url-fn :cstate "bounced" filter*)
+                                  "Ακάλυπτες")
+                        (returned ,(apply url-fn :cstate "returned" filter*)
+                                  "Επιστραμμένες")
+                        (stamped  ,(apply url-fn :cstate "stamped" filter*)
+                                  "Σφραγισμένες"))))
+    (display (filter-navbar filter-spec
+                            :active (getf filter :cstate)))
+    (display (datebox (lambda (&rest args)
+                        (apply url-fn args))
+                      filter))))
+
 (defpage company-page company/details/transactions ("company/details/transactions")
     ((search string)
      (subset string)
@@ -687,10 +788,10 @@
 (defpage company-page company/details/transactions/print ("company/details/transactions/print")
     ((search string)
      (subset string)
+     (id     integer chk-company-id t)
      (tx-id  integer)
      (since  date)
-     (until  date)
-     (id     integer chk-company-id t))
+     (until  date))
   (with-view-page
     (let ((filter (params->filter))
           (system (params->plist #'val-or-raw (list id tx-id)))

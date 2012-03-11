@@ -195,8 +195,8 @@
   (string-equal kind "receivable"))
 
 (defun invoice-page-title (kind)
-  (cond ((string-equal kind "receivable") "Προς είσπραξη")
-        ((string-equal kind "payable") "Προς πληρωμή")
+  (cond ((string-equal kind "receivable") "Χρεώσεις")
+        ((string-equal kind "payable") "Πιστώσεις")
         (t (error "Internal error in invoice-page-title"))))
 
 (defun invoice-top-actions (op kind id filter)
