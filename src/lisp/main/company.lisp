@@ -463,6 +463,24 @@
 ;;; Company transactions table
 ;;; ------------------------------------------------------------
 
+(defun cheque-row-p (row)
+  (let ((due-date (getf row :due-date)))
+    (if (eql due-date :null)
+        nil
+        due-date)))
+
+;; (defun pending-cheque-row-p (row)
+;;   (let ((due-date (cheque-row-p row)))
+;;     (if (and due-date
+;;              (string= (getf row :state-id) "pending"))
+;;         due-date
+;;         nil)))
+
+;; (defun due-or-tx-date (row)
+;;   (if-let (due-date (pending-cheque-row-p row))
+;;     due-date
+;;     (getf row :tx-date)))
+
 (defun customer-debits ()
   `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
 
@@ -503,7 +521,7 @@
 
 (defun company-debits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
-                      (:as tx.amount debit-amount) cheque.due-date
+                      (:as tx.amount debit-amount) cheque.due-date cheque.state-id
                       :from tx
                       :left-join cheque-event
                       :on (:= cheque-event.tx-id tx.id)
@@ -525,13 +543,13 @@
                             :where (:and ,where-base
                                          (:or ,@where-tx)
                                          ,@where-dates))
-                           'tx.description)))
+                           'tx-date)))
       (query (sql-compile sql)
              :plists))))
 
 (defun company-credits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
-                      (:as tx.amount credit-amount) cheque.due-date
+                      (:as tx.amount credit-amount) cheque.due-date cheque.state-id
                       :from tx
                       :left-join cheque-event
                       :on (:= cheque-event.tx-id tx.id)
@@ -553,26 +571,25 @@
                             :where (:and ,where-base
                                          (:or ,@where-tx)
                                          ,@where-dates))
-                           'tx.description)))
+                           'tx-date)))
       (query (sql-compile sql)
              :plists))))
 
 (defun company-debits/credits (company-id roles since until)
-  (flet ((get-date (row)
+  (flet ((get-tx-date (row)
            (getf row :tx-date)))
     (let* ((sorted (stable-sort (nconc (company-debits company-id roles)
                                        (company-credits company-id roles))
                                 #'local-time:timestamp<
-                                :key #'get-date))
+                                :key #'get-tx-date))
            (truncated (remove-if (lambda (row)
                                    (or (and since
                                             (not (eql since :null))
-                                            (timestamp< (get-date row) since))
+                                            (timestamp< (get-tx-date row) since))
                                        (and until
                                             (not (eql until :null))
-                                            (timestamp> (get-date row) until))))
+                                            (timestamp> (get-tx-date row) until))))
                                  sorted)))
-
       (let ((total 0)
             (debit-sum 0)
             (credit-sum 0))
@@ -583,7 +600,7 @@
             (setf total (+ total delta))
             (setf debit-sum (+ debit-sum debit))
             (setf credit-sum (+ credit-sum credit))
-            (unless (eql (getf row :due-date) :null)
+            (when (cheque-row-p row)
               (setf (getf row :description)
                     (concatenate 'string
                                  (getf row :description)
@@ -592,7 +609,6 @@
                                  ")")))
             (nconc row (list :total total))))
         (values (nreverse truncated) debit-sum credit-sum total)))))
-
 
 
 ;;; table
