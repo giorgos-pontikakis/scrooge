@@ -49,6 +49,8 @@
                   :zipcode-invalid
                   "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
 
+(defun params->company-filter ()
+  (params->filter :page (find-page 'company)))
 
 
 ;;; ----------------------------------------------------------------------
@@ -137,30 +139,39 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-top-actions (op id filter &optional dates)
+(defun company-catalogue-link (id filter)
+  (html ()
+    (:a :href (apply #'company :id id filter)
+        (:img :src "/scrooge/img/application_view_list.png")
+        "Κατάλογος")))
+
+(defun company-create-link (filter)
+  (html ()
+    (:a :href (apply #'company/create filter)
+        (:img :src "/scrooge/img/add.png")
+        "Νέα Εταιρία")))
+
+(defun print-link (id filter)
+  (html ()
+    (:a :href (apply #'company/details/tx/print
+                     :id id filter)
+        (:img :src "/scrooge/img/printer.png")
+        "Εκτύπωση")))
+
+(defun company-disabled-actions (op)
+  (ecase op
+    ((:catalogue :delete) '(catalogue print))
+    ((:create '(create print)))
+    ((:update :details) '(print))
+    ((:tx) nil)))
+
+(defun company-top-actions (op id filter)
   (top-actions (make-instance 'menu
-                              :spec `((catalogue
-                                       ,(html ()
-                                          (:a :href (apply #'company :id id filter)
-                                              (:img :src "/scrooge/img/application_view_list.png")
-                                              "Κατάλογος")))
-                                      (create
-                                       ,(html ()
-                                          (:a :href (apply #'company/create filter)
-                                              (:img :src "/scrooge/img/add.png")
-                                              "Νέα Εταιρία")))
-                                      (print
-                                       ,(html ()
-                                          (:a :href (apply #'company/details/transactions/print
-                                                           :id id (append dates filter))
-                                              (:img :src "/scrooge/img/printer.png")
-                                              "Εκτύπωση"))))
+                              :spec `((catalogue ,(company-catalogue-link id filter))
+                                      (create ,(company-create-link filter))
+                                      (print ,(print-link id filter)))
                               :css-class "hmenu"
-                              :disabled (ecase op
-                                          ((:catalogue :delete) '(catalogue print))
-                                          ((:create '(create print)))
-                                          ((:update :details) '(print))
-                                          ((:transactions) nil)))
+                              :disabled (company-disabled-actions op))
                (searchbox #'actions/company/search
                           #'(lambda (&rest args)
                               (apply #'company :id id args))
@@ -206,9 +217,9 @@
                              (navbar
                               `((data ,(apply #'company/details :id id filter)
                                       "Στοιχεία")
-                                (transactions ,(apply #'company/details/transactions :id id filter)
-                                              "Συναλλαγές")
-                                (cheques ,(apply #'company/details/cheques :id id filter)
+                                (tx ,(apply #'company/details/tx :id id filter)
+                                    "Συναλλαγές")
+                                (cheque ,(apply #'company/details/cheque "receivable" :id id filter)
                                          "Επιταγές"))
                               :css-class "hnavbar grid_5 prefix_7"
                               :active active
@@ -217,42 +228,6 @@
                              (clear))))
                 (display content)
                 (clear)))))
-
-(defun company-cheques-filters (filter)
-  (let* ((url-fn #'company/details/cheques)
-         (filter* (remove-from-plist filter :cstate))
-         (filter-spec `((nil      ,(apply url-fn filter*)
-                                  "Όλες")
-                        (pending  ,(apply url-fn :cstate "pending" filter*)
-                                  "Σε εκκρεμότητα")
-                        (paid     ,(apply url-fn :cstate "paid" filter*)
-                                  "Πληρωμένες")
-                        (bounced  ,(apply url-fn :cstate "bounced" filter*)
-                                  "Ακάλυπτες")
-                        (returned ,(apply url-fn :cstate "returned" filter*)
-                                  "Επιστραμμένες")
-                        (stamped  ,(apply url-fn :cstate "stamped" filter*)
-                                  "Σφραγισμένες"))))
-    (display (filter-navbar filter-spec
-                            :active (getf filter :cstate)))
-    (display (datebox (lambda (&rest args)
-                        (apply url-fn args))
-                      filter))))
-
-(defun company-tx-filters (filter)
-  (let* ((url-fn #'company/details/transactions)
-         (filter* (remove-from-plist filter :role))
-         (filter-spec `((nil      ,(apply url-fn filter*)
-                                  "Μικτός ρόλος")
-                        (customer  ,(apply url-fn :role "customer" filter*)
-                                   "Πελάτης")
-                        (supplier ,(apply url-fn :role "supplier" filter*)
-                                  "Προμηθευτής"))))
-    (display (filter-navbar filter-spec
-                            :active (getf filter :role)))
-    (display (datebox (lambda (&rest args)
-                        (apply url-fn args))
-                      filter))))
 
 
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
@@ -315,12 +290,12 @@
                   'tin (:as 'tof.title 'tof)
                   'address (:as 'city.title 'city)
                   'zipcode 'pobox 'notes
-                  :from 'company
-                  :left-join 'city
-                  :on (:= 'company.city-id 'city.id)
-                  :left-join 'tof
-                  :on (:=  'company.tof-id 'tof.id)
-                  :where (:= 'company.id id))
+          :from 'company
+          :left-join 'city
+          :on (:= 'company.city-id 'city.id)
+          :left-join 'tof
+          :on (:=  'company.tof-id 'tof.id)
+          :where (:= 'company.id id))
          :plist))
 
 
@@ -460,241 +435,6 @@
 
 
 ;;; ------------------------------------------------------------
-;;; Company transactions table
-;;; ------------------------------------------------------------
-
-(defun cheque-row-p (row)
-  (let ((due-date (getf row :due-date)))
-    (if (eql due-date :null)
-        nil
-        due-date)))
-
-;; (defun pending-cheque-row-p (row)
-;;   (let ((due-date (cheque-row-p row)))
-;;     (if (and due-date
-;;              (string= (getf row :state-id) "pending"))
-;;         due-date
-;;         nil)))
-
-;; (defun due-or-tx-date (row)
-;;   (if-let (due-date (pending-cheque-row-p row))
-;;     due-date
-;;     (getf row :tx-date)))
-
-(defun customer-debits ()
-  `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
-
-(defun supplier-debits ()
-  `(:= tx.credit-acc-id ,*cash-acc-id*))
-
-(defun supplier-cheque-debits ()
-  ;; subquery receives cheque-event.cheque-id from main query
-  `(:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
-         (:not (:exists (:select 1
-                         :from (:as tx tx2)
-                         :inner-join (:as cheque-event cheque-event2)
-                         :on (:= cheque-event2.tx-id tx2.id)
-                         :where (:and
-                                 (:= cheque-event2.cheque-id
-                                     cheque-event.cheque-id)
-                                 (:= tx2.debit-acc-id
-                                     ,*cheque-payable-acc-id*)))))))
-
-(defun customer-credits ()
-  `(:= tx.debit-acc-id ,*cash-acc-id*))
-
-(defun supplier-credits ()
-  `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
-
-(defun customer-cheque-credits ()
-  ;; subquery receives cheque-event.cheque-id from main query
-  `(:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
-         (:not (:exists (:select 1
-                         :from (:as tx tx2)
-                         :inner-join (:as cheque-event cheque-event2)
-                         :on (:= cheque-event2.tx-id tx2.id)
-                         :where (:and
-                                 (:= cheque-event2.cheque-id
-                                     cheque-event.cheque-id)
-                                 (:= tx2.credit-acc-id
-                                     ,*cheque-receivable-acc-id*)))))))
-
-(defun company-debits (company-id roles &optional since until)
-  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
-                      (:as tx.amount debit-amount) cheque.due-date cheque.state-id
-                      :from tx
-                      :left-join cheque-event
-                      :on (:= cheque-event.tx-id tx.id)
-                      :left-join cheque
-                      :on (:= cheque.id cheque-event.cheque-id)))
-        (where-base `(:= tx.company-id ,company-id))
-        (where-tx '())
-        (where-dates nil))
-    (when (member :customer roles)
-      (push (customer-debits) where-tx))
-    (when (member :supplier roles)
-      (push (supplier-debits) where-tx)
-      (push (supplier-cheque-debits) where-tx))
-    (when (and since (not (eql since :null)))
-      (push `(:<= ,since tx-date) where-dates))
-    (when (and until (not (eql until :null)))
-      (push `(:<= tx-date ,until) where-dates))
-    (let ((sql `(:order-by (,@base-query
-                            :where (:and ,where-base
-                                         (:or ,@where-tx)
-                                         ,@where-dates))
-                           'tx-date)))
-      (query (sql-compile sql)
-             :plists))))
-
-(defun company-credits (company-id roles &optional since until)
-  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
-                      (:as tx.amount credit-amount) cheque.due-date cheque.state-id
-                      :from tx
-                      :left-join cheque-event
-                      :on (:= cheque-event.tx-id tx.id)
-                      :left-join cheque
-                      :on (:= cheque.id cheque-event.cheque-id)))
-        (where-base `(:= tx.company-id ,company-id))
-        (where-tx `())
-        (where-dates nil))
-    (when (member :customer roles)
-      (push (customer-credits) where-tx)
-      (push (customer-cheque-credits) where-tx))
-    (when (member :supplier roles)
-      (push (supplier-credits) where-tx))
-    (when (and since (not (eql since :null)))
-      (push `(:<= ,since tx-date) where-dates))
-    (when (and until (not (eql until :null)))
-      (push `(:<= tx-date ,until) where-dates))
-    (let ((sql `(:order-by (,@base-query
-                            :where (:and ,where-base
-                                         (:or ,@where-tx)
-                                         ,@where-dates))
-                           'tx-date)))
-      (query (sql-compile sql)
-             :plists))))
-
-(defun company-debits/credits (company-id roles since until)
-  (flet ((get-tx-date (row)
-           (getf row :tx-date)))
-    (let* ((sorted (stable-sort (nconc (company-debits company-id roles)
-                                       (company-credits company-id roles))
-                                #'local-time:timestamp<
-                                :key #'get-tx-date))
-           (truncated (remove-if (lambda (row)
-                                   (or (and since
-                                            (not (eql since :null))
-                                            (timestamp< (get-tx-date row) since))
-                                       (and until
-                                            (not (eql until :null))
-                                            (timestamp> (get-tx-date row) until))))
-                                 sorted)))
-      (let ((total 0)
-            (debit-sum 0)
-            (credit-sum 0))
-        (dolist (row sorted)
-          (let* ((debit (getf row :debit-amount 0))
-                 (credit (getf row :credit-amount 0))
-                 (delta (- debit credit)))
-            (setf total (+ total delta))
-            (setf debit-sum (+ debit-sum debit))
-            (setf credit-sum (+ credit-sum credit))
-            (when (cheque-row-p row)
-              (setf (getf row :description)
-                    (concatenate 'string
-                                 (getf row :description)
-                                 " (Λήξη: "
-                                 (lisp->html (getf row :due-date))
-                                 ")")))
-            (nconc row (list :total total))))
-        (values (nreverse truncated) debit-sum credit-sum total)))))
-
-
-;;; table
-
-(defclass company-tx-table (scrooge-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" ""))
-   (paginator      :initform (make-instance 'company-tx-paginator
-                                            :id "company-tx-paginator"
-                                            :css-class "paginator")
-                   :initarg :paginator)
-   (company-id     :accessor company-id :initarg :company-id))
-  (:default-initargs :item-class 'company-tx-row :id "company-tx-table"))
-
-
-;;; rows
-
-(defclass company-tx-row (scrooge-row/plist)
-  ())
-
-(defmethod key ((row company-tx-row))
-  (getf (record row) :tx-id))
-
-(defmethod selector ((row company-tx-row) selected-p)
-  (let* ((table (collection row))
-         (tx-id (key row))
-         (company-id (company-id table))
-         (filter (filter table))
-         (start (page-start (paginator table) (index row) (start-index table))))
-    (html ()
-      (:a :href (if selected-p
-                    (apply #'company/details/transactions :id company-id
-                                                          :start start filter)
-                    (apply #'company/details/transactions :id company-id
-                                                          :tx-id tx-id filter))
-          (selector-img selected-p)))))
-
-(defmethod controls ((row company-tx-row) controls-p)
-  (simple-controls row controls-p #'company/details/transactions))
-
-(defmethod payload ((row company-tx-row) enabled-p)
-  (let ((record (record row)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled (not enabled-p)))
-            '(tx-date description debit-amount credit-amount total))))
-
-
-;;; paginator
-
-(defclass company-tx-paginator (scrooge-paginator)
-  ())
-
-(defmethod target-url ((pg company-tx-paginator) start)
-  (apply #'company/details/transactions :start start (filter (table pg))))
-
-
-
-;;; ------------------------------------------------------------
-;;; Company cheques table
-;;; ------------------------------------------------------------
-
-(defclass company-cheques-table (cheque-table)
-  ((paginator :accessor paginator :initarg :paginator))
-  (:default-initargs :item-class 'company-cheques-row
-                     :paginator (make-instance 'company-cheques-paginator
-                                               :id "cheque-paginator"
-                                               :css-class "paginator")))
-
-(defclass company-cheques-row (cheque-row)
-  ())
-
-(defclass company-cheques-paginator (scrooge-paginator)
-  ())
-
-(defmethod target-url ((pg company-cheques-paginator) start)
-  (let ((table (table pg)))
-    (apply #'company/details/cheques (kind table) :start start (filter table))))
-
-(defmethod selector ((row company-cheques-row) selected-p)
-  nil)
-
-
-
-;;; ------------------------------------------------------------
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
@@ -772,144 +512,6 @@
                                            (display contact-table
                                                     :key (val contact-id))))))
                (footer)))))))
-
-(defpage company-page company/details/cheques ("company/details/cheques")
-    ((search    string)
-     (subset    string)
-     (id        integer chk-company-id t)
-     (cheque-id integer)
-     (since     date)
-     (until     date)
-     (start     integer)
-     (cstate    string))
-  (with-view-page
-    (let* ((filter (params->filter))
-           (system (params->plist #'val-or-raw (list id cheque-id)))
-           (dates (params->plist #'val-or-raw (list since until)))
-           (state (params->plist #'val-or-raw (list cstate)))
-           (payable-table (make-instance 'company-cheques-table
-                                         :op :details
-                                         :filter (append system filter state dates)
-                                         :start-index (val start)
-                                         :kind "payable"))
-           (receivable-table (make-instance 'company-cheques-table
-                                            :op :details
-                                            :filter (append system filter state dates)
-                                            :start-index (val start)
-                                            :kind "receivable")))
-      (with-document ()
-        (:head
-         (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
-         (main-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'company)
-               (company-top-actions :transactions (val id) filter dates)
-               (company-tabs (val id) filter 'cheques
-                             (html ()
-                               (:div :class "secondary-filter-area"
-                                     (company-cheques-filters (append system filter state dates)))
-                               (:div :id "company-tx-window"
-                                     (when (records payable-table)
-                                       (htm (:div :class "window"
-                                                  (:div :class "title" "Προς είσπραξη")
-                                                  (display payable-table
-                                                           :key (val cheque-id)))))
-                                     (when (records receivable-table)
-                                       (htm (:div :class "window"
-                                                  (:div :class "title" "Προς πληρωμή")
-                                                  (display receivable-table
-                                                           :key (val cheque-id))))))))
-               (footer)))))))
-
-(defpage company-page company/details/transactions ("company/details/transactions")
-    ((search string)
-     (subset string)
-     (id     integer chk-company-id t)
-     (tx-id  integer)
-     (since  date)
-     (until  date)
-     (start  integer)
-     (role   string))
-  (with-view-page
-    (let ((filter (params->filter))
-          (system (params->plist #'val-or-raw (list id tx-id)))
-          (misc  (params->plist #'val-or-raw (list role since until)))
-          (roles (if (val role)
-                     (list (make-keyword (string-upcase (val role))))
-                     (list :customer :supplier))))
-      (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val id) roles (val since) (val until))
-        (with-document ()
-          (:head
-           (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header)
-                 (main-navbar 'company)
-                 (company-top-actions :transactions (val id) filter misc)
-                 (company-tabs (val id) filter 'transactions
-                               (html ()
-                                 (:div :class "secondary-filter-area"
-                                       (company-tx-filters (append system filter misc)))
-                                 (:div :id "company-tx-window" :class "window"
-                                       (:div :class "title" "Συναλλαγές")
-                                       (display (make-instance 'company-tx-table
-                                                               :records records
-                                                               :company-id (val id)
-                                                               :op :details
-                                                               :filter (append system filter misc)
-                                                               :start-index (val start))
-                                                :key (val tx-id))
-                                       (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                                       (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
-                 (footer))))))))
-
-(defpage company-page company/details/transactions/print ("company/details/transactions/print")
-    ((search string)
-     (subset string)
-     (id     integer chk-company-id t)
-     (tx-id  integer)
-     (since  date)
-     (until  date)
-     (role   string))
-  (with-view-page
-    (let ((filter (params->filter))
-          (system (params->plist #'val-or-raw (list id tx-id)))
-          (misc  (params->plist #'val-or-raw (list since until)))
-          (roles (if (val role)
-                     (list (make-keyword (string-upcase (val role))))
-                     (list :customer :supplier))))
-      (multiple-value-bind (records debit-sum credit-sum)
-          (company-debits/credits (val id) roles (val since) (val until))
-        (with-document ()
-          (:head
-           (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
-           (print-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (:div :class "grid_12"
-                       (:a :id "back"
-                           :href (apply #'company/details/transactions (append system filter misc))
-                           "« Επιστροφή")
-                       (:div :id "company-tx-window" :class "window"
-                             (:div :class "title"
-                                   (:h3 (str (title (get-dao 'company (val id)))))
-                                   (display (datebox #'company/details/transactions/print
-                                                     (append system filter misc))))
-                             (display (make-instance 'company-tx-table
-                                                     :records records
-                                                     :company-id (val id)
-                                                     :op :details
-                                                     :filter (append system filter misc)
-                                                     :paginator nil))
-                             (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
-                             (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
-                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
-                                                                    credit-sum))))))))))))
 
 
 

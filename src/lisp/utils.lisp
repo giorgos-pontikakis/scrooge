@@ -21,14 +21,20 @@
                   (funcall fn param)))
           params))
 
-(defun params->payload ()
-  (params->plist #'val-or-raw (payload-parameters)))
+(defun params->payload (&key (page *page*) (parameters *parameters*))
+  (params->plist #'val-or-raw
+                 (payload-parameters :page page
+                                     :parameters parameters)))
 
-(defun params->styles ()
-  (params->plist #'sty (payload-parameters)))
+(defun params->styles (&key (page *page*) (parameters *parameters*))
+  (params->plist #'sty
+                 (payload-parameters :page page
+                                     :parameters parameters)))
 
-(defun params->filter ()
-  (params->plist #'val-or-raw (filter-parameters)))
+(defun params->filter (&key (page *page*) (parameters *parameters*))
+  (params->plist #'val-or-raw
+                 (filter-parameters :page page
+                                    :parameters parameters)))
 
 
 
@@ -71,13 +77,13 @@
                                   parameter-names))
                         parameters)))
 
-  (defun system-parameters (&optional (page *page*) (parameters *parameters*))
+  (defun system-parameters (&key (page *page*) (parameters *parameters*))
     (collect-parameters (system-parameter-names page) parameters))
 
-  (defun payload-parameters (&optional (page *page*) (parameters *parameters*))
+  (defun payload-parameters (&key (page *page*) (parameters *parameters*))
     (collect-parameters (payload-parameter-names page) parameters))
 
-  (defun filter-parameters (&optional (page *page*) (parameters *parameters*))
+  (defun filter-parameters (&key (page *page*) (parameters *parameters*))
     (collect-parameters (filter-parameter-names page) parameters)))
 
 

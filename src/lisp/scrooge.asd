@@ -37,5 +37,7 @@
                (:file "main/cash")
                (:file "main/invoice")
                (:file "main/cheque")
+               (:file "main/company-tx")
+               (:file "main/company-cheques")
                ;; (:file "main/account")
                ))
