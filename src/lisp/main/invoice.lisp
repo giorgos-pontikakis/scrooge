@@ -191,8 +191,18 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun receivable-p (kind)
-  (string-equal kind "receivable"))
+(defun customer-p (kind contra-p)
+  (let ((receivable-p (string-equal kind "customer")))
+    (or (and receivable-p (not contra-p))
+        (and (not receivable-p) contra-p))))
+
+(defun debit-invoice-p ()
+  (let ((receivable-p (string-equal kind "receivable")))
+    (or (and receivable-p (not contra-p))
+        (and (not receivable-p) contra-p)))
+
+  (or (and revenue-p (not contra-p))
+      (and (not revenue-p) contra-p)))
 
 (defun invoice-page-title (kind)
   (cond ((string-equal kind "receivable") "Χρεώσεις")
@@ -265,18 +275,21 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass invoice-form (crud-form/plist)
-  ((kind :accessor kind :initarg :kind)))
+  ((contra-p :accessor contra-p :initarg :contra-p)
+   (kind     :accessor kind     :initarg :kind)))
 
 (defmethod display ((form invoice-form) &key styles)
-  (let* ((receivable-p (receivable-p (kind form)))
+  (let* ((contra-p (contra-p form))
+         (revenue-p (revenue-p (kind form) contra-p))
          (disabled (eql (op form) :details))
          (record (record form))
          (lit (label-input-text disabled record styles))
          (tree (make-instance 'rev/exp-account-tree
                               :disabled disabled
-                              :root-key (if receivable-p
+                              :root-key (if revenue-p
                                             *revenues-root-acc-id*
                                             *expenses-root-acc-id*)
+
                               :debit-p (not receivable-p))))
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
@@ -294,10 +307,11 @@
                                               :body "Άκυρο")))))
             (:div :class "grid_5 omega"
                   (label 'account-id (conc "Λογαριασμός "
-                                           (if receivable-p "εσόδων" "εξόδων")))
+                                           (if revenue-p "εσόδων" "εξόδων")))
                   ;; Display the tree. If needed, preselect the first account of the tree.
                   (display tree :key (or (getf record :account-id)
-                                         (getf record (if receivable-p
+                                         (getf record (if (or (and revenue-p (not contra-p))
+                                                              (and (not revenue-p) contra-p))
                                                           :credit-acc-id
                                                           :debit-acc-id))
                                          (root-key tree))))
@@ -398,7 +412,8 @@
      (company     string  chk-company-title)
      (description string)
      (amount      float   chk-amount)
-     (account-id  integer chk-acc-id))
+     (account-id  integer chk-acc-id)
+     (contra-p    boolean))
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :create)
@@ -426,7 +441,8 @@
                            (with-form (actions/invoice/create kind
                                                               :search (val search)
                                                               :since (val since)
-                                                              :until (val until))
+                                                              :until (val until)
+                                                              :contra-p (val contra-p))
                              (display invoice-form :payload (params->payload)
                                                    :styles (params->styles)))))
                (footer)))))))
