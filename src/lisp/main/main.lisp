@@ -9,13 +9,13 @@
   (with-html
     (:div :class "grid_12"
           (:div :class "section-navbar"
-                (navbar `((home    ,(home)                 "Αρχική")
-                          (company ,(company)              "Εταιρίες")
-                          (project ,(project)              "Έργα")
-                          (cash    ,(cash "revenue")       "Μετρητά")
-                          (cheque  ,(cheque "receivable")  "Επιταγές")
-                          (invoice ,(invoice "receivable") "Χρεωπιστώσεις")
-                          (tx      ,(tx)                   "Ημερολόγιο"))
+                (navbar `((home    ,(home)                       "Αρχική")
+                          (company ,(company)                    "Εταιρίες")
+                          (project ,(project)                    "Έργα")
+                          (cash    ,(cash "revenue")             "Μετρητά")
+                          (cheque  ,(cheque "receivable")        "Επιταγές")
+                          (invoice ,(invoice "customer" "debit") "Χρεωπιστώσεις")
+                          (tx      ,(tx)                         "Ημερολόγιο"))
                         :css-class "hnavbar"
                         :active active)))))
 
