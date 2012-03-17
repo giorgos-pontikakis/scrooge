@@ -64,11 +64,41 @@
 ;;     due-date
 ;;     (getf row :tx-date)))
 
+
+;;;  Customer
+
 (defun customer-debits ()
   `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
 
-(defun supplier-debits ()
+(defun customer-cash-credits ()
+  `(:= tx.debit-acc-id ,*cash-acc-id*))
+
+(defun customer-contra-credits ()
+  `(:in tx.debit-acc-id (:set ,@*revenues-accounts*)))
+
+(defun customer-cheque-credits ()
+  ;; subquery receives cheque-event.cheque-id from main query
+  `(:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
+         (:not (:exists (:select 1
+                         :from (:as tx tx2)
+                         :inner-join (:as cheque-event cheque-event2)
+                         :on (:= cheque-event2.tx-id tx2.id)
+                         :where (:and
+                                 (:= cheque-event2.cheque-id
+                                     cheque-event.cheque-id)
+                                 (:= tx2.credit-acc-id
+                                     ,*cheque-receivable-acc-id*)))))))
+
+;;;  Supplier
+
+(defun supplier-credits ()
+  `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
+
+(defun supplier-cash-debits ()
   `(:= tx.credit-acc-id ,*cash-acc-id*))
+
+(defun supplier-contra-debits ()
+  `(:in tx.credit-acc-id (:set ,@*expense-accounts*)))
 
 (defun supplier-cheque-debits ()
   ;; subquery receives cheque-event.cheque-id from main query
@@ -83,24 +113,8 @@
                                  (:= tx2.debit-acc-id
                                      ,*cheque-payable-acc-id*)))))))
 
-(defun customer-credits ()
-  `(:= tx.debit-acc-id ,*cash-acc-id*))
 
-(defun supplier-credits ()
-  `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
 
-(defun customer-cheque-credits ()
-  ;; subquery receives cheque-event.cheque-id from main query
-  `(:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
-         (:not (:exists (:select 1
-                         :from (:as tx tx2)
-                         :inner-join (:as cheque-event cheque-event2)
-                         :on (:= cheque-event2.tx-id tx2.id)
-                         :where (:and
-                                 (:= cheque-event2.cheque-id
-                                     cheque-event.cheque-id)
-                                 (:= tx2.credit-acc-id
-                                     ,*cheque-receivable-acc-id*)))))))
 
 (defun company-debits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
@@ -116,7 +130,8 @@
     (when (member :customer roles)
       (push (customer-debits) where-tx))
     (when (member :supplier roles)
-      (push (supplier-debits) where-tx)
+      (push (supplier-cash-debits) where-tx)
+      (push (supplier-contra-debits) where-tx)
       (push (supplier-cheque-debits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
@@ -142,7 +157,8 @@
         (where-tx `())
         (where-dates nil))
     (when (member :customer roles)
-      (push (customer-credits) where-tx)
+      (push (customer-cash-credits) where-tx)
+      (push (customer-contra-credits) where-tx)
       (push (customer-cheque-credits) where-tx))
     (when (member :supplier roles)
       (push (supplier-credits) where-tx))
