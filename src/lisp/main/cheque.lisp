@@ -163,7 +163,7 @@
                            (payable ,(apply url-fn "payable" filter)
                                     "Προς πληρωμή"))
                          :active kind
-                         :id "kind-navbar")
+                         :id "cheque-kind-navbar")
           (filter-navbar filter-spec
                          :active (getf filter :cstate))
           (datebox (lambda (&rest args)

@@ -72,6 +72,6 @@
 (with-db ()
   ;; account sets
   (defparameter *expense-accounts*
-    (subaccount-ids *expenses-root-acc-id*)))
+    (subaccount-ids *expenses-root-acc-id*))
   (defparameter *revenues-accounts*
-    (subaccount-ids *revenues-root-acc-id*))
+    (subaccount-ids *revenues-root-acc-id*)))
