@@ -263,7 +263,7 @@
   ())
 
 (defmethod target-url ((pg company-tx-paginator) start)
-  (apply #'company/details/tx :start start (filter (table pg))))
+  (apply #'company/details/tx :start start :id (company-id (table pg)) (filter (table pg))))
 
 
 
