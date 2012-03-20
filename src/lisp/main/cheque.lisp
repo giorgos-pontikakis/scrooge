@@ -122,7 +122,6 @@
                    " Επιταγή ")))))
 
 (defun cheque-top-actions (op kind id filter)
-  (break)
   (top-actions
    (make-instance 'menu
                   :spec `((catalogue ,(cheque-catalogue-link kind id filter))
