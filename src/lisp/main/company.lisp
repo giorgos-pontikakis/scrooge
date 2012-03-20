@@ -151,7 +151,7 @@
         (:img :src "/scrooge/img/add.png")
         "Νέα Εταιρία")))
 
-(defun print-link (id filter)
+(defun company-print-link (id filter)
   (html ()
     (:a :href (apply #'company/details/tx/print
                      :id id filter)
@@ -169,7 +169,7 @@
   (top-actions (make-instance 'menu
                               :spec `((catalogue ,(company-catalogue-link id filter))
                                       (create ,(company-create-link filter))
-                                      (print ,(print-link id filter)))
+                                      (print ,(company-print-link id filter)))
                               :css-class "hmenu"
                               :disabled (company-disabled-actions op))
                (searchbox #'actions/company/search

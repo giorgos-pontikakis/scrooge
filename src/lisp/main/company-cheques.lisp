@@ -92,7 +92,7 @@
                               :spec `((catalogue ,(company-catalogue-link id
                                                                           company-filter))
                                       (company-create ,(company-create-link company-filter))
-                                      (cheque-create ,(create-cheque-link #'company/details/cheque
+                                      (cheque-create ,(cheque-create-link #'company/details/cheque
                                                                           kind cheque-filter))
                                       (print
                                        ,(html ()
@@ -199,7 +199,7 @@
          (:div :id "container" :class "container_12"
                (:div :class "grid_12"
                      (:a :id "back"
-                         :href (apply #'company/details/cheque filter)
+                         :href (apply #'company/details/cheque kind filter)
                          "« Επιστροφή"))
                (:div :id "company-tx-window"
                      (when (records payable-table)

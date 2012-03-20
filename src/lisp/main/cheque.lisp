@@ -105,7 +105,13 @@
         (t
          (error "Internal error in get-debit-credit-acc-id"))))
 
-(defun create-cheque-link (url-fn kind filter)
+(defun cheque-catalogue-link (kind id filter)
+  (html ()
+    (:a :href (apply #'cheque kind :id id filter)
+        (:img :src "/scrooge/img/application_view_list.png")
+        "Κατάλογος")1))
+
+(defun cheque-create-link (url-fn kind filter)
   (html ()
     (:a :href (apply url-fn kind filter)
         (:img :src "/scrooge/img/add.png")
@@ -116,13 +122,11 @@
                    " Επιταγή ")))))
 
 (defun cheque-top-actions (op kind id filter)
+  (break)
   (top-actions
    (make-instance 'menu
-                  :spec `((catalogue ,(html ()
-                                        (:a :href (apply #'cheque kind :id id filter)
-                                            (:img :src "/scrooge/img/application_view_list.png")
-                                            "Κατάλογος")))
-                          ((create ,(create-cheque-link #'cheque/create kind filter))))
+                  :spec `((catalogue ,(cheque-catalogue-link kind id filter))
+                          (create ,(cheque-create-link #'cheque/create kind filter)))
                   :css-class "hmenu"
                   :disabled (cond ((member op '(:catalogue :delete))
                                    '(catalogue))
