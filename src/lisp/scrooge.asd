@@ -38,6 +38,6 @@
                (:file "main/invoice")
                (:file "main/cheque")
                (:file "main/company-tx")
-               (:file "main/company-cheques")
+               (:file "main/company-cheque")
                ;; (:file "main/account")
                ))
