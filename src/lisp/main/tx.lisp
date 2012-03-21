@@ -95,6 +95,15 @@
               filter
               "ac-company")))
 
+(defun tx-disabled-actions (op id auto-p)
+  (ecase op
+    (:catalogue (if (or (not id) auto-p)
+                    '()
+                    '(:update :delete)))
+    (:create '())
+    (:update '())
+    (:delete '())))
+
 (defun tx-actions (op id filter)
   (let ((auto-p (if id (auto-tx-p id) nil)))
     (actions-menu (make-menu-spec
@@ -104,13 +113,7 @@
                                         (if auto-p
                                             nil
                                             (apply #'tx/delete :id id filter))))
-                  (ecase op
-                    (:catalogue (if (or (not id) auto-p)
-                                    '()
-                                    '(:update :delete)))
-                    (:create '())
-                    (:update '())
-                    (:delete '())))))
+                  (tx-disabled-actions op id auto-p))))
 
 (defun tx-filters (filter)
   (filter-area (datebox #'tx filter)))

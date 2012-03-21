@@ -11,13 +11,31 @@
     :initform '(id tx-id start))
    (payload-parameter-names
     :allocation :class
-    :initform '())
+    :initform '(tx-date description debit-amount credit-amount))
    (filter-parameter-names
     :allocation :class
     :initform '(search subset role since until))
    (allowed-groups
     :allocation :class
-    :initform '("user" "admin"))))
+    :initform '("user" "admin"))
+   (messages
+    :allocation :class
+    :reader messages
+    :initform
+    '((amount
+       (:empty-amount
+        "Το ποσό της συναλλαγής είναι κενό"
+        :non-positive-amount
+        "Το ποσό της συναλλαγής δεν είναι θετικός αριθμός"
+        :amount-overflow
+        "Το ποσό της συναλλαγής είναι δεν πρέπει να ξεπερνά το 9,999,999.99"
+        :parse-error
+        "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
+      (tx-date
+       (:date-null
+        "Η ημερομηνία της συναλλαγής είναι κενή"
+        :parse-error
+        "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
 
 
@@ -39,6 +57,17 @@
     (display (datebox (lambda (&rest args)
                         (apply url-fn args))
                       filter))))
+
+(defun company-tx-actions (op id tx-id filter)
+  (let ((auto-p (if id (auto-tx-p tx-id) nil)))
+    (actions-menu (make-menu-spec
+                   (action-anchors/crud (if auto-p
+                                            nil
+                                            (apply #'company/details/tx/update :id id
+                                                                               :tx-id tx-id
+                                                                               filter))
+                                        nil))
+                  (tx-disabled-actions op id auto-p))))
 
 
 
@@ -245,16 +274,42 @@
           (selector-img selected-p)))))
 
 (defmethod controls ((row company-tx-row) controls-p)
-  (simple-controls row controls-p #'company/details/tx))
+  (let ((id (key row))
+        (table (collection row)))
+    (if controls-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (apply #'company/details/tx
+                                          :id (company-id table)
+                                          :tx-id id
+                                          (filter table))))
+        (list nil nil))))
 
 (defmethod payload ((row company-tx-row) enabled-p)
   (let ((record (record row)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled (not enabled-p)))
-            '(tx-date description debit-amount credit-amount total))))
+    (list (make-instance 'textbox
+                         :name 'tx-date
+                         :value (getf record :tx-date)
+                         :disabled (not enabled-p)
+                         :css-class (if enabled-p "datepicker" nil))
+          (make-instance 'textbox
+                         :name 'description
+                         :value (getf record :description)
+                         :disabled (not enabled-p))
+          (make-instance 'textbox
+                         :name 'debit-amount
+                         :value (getf record :debit-amount)
+                         :disabled (or (not (getf record :debit-amount))
+                                       (not enabled-p)))
+          (make-instance 'textbox
+                         :name 'credit-amount
+                         :value (getf record :credit-amount)
+                         :disabled (or (not (getf record :credit-amount))
+                                       (not enabled-p)))
+          (make-instance 'textbox
+                         :name 'total
+                         :value (getf record :total)
+                         :disabled t))))
 
 
 ;;; paginator
@@ -304,6 +359,7 @@
                                        (company-tx-filters (list* :id (val id) filter)))
                                  (:div :id "company-tx-window" :class "window"
                                        (:div :class "title" "Συναλλαγές")
+                                       (company-tx-actions :catalogue (val id) (val tx-id) filter)
                                        (display (make-instance 'company-tx-table
                                                                :records records
                                                                :company-id (val id)
@@ -358,3 +414,91 @@
                              (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
                              (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
                                                                     credit-sum))))))))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; UPDATE
+;;; ----------------------------------------------------------------------
+
+(defpage company-tx-page company/details/tx/update ("company/details/tx/update")
+    ((search        string)
+     (subset        string)
+     (id            integer chk-company-id t)
+     (tx-id         integer chk-tx-id)
+     (since         date)
+     (until         date)
+     (role          string)
+     (tx-date       date)
+     (description   string)
+     (debit-amount  float   chk-amount)
+     (credit-amount float   chk-amount))
+  (with-view-page
+    (let ((filter (params->filter))
+          (company-filter (params->company-filter))
+          (roles (if (val role)
+                     (list (make-keyword (string-upcase (val role))))
+                     (list :customer :supplier))))
+      (multiple-value-bind (records debit-sum credit-sum total)
+          (company-debits/credits (val id) roles (val since) (val until))
+        (with-document ()
+          (:head
+           (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Επεξεργασία")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header)
+                 (main-navbar 'company)
+                 (company-top-actions :tx (val id)
+                                      company-filter)
+                 (company-tabs (val id) company-filter 'tx
+                               (html ()
+                                 (:div :class "secondary-filter-area"
+                                       (company-tx-filters (list* :id (val id) filter)))
+                                 (:div :id "company-tx-window" :class "window"
+                                       (:div :class "title" "Συναλλαγές")
+                                       (company-tx-actions :update (val id) (val tx-id) filter)
+                                       (with-form
+                                           (actions/company/details/tx/update :id (val id)
+                                                                              :tx-id (val tx-id)
+                                                                              :search (val search)
+                                                                              :subset (val subset)
+                                                                              :since (val since)
+                                                                              :until (val until)
+                                                                              :role (val role))
+                                         (display (make-instance 'company-tx-table
+                                                                 :records records
+                                                                 :company-id (val id)
+                                                                 :op :update
+                                                                 :filter filter)
+                                                  :key (val tx-id)
+                                                  :payload (params->payload)))
+                                       (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                                       (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                 (footer))))))))
+
+(defpage company-tx-page actions/company/details/tx/update
+    ("actions/company/details/tx/update" :request-type :post)
+    ((search        string)
+     (subset        string)
+     (id            integer chk-company-id t)
+     (tx-id         integer chk-tx-id)
+     (since         date)
+     (until         date)
+     (role          string)
+     (tx-date       date)
+     (description   string)
+     (debit-amount  float   chk-amount)
+     (credit-amount float   chk-amount))
+  (with-controller-page (company/details/tx/update)
+    (execute (:update 'tx :set
+                      'tx-date (val tx-date)
+                      'description (val description)
+                      'company-id (val id)
+                      'amount (or (val debit-amount)
+                                  (val credit-amount))
+                      :where (:= 'id (val tx-id))))
+    (see-other (apply #'company/details/tx :id (val id)
+                                           :tx-id (val tx-id)
+                                           (params->filter)))))
