@@ -67,7 +67,7 @@
                                                                                :tx-id tx-id
                                                                                filter))
                                         nil))
-                  (tx-disabled-actions op id auto-p))))
+                  (tx-disabled-actions op tx-id auto-p))))
 
 
 
