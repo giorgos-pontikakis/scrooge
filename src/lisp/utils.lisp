@@ -121,7 +121,7 @@
                    :code +http-temporary-redirect+
                    :add-session-id nil))
        (error (c)
-         (if (debug-p *acceptor*)
+         (if (debug-p *scrooge*)
              (signal c)
              (setf (return-code*) +http-internal-server-error+))))))
 
@@ -153,7 +153,7 @@
                                          (when-let (qs (query-string*))
                                            (conc "?" qs))))))
        (error (c)
-         (if (debug-p *acceptor*)
+         (if (debug-p *scrooge*)
              (signal c)
              (setf (return-code*) +http-internal-server-error+))))))
 
@@ -174,7 +174,7 @@
        (authentication-error ()
          ,auth-error-message)
        (error (c)
-         (if (debug-p *acceptor*)
+         (if (debug-p *scrooge*)
              (signal c)
              (setf (return-code*) +http-internal-server-error+))))))
 

@@ -20,11 +20,11 @@
   ())
 
 (define-webapp *scrooge* ()
-  :acceptor (make-instance  'scrooge-acceptor
-                            :port 3001
-                            :access-log-destination nil
-                            :message-log-destination nil
-                            :document-root #p"/home/gnp/www/scrooge/public")
+  :acceptor (make-instance 'scrooge-acceptor
+                           :port 3001
+                           :access-log-destination nil
+                           :message-log-destination nil
+                           :document-root #p"/home/gnp/www/scrooge/public")
   :packages '(:scrooge)
   :db-connection-spec '(:dbname "scrooge"
                         :dbhost "localhost"
