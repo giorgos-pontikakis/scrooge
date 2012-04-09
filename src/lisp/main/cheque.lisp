@@ -535,11 +535,12 @@
      (amount   float   chk-amount        t))
   (with-controller-page (cheque/create kind)
     (check-cheque-accounts)
-    (let* ((bank-id (bank-id (val bank)))
+    (let* ((payable-p (string= kind "payable"))
+           (bank-id (bank-id (val bank)))
            (company-id (company-id (val company)))
            (cheque-stran (select-dao-unique 'cheque-stran
                              (:and (:= 'from-state-id "nil")
-                                   (:= 'payable-p (string= kind "payable")))))
+                                   (:= 'payable-p payable-p))))
            (temtx (select-dao-unique 'temtx
                       (:= 'id (temtx-id cheque-stran))))
            (new-tx (make-instance 'tx
@@ -555,7 +556,7 @@
                                       :company-id company-id
                                       :due-date (val due-date)
                                       :amount (val amount)
-                                      :payable-p (string= kind "payable")
+                                      :payable-p payable-p
                                       :state-id "pending")))
       (with-transaction ()
         (insert-dao new-cheque)

@@ -23,7 +23,7 @@
 (defclass company-cheque-table (cheque-table)
   ((paginator :accessor paginator :initarg :paginator)
    (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
-                             "Ημερομηνία<br />λήξης" "<br />Ποσό")))
+                              "Ημερομηνία<br />λήξης" "<br />Ποσό")))
   (:default-initargs :item-class 'company-cheque-row
                      :paginator (make-instance 'company-cheque-paginator
                                                :id "cheque-paginator"
@@ -40,7 +40,7 @@
 
 (defmethod target-url ((pg company-cheque-paginator) start)
   (let ((table (table pg)))
-    (apply #'company/details/cheque (kind table) :start start (filter table))))
+    (apply #'company/cheque (kind table) :start start (filter table))))
 
 (defmethod selector ((row company-cheque-row) selected-p)
   (let* ((table (collection row))
@@ -52,12 +52,12 @@
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
-                    (apply #'company/details/cheque kind :id company-id
-                           :start (page-start pg (index row) start)
-                           page-filter)
-                    (apply #'company/details/cheque kind :id company-id
-                                                         :cheque-id cheque-id
-                                                         page-filter))
+                    (apply #'company/cheque kind :id company-id
+                                                 :start (page-start pg (index row) start)
+                                                 page-filter)
+                    (apply #'company/cheque kind :id company-id
+                                                 :cheque-id cheque-id
+                                                 page-filter))
           (selector-img selected-p)))))
 
 (defmethod payload ((row company-cheque-row) enabled-p)
@@ -92,11 +92,12 @@
                               :spec `((catalogue ,(company-catalogue-link id
                                                                           company-filter))
                                       (company-create ,(company-create-link company-filter))
-                                      (cheque-create ,(cheque-create-link #'company/details/cheque
-                                                                          kind cheque-filter))
+                                      (cheque-create ,(cheque-create-link #'company/cheque
+                                                                          kind
+                                                                          cheque-filter))
                                       (print
                                        ,(html ()
-                                          (:a :href (apply #'company/details/cheque/print
+                                          (:a :href (apply #'company/cheque/print
                                                            kind :id id filter)
                                               (:img :src "/scrooge/img/printer.png")
                                               "Εκτύπωση"))))
@@ -111,8 +112,8 @@
 (defun company-cheque-actions (op kind id cheque-id filter)
   (actions-menu
    (make-menu-spec
-    (action-anchors/crud (apply #'company/details/cheque kind :id id :cheque-id cheque-id filter)
-                         (apply #'company/details/cheque kind :id id :cheque-id cheque-id filter)))
+    (action-anchors/crud (apply #'company/cheque kind :id id :cheque-id cheque-id filter)
+                         (apply #'company/cheque kind :id id :cheque-id cheque-id filter)))
    (enabled-actions/crud op cheque-id)))
 
 
@@ -121,8 +122,8 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage company-cheque-page company/details/cheque
-    (("company/details/cheque/" (kind "(receivable|payable)")))
+(defpage company-cheque-page company/cheque
+    (("company/cheque/" (kind "(receivable|payable)")))
     ((id        integer chk-company-id t)
      (cheque-id integer chk-cheque-id)
      (search    string)
@@ -141,7 +142,9 @@
                                         :op :details
                                         :filter (list* :company-id (val id) cheque-filter)
                                         :start-index (val start)
-                                        :kind kind)))
+                                        :kind kind))
+           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
+                             (cheque-page-title kind))))
       (with-document ()
         (:head
          (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
@@ -157,10 +160,10 @@
                                (:div :class "secondary-filter-area"
                                      (display (cheque-filters kind
                                                               (list* :id (val id) filter)
-                                                              #'company/details/cheque)))
+                                                              #'company/cheque)))
                                (:div :id "company-tx-window"
                                      (:div :class "window"
-                                           (:div :class "title" "Προς είσπραξη")
+                                           (:div :class "title" (str page-title))
                                            (company-cheque-actions op kind
                                                                    (val id) (val cheque-id)
                                                                    filter)
@@ -168,9 +171,9 @@
                                                     :key (val cheque-id))))))
                (footer)))))))
 
-(defpage company-cheque-page company/details/cheque/print (("company/details/cheque/"
-                                                            (kind "(receivable|payable)")
-                                                             "/print"))
+(defpage company-cheque-page company/cheque/print (("company/cheque/"
+                                                    (kind "(receivable|payable)")
+                                                    "/print"))
     ((search    string)
      (subset    string)
      (id        integer chk-company-id t)
@@ -199,7 +202,7 @@
          (:div :id "container" :class "container_12"
                (:div :class "grid_12"
                      (:a :id "back"
-                         :href (apply #'company/details/cheque kind filter)
+                         :href (apply #'company/cheque kind filter)
                          "« Επιστροφή"))
                (:div :id "company-tx-window"
                      (when (records payable-table)
@@ -218,3 +221,120 @@
 ;;; ----------------------------------------------------------------------
 ;;; CREATE
 ;;; ----------------------------------------------------------------------
+
+(defpage company-cheque-page company/cheque/create
+    (("company/cheque/" (kind "(receivable|payable)") "/create"))
+    ((id        integer chk-company-id t)
+     (search    string)
+     (cstate    string)
+     (subset    string)
+     (start     integer)
+     (since     date)
+     (until     date)
+     (serial    string  chk-cheque-serial)
+     (bank      string  chk-bank-title)
+     (due-date  date    chk-date)
+     (company   string  chk-company-title)
+     (amount    float   chk-amount))
+  (with-view-page
+    (check-cheque-accounts)
+    (let* ((op :create)
+           (filter (params->filter))
+           (cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
+           (cheque-table (make-instance 'company-cheque-table
+                                        :op :details
+                                        :filter (list* :company-id (val id) cheque-filter)
+                                        :start-index (val start)
+                                        :kind kind))
+           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
+                             (cheque-page-title kind)
+                             " » Δημιουργία")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'company)
+               (company-cheque-top-actions :tx kind (val id)
+                                           company-filter cheque-filter filter)
+               (company-tabs (val id) company-filter 'cheque
+                             (html ()
+                               (:div :class "secondary-filter-area"
+                                     (display (cheque-filters kind
+                                                              (list* :id (val id) filter)
+                                                              #'company/cheque)))
+                               (:div :id "company-tx-window"
+                                     (:div :class "window"
+                                           (:div :class "title" (str page-title))
+                                           (company-cheque-actions op kind
+                                                                   (val id) nil
+                                                                   filter)
+                                           (notifications)
+                                           (with-form
+                                               (actions/company/cheque/create kind
+                                                                              :search (val search)
+                                                                              :subset (val subset)
+                                                                              :since (val since)
+                                                                              :until (val until)
+                                                                              :cstate (val cstate))
+                                             (display cheque-table :payload (params->payload)))))))
+               (footer)))))))
+
+(defpage company-cheque-page actions/company/cheque/create
+    (("actions/company/cheque/" (kind "(receivable|payable)") "/create") :request-type :post)
+    ((id       integer chk-company-id      t)
+     (search   string)
+     (cstate   string  chk-cheque-state-id)
+     (subset   string)
+     (start    integer)
+     (since    date    chk-date)
+     (until    date    chk-date)
+     (bank     string  chk-bank-title)
+     (serial   string  chk-cheque-serial)
+     (company  string  chk-company-title   t)
+     (due-date date    chk-date            t)
+     (amount   float   chk-amount          t))
+  (with-controller-page (cheque/create kind)
+    (check-cheque-accounts)
+    (let* ((payable-p (string= kind "payable"))
+           (bank-id (bank-id (val bank)))
+           (company-id (val id))
+           (cheque-stran (select-dao-unique 'cheque-stran
+                             (:and (:= 'from-state-id "nil")
+                                   (:= 'payable-p payable-p))))
+           (temtx (select-dao-unique 'temtx
+                      (:= 'id (temtx-id cheque-stran))))
+           (new-tx (make-instance 'tx
+                                  :tx-date (today)
+                                  :description (title temtx)
+                                  :company-id company-id
+                                  :amount (val amount)
+                                  :credit-acc-id (credit-acc-id temtx)
+                                  :debit-acc-id (debit-acc-id temtx)))
+           (new-cheque (make-instance 'cheque
+                                      :serial (val serial)
+                                      :bank-id bank-id
+                                      :company-id company-id
+                                      :due-date (val due-date)
+                                      :amount (val amount)
+                                      :payable-p payable-p
+                                      :state-id "pending")))
+      (with-transaction ()
+
+        ;; FACTOR OUT THIS SEQUENSE OF INSERT-DAO, TOGETHER WITH CHEQUE-PAGE IN CHEQUE.LISP
+
+        ;; (insert-dao new-cheque)
+        ;; (insert-dao new-tx)
+        ;; (insert-dao (make-instance 'cheque-event
+        ;;                            :tstamp (now)
+        ;;                            :cheque-id (cheque-id new-cheque)
+        ;;                            :from-state-id (from-state-id cheque-stran)
+        ;;                            :to-state-id (to-state-id cheque-stran)
+        ;;                            :tx-id (tx-id new-tx)))
+        )
+      (see-other (apply #'company/cheque kind :id (val id)
+                                              :cheque-id (cheque-id new-cheque)
+                                              (params->filter))))))
