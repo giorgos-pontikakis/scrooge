@@ -10,6 +10,9 @@
   ((system-parameter-names
     :allocation :class
     :initform '(id cheque-id start))
+   (payload-parameter-names
+    :allocation :class
+    :initform '(bank due-date amount tstamp serial))
    (allowed-groups
     :allocation :class
     :initform '("user" "admin"))))
@@ -21,8 +24,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass company-cheque-table (cheque-table)
-  ((paginator :accessor paginator :initarg :paginator)
-   (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
+  ((header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
                               "Ημερομηνία<br />λήξης" "<br />Ποσό")))
   (:default-initargs :item-class 'company-cheque-row
                      :paginator (make-instance 'company-cheque-paginator
@@ -35,12 +37,7 @@
 (defmethod key ((row company-cheque-row))
   (getf (record row) :id))
 
-(defclass company-cheque-paginator (scrooge-paginator)
-  ())
 
-(defmethod target-url ((pg company-cheque-paginator) start)
-  (let ((table (table pg)))
-    (apply #'company/cheque (kind table) :start start (filter table))))
 
 (defmethod selector ((row company-cheque-row) selected-p)
   (let* ((table (collection row))
@@ -81,6 +78,34 @@
                          :value (getf record :amount)
                          :disabled (not enabled-p)))))
 
+(defmethod controls ((row company-cheque-row) controls-p)
+  (let* ((cheque-id (key row))
+         (table (collection row))
+         (filter (filter table))
+         (kind (kind table))
+         (company-id (getf filter :company-id))
+         (page-filter (remove-from-plist filter :company-id)))
+    (if controls-p
+        (list (make-instance 'ok-button)
+              (make-instance 'cancel-button
+                             :href (apply #'company/cheque kind :id company-id
+                                                                :cheque-id cheque-id
+                                                                page-filter)))
+        (list nil nil))))
+
+
+;;; paginator
+
+(defclass company-cheque-paginator (cheque-paginator)
+  ())
+
+(defmethod target-url ((pg company-cheque-paginator) start)
+  (let* ((table (table pg))
+         (company-id (getf (filter table) :company-id))
+         (page-filter (remove-from-plist (filter table) :company-id)))
+    (apply #'company/cheque (kind table) :id company-id
+                                         :start start page-filter)))
+
 
 
 ;;; ------------------------------------------------------------
@@ -113,7 +138,8 @@
   (actions-menu
    (make-menu-spec
     (action-anchors/crud (apply #'company/cheque kind :id id :cheque-id cheque-id filter)
-                         (apply #'company/cheque kind :id id :cheque-id cheque-id filter)))
+                         (apply #'company/cheque kind :id id :cheque-id cheque-id filter)
+                         (apply #'company/cheque/create kind :id id filter)))
    (enabled-actions/crud op cheque-id)))
 
 
@@ -229,8 +255,8 @@
      (cstate    string)
      (subset    string)
      (start     integer)
-     (since     date)
-     (until     date)
+     (since     date    chk-date)
+     (until     date    chk-date)
      (serial    string  chk-cheque-serial)
      (bank      string  chk-bank-title)
      (due-date  date    chk-date)
@@ -243,7 +269,7 @@
            (cheque-filter (params->cheque-filter))
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op :details
+                                        :op :create
                                         :filter (list* :company-id (val id) cheque-filter)
                                         :start-index (val start)
                                         :kind kind))
@@ -275,6 +301,7 @@
                                            (notifications)
                                            (with-form
                                                (actions/company/cheque/create kind
+                                                                              :id (val id)
                                                                               :search (val search)
                                                                               :subset (val subset)
                                                                               :since (val since)
@@ -297,44 +324,47 @@
      (company  string  chk-company-title   t)
      (due-date date    chk-date            t)
      (amount   float   chk-amount          t))
-  (with-controller-page (cheque/create kind)
+  (with-controller-page (company/cheque/create kind)
     (check-cheque-accounts)
-    (let* ((payable-p (string= kind "payable"))
-           (bank-id (bank-id (val bank)))
-           (company-id (val id))
-           (cheque-stran (select-dao-unique 'cheque-stran
-                             (:and (:= 'from-state-id "nil")
-                                   (:= 'payable-p payable-p))))
-           (temtx (select-dao-unique 'temtx
-                      (:= 'id (temtx-id cheque-stran))))
-           (new-tx (make-instance 'tx
-                                  :tx-date (today)
-                                  :description (title temtx)
-                                  :company-id company-id
-                                  :amount (val amount)
-                                  :credit-acc-id (credit-acc-id temtx)
-                                  :debit-acc-id (debit-acc-id temtx)))
-           (new-cheque (make-instance 'cheque
-                                      :serial (val serial)
-                                      :bank-id bank-id
-                                      :company-id company-id
-                                      :due-date (val due-date)
-                                      :amount (val amount)
-                                      :payable-p payable-p
-                                      :state-id "pending")))
-      (with-transaction ()
-
-        ;; FACTOR OUT THIS SEQUENSE OF INSERT-DAO, TOGETHER WITH CHEQUE-PAGE IN CHEQUE.LISP
-
-        ;; (insert-dao new-cheque)
-        ;; (insert-dao new-tx)
-        ;; (insert-dao (make-instance 'cheque-event
-        ;;                            :tstamp (now)
-        ;;                            :cheque-id (cheque-id new-cheque)
-        ;;                            :from-state-id (from-state-id cheque-stran)
-        ;;                            :to-state-id (to-state-id cheque-stran)
-        ;;                            :tx-id (tx-id new-tx)))
-        )
+    (let ((new-cheque (db-create-cheque (val serial)
+                                        (bank-id (val bank))
+                                        (val id)
+                                        (val due-date)
+                                        (val amount)
+                                        (string= kind "payable"))))
       (see-other (apply #'company/cheque kind :id (val id)
                                               :cheque-id (cheque-id new-cheque)
                                               (params->filter))))))
+
+
+(defun db-create-cheque (serial bank-id company-id due-date amount payable-p)
+  (let* ((cheque-stran (select-dao-unique 'cheque-stran
+                           (:and (:= 'from-state-id "nil")
+                                 (:= 'payable-p payable-p))))
+         (temtx (select-dao-unique 'temtx
+                    (:= 'id (temtx-id cheque-stran))))
+         (new-tx (make-instance 'tx
+                                :tx-date (today)
+                                :description (title temtx)
+                                :company-id company-id
+                                :amount amount
+                                :credit-acc-id (credit-acc-id temtx)
+                                :debit-acc-id (debit-acc-id temtx)))
+         (new-cheque (make-instance 'cheque
+                                    :serial serial
+                                    :bank-id bank-id
+                                    :company-id company-id
+                                    :due-date due-date
+                                    :amount amount
+                                    :payable-p payable-p
+                                    :state-id "pending")))
+    (with-transaction ()
+      (insert-dao new-cheque)
+      (insert-dao new-tx)
+      (insert-dao (make-instance 'cheque-event
+                                 :tstamp (now)
+                                 :cheque-id (cheque-id new-cheque)
+                                 :from-state-id (from-state-id cheque-stran)
+                                 :to-state-id (to-state-id cheque-stran)
+                                 :tx-id (tx-id new-tx))))
+    new-cheque))
