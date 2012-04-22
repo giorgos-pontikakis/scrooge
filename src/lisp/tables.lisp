@@ -245,6 +245,48 @@
                                  :tx-id (tx-id new-tx)))
       dao)))
 
+(defmethod update-dao :around ((cheque-dao cheque))
+  (with-transaction ()
+    (let ((company-id (company-id cheque-dao))
+          (amount (amount cheque-dao))
+          (from-state-id (getf (state-id cheque-dao) :from-state-id))
+          (to-state-id (getf (state-id cheque-dao) :to-state-id)))
+      ;; When a new state is requested, update the state of cheque-dao and create a new
+      ;; event and the corresponding tx
+      (when-let (cheque-stran (select-dao-unique 'cheque-stran
+                                  (:and (:= 'payable-p (payable-p cheque-dao))
+                                        (:= 'from-state-id from-state-id)
+                                        (:= 'to-state-id to-state-id))))
+        (let* ((temtx (select-dao-unique 'temtx
+                          (:= 'id (temtx-id cheque-stran))))
+               (new-tx (make-instance 'tx
+                                      :tx-date (today)
+                                      :description (title temtx)
+                                      :company-id company-id
+                                      :amount amount
+                                      :credit-acc-id (credit-acc-id temtx)
+                                      :debit-acc-id (debit-acc-id temtx))))
+          (insert-dao new-tx)
+          (insert-dao (make-instance 'cheque-event
+                                                :tstamp (now)
+                                                :cheque-id (cheque-id cheque-dao)
+                                                :from-state-id (from-state-id cheque-stran)
+                                                :to-state-id (to-state-id cheque-stran)
+                                                :tx-id (tx-id new-tx)))))
+      ;; In any case, update cheque's data
+      (setf (state-id cheque-dao) to-state-id)
+      (call-next-method)
+      ;; Also update the corresponding tx's data
+      (let* ((cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (cheque-id cheque-dao))))
+             (tx-daos (mapcar (compose (lambda (tx-id) (get-dao 'tx tx-id))
+                                       #'tx-id)
+                              cheque-event-daos)))
+        (mapc (lambda (tx-dao)
+                (setf (amount tx-dao) amount
+                      (company-id tx-dao) company-id)
+                (update-dao tx-dao))
+              tx-daos)))))
+
 (defmethod delete-dao :around ((dao cheque))
   (let* ((cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (cheque-id dao))))
          (tx-daos (mapcar (compose (lambda (tx-id) (get-dao 'tx tx-id))

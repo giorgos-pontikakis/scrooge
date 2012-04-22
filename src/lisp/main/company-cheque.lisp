@@ -260,7 +260,6 @@
      (serial    string  chk-cheque-serial)
      (bank      string  chk-bank-title)
      (due-date  date    chk-date)
-     (company   string  chk-company-title)
      (amount    float   chk-amount))
   (with-view-page
     (check-cheque-accounts)
@@ -322,7 +321,6 @@
      (until    date    chk-date)
      (bank     string  chk-bank-title)
      (serial   string  chk-cheque-serial)
-     (company  string  chk-company-title   t)
      (due-date date    chk-date            t)
      (amount   float   chk-amount          t))
   (with-controller-page (company/cheque/create kind)
@@ -359,7 +357,6 @@
      (serial    string  chk-cheque-serial)
      (bank      string  chk-bank-title)
      (due-date  date    chk-date)
-     (company   string  chk-company-title)
      (amount    float   chk-amount))
   (with-view-page
     (check-cheque-accounts)
@@ -424,22 +421,22 @@
      (until     date    chk-date)
      (bank      string  chk-bank-title)
      (serial    string  chk-cheque-serial)
-     (company   string  chk-company-title   t)
      (due-date  date    chk-date            t)
      (amount    float   chk-amount          t))
   (with-controller-page (company/cheque/update kind)
     (check-cheque-accounts)
-    (let ((new-cheque (make-instance 'cheque
-                                     :serial (val serial)
-                                     :bank-id (bank-id (val bank))
-                                     :company-id (val id)
-                                     :due-date (val due-date)
-                                     :amount (val amount)
-                                     :payable-p (string= kind "payable")
-                                     :state-id "pending")))
-      (insert-dao new-cheque)
+    (let ((cheque-dao (get-dao 'cheque (val cheque-id))))
+      ;; Don't touch company-id, state-id and payable-p
+      ;; HACK: Pass plist of states
+      (setf (bank-id cheque-dao) (bank-id (val bank))
+            (due-date cheque-dao) (val due-date)
+            (amount cheque-dao) (val amount)
+            (serial cheque-dao) (val serial)
+            (state-id cheque-dao) (list :from-state-id (state-id cheque-dao)
+                                        :to-state-id (state-id cheque-dao))) ; unchanged
+      (update-dao cheque-dao)
       (see-other (apply #'company/cheque kind :id (val id)
-                                              :cheque-id (cheque-id new-cheque)
+                                              :cheque-id (val cheque-id)
                                               (params->filter))))))
 
 

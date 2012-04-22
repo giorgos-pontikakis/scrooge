@@ -613,55 +613,68 @@
      (state-id string  chk-cheque-state-id))
   (with-controller-page (cheque/update kind)
     (check-cheque-accounts)
-    (let* ((bank-id (bank-id (val bank)))
-           (company-id (company-id (val company)))
-           (cheque-dao (get-dao 'cheque (val id))))
-      (let ((from-state-id (state-id cheque-dao)))
-        (with-transaction ()
-          ;; When a new state is requested, update the state of cheque-dao and create a new
-          ;; event and the corresponding tx
-          (unless (string= (val state-id) "nil")
-            (let* ((cheque-stran (select-dao-unique 'cheque-stran
-                                     (:and (:= 'payable-p (string= kind "payable"))
-                                           (:= 'from-state-id from-state-id)
-                                           (:= 'to-state-id (val state-id)))))
-                   (temtx (select-dao-unique 'temtx
-                              (:= 'id (temtx-id cheque-stran))))
-                   (new-tx (make-instance 'tx
-                                          :tx-date (today)
-                                          :description (title temtx)
-                                          :company-id company-id
-                                          :amount (val amount)
-                                          :credit-acc-id (credit-acc-id temtx)
-                                          :debit-acc-id (debit-acc-id temtx))))
+    (let ((cheque-dao (get-dao 'cheque (val id))))
+      ;; Don't touch company-id, state-id and payable-p
+      ;; HACK: Pass plist of states
+      (setf (bank-id cheque-dao) (bank-id (val bank))
+            (company-id cheque-dao) (company-id (val company))
+            (due-date cheque-dao) (val due-date)
+            (amount cheque-dao) (val amount)
+            (state-id cheque-dao) (list :from-state-id (state-id cheque-dao)
+                                        :to-state-id (val state-id))
+            (serial cheque-dao) (val serial))
+      (update-dao cheque-dao)
+      (see-other (apply #'cheque/details kind :id (val id) (params->filter))))))
 
-              (insert-dao new-tx)
-              (insert-dao (make-instance 'cheque-event
-                                         :tstamp (now)
-                                         :cheque-id (cheque-id cheque-dao)
-                                         :from-state-id (from-state-id cheque-stran)
-                                         :to-state-id (to-state-id cheque-stran)
-                                         :tx-id (tx-id new-tx)))
-              (setf (state-id cheque-dao) (val state-id))))
-          ;; In any case, update cheque's data
-          (setf (serial cheque-dao) (val serial)
-                (bank-id cheque-dao) bank-id
-                (company-id cheque-dao) company-id
-                (due-date cheque-dao) (val due-date)
-                (amount cheque-dao) (val amount))
-          (update-dao cheque-dao)
-          ;; Also update the corresponding tx's data
-          (let* ((cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (cheque-id cheque-dao))))
-                 (tx-daos (mapcar (compose (lambda (tx-id) (get-dao 'tx tx-id))
-                                           #'tx-id)
-                                  cheque-event-daos)))
-            (mapc (lambda (tx-dao)
-                    (setf (amount tx-dao) (val amount)
-                          (company-id tx-dao) company-id)
-                    (update-dao tx-dao))
-                  tx-daos)))
-        ;; Finally redirect
-        (see-other (apply #'cheque/details kind :id (val id) (params->filter)))))))
+;; (let* ((bank-id (bank-id (val bank)))
+;;            (company-id (company-id (val company)))
+;;            (cheque-dao (get-dao 'cheque (val id))))
+;;       (let ((from-state-id (state-id cheque-dao)))
+;;         (with-transaction ()
+;;           ;; When a new state is requested, update the state of cheque-dao and create a new
+;;           ;; event and the corresponding tx
+;;           (unless (string= (val state-id) "nil")
+;;             (let* ((cheque-stran (select-dao-unique 'cheque-stran
+;;                                      (:and (:= 'payable-p (string= kind "payable"))
+;;                                            (:= 'from-state-id from-state-id)
+;;                                            (:= 'to-state-id (val state-id)))))
+;;                    (temtx (select-dao-unique 'temtx
+;;                               (:= 'id (temtx-id cheque-stran))))
+;;                    (new-tx (make-instance 'tx
+;;                                           :tx-date (today)
+;;                                           :description (title temtx)
+;;                                           :company-id company-id
+;;                                           :amount (val amount)
+;;                                           :credit-acc-id (credit-acc-id temtx)
+;;                                           :debit-acc-id (debit-acc-id temtx))))
+
+;;               (insert-dao new-tx)
+;;               (insert-dao (make-instance 'cheque-event
+;;                                          :tstamp (now)
+;;                                          :cheque-id (cheque-id cheque-dao)
+;;                                          :from-state-id (from-state-id cheque-stran)
+;;                                          :to-state-id (to-state-id cheque-stran)
+;;                                          :tx-id (tx-id new-tx)))
+;;               (setf (state-id cheque-dao) (val state-id))))
+;;           ;; In any case, update cheque's data
+;;           (setf (serial cheque-dao) (val serial)
+;;                 (bank-id cheque-dao) bank-id
+;;                 (company-id cheque-dao) company-id
+;;                 (due-date cheque-dao) (val due-date)
+;;                 (amount cheque-dao) (val amount))
+;;           (update-dao cheque-dao)
+;;           ;; Also update the corresponding tx's data
+;;           (let* ((cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (cheque-id cheque-dao))))
+;;                  (tx-daos (mapcar (compose (lambda (tx-id) (get-dao 'tx tx-id))
+;;                                            #'tx-id)
+;;                                   cheque-event-daos)))
+;;             (mapc (lambda (tx-dao)
+;;                     (setf (amount tx-dao) (val amount)
+;;                           (company-id tx-dao) company-id)
+;;                     (update-dao tx-dao))
+;;                   tx-daos)))
+;;         ;; Finally redirect
+;;         (see-other (apply #'cheque/details kind :id (val id) (params->filter)))))
 
 
 
