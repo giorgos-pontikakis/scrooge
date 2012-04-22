@@ -153,7 +153,7 @@
 
 (defun company-print-link (id filter)
   (html ()
-    (:a :href (apply #'company/details/tx/print
+    (:a :href (apply #'company/tx/print
                      :id id filter)
         (:img :src "/scrooge/img/printer.png")
         "Εκτύπωση")))
@@ -217,10 +217,10 @@
                              (navbar
                               `((data ,(apply #'company/details :id id filter)
                                       "Στοιχεία")
-                                (tx ,(apply #'company/details/tx :id id filter)
+                                (tx ,(apply #'company/tx :id id filter)
                                     "Συναλλαγές")
-                                (cheque ,(apply #'company/details/cheque "receivable" :id id filter)
-                                         "Επιταγές"))
+                                (cheque ,(apply #'company/cheque "receivable" :id id filter)
+                                        "Επιταγές"))
                               :css-class "hnavbar grid_5 prefix_7"
                               :active active
                               :id "company-tabs"

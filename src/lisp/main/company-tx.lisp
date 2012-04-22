@@ -22,7 +22,7 @@
     :allocation :class
     :reader messages
     :initform
-    '((amount
+    '(((debit-amount credit-amount)
        (:empty-amount
         "Το ποσό της συναλλαγής είναι κενό"
         :non-positive-amount
@@ -44,7 +44,7 @@
 ;;; ------------------------------------------------------------
 
 (defun company-tx-filters (filter)
-  (let* ((url-fn #'company/details/tx)
+  (let* ((url-fn #'company/tx)
          (filter* (remove-from-plist filter :role))
          (filter-spec `((nil      ,(apply url-fn filter*)
                                   "Μικτός ρόλος")
@@ -63,9 +63,9 @@
     (actions-menu (make-menu-spec
                    (action-anchors/crud (if auto-p
                                             nil
-                                            (apply #'company/details/tx/update :id id
-                                                                               :tx-id tx-id
-                                                                               filter))
+                                            (apply #'company/tx/update :id id
+                                                                       :tx-id tx-id
+                                                                       filter))
                                         nil))
                   (tx-disabled-actions op tx-id auto-p))))
 
@@ -244,8 +244,8 @@
 (defclass company-tx-table (scrooge-table)
   ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" ""))
    (paginator     :initform (make-instance 'company-tx-paginator
-                                            :id "company-tx-paginator"
-                                            :css-class "paginator")
+                                           :id "company-tx-paginator"
+                                           :css-class "paginator")
                   :initarg :paginator)
    (company-id    :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'company-tx-row :id "company-tx-table"))
@@ -267,10 +267,10 @@
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
       (:a :href (if selected-p
-                    (apply #'company/details/tx :id company-id
-                                                :start start filter)
-                    (apply #'company/details/tx :id company-id
-                                                :tx-id tx-id filter))
+                    (apply #'company/tx :id company-id
+                                        :start start filter)
+                    (apply #'company/tx :id company-id
+                                        :tx-id tx-id filter))
           (selector-img selected-p)))))
 
 (defmethod controls ((row company-tx-row) controls-p)
@@ -279,7 +279,7 @@
     (if controls-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply #'company/details/tx
+                             :href (apply #'company/tx
                                           :id (company-id table)
                                           :tx-id id
                                           (filter table))))
@@ -318,7 +318,7 @@
   ())
 
 (defmethod target-url ((pg company-tx-paginator) start)
-  (apply #'company/details/tx :start start :id (company-id (table pg)) (filter (table pg))))
+  (apply #'company/tx :start start :id (company-id (table pg)) (filter (table pg))))
 
 
 
@@ -326,7 +326,7 @@
 ;;; VIEW
 ;;; ----------------------------------------------------------------------
 
-(defpage company-tx-page company/details/tx ("company/details/tx")
+(defpage company-tx-page company/tx ("company/tx")
     ((search string)
      (subset string)
      (id     integer chk-company-id t)
@@ -372,7 +372,7 @@
                                        (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
                  (footer))))))))
 
-(defpage company-tx-page company/details/tx/print ("company/details/tx/print")
+(defpage company-tx-page company/tx/print ("company/tx/print")
     ((search string)
      (subset string)
      (id     integer chk-company-id t)
@@ -397,12 +397,12 @@
            (:div :id "container" :class "container_12"
                  (:div :class "grid_12"
                        (:a :id "back"
-                           :href (apply #'company/details/tx (append system filter misc))
+                           :href (apply #'company/tx (append system filter misc))
                            "« Επιστροφή")
                        (:div :id "company-tx-window" :class "window"
                              (:div :class "title"
                                    (:h3 (str (title (get-dao 'company (val id)))))
-                                   (display (datebox #'company/details/tx/print
+                                   (display (datebox #'company/tx/print
                                                      (append system filter misc))))
                              (display (make-instance 'company-tx-table
                                                      :records records
@@ -421,7 +421,7 @@
 ;;; UPDATE
 ;;; ----------------------------------------------------------------------
 
-(defpage company-tx-page company/details/tx/update ("company/details/tx/update")
+(defpage company-tx-page company/tx/update ("company/tx/update")
     ((search        string)
      (subset        string)
      (id            integer chk-company-id t)
@@ -458,14 +458,15 @@
                                  (:div :id "company-tx-window" :class "window"
                                        (:div :class "title" "Συναλλαγές")
                                        (company-tx-actions :update (val id) (val tx-id) filter)
+                                       (notifications)
                                        (with-form
-                                           (actions/company/details/tx/update :id (val id)
-                                                                              :tx-id (val tx-id)
-                                                                              :search (val search)
-                                                                              :subset (val subset)
-                                                                              :since (val since)
-                                                                              :until (val until)
-                                                                              :role (val role))
+                                           (actions/company/tx/update :id (val id)
+                                                                      :tx-id (val tx-id)
+                                                                      :search (val search)
+                                                                      :subset (val subset)
+                                                                      :since (val since)
+                                                                      :until (val until)
+                                                                      :role (val role))
                                          (display (make-instance 'company-tx-table
                                                                  :records records
                                                                  :company-id (val id)
@@ -478,8 +479,8 @@
                                        (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
                  (footer))))))))
 
-(defpage company-tx-page actions/company/details/tx/update
-    ("actions/company/details/tx/update" :request-type :post)
+(defpage company-tx-page actions/company/tx/update
+    ("actions/company/tx/update" :request-type :post)
     ((search        string)
      (subset        string)
      (id            integer chk-company-id t)
@@ -491,7 +492,7 @@
      (description   string)
      (debit-amount  float   chk-amount)
      (credit-amount float   chk-amount))
-  (with-controller-page (company/details/tx/update)
+  (with-controller-page (company/tx/update)
     (execute (:update 'tx :set
                       'tx-date (val tx-date)
                       'description (val description)
@@ -499,6 +500,6 @@
                       'amount (or (val debit-amount)
                                   (val credit-amount))
                       :where (:= 'id (val tx-id))))
-    (see-other (apply #'company/details/tx :id (val id)
-                                           :tx-id (val tx-id)
-                                           (params->filter)))))
+    (see-other (apply #'company/tx :id (val id)
+                                   :tx-id (val tx-id)
+                                   (params->filter)))))
