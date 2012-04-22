@@ -137,8 +137,8 @@
 (defun company-cheque-actions (op kind id cheque-id filter)
   (actions-menu
    (make-menu-spec
-    (action-anchors/crud (apply #'company/cheque kind :id id :cheque-id cheque-id filter)
-                         (apply #'company/cheque kind :id id :cheque-id cheque-id filter)
+    (action-anchors/crud (apply #'company/cheque/update kind :id id :cheque-id cheque-id filter)
+                         (apply #'company/cheque/delete kind :id id :cheque-id cheque-id filter)
                          (apply #'company/cheque/create kind :id id filter)))
    (enabled-actions/crud op cheque-id)))
 
@@ -269,7 +269,7 @@
            (cheque-filter (params->cheque-filter))
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op :create
+                                        :op op
                                         :filter (list* :company-id (val id) cheque-filter)
                                         :start-index (val start)
                                         :kind kind))
@@ -303,10 +303,11 @@
                                                (actions/company/cheque/create kind
                                                                               :id (val id)
                                                                               :search (val search)
+                                                                              :cstate (val cstate)
                                                                               :subset (val subset)
+                                                                              :start (val start)
                                                                               :since (val since)
-                                                                              :until (val until)
-                                                                              :cstate (val cstate))
+                                                                              :until (val until))
                                              (display cheque-table :payload (params->payload)))))))
                (footer)))))))
 
@@ -338,3 +339,191 @@
       (see-other (apply #'company/cheque kind :id (val id)
                                               :cheque-id (cheque-id new-cheque)
                                               (params->filter))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; UPDATE
+;;; ----------------------------------------------------------------------
+
+(defpage company-cheque-page company/cheque/update
+    (("company/cheque/" (kind "(receivable|payable)") "/update"))
+    ((id        integer chk-company-id    t)
+     (cheque-id integer chk-cheque-id     t)
+     (search    string)
+     (cstate    string)
+     (subset    string)
+     (start     integer)
+     (since     date    chk-date)
+     (until     date    chk-date)
+     (serial    string  chk-cheque-serial)
+     (bank      string  chk-bank-title)
+     (due-date  date    chk-date)
+     (company   string  chk-company-title)
+     (amount    float   chk-amount))
+  (with-view-page
+    (check-cheque-accounts)
+    (let* ((op :update)
+           (filter (params->filter))
+           (cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
+           (cheque-table (make-instance 'company-cheque-table
+                                        :op op
+                                        :filter (list* :company-id (val id) cheque-filter)
+                                        :start-index (val start)
+                                        :kind kind))
+           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
+                             (cheque-page-title kind)
+                             " » Επεξεργασία")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'company)
+               (company-cheque-top-actions :tx kind (val id)
+                                           company-filter cheque-filter filter)
+               (company-tabs
+                (val id) company-filter 'cheque
+                (html ()
+                  (:div :class "secondary-filter-area"
+                        (display (cheque-filters kind
+                                                 (list* :id (val id) filter)
+                                                 #'company/cheque)))
+                  (:div :id "company-tx-window"
+                        (:div :class "window"
+                              (:div :class "title" (str page-title))
+                              (company-cheque-actions op kind
+                                                      (val id) (val cheque-id)
+                                                      filter)
+                              (notifications)
+                              (with-form (actions/company/cheque/update kind
+                                                                        :id (val id)
+                                                                        :cheque-id (val cheque-id)
+                                                                        :search (val search)
+                                                                        :cstate (val cstate)
+                                                                        :subset (val subset)
+                                                                        :start (val start)
+                                                                        :since (val since)
+                                                                        :until (val until))
+                                (display cheque-table :key (val cheque-id)
+                                                      :payload (params->payload)))))))
+               (footer)))))))
+
+(defpage company-cheque-page actions/company/cheque/update
+    (("actions/company/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
+    ((id        integer chk-company-id      t)
+     (cheque-id integer chk-cheque-id       t)
+     (search    string)
+     (cstate    string  chk-cheque-state-id)
+     (subset    string)
+     (start     integer)
+     (since     date    chk-date)
+     (until     date    chk-date)
+     (bank      string  chk-bank-title)
+     (serial    string  chk-cheque-serial)
+     (company   string  chk-company-title   t)
+     (due-date  date    chk-date            t)
+     (amount    float   chk-amount          t))
+  (with-controller-page (company/cheque/update kind)
+    (check-cheque-accounts)
+    (let ((new-cheque (make-instance 'cheque
+                                     :serial (val serial)
+                                     :bank-id (bank-id (val bank))
+                                     :company-id (val id)
+                                     :due-date (val due-date)
+                                     :amount (val amount)
+                                     :payable-p (string= kind "payable")
+                                     :state-id "pending")))
+      (insert-dao new-cheque)
+      (see-other (apply #'company/cheque kind :id (val id)
+                                              :cheque-id (cheque-id new-cheque)
+                                              (params->filter))))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; DELETE
+;;; ----------------------------------------------------------------------
+
+(defpage company-cheque-page company/cheque/delete
+    (("company/cheque/" (kind "(receivable|payable)") "/delete"))
+    ((id        integer chk-company-id    t)
+     (cheque-id integer chk-cheque-id     t)
+     (search    string)
+     (cstate    string)
+     (subset    string)
+     (start     integer)
+     (since     date    chk-date)
+     (until     date    chk-date)
+     (serial    string  chk-cheque-serial)
+     (bank      string  chk-bank-title)
+     (due-date  date    chk-date)
+     (company   string  chk-company-title)
+     (amount    float   chk-amount))
+  (with-view-page
+    (check-cheque-accounts)
+    (let* ((op :delete)
+           (filter (params->filter))
+           (cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
+           (cheque-table (make-instance 'company-cheque-table
+                                        :op op
+                                        :filter (list* :company-id (val id) cheque-filter)
+                                        :start-index (val start)
+                                        :kind kind))
+           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
+                             (cheque-page-title kind)
+                             " » Διαγραφή")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'company)
+               (company-cheque-top-actions :tx kind (val id)
+                                           company-filter cheque-filter filter)
+               (company-tabs
+                (val id) company-filter 'cheque
+                (html ()
+                  (:div :class "secondary-filter-area"
+                        (display (cheque-filters kind
+                                                 (list* :id (val id) filter)
+                                                 #'company/cheque)))
+                  (:div :id "company-tx-window"
+                        (:div :class "window"
+                              (:div :class "title" (str page-title))
+                              (company-cheque-actions op kind
+                                                      (val id) (val cheque-id)
+                                                      filter)
+                              (notifications)
+                              (with-form (actions/company/cheque/delete kind
+                                                                        :id (val id)
+                                                                        :cheque-id (val cheque-id)
+                                                                        :search (val search)
+                                                                        :cstate (val cstate)
+                                                                        :subset (val subset)
+                                                                        :start (val start)
+                                                                        :since (val since)
+                                                                        :until (val until))
+                                (display cheque-table :key (val cheque-id)))))))
+               (footer)))))))
+
+(defpage company-cheque-page actions/company/cheque/delete
+    (("actions/company/cheque/" (kind "(receivable|payable)") "/delete") :request-type :post)
+    ((id        integer chk-company-id      t)
+     (cheque-id integer chk-cheque-id       t)
+     (search    string)
+     (cstate    string  chk-cheque-state-id)
+     (subset    string)
+     (start     integer)
+     (since     date    chk-date)
+     (until     date    chk-date))
+  (with-controller-page (company/cheque/delete kind)
+    (check-cheque-accounts)
+    (delete-dao (get-dao 'cheque (val cheque-id)))
+    (see-other (apply #'company/cheque kind :id (val id) (params->filter)))))

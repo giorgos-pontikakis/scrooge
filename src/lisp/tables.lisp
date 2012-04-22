@@ -221,17 +221,17 @@
   (:metaclass dao-class)
   (:keys id))
 
-(defmethod insert-dao :around ((obj cheque))
+(defmethod insert-dao :around ((dao cheque))
   (let* ((cheque-stran (select-dao-unique 'cheque-stran
                            (:and (:= 'from-state-id "nil")
-                                 (:= 'payable-p (payable-p obj)))))
+                                 (:= 'payable-p (payable-p dao)))))
          (temtx (select-dao-unique 'temtx
                     (:= 'id (temtx-id cheque-stran))))
          (new-tx (make-instance 'tx
                                 :tx-date (today)
                                 :description (title temtx)
-                                :company-id (company-id obj)
-                                :amount (amount obj)
+                                :company-id (company-id dao)
+                                :amount (amount dao)
                                 :credit-acc-id (credit-acc-id temtx)
                                 :debit-acc-id (debit-acc-id temtx))))
     (with-transaction ()
@@ -239,11 +239,21 @@
       (insert-dao new-tx)
       (insert-dao (make-instance 'cheque-event
                                  :tstamp (now)
-                                 :cheque-id (cheque-id obj)
+                                 :cheque-id (cheque-id dao)
                                  :from-state-id (from-state-id cheque-stran)
                                  :to-state-id (to-state-id cheque-stran)
                                  :tx-id (tx-id new-tx)))
-      obj)))
+      dao)))
+
+(defmethod delete-dao :around ((dao cheque))
+  (let* ((cheque-event-daos (select-dao 'cheque-event (:= 'cheque-id (cheque-id dao))))
+         (tx-daos (mapcar (compose (lambda (tx-id) (get-dao 'tx tx-id))
+                                   #'tx-id)
+                          cheque-event-daos)))
+    (with-transaction ()
+      (mapc #'delete-dao cheque-event-daos)
+      (mapc #'delete-dao tx-daos)
+      (call-next-method))))
 
 
 
