@@ -535,38 +535,15 @@
      (amount   float   chk-amount        t))
   (with-controller-page (cheque/create kind)
     (check-cheque-accounts)
-    (let* ((payable-p (string= kind "payable"))
-           (bank-id (bank-id (val bank)))
-           (company-id (company-id (val company)))
-           (cheque-stran (select-dao-unique 'cheque-stran
-                             (:and (:= 'from-state-id "nil")
-                                   (:= 'payable-p payable-p))))
-           (temtx (select-dao-unique 'temtx
-                      (:= 'id (temtx-id cheque-stran))))
-           (new-tx (make-instance 'tx
-                                  :tx-date (today)
-                                  :description (title temtx)
-                                  :company-id company-id
-                                  :amount (val amount)
-                                  :credit-acc-id (credit-acc-id temtx)
-                                  :debit-acc-id (debit-acc-id temtx)))
-           (new-cheque (make-instance 'cheque
-                                      :serial (val serial)
-                                      :bank-id bank-id
-                                      :company-id company-id
-                                      :due-date (val due-date)
-                                      :amount (val amount)
-                                      :payable-p payable-p
-                                      :state-id "pending")))
-      (with-transaction ()
-        (insert-dao new-cheque)
-        (insert-dao new-tx)
-        (insert-dao (make-instance 'cheque-event
-                                   :tstamp (now)
-                                   :cheque-id (cheque-id new-cheque)
-                                   :from-state-id (from-state-id cheque-stran)
-                                   :to-state-id (to-state-id cheque-stran)
-                                   :tx-id (tx-id new-tx))))
+    (let ((new-cheque (make-instance 'cheque
+                                     :serial (val serial)
+                                     :bank-id (bank-id (val bank))
+                                     :company-id (company-id (val company))
+                                     :due-date (val due-date)
+                                     :amount (val amount)
+                                     :payable-p (string= kind "payable")
+                                     :state-id "pending")))
+      (insert-dao new-cheque)
       (see-other (apply #'cheque kind :id (cheque-id new-cheque) (params->filter))))))
 
 

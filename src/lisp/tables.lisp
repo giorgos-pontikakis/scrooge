@@ -221,6 +221,31 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defmethod insert-dao :around ((obj cheque))
+  (let* ((cheque-stran (select-dao-unique 'cheque-stran
+                           (:and (:= 'from-state-id "nil")
+                                 (:= 'payable-p (payable-p obj)))))
+         (temtx (select-dao-unique 'temtx
+                    (:= 'id (temtx-id cheque-stran))))
+         (new-tx (make-instance 'tx
+                                :tx-date (today)
+                                :description (title temtx)
+                                :company-id (company-id obj)
+                                :amount (amount obj)
+                                :credit-acc-id (credit-acc-id temtx)
+                                :debit-acc-id (debit-acc-id temtx))))
+    (with-transaction ()
+      (call-next-method)
+      (insert-dao new-tx)
+      (insert-dao (make-instance 'cheque-event
+                                 :tstamp (now)
+                                 :cheque-id (cheque-id obj)
+                                 :from-state-id (from-state-id cheque-stran)
+                                 :to-state-id (to-state-id cheque-stran)
+                                 :tx-id (tx-id new-tx)))
+      obj)))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Transactions & Templates
