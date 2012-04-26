@@ -37,8 +37,6 @@
 (defmethod key ((row company-cheque-row))
   (getf (record row) :id))
 
-
-
 (defmethod selector ((row company-cheque-row) selected-p)
   (let* ((table (collection row))
          (cheque-id (key row))

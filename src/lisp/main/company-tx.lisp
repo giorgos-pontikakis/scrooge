@@ -81,18 +81,6 @@
         nil
         due-date)))
 
-;; (defun pending-cheque-row-p (row)
-;;   (let ((due-date (cheque-row-p row)))
-;;     (if (and due-date
-;;              (string= (getf row :state-id) "pending"))
-;;         due-date
-;;         nil)))
-
-;; (defun due-or-tx-date (row)
-;;   (if-let (due-date (pending-cheque-row-p row))
-;;     due-date
-;;     (getf row :tx-date)))
-
 
 ;;;  Customer
 
