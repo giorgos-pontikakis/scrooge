@@ -186,7 +186,8 @@
          (filter (filter table))
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
-      (:a :href (if selected-p
+      (:a :id id
+          :href (if selected-p
                     (apply url-fn :start start filter)
                     (apply url-fn :id id filter))
           (selector-img selected-p)))))

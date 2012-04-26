@@ -1,6 +1,7 @@
 $(document).ready(function () {
    applyAutocomplete();
    applyDatepicker();
+   selectableRows();
 });
 
 function applyDatepicker () {
@@ -30,4 +31,12 @@ function applyAutocomplete () {
       }
       $(".ac-" + id).autocomplete(options);
    }
+}
+
+
+function selectableRows () {
+   $("tr").click(function (event) {
+      var href = $(this).children("td.selector").children("a").attr("href");
+      window.location.href = window.location.origin + href;
+   });
 }
