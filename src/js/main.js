@@ -35,8 +35,27 @@ function applyAutocomplete () {
 
 
 function selectableRows () {
-   $("tr").click(function (event) {
-      var href = $(this).children("td.selector").children("a").attr("href");
-      window.location.href = window.location.origin + href;
+   // $("tr").click(function (event) {
+   //    var href = $(this).children("td.selector").children("a").attr("href");
+   //    window.location.href = window.location.origin + href;
+   // });
+
+   $("tr td.selector a img").click(function(e) {
+      e.stopPropagation();
    });
+
+   $("tr").click(function () {
+      $(this).children("td.selector").children("a").children("img").trigger ("click");
+   });
+
+
+
+
+   // $(".crud-tree li div").click(function (event) {
+   //    var href = $(this).children("span.selector").children("input").click(function(event) {
+   //       event.stopPropagation();
+   //       alert("foo");
+   //    });
+   //    window.location.href = window.location.origin + href;
+   // });
 }
