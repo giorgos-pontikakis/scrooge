@@ -212,7 +212,7 @@
           (:div :id "company-area"
                 (when id
                   (htm (:div :id "company-title"
-                             (:h3 :class "grid_12"
+                             (:h3 :class "grid_12 alpha"
                                   (str (title (get-dao 'company id))))
                              (navbar
                               `((data ,(apply #'company/details :id id filter)

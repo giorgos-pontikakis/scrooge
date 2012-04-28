@@ -1,14 +1,14 @@
 /* ---------------------------------------------------------------------- */
-/* Company Area */
+/* Company Area & Project Area */
 /* ---------------------------------------------------------------------- */
 
-#company-area {
+#company-area, #project-area {
     background-color: #fff;
     margin-top: 10px;
     border-radius: 5px;
 }
 
-#company-title {
+#company-title, #project-title {
     background-color: #ddd;
     color: #444;
     /* text-shadow: #024 2px 2px 2px; */
@@ -21,6 +21,16 @@
     margin: 15px 0px 0px 30px;
     font-size: 21px;
 }
+
+#project-title h3 {
+    margin: 15px 0px 15px 30px;
+    font-size: 21px;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* Company tabs */
+/* ---------------------------------------------------------------------- */
 
 #company-tabs {
     margin-top: 10px;

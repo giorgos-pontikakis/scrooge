@@ -201,10 +201,10 @@
 (defun project-tabs (id content)
   (with-html
     (:div :class "grid_12"
-          (:div :class "tabbar"
+          (:div :id "project-area"
                 (when id
                   (htm
-                   (:div :class "tabbar-title"
+                   (:div :id "project-title"
                          (:h3 :class "grid_8 alpha"
                               (str (description (get-dao 'project id))))
                          (clear))))
