@@ -35,27 +35,20 @@ function applyAutocomplete () {
 
 
 function selectableRows () {
-   // $("tr").click(function (event) {
-   //    var href = $(this).children("td.selector").children("a").attr("href");
-   //    window.location.href = window.location.origin + href;
-   // });
 
-   $("tr td.selector a img").click(function(e) {
+   $("tr td.selector a").click(function(e) {
       e.stopPropagation();
+      window.location = $(this).attr("href");;
    });
 
    $("tr").click(function () {
-      $(this).children("td.selector").children("a").children("img").trigger ("click");
+      $(this).children("td.selector").children("a").trigger("click");
    });
 
+   $(".crud-tree span.selector input").change(function (e) {
+      e.stopPropagation();
+      $(".crud-tree li.selected").removeClass("selected");
+      $(this).parent().parent().parent().addClass("selected");
+   });
 
-
-
-   // $(".crud-tree li div").click(function (event) {
-   //    var href = $(this).children("span.selector").children("input").click(function(event) {
-   //       event.stopPropagation();
-   //       alert("foo");
-   //    });
-   //    window.location.href = window.location.origin + href;
-   // });
 }
