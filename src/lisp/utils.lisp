@@ -220,6 +220,13 @@ excluded for the search - useful for updates."
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun fmt-amount (amount &optional (decimal-digits 2))
+  (let ((format-control (concatenate 'string
+                                     "~," (write-to-string decimal-digits) "F")))
+    (if (not (numberp amount))
+        amount
+        (format nil format-control amount))))
+
 (defun dfs (expander-fn root)
   "Depth first search"
   (labels ((dfs-aux (expanded fringe)

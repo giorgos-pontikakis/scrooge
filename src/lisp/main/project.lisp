@@ -356,7 +356,7 @@
        (:a :href (company/details :id (getf record :company-id))
            (str (getf record :company))))
      (html ()
-       (str (lisp->html (getf record :price)))))))
+       (str (lisp->html (fmt-amount (getf record :price) 0)))))))
 
 
 ;;; paginator

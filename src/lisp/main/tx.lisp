@@ -201,13 +201,18 @@
                (html ()
                  (:a :href (company/details :id (getf record :company-id))
                      (str (getf record :company)))))
-           (mapcar (lambda (name)
-                     (make-instance 'textbox
-                                    :name name
-                                    :value (getf record (make-keyword name))
-                                    :disabled (not enabled-p)
-                                    :css-class (if enabled-p (getf css-class name) nil)))
-                   '(description non-chq-debit-acc non-chq-credit-acc amount)))))
+           (append (mapcar (lambda (name)
+                      (make-instance 'textbox
+                                     :name name
+                                     :value (getf record (make-keyword name))
+                                     :disabled (not enabled-p)
+                                     :css-class (if enabled-p (getf css-class name) nil)))
+                    '(description non-chq-debit-acc non-chq-credit-acc))
+                   (list (make-instance 'textbox
+                                        :name 'amount
+                                        :value (fmt-amount (getf record :amount))
+                                        :disabled (not enabled-p)
+                                        :css-class (if enabled-p (getf css-class 'amount) nil)))))))
 
 
 ;;; paginator

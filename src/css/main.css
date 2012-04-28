@@ -254,8 +254,6 @@
     width: 170px;
 }
 
-
-
 #tx-table td:nth-child(5), #tx-table th:nth-child(5),
 #tx-table td:nth-child(6), #tx-table th:nth-child(6)
 {
@@ -268,8 +266,6 @@
     width: 125px;
 }
 
-
-
 #tx-table td:nth-child(7), #tx-table th:nth-child(7)
 {
     width: 60px;
@@ -278,5 +274,14 @@
 
 #tx-table td:nth-child(7) input {
     width: 50px;
+    text-align: right;
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* project-table */
+/* ---------------------------------------------------------------------- */
+
+#project-table td:nth-child(4), #project-table th:nth-child(4) {
     text-align: right;
 }
