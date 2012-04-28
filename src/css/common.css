@@ -288,6 +288,11 @@ select:disabled {
     margin-bottom: 10px;
 }
 
+.data-form input[type="radio"] {
+    margin: 5px 5px 8px 5px;
+    vertical-align: middle;
+}
+
 .data-form input.inline {
     display: inline;
 }
