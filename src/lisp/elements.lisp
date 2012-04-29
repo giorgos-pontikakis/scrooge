@@ -39,6 +39,7 @@
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
+  (css (url 'css "crud.css"))
   (css (url 'css "login.css")))
 
 (defun global-headers ()
