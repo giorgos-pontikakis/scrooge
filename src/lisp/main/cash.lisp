@@ -271,12 +271,17 @@
          (disabled (eql (op form) :details))
          (record (record form))
          (lit (label-input-text disabled record styles))
-         (tree (make-instance 'rev/exp-account-tree
-                              :disabled disabled
-                              :root-key (if revenues-p
-                                            *revenues-root-acc-id*
-                                            *expenses-root-acc-id*)
-                              :debit-p (not revenues-p))))
+         (rec/pay-acc-id (if revenues-p
+                              *invoice-receivable-acc-id*
+                              *invoice-payable-acc-id*))
+         (rev/exp-acc-id (if revenues-p
+                             *revenues-root-acc-id*
+                             *expenses-root-acc-id*))
+         (tree-key (or (getf record :account-id)
+                       (getf record (if revenues-p
+                                        :credit-acc-id
+                                        :debit-acc-id))
+                       rec/pay-acc-id)))
     (with-html
       (:div :id "cash-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"
@@ -291,28 +296,23 @@
                                                     "Δημιουργία"))
                                (cancel-button (cancel-url form)
                                               :body "Άκυρο")))))
-            ;; Display the tree. If needed, preselect the first account of the tree.
-            (let ((account-id (getf record :account-id))
-                  (recv/pay-acc-id (if revenues-p
-                                       *invoice-receivable-acc-id*
-                                       *invoice-payable-acc-id*)))
-              (htm (:div :class "grid_5 omega"
-                         (:h3 (str (conc "Λογαριασμός "
-                                         (if revenues-p "πίστωσης" "χρέωσης"))))
-                         (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
-                         (input-radio 'account-id
-                                      recv/pay-acc-id
-                                      (html ()
-                                        (str (title (get-dao 'account recv/pay-acc-id))))
-                                      :disabled disabled
-                                      :checked (or (eql recv/pay-acc-id account-id)
-                                                   (not account-id)))
-                         (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                         (if revenues-p "εσόδων" "εξόδων"))))
-                         (display tree :key (or (getf record :account-id)
-                                                (getf record (if revenues-p
-                                                                 :credit-acc-id
-                                                                 :debit-acc-id)))))))
+            (htm (:div :class "grid_5 omega"
+                       ;;
+                       (:h3 (str (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης"))))
+                       (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
+                       (display (make-instance 'rev/exp-account-tree
+                                               :disabled disabled
+                                               :root-key rec/pay-acc-id
+                                               :debit-p revenues-p)
+                                :key tree-key)
+                       ;;
+                       (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
+                                       (if revenues-p "εσόδων" "εξόδων"))))
+                       (display (make-instance 'rev/exp-account-tree
+                                               :disabled disabled
+                                               :root-key rev/exp-acc-id
+                                               :debit-p (not revenues-p))
+                                :key tree-key)))
             (clear)))))
 
 

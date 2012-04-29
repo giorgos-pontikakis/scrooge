@@ -36,19 +36,26 @@ function applyAutocomplete () {
 
 function selectableRows () {
 
-   $("tr td.selector a").click(function(e) {
+   // crud-table
+   $(".crud-table input").click(function (e){
+      e.stopPropagation();
+   });
+
+   $(".crud-table tr td.selector a").click(function(e) {
       e.stopPropagation();
       window.location = $(this).attr("href");;
    });
 
-   $("tr").click(function () {
+   $(".crud-table tr").click(function () {
       $(this).children("td.selector").children("a").trigger("click");
    });
 
-   $(".crud-tree span.selector input").change(function (e) {
+   // crud-tree
+   $(".crud-tree input").click(function (e) {
       e.stopPropagation();
       $(".crud-tree li.selected").removeClass("selected");
       $(this).parent().parent().parent().addClass("selected");
+      console.log("crud-tree -> click")
    });
 
 }
