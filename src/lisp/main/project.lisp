@@ -12,7 +12,7 @@
     :initform '(id))
    (payload-parameter-names
     :allocation :class
-    :initform '(company description location price vat state quote-date start-date end-date notes))
+    :initform '(company description location price vat state-id quote-date start-date end-date notes))
    (filter-parameter-names
     :allocation :class
     :initform '(search cstate))
@@ -102,40 +102,40 @@
         ((project-description-exists-p description company id) :project-description-exists)
         (t nil)))
 
-(defun chk-quote-date (date state)
-  (let ((states (list "quoted" "ongoing" "finished" "archived")))
-    (cond ((and (member state states :test #'string=)
+(defun chk-quote-date (date state-id)
+  (let ((state-ids (list "quoted" "ongoing" "finished" "archived")))
+    (cond ((and (member state-id state-ids :test #'string=)
                 (eql date :null))
            :quote-date-null)
           (t
            nil))))
 
-(defun chk-start-date (date state)
-  (let ((states (list "ongoing" "finished" "archived")))
-    (cond ((and (member state states :test #'string=)
+(defun chk-start-date (date state-id)
+  (let ((state-ids (list "ongoing" "finished" "archived")))
+    (cond ((and (member state-id state-ids :test #'string=)
                 (eql date :null))
            :start-date-null)
-          ((and (not (member state states :test #'string=))
+          ((and (not (member state-id state-ids :test #'string=))
                 (not (eql date :null)))
            :start-date-nonnull)
           (t
            nil))))
 
-(defun chk-end-date (date state)
-  (let ((states (list "finished" "archived")))
-    (cond ((and (member state states :test #'string=)
+(defun chk-end-date (date state-id)
+  (let ((state-ids (list "finished" "archived")))
+    (cond ((and (member state-id state-ids :test #'string=)
                 (eql date :null))
            :end-date-null)
-          ((and (not (member state states :test #'string=))
+          ((and (not (member state-id state-ids :test #'string=))
                 (not (eql date :null)))
            :end-date-nonnull)
           (t
            nil))))
 
-(defun chk-project-state (state)
-  (if (project-state-id-exists-p state)
+(defun chk-project-state-id (state-id)
+  (if (project-state-id-exists-p state-id)
       nil
-      :project-state-invalid))
+      :project-state-id-invalid))
 
 (defun chk-bill-id (project-id bill-id)
   (if (and (project-id-exists-p project-id)
@@ -143,9 +143,9 @@
       nil
       :bill-id-invalid))
 
-(defun chk-price (price state)
+(defun chk-price (price state-id)
   (or (chk-amount* price)
-      (if (and (string-equal state "archived")
+      (if (and (string-equal state-id "archived")
                (eql price :null))
           :price-missing-for-archived-project
           nil)))
@@ -213,7 +213,7 @@
 
 (defpage project-page actions/project/search ("actions/project/search" :request-type :get)
     ((search string)
-     (cstate string  chk-project-state))
+     (cstate string  chk-project-state-id))
   (with-db ()
     (let* ((filter (params->filter))
            (records (get-records (make-instance 'project-table
@@ -245,10 +245,10 @@
                   (:fieldset
                    (:legend "Οικονομικά")
                    (:ul
-                    (:li (label 'state "Κατάσταση")
-                         (dropdown 'state *project-states*
-                                   :selected (or (getf record :state)
-                                                 *default-project-state*)
+                    (:li (label 'state-id "Κατάσταση")
+                         (dropdown 'state-id *project-state-ids*
+                                   :selected (or (getf record :state-id)
+                                                 *default-project-state-id*)
                                    :disabled disabled))
                     (:li (display lit 'price "Τιμή"))
                     (:li (display lit 'vat "Φ.Π.Α.")))))
@@ -275,7 +275,7 @@
 (defmethod get-record ((type (eql 'project)) id)
   (declare (ignore type))
   (query (:select 'project.id (:as 'company.title 'company)
-                  'description 'location 'state 'quote-date
+                  'description 'location 'state-id 'quote-date
                   'start-date 'end-date 'price 'vat 'project.notes
                   :from 'project
                   :left-join 'company
@@ -313,7 +313,7 @@
                   (:ilike project.notes ,(ilike search)))
             where-terms))
     (when cstate
-      (push `(:= project.state ,cstate)
+      (push `(:= project.state-id ,cstate)
             where-terms))
     (let* ((composite-query (if (or search cstate)
                                 (append base-query
@@ -388,7 +388,7 @@
       ;; if id exists and is not found among records, ignore search term
       (when (and (val id)
                  (not (find (val id) (rows project-table) :key #'key)))
-        (see-other (project :id (val id) :cstate (state (get-dao 'project (val id))))))
+        (see-other (project :id (val id) :cstate (state-id (get-dao 'project (val id))))))
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")
@@ -454,16 +454,16 @@
 
 (defpage project-page project/create ("project/create")
     ((search      string)
-     (cstate      string chk-project-state)
+     (cstate      string chk-project-state-id)
      (company     string chk-company-title)
      (description string (chk-project-description/create description company))
      (location    string)
-     (price       float  (chk-price price state))
+     (price       float  (chk-price price state-id))
      (vat         float  chk-amount*)
-     (state       string)
-     (quote-date  date   (chk-quote-date quote-date state))
-     (start-date  date   (chk-start-date start-date state))
-     (end-date    date   (chk-end-date end-date state))
+     (state-id    string)
+     (quote-date  date   (chk-quote-date quote-date state-id))
+     (start-date  date   (chk-start-date start-date state-id))
+     (end-date    date   (chk-end-date end-date state-id))
      (notes       string))
   (with-view-page
     (let* ((op :create)
@@ -497,16 +497,16 @@
 (defpage project-page actions/project/create ("actions/project/create"
                                               :request-type :post)
     ((search      string)
-     (cstate      string chk-project-state)
+     (cstate      string chk-project-state-id)
      (company     string chk-company-title)
      (description string (chk-project-description/create description company))
      (location    string)
-     (price       float  (chk-price price state))
+     (price       float  (chk-price price state-id))
      (vat         float  chk-amount*)
-     (state       string)
-     (quote-date  date   (chk-quote-date quote-date state))
-     (start-date  date   (chk-start-date start-date state))
-     (end-date    date   (chk-end-date end-date state))
+     (state-id    string)
+     (quote-date  date   (chk-quote-date quote-date state-id))
+     (start-date  date   (chk-start-date start-date state-id))
+     (end-date    date   (chk-end-date end-date state-id))
      (notes       string))
   (with-controller-page (project/create)
     (let* ((company-id (company-id (val company)))
@@ -519,7 +519,7 @@
                                        :quote-date (val quote-date)
                                        :start-date (val start-date)
                                        :end-date (val end-date)
-                                       :state (val state)
+                                       :state-id (val state-id)
                                        :notes (val notes))))
       (insert-dao new-project)
       (see-other (apply #'project/details :id (project-id new-project)
@@ -533,18 +533,18 @@
 
 (defpage project-page project/update ("project/update")
     ((search      string)
-     (cstate      string chk-project-state)
+     (cstate      string chk-project-state-id)
      (id          integer chk-project-id)
      (bill-id     integer (chk-bill-id id bill-id))
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company id))
      (location    string)
-     (price       float   (chk-price price state))
+     (price       float   (chk-price price state-id))
      (vat         float   chk-amount*)
-     (state       string)
-     (quote-date  date    (chk-quote-date quote-date state))
-     (start-date  date    (chk-start-date start-date state))
-     (end-date    date    (chk-end-date end-date state))
+     (state-id    string)
+     (quote-date  date    (chk-quote-date quote-date state-id))
+     (start-date  date    (chk-start-date start-date state-id))
+     (end-date    date    (chk-end-date end-date state-id))
      (notes       string))
   (with-view-page
     (let* ((op :update)
@@ -588,17 +588,17 @@
 (defpage project-page actions/project/update ("actions/project/update"
                                               :request-type :post)
     ((search      string)
-     (cstate      string  chk-project-state)
+     (cstate      string  chk-project-state-id)
      (id          integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company id))
      (location    string)
-     (price       float   (chk-price price state))
+     (price       float   (chk-price price state-id))
      (vat         float   chk-amount*)
-     (state       string)
-     (quote-date  date    (chk-quote-date quote-date state))
-     (start-date  date    (chk-start-date start-date state))
-     (end-date    date    (chk-end-date end-date state))
+     (state-id    string)
+     (quote-date  date    (chk-quote-date quote-date state-id))
+     (start-date  date    (chk-start-date start-date state-id))
+     (end-date    date    (chk-end-date end-date state-id))
      (notes       string))
   (with-controller-page (project/update)
     (let ((company-id (company-id (val company))))
@@ -611,7 +611,7 @@
                         'quote-date (val quote-date)
                         'start-date (val start-date)
                         'end-date (val end-date)
-                        'state (val state)
+                        'state-id (val state-id)
                         'notes (val notes)
                         :where (:= 'id (val id))))
       (see-other (apply #'project/details :id (val id)
@@ -626,7 +626,7 @@
 (defpage project-page project/delete ("project/delete")
     ((id     integer chk-project-id t)
      (search string)
-     (cstate string chk-project-state))
+     (cstate string chk-project-state-id))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
@@ -658,7 +658,7 @@
                                               :request-type :post)
     ((id     integer chk-project-id)
      (search string)
-     (cstate string chk-project-state))
+     (cstate string chk-project-state-id))
   (with-controller-page (project/delete)
     (with-transaction ()
       (execute (:delete-from 'bill

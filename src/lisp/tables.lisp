@@ -131,7 +131,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass project-state ()
-  ((state       :col-type string :reader   state)
+  ((state-id    :col-type string :reader   state-id)
    (description :col-type string :accessor description :initarg :description))
   (:metaclass dao-class)
   (:keys state))
@@ -162,7 +162,7 @@
    (quote-date  :col-type timestamp     :accessor quote-date  :initarg :quote-date)
    (start-date  :col-type timestamp     :accessor start-date  :initarg :start-date)
    (end-date    :col-type timestamp     :accessor end-date    :initarg :end-date)
-   (state       :col-type string        :accessor state       :initarg :state)
+   (state-id    :col-type string        :accessor state-id    :initarg :state-id)
    (vat         :col-type (numeric 9 2) :accessor vat         :initarg :vat)
    (notes       :col-type string        :accessor notes       :initarg :notes))
   (:metaclass dao-class)
