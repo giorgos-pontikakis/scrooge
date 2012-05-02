@@ -9,7 +9,7 @@
 (defclass bank-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(bank-id))
    (payload-parameter-names
     :allocation :class
     :initform '(title))
@@ -31,25 +31,25 @@
 ;;; Validation
 ;;; ------------------------------------------------------------
 
-(defun bank-referenced-p (id)
+(defun bank-referenced-p (bank-id)
   (with-db ()
-    (and id
-         (query (:select 'id
+    (and bank-id
+         (query (:select 'bank-id
                  :from 'cheque
-                 :where (:= 'bank-id id))
+                 :where (:= 'bank-id bank-id))
                 :column))))
 
-(define-existence-predicate  bank-id-exists-p bank id)
-(define-existence-predicate* bank-title-exists-p bank title id)
+(define-existence-predicate  bank-id-exists-p bank bank-id)
+(define-existence-predicate* bank-title-exists-p bank title bank-id)
 
-(defun chk-bank-id (id)
-  (if (bank-id-exists-p id)
+(defun chk-bank-id (bank-id)
+  (if (bank-id-exists-p bank-id)
       nil
       :bank-id-unknown))
 
-(defun chk-bank-id/ref (id)
-  (if (and (null (chk-bank-id id))
-           (null (bank-referenced-p id)))
+(defun chk-bank-id/ref (bank-id)
+  (if (and (null (chk-bank-id bank-id))
+           (null (bank-referenced-p bank-id)))
       nil
       :bank-referenced))
 
@@ -58,9 +58,9 @@
         ((bank-title-exists-p title) :bank-title-exists)
         (t nil)))
 
-(defun chk-bank-title/update (title id)
+(defun chk-bank-title/update (title bank-id)
   (cond ((eql :null title) :bank-title-null)
-        ((bank-title-exists-p title id) :bank-title-exists)
+        ((bank-title-exists-p title bank-id) :bank-title-exists)
         (t nil)))
 
 (defun chk-bank-title (title)
@@ -75,28 +75,28 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun bank-top-actions (id filter)
+(defun bank-top-actions (bank-id filter)
   (top-actions
    (make-instance 'menu
                   :spec `((create ,(html ()
-                                     (:a :href (apply #'config/bank/create filter)
-                                         (:img :src "/scrooge/img/add.png")
-                                         (str "Νέα Τράπεζα")))))
+                                         (:a :href (apply #'config/bank/create filter)
+                                             (:img :src "/scrooge/img/add.png")
+                                             (str "Νέα Τράπεζα")))))
                   :css-class "hmenu")
    (searchbox #'config/bank
               #'(lambda (&rest args)
-                  (apply #'config/bank :id id args))
+                  (apply #'config/bank :bank-id bank-id args))
               filter
               "ac-bank")))
 
-(defun bank-actions (op id filter)
+(defun bank-actions (op bank-id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud (apply #'config/bank/update :id id filter)
-                                      (if (or (null id)
-                                              (bank-referenced-p id))
+                 (action-anchors/crud (apply #'config/bank/update :bank-id bank-id filter)
+                                      (if (or (null bank-id)
+                                              (bank-referenced-p bank-id))
                                           nil
-                                          (apply #'config/bank/delete :id id filter))))
-                (enabled-actions/crud op id)))
+                                          (apply #'config/bank/delete :bank-id bank-id filter))))
+                (enabled-actions/crud op bank-id)))
 
 
 
@@ -145,32 +145,32 @@
 ;;; ------------------------------------------------------------
 
 (defpage bank-page config/bank ("config/bank")
-    ((id     integer chk-bank-id)
-     (search string)
-     (start  integer))
+  ((bank-id integer chk-bank-id)
+   (search  string)
+   (start   integer))
   (with-view-page
-    (let* ((op :catalogue)
-           (filter (params->filter))
-           (bank-table (make-instance 'bank-table
-                                      :op op
-                                      :filter filter
-                                      :start-index (val start))))
-      (with-document ()
-        (:head
-         (:title "Τράπεζες » Κατάλογος")
-         (config-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions (val id) filter)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (bank-actions op (val id) filter)
-                           (display bank-table
-                                    :key (val id))))
-               (footer)))))))
+      (let* ((op :catalogue)
+             (filter (params->filter))
+             (bank-table (make-instance 'bank-table
+                                        :op op
+                                        :filter filter
+                                        :start-index (val start))))
+        (with-document ()
+          (:head
+           (:title "Τράπεζες » Κατάλογος")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-navbar 'bank)
+                 (bank-top-actions (val bank-id) filter)
+                 (:div :class "grid_12"
+                       (:div :id "bank-window" :class "window"
+                             (:div :class "title" "Κατάλογος")
+                             (bank-actions op (val bank-id) filter)
+                             (display bank-table
+                                      :key (val bank-id))))
+                 (footer)))))))
 
 
 
@@ -179,40 +179,40 @@
 ;;; ------------------------------------------------------------
 
 (defpage bank-page config/bank/create ("config/bank/create")
-    ((title  string chk-bank-title/create)
-     (search string))
+  ((title  string chk-bank-title/create)
+   (search string))
   (with-view-page
-    (let* ((op :create)
-           (filter (params->filter))
-           (bank-table (make-instance 'bank-table
-                                      :op op
-                                      :filter filter)))
-      (with-document ()
-        (:head
-         (:title "Τράπεζα » Δημιουργία")
-         (config-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions nil filter)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                            (bank-actions op nil filter)
-                           (with-form (actions/config/bank/create :search (val search))
-                             (display bank-table
-                                      :key nil
-                                      :payload (params->payload)))))
-               (footer)))))))
+      (let* ((op :create)
+             (filter (params->filter))
+             (bank-table (make-instance 'bank-table
+                                        :op op
+                                        :filter filter)))
+        (with-document ()
+          (:head
+           (:title "Τράπεζα » Δημιουργία")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-navbar 'bank)
+                 (bank-top-actions nil filter)
+                 (:div :class "grid_12"
+                       (:div :id "bank-window" :class "window"
+                             (:div :class "title" "Δημιουργία")
+                             (bank-actions op nil filter)
+                             (with-form (actions/config/bank/create :search (val search))
+                               (display bank-table
+                                        :key nil
+                                        :payload (params->payload)))))
+                 (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
-    ((title  string chk-bank-title/create t)
-     (search string))
+  ((title  string chk-bank-title/create t)
+   (search string))
   (with-controller-page (config/bank/create)
     (let ((new-bank (make-instance 'bank :title (val title))))
       (insert-dao new-bank)
-      (see-other (config/bank :id (bank-id new-bank))))))
+      (see-other (config/bank :bank-id (bank-id new-bank))))))
 
 
 
@@ -221,44 +221,44 @@
 ;;; ------------------------------------------------------------
 
 (defpage bank-page config/bank/update ("config/bank/update")
-    ((id     integer chk-bank-id t)
-     (title  string  (chk-bank-title/update title id))
-     (search string))
+  ((bank-id integer chk-bank-id                           t)
+   (title   string  (chk-bank-title/update title bank-id))
+   (search  string))
   (with-view-page
-    (let* ((op :update)
-           (filter (params->filter))
-           (bank-table (make-instance 'bank-table
-                                      :op op
-                                      :filter filter)))
-      (with-document ()
-        (:head
-         (:title "Τράπεζα » Επεξεργασία")
-         (config-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions (val id) filter)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (bank-actions op (val id) filter)
-                           (with-form (actions/config/bank/update :id (val id)
-                                                                  :search (val search))
-                             (display bank-table
-                                      :key (val id)
-                                      :payload (params->payload)))))
-               (footer)))))))
+      (let* ((op :update)
+             (filter (params->filter))
+             (bank-table (make-instance 'bank-table
+                                        :op op
+                                        :filter filter)))
+        (with-document ()
+          (:head
+           (:title "Τράπεζα » Επεξεργασία")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-navbar 'bank)
+                 (bank-top-actions (val bank-id) filter)
+                 (:div :class "grid_12"
+                       (:div :id "bank-window" :class "window"
+                             (:div :class "title" "Επεξεργασία")
+                             (bank-actions op (val bank-id) filter)
+                             (with-form (actions/config/bank/update :bank-id (val bank-id)
+                                                                    :search (val search))
+                               (display bank-table
+                                        :key (val bank-id)
+                                        :payload (params->payload)))))
+                 (footer)))))))
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
-    ((id     integer chk-bank-id t)
-     (title  string  (chk-bank-title/update title id) t)
-     (search string))
+  ((bank-id integer chk-bank-id                           t)
+   (title   string  (chk-bank-title/update title bank-id) t)
+   (search  string))
   (with-controller-page (config/bank/update)
     (execute (:update 'bank :set
                       'title (val title)
-                      :where (:= 'id (val id))))
-    (see-other (config/bank :id (val id) :search (val search)))))
+                      :where (:= 'bank-id (val bank-id))))
+    (see-other (config/bank :bank-id (val bank-id) :search (val search)))))
 
 
 
@@ -267,36 +267,36 @@
 ;;; ------------------------------------------------------------
 
 (defpage bank-page config/bank/delete ("config/bank/delete")
-    ((id     integer chk-bank-id/ref t)
-     (search string))
+  ((bank-id integer chk-bank-id/ref t)
+   (search  string))
   (with-view-page
-    (let* ((op :delete)
-           (filter (params->filter))
-           (bank-table (make-instance 'bank-table
-                                      :op op
-                                      :filter filter)))
-      (with-document ()
-        (:head
-         (:title "Τράπεζα » Διαγραφή")
-         (config-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions (val id) filter)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (bank-actions op (val id) filter)
-                           (with-form (actions/config/bank/delete :id (val id)
-                                                                  :search (val search))
-                             (display bank-table
-                                      :key (val id)))))
-               (footer)))))))
+      (let* ((op :delete)
+             (filter (params->filter))
+             (bank-table (make-instance 'bank-table
+                                        :op op
+                                        :filter filter)))
+        (with-document ()
+          (:head
+           (:title "Τράπεζα » Διαγραφή")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (config-navbar 'bank)
+                 (bank-top-actions (val bank-id) filter)
+                 (:div :class "grid_12"
+                       (:div :id "bank-window" :class "window"
+                             (:div :class "title" "Διαγραφή")
+                             (bank-actions op (val bank-id) filter)
+                             (with-form (actions/config/bank/delete :bank-id (val bank-id)
+                                                                    :search (val search))
+                               (display bank-table
+                                        :key (val bank-id)))))
+                 (footer)))))))
 
 (defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
-    ((id     integer chk-bank-id/ref t)
-     (search string))
+  ((bank-id integer chk-bank-id/ref t)
+   (search  string))
   (with-controller-page (config/bank/delete)
-    (delete-dao (get-dao 'bank (val id)))
+    (delete-dao (get-dao 'bank (val bank-id)))
     (see-other (config/bank :search (val search)))))
