@@ -34,13 +34,13 @@
 (defun bank-referenced-p (bank-id)
   (with-db ()
     (and bank-id
-         (query (:select 'bank-id
+         (query (:select 'id
                  :from 'cheque
                  :where (:= 'bank-id bank-id))
                 :column))))
 
-(define-existence-predicate  bank-id-exists-p bank bank-id)
-(define-existence-predicate* bank-title-exists-p bank title bank-id)
+(define-existence-predicate  bank-id-exists-p bank id)
+(define-existence-predicate* bank-title-exists-p bank title id)
 
 (defun chk-bank-id (bank-id)
   (if (bank-id-exists-p bank-id)
@@ -107,10 +107,11 @@
 ;;; table
 
 (defclass bank-table (config-table)
-  ((header-labels  :initform '("" "Ονομασία τράπεζας" "" ""))
-   (paginator      :initform (make-instance 'bank-paginator
-                                            :id "bank-paginator"
-                                            :css-class "paginator")))
+  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
+   (paginator     :initform (make-instance 'bank-paginator
+                                           :id "bank-paginator"
+                                           :css-class "paginator"))
+   (key-name      :initform :bank-id))
   (:default-initargs :id "config-table"
                      :item-class 'bank-row))
 
@@ -145,32 +146,32 @@
 ;;; ------------------------------------------------------------
 
 (defpage bank-page config/bank ("config/bank")
-  ((bank-id integer chk-bank-id)
-   (search  string)
-   (start   integer))
+    ((bank-id integer chk-bank-id)
+     (search  string)
+     (start   integer))
   (with-view-page
-      (let* ((op :catalogue)
-             (filter (params->filter))
-             (bank-table (make-instance 'bank-table
-                                        :op op
-                                        :filter filter
-                                        :start-index (val start))))
-        (with-document ()
-          (:head
-           (:title "Τράπεζες » Κατάλογος")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (config-navbar 'bank)
-                 (bank-top-actions (val bank-id) filter)
-                 (:div :class "grid_12"
-                       (:div :id "bank-window" :class "window"
-                             (:div :class "title" "Κατάλογος")
-                             (bank-actions op (val bank-id) filter)
-                             (display bank-table
-                                      :key (val bank-id))))
-                 (footer)))))))
+    (let* ((op :catalogue)
+           (filter (params->filter))
+           (bank-table (make-instance 'bank-table
+                                      :op op
+                                      :filter filter
+                                      :start-index (val start))))
+      (with-document ()
+        (:head
+         (:title "Τράπεζες » Κατάλογος")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (config-navbar 'bank)
+               (bank-top-actions (val bank-id) filter)
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (bank-actions op (val bank-id) filter)
+                           (display bank-table
+                                    :key (val bank-id))))
+               (footer)))))))
 
 
 
@@ -200,6 +201,7 @@
                        (:div :id "bank-window" :class "window"
                              (:div :class "title" "Δημιουργία")
                              (bank-actions op nil filter)
+                             (notifications)
                              (with-form (actions/config/bank/create :search (val search))
                                (display bank-table
                                         :key nil
@@ -243,6 +245,7 @@
                        (:div :id "bank-window" :class "window"
                              (:div :class "title" "Επεξεργασία")
                              (bank-actions op (val bank-id) filter)
+                             (notifications)
                              (with-form (actions/config/bank/update :bank-id (val bank-id)
                                                                     :search (val search))
                                (display bank-table
@@ -257,7 +260,7 @@
   (with-controller-page (config/bank/update)
     (execute (:update 'bank :set
                       'title (val title)
-                      :where (:= 'bank-id (val bank-id))))
+                      :where (:= 'id (val bank-id))))
     (see-other (config/bank :bank-id (val bank-id) :search (val search)))))
 
 

@@ -7,7 +7,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-table (crud-table)
-  ()
+  ((key-name :accessor key-name :initarg :key-name))
   (:default-initargs :css-class "crud-table crud-table-full"))
 
 ;;; crud rows with records being daos
@@ -56,7 +56,7 @@
     (when (rows (table pg))
       (with-html
         (:div :class (css-class pg)
-              (fmt "Record ~A–~A from ~A"
+              (fmt "Εγγραφές ~A–~A από ~A"
                    (1+ start)
                    (min (+ start delta) len)
                    len)
@@ -76,7 +76,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-tree (crud-tree)
-  ((root-parent-key :allocation :class :initform :null))
+  ((key-name        :accessor   key-name :initarg  :key-name)
+   (root-parent-key :allocation :class   :initform :null))
   (:default-initargs :css-class "crud-tree" :root-key nil))
 
 
@@ -114,7 +115,7 @@
     :css-indent "indent"))
 
 (defmethod key ((item scrooge-node/plist))
-  (getf (record item) :id))
+  (getf (record item) (key-name (collection item))))
 
 (defmethod parent-key ((item scrooge-node/plist))
   (getf (record item) :parent-id))
@@ -189,7 +190,10 @@
       (:a :id id
           :href (if selected-p
                     (apply url-fn :start start filter)
-                    (apply url-fn :id id filter))
+                    (apply url-fn
+                           (key-name (collection row))
+                           id
+                           filter))
           (selector-img selected-p)))))
 
 (defun simple-controls (row enabled-p url-fn)
@@ -198,7 +202,10 @@
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply url-fn :id id (filter table))))
+                             :href (apply url-fn
+                                          (key-name (collection row))
+                                          id
+                                          (filter table))))
         (list nil nil))))
 
 

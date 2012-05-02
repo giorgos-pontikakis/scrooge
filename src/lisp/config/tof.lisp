@@ -34,13 +34,13 @@
 (defun tof-referenced-p (tof-id)
   (with-db ()
     (and tof-id
-         (query (:select 'tof-id
+         (query (:select 'id
                  :from 'company
                  :where (:= 'tof-id tof-id))
                 :column))))
 
-(define-existence-predicate tof-id-exists-p tof tof-id)
-(define-existence-predicate* tof-title-exists-p tof title tof-id)
+(define-existence-predicate tof-id-exists-p tof id)
+(define-existence-predicate* tof-title-exists-p tof title id)
 
 (defun chk-tof-id (tof-id)
   (if (tof-id-exists-p tof-id)
@@ -108,10 +108,11 @@
 ;;; table
 
 (defclass tof-table (config-table)
-  ((header-labels  :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
-   (paginator      :initform (make-instance 'tof-paginator
-                                            :id "tof-paginator"
-                                            :css-class "paginator")))
+  ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
+   (paginator     :initform (make-instance 'tof-paginator
+                                           :id "tof-paginator"
+                                           :css-class "paginator"))
+   (key-name      :initform :tof-id))
   (:default-initargs :id "config-table"
                      :item-class 'tof-row))
 
@@ -200,6 +201,7 @@
                        (:div :id "tof-window" :class "window"
                              (:div :class "title" "Δημιουργία")
                              (tof-actions op nil filter)
+                             (notifications)
                              (with-form (actions/config/tof/create :search (val search))
                                (display tof-table
                                         :key nil
@@ -243,6 +245,7 @@
                        (:div :id "tof-window" :class "window"
                              (:div :class "title" "Επεξεργασία")
                              (tof-actions op (val tof-id) filter)
+                             (notifications)
                              (with-form (actions/config/tof/update :tof-id (val tof-id)
                                                                    :filter (val search))
                                (display tof-table
@@ -257,7 +260,7 @@
   (with-controller-page (config/tof/update)
     (execute (:update 'tof :set
                       'title (val title)
-                      :where (:= 'tof-id (val tof-id))))
+                      :where (:= 'id (val tof-id))))
     (see-other (config/tof :tof-id (val tof-id) :search (val search)))))
 
 
