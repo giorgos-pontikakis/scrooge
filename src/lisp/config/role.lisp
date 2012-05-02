@@ -9,7 +9,7 @@
 (defclass acc-role-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(role-id))
    (payload-parameter-names
     :allocation :class
     :initform '(account))
@@ -31,10 +31,10 @@
 ;;; Validation
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate account-role-id-exists-p account-role id)
+(define-existence-predicate account-role-id-exists-p account-role role-id)
 
-(defun chk-acc-role-id (id)
-  (if (account-role-id-exists-p id)
+(defun chk-acc-role-id (role-id)
+  (if (account-role-id-exists-p role-id)
       nil
       :account-role-id-unknown))
 
@@ -43,11 +43,11 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun account-role-actions (op id)
+(defun account-role-actions (op role-id)
   (actions-menu (make-menu-spec
-                 `((:catalogue ,(config/account-role :id id)        "Προβολή")
-                   (:update    ,(config/account-role/update :id id) "Επεξεργασία")))
-                (if id
+                 `((:catalogue ,(config/account-role :role-id role-id)        "Προβολή")
+                   (:update    ,(config/account-role/update :role-id role-id) "Επεξεργασία")))
+                (if role-id
                     (ecase op
                       (:update '())
                       (:catalogue '(:update)))
@@ -67,10 +67,10 @@
   (:default-initargs :item-class 'account-role-row :id "account-role-table"))
 
 (defmethod get-records ((table account-role-table))
-  (query (:order-by (:select 'account-role.id (:as 'account.title 'account) 'description 'rank
+  (query (:order-by (:select 'account-role.role-id (:as 'account.title 'account) 'description 'rank
                      :from 'account-role
                      :inner-join 'account
-                     :on (:= 'account-id 'account.id))
+                     :on (:= 'account-id 'account.role-id))
                     'rank)
          :plists))
 
@@ -81,11 +81,11 @@
   ())
 
 (defmethod selector ((row account-role-row) selected-p)
-  (let ((id (key row)))
+  (let ((role-id (key row)))
     (html ()
       (:a :href (if selected-p
                     (config/account-role)
-                    (config/account-role :id id))
+                    (config/account-role :role-id role-id))
           (selector-img selected-p)))))
 
 (defmethod controls ((row account-role-row) controls-p)
@@ -109,7 +109,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage acc-role-page config/account-role ("config/account-role")
-    ((id      string chk-acc-role-id)
+    ((role-id      string chk-acc-role-id)
      (account string chk-acc-title))
   (with-view-page
     (let* ((op :catalogue)
@@ -125,8 +125,8 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (account-role-actions op (val id))
-                           (display account-role-table :key (val id))))
+                           (account-role-actions op (val role-id))
+                           (display account-role-table :key (val role-id))))
                (footer)))))))
 
 
@@ -136,7 +136,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage acc-role-page config/account-role/update ("config/account-role/update")
-    ((id      string chk-acc-role-id t)
+    ((role-id      string chk-acc-role-id t)
      (account string chk-acc-title))
   (with-view-page
     (let* ((op :update)
@@ -153,19 +153,19 @@
                (:div :class "grid_12"
                      (:div :id "account-role-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (account-role-actions op (val id))
-                           (with-form (actions/config/account-role/update :id (val id))
-                             (display account-role-table :key (val id)
+                           (account-role-actions op (val role-id))
+                           (with-form (actions/config/account-role/update :role-id (val role-id))
+                             (display account-role-table :key (val role-id)
                                                          :payload (params->payload)
                                                          :styles (params->styles)))))
                (footer)))))))
 
 (defpage acc-role-page actions/config/account-role/update
     ("actions/config/account-role/update" :request-type :post)
-    ((id      string chk-acc-role-id t)
+    ((role-id      string chk-acc-role-id t)
      (account string chk-acc-title))
   (with-controller-page (config/account-role/update)
     (execute (:update 'account-role :set
                       :account-id (account-id (val account))
-                      :where (:= 'id (val id))))
-    (see-other (config/account-role :id (val id) ))))
+                      :where (:= 'role-id (val role-id))))
+    (see-other (config/account-role :role-id (val role-id) ))))

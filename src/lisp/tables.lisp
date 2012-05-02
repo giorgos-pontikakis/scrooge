@@ -32,7 +32,7 @@
 
 
 (defclass bank ()
-  ((bank-id: :col-type integer :reader   bank-id)
+  ((bank-id  :col-type integer :reader   bank-id)
    (title    :col-type string  :accessor title   :initarg :title))
   (:metaclass dao-class)
   (:keys id))
