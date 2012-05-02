@@ -18,6 +18,9 @@
 ;;; HTML Head
 ;;; ------------------------------------------------------------
 
+(defun favicon ()
+  (with-html ()
+    (:link :rel "icon" :type "image/png" :href (url 'img "money.png"))))
 (defun jquery ()
   (js (url 'lib "jquery/jquery-1.5.min.js")))
 
@@ -30,12 +33,14 @@
   (css (url 'lib "jquery/jquery-ui-1.8.9.custom/css/custom-theme/jquery-ui-1.8.9.custom.css")))
 
 (defun error-headers ()
+  (favicon)
   (css (url 'css "common.css")))
 
 (defun 960gs ()
   (css (url 'lib "960gs/code/css/960.css")))
 
 (defun login-headers ()
+  (favicon)
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
@@ -43,6 +48,7 @@
   (css (url 'css "login.css")))
 
 (defun global-headers ()
+  (favicon)
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
