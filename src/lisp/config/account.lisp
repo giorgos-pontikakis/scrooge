@@ -9,7 +9,7 @@
 (defclass account-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id parent-id debit-p))
+    :initform '(account-id parent-id debit-p))
    (payload-parameter-names
     :allocation :class
     :initform '(title chequing-p))
@@ -31,34 +31,34 @@
 ;;; Account - Validation
 ;;; ------------------------------------------------------------
 
-(defun ref-subaccounts (acc-id)
+(defun ref-subaccounts (account-id)
   (with-db ()
-    (query (:select 'id :from 'account :where (:= 'parent-id acc-id))
+    (query (:select 'account-id :from 'account :where (:= 'parent-id account-id))
            :single)))
 
-(defun ref-transactions (acc-id)
+(defun ref-transactions (account-id)
   (with-db ()
-    (query (:select 'id
+    (query (:select 'account-id
             :from 'tx
-            :where (:or (:= 'debit-acc-id acc-id)
-                        (:= 'credit-acc-id acc-id)))
+            :where (:or (:= 'debit-acc-id account-id)
+                        (:= 'credit-acc-id account-id)))
            :single)))
 
-(defun acc-referenced-p (id)
-  (or (ref-subaccounts id)
-      (ref-transactions id)))
+(defun acc-referenced-p (account-id)
+  (or (ref-subaccounts account-id)
+      (ref-transactions account-id)))
 
-(define-existence-predicate  acc-id-exists-p account id)
-(define-existence-predicate* acc-title-exists-p account title id)
+(define-existence-predicate  account-id-exists-p account account-id)
+(define-existence-predicate* account-title-exists-p account title account-id)
 
-(defun chq-acc-title-exists-p (title)
+(defun chq-account-title-exists-p (title)
   (with-db ()
     (query (:select 1 :from 'account
             :where (:and (:= 'title title)
                          (:= 'chequing-p t)))
            :single)))
 
-(defun non-chq-acc-title-exists-p (title)
+(defun non-chq-account-title-exists-p (title)
   (with-db ()
     (query (:select 1 :from 'account
             :where (:and (:= 'title title)
@@ -66,61 +66,61 @@
            :single)))
 
 (defun chk-parent-acc-id (val)
-  (if (or (null val) (acc-id-exists-p val))
+  (if (or (null val) (account-id-exists-p val))
       nil
       :parent-acc-id-unknown))
 
-(defun chk-acc-id (id)
-  (cond ((eql :null id)
+(defun chk-account-id (account-id)
+  (cond ((eql :null account-id)
          :account-id-null)
-        ((not (acc-id-exists-p id))
+        ((not (account-id-exists-p account-id))
          :acc-id-unknown)
         (t
          nil)))
 
-(defun chk-acc-id/ref (id)
-  (if (or (chk-acc-id id)
-          (acc-referenced-p id))
+(defun chk-account-id/ref (account-id)
+  (if (or (chk-account-id account-id)
+          (acc-referenced-p account-id))
       :acc-referenced
       nil))
 
 (defun chk-acc-title/create (title)
   (cond ((eql :null title) :account-title-null)
-        ((acc-title-exists-p title) :account-title-exists)
+        ((account-title-exists-p title) :account-title-exists)
         (t nil)))
 
-(defun chk-acc-title/update (title id)
+(defun chk-acc-title/update (title account-id)
   (cond ((eql title :null) :account-title-null)
-        ((acc-title-exists-p title id) :account-title-unknown)
+        ((account-title-exists-p title account-id) :account-title-unknown)
         (t nil)))
 
 (defun chk-acc-title (title)
   (cond ((eql title :null) :account-title-null)
-        ((not (acc-title-exists-p title)) :account-title-unknown)
+        ((not (account-title-exists-p title)) :account-title-unknown)
         (t nil)))
 
 (defun chk-chq-acc-title (title)
   (cond ((eql title :null) :account-title-null)
-        ((not (chq-acc-title-exists-p title)) :account-title-unknown)
+        ((not (chq-account-title-exists-p title)) :account-title-unknown)
         (t nil)))
 
 (defun chk-non-chq-acc-title (title)
   (cond ((eql title :null) :account-title-null)
-        ((not (non-chq-acc-title-exists-p title)) :account-title-unknown)
+        ((not (non-chq-account-title-exists-p title)) :account-title-unknown)
         (t nil)))
 
-(defun chk-debitp (debitp id)
+(defun chk-debitp (debitp account-id)
   (with-db ()
-    (if (or (null id)
-            (eql debitp (debit-p (get-dao 'account id))))
+    (if (or (null account-id)
+            (eql debitp (debit-p (get-dao 'account account-id))))
         nil
         :invalid-debitp-acc-id-combo)))
 
-(defun chk-chequing-p (chequing-p id)
+(defun chk-chequing-p (chequing-p account-id)
   (with-db ()
-    (let ((dependent-tx (ref-transactions id))
+    (let ((dependent-tx (ref-transactions account-id))
           (chequing-p-changed-p (not (eql chequing-p
-                                          (chequing-p (get-dao 'account id))))))
+                                          (chequing-p (get-dao 'account account-id))))))
       (if (and dependent-tx chequing-p-changed-p)
           :chequing-p-cannot-change
           nil))))
@@ -131,16 +131,17 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun account-actions (op id debitp)
-  (let ((spec `((:create ,(config/account/create :debitp debitp :parent-id id) "Νέος Λογαριασμός")
-                (:update ,(config/account/update :id id) "Επεξεργασία")
-                (:delete ,(if (or (null id)
-                                  (acc-referenced-p id))
+(defun account-actions (op account-id debitp)
+  (let ((spec `((:create ,(config/account/create :debitp debitp
+                                                 :parent-id account-id) "Νέος Λογαριασμός")
+                (:update ,(config/account/update :account-id account-id) "Επεξεργασία")
+                (:delete ,(if (or (null account-id)
+                                  (acc-referenced-p account-id))
                               nil
-                              (config/account/delete :id id)) "Διαγραφή"))))
+                              (config/account/delete :account-id account-id)) "Διαγραφή"))))
     (actions-menu (make-menu-spec spec)
                   (ecase op
-                    (:catalogue (if id
+                    (:catalogue (if account-id
                                     '(:create :update :delete)
                                     '()))
                     (:create '())
@@ -162,7 +163,7 @@
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
-  (query (:select 'id 'title 'parent-id
+  (query (:select 'account-id 'title 'parent-id
           :from 'account
           :where (:= 'debit-p (debit-p tree)))
          :plists))
@@ -174,11 +175,11 @@
   ((record-class :allocation :class :initform 'account)))
 
 (defmethod selector ((node account-node) selected-p)
-  (let ((id (key node)))
+  (let ((account-id (key node)))
     (html ()
       (:a :href (if selected-p
                     (config/account)
-                    (config/account :id id))
+                    (config/account :account-id account-id))
           (selector-img selected-p)))))
 
 (defmethod payload ((node account-node) enabled-p)
@@ -188,11 +189,12 @@
                  :disabled (not enabled-p)))
 
 (defmethod controls ((node account-node) controls-p)
-  (let ((id (key node)))
+  (let ((account-id (key node)))
     (if controls-p
         (html ()
           (:div (display (make-instance 'ok-button))
-                (display (make-instance 'cancel-button :href (config/account :id id)))))
+                (display (make-instance 'cancel-button
+                                        :href (config/account :account-id account-id)))))
         (list nil nil))))
 
 
@@ -206,7 +208,7 @@
 
 (defmethod display ((form account-form) &key styles)
   (let* ((record (record form))
-         (dependent-tx-p (if (slot-boundp record 'id)
+         (dependent-tx-p (if (slot-boundp record 'account-id)
                              (ref-transactions (account-id record))
                              nil)))
     (with-html
@@ -232,7 +234,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account ("config/account")
-    ((id integer chk-acc-id))
+    ((account-id integer chk-account-id))
   (with-view-page
     (let ((op :catalogue))
       (with-document ()
@@ -246,8 +248,8 @@
                (iter
                  (for debit-p in (list t nil))
                  (for div-id in '("debit-accounts" "credit-accounts"))
-                 (for id-debit-p = (and (suppliedp id)
-                                        (eql debit-p (debit-p (get-dao 'account (val id))))))
+                 (for id-debit-p = (and (suppliedp account-id)
+                                        (eql debit-p (debit-p (get-dao 'account (val account-id))))))
                  (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                  (for account-tree = (make-instance 'account-tree
                                                     :op op
@@ -260,10 +262,10 @@
                                 (notifications)
                                 (account-actions op
                                                  (if id-debit-p
-                                                     (val id)
+                                                     (val account-id)
                                                      nil)
                                                  debit-p)
-                                (display account-tree :key (val id) :hide-root-p t))))))
+                                (display account-tree :key (val account-id) :hide-root-p t))))))
                (footer)))))))
 
 
@@ -321,7 +323,7 @@
                                     :debit-p (val debitp)
                                     :chequing-p (val chequing-p))))
         (insert-dao new-dao)
-        (see-other (config/account :id (account-id new-dao)))))))
+        (see-other (config/account :account-id (account-id new-dao)))))))
 
 
 
@@ -330,15 +332,15 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/update ("config/account/update")
-    ((id      integer chk-acc-id t)
-     (title   string  (chk-acc-title/update title id))
-     (chequing-p boolean (chk-chequing-p chequing-p id)))
+    ((account-id      integer chk-account-id t)
+     (title   string  (chk-acc-title/update title account-id))
+     (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-view-page
     (let* ((op :update)
            (account-form (make-instance 'account-form
                                         :op op
-                                        :record (get-dao 'account (val id))
-                                        :cancel-url (config/account :id (val id)))))
+                                        :record (get-dao 'account (val account-id))
+                                        :cancel-url (config/account :account-id (val account-id)))))
       (with-document ()
         (:head
          (:title "Λογαριασμός » Επεξεργασία")
@@ -352,25 +354,25 @@
                            (:div :class "title" "Λογαριασμός » Επεξεργασία")
                            (notifications)
                            (account-actions op
-                                            (val id)
+                                            (val account-id)
                                             (debit-p (with-db ()
-                                                       (get-dao 'account (val id)))))
-                           (with-form (actions/config/account/update :id (val id))
+                                                       (get-dao 'account (val account-id)))))
+                           (with-form (actions/config/account/update :account-id (val account-id))
                              (display account-form :payload (params->payload)
                                                    :styles (params->styles)))))
                (footer)))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
                                                      :request-type :post)
-    ((id         integer chk-acc-id                     t)
-     (title      string  (chk-acc-title/update title id)   t)
-     (chequing-p boolean (chk-chequing-p chequing-p id)))
+    ((account-id         integer chk-account-id                     t)
+     (title      string  (chk-acc-title/update title account-id)   t)
+     (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-controller-page (config/account/update)
     (execute (:update 'account :set
                       :title (val title)
                       :chequing-p (val chequing-p)
-                      :where (:= 'id (val id))))
-    (see-other (config/account :id (val id)))))
+                      :where (:= 'account-id (val account-id))))
+    (see-other (config/account :account-id (val account-id)))))
 
 
 
@@ -379,7 +381,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/delete ("config/account/delete")
-    ((id integer chk-acc-id/ref t))
+    ((account-id integer chk-account-id/ref t))
   (with-view-page
     (let ((op :delete))
       (with-document ()
@@ -392,7 +394,7 @@
                (config-navbar 'account)
                (iter
                  (for debit-p in (list t nil))
-                 (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val id)))))
+                 (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val account-id)))))
                  (for div-id in '("debit-accounts" "credit-accounts"))
                  (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                  (for account-tree = (make-instance 'account-tree
@@ -403,14 +405,14 @@
                         (:div :id div-id :class "window"
                               (:div :class "title" (str window-title))
                               (notifications)
-                              (account-actions op (val id) debit-p)
-                              (with-form (actions/config/account/delete :id (val id))
-                                (display account-tree :key (val id) :hide-root-p t))))))
+                              (account-actions op (val account-id) debit-p)
+                              (with-form (actions/config/account/delete :account-id (val account-id))
+                                (display account-tree :key (val account-id) :hide-root-p t))))))
                (footer)))))))
 
 (defpage account-page actions/config/account/delete ("actions/config/account/delete"
                                                      :request-type :post)
-    ((id integer chk-acc-id/ref t))
+    ((account-id integer chk-account-id/ref t))
   (with-controller-page (config/account/delete)
-    (delete-dao (get-dao 'account (val id)))
+    (delete-dao (get-dao 'account (val account-id)))
     (see-other (config/account))))

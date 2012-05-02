@@ -9,7 +9,7 @@
 (defclass project-stran-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(project-stran-id))
    (payload-parameter-names
     :allocation :class
     :initform '(title from-state to-state temtx))
@@ -45,11 +45,11 @@
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate project-stran-exists-p project-stran id)
-(define-existence-predicate* project-stran-title-exists-p project-stran title id)
+(define-existence-predicate project-stran-exists-p project-stran project-stran-id)
+(define-existence-predicate* project-stran-title-exists-p project-stran title project-stran-id)
 
-(defun chk-project-stran-id (id)
-  (if (project-stran-exists-p id)
+(defun chk-project-stran-id (project-stran-id)
+  (if (project-stran-exists-p project-stran-id)
       nil
       :project-stran-id-unknown))
 
@@ -63,9 +63,9 @@
         ((project-stran-title-exists-p title) :project-stran-title-exists)
         (t nil)))
 
-(defun chk-project-stran-title/update (title id)
+(defun chk-project-stran-title/update (title project-stran-id)
   (cond ((eql :null title) :project-stran-title-null)
-        ((project-stran-title-exists-p title id) :project-stran-title-exists)
+        ((project-stran-title-exists-p title project-stran-id) :project-stran-title-exists)
         (t nil)))
 
 (defun chk-project-state-id (state-id)
@@ -114,12 +114,12 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-stran-actions (op id)
+(defun project-stran-actions (op project-stran-id)
   (actions-menu (make-menu-spec
                  (action-anchors/crud (config/project-stran/create)
-                                      (config/project-stran/update :id id)
-                                      (config/project-stran/delete :id id)))
-                (enabled-actions/crud op id)))
+                                      (config/project-stran/update :project-stran-id project-stran-id)
+                                      (config/project-stran/delete :project-stran-id project-stran-id)))
+                (enabled-actions/crud op project-stran-id)))
 
 
 
@@ -137,12 +137,12 @@
   (:default-initargs :item-class 'project-stran-row))
 
 (defmethod get-records ((table project-stran-table))
-  (query (:order-by (:select 'project-stran.id 'project-stran.title
+  (query (:order-by (:select 'project-stran.project-stran-id 'project-stran.title
                              'from-state-id 'to-state-id
                              (:as 'temtx.title 'temtx)
                              :from 'project-stran
                              :left-join 'temtx
-                             :on (:= 'temtx-id 'temtx.id))
+                             :on (:= 'temtx-id 'temtx.temtx-id))
                     'project-stran.title)
          :plists))
 
@@ -153,11 +153,11 @@
   ())
 
 (defmethod selector ((row project-stran-row) enabled-p)
-  (let* ((id (key row)))
+  (let* ((project-stran-id (key row)))
     (html ()
       (:a :href (if enabled-p
                     (config/project-stran)
-                    (config/project-stran :id id))
+                    (config/project-stran :project-stran-id project-stran-id))
           (selector-img enabled-p)))))
 
 (defmethod payload ((row project-stran-row) enabled-p)
@@ -184,11 +184,11 @@
                          :disabled disabled))))
 
 (defmethod controls ((row project-stran-row) enabled-p)
-  (let ((id (key row)))
+  (let ((project-stran-id (key row)))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (config/project-stran :id id)))
+                             :href (config/project-stran :project-stran-id project-stran-id)))
         (list nil nil))))
 
 
@@ -199,7 +199,7 @@
 
 (defpage project-stran-page config/project-stran ("config/project-stran/")
     ((start integer)
-     (id    integer chk-project-stran-id))
+     (project-stran-id    integer chk-project-stran-id))
   (with-view-page
     (let* ((op :catalogue)
            (project-stran-table (make-instance 'project-stran-table
@@ -216,9 +216,9 @@
                (:div :class "grid_12"
                      (:div :id "project-stran-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (project-stran-actions op (val id))
+                           (project-stran-actions op (val project-stran-id))
                            (display project-stran-table
-                                    :key (val id))))
+                                    :key (val project-stran-id))))
                (footer)))))))
 
 
@@ -268,7 +268,7 @@
                                              :to-state-id (val to-state-id)
                                              :temtx-id temtx-id)))
       (insert-dao new-project-stran)
-      (see-other (config/project-stran :id (project-stran-id new-project-stran))))))
+      (see-other (config/project-stran :project-stran-id (project-stran-id new-project-stran))))))
 
 
 
@@ -278,8 +278,8 @@
 
 (defpage project-stran-page config/project-stran/update
     ("config/project-stran/update")
-    ((id            integer chk-project-stran-id                      t)
-     (title         string  (chk-project-stran-title/update title id))
+    ((project-stran-id            integer chk-project-stran-id                      t)
+     (title         string  (chk-project-stran-title/update title project-stran-id))
      (from-state-id string  chk-project-state-id)
      (to-state-id   string  chk-project-state-id)
      (temtx         string  chk-temtx-title))
@@ -298,17 +298,17 @@
                (:div :class "grid_12"
                      (:div :id "project-stran-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (project-stran-actions op (val id))
+                           (project-stran-actions op (val project-stran-id))
                            (notifications)
-                           (with-form (actions/config/project-stran/update :id (val id))
-                             (display project-stran-table :key (val id)
+                           (with-form (actions/config/project-stran/update :project-stran-id (val project-stran-id))
+                             (display project-stran-table :key (val project-stran-id)
                                                           :payload (params->payload)))))
                (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/update
     ("actions/config/project-stran/update" :request-type :post)
-    ((id            integer chk-project-stran-id                      t)
-     (title         string  (chk-project-stran-title/update title id))
+    ((project-stran-id            integer chk-project-stran-id                      t)
+     (title         string  (chk-project-stran-title/update title project-stran-id))
      (from-state-id string  chk-project-state-id)
      (to-state-id   string  chk-project-state-id)
      (temtx         string  chk-temtx-title))
@@ -320,8 +320,8 @@
                         'from-state-id (val from-state-id)
                         'to-state-id (val to-state-id)
                         'temtx-id temtx-id
-                        :where (:= 'id (val id)))))
-    (see-other (config/project-stran :id (val id)))))
+                        :where (:= 'project-stran-id (val project-stran-id)))))
+    (see-other (config/project-stran :project-stran-id (val project-stran-id)))))
 
 
 
@@ -331,7 +331,7 @@
 
 (defpage project-stran-page config/project-stran/delete
     ("config/project-stran/delete")
-    ((id integer chk-project-stran-id t))
+    ((project-stran-id integer chk-project-stran-id t))
   (with-view-page
     (let* ((op :delete)
            (project-stran-table (make-instance 'project-stran-table :op op)))
@@ -346,15 +346,15 @@
                (:div :class "grid_12"
                      (:div :id "project-stran-window" :class "window"
                            (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
-                           (project-stran-actions op (val id))
-                           (with-form (actions/config/project-stran/delete :id (val id))
+                           (project-stran-actions op (val project-stran-id))
+                           (with-form (actions/config/project-stran/delete :project-stran-id (val project-stran-id))
                              (display project-stran-table
-                                      :key (val id)))))
+                                      :key (val project-stran-id)))))
                (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/delete
     ("actions/config/project-stran/delete" :request-type :post)
-    ((id integer chk-project-stran-id t))
+    ((project-stran-id integer chk-project-stran-id t))
   (with-controller-page (config/project-stran/delete)
-    (delete-dao (get-dao 'project-stran (val id)))
+    (delete-dao (get-dao 'project-stran (val project-stran-id)))
     (see-other (config/project-stran))))

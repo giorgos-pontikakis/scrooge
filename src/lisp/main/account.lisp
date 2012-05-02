@@ -75,7 +75,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage dynamic-page account/overview ("account")
-    ((id integer chk-acc-id))
+    ((id integer chk-account-id))
   (with-auth ("configuration")
     (no-cache)
     (with-document ()
@@ -104,7 +104,7 @@
 
 
 (defpage dynamic-page account/details ("account/details")
-    ((id    integer chk-acc-id)
+    ((id    integer chk-account-id)
      (start integer))
   (with-auth ("configuration")
     (no-cache)
@@ -131,7 +131,7 @@
         (see-other (notfound)))))
 
 (defpage dynamic-page account/print ("account/print")
-    ((id integer chk-acc-id))
+    ((id integer chk-account-id))
   (with-auth ("configuration")
     (no-cache)
     (with-db ()

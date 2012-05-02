@@ -31,10 +31,9 @@
   (:keys username))
 
 
-
 (defclass bank ()
-  ((id    :col-type integer :reader   bank-id)
-   (title :col-type string  :accessor title   :initarg :title))
+  ((bank-id  :col-type integer :reader   bank-id)
+   (title    :col-type string  :accessor title   :initarg :title))
   (:metaclass dao-class)
   (:keys id))
 
@@ -45,8 +44,8 @@
 
 
 (defclass tof ()
-  ((id    :col-type integer :reader   tof-id)
-   (title :col-type string  :accessor title  :initarg :title))
+  ((tof-id :col-type integer :reader   tof-id)
+   (title  :col-type string  :accessor title  :initarg :title))
   (:metaclass dao-class)
   (:keys id))
 
@@ -57,8 +56,8 @@
 
 
 (defclass city ()
-  ((id    :col-type integer :reader   city-id)
-   (title :col-type string  :accessor title :initarg :title))
+  ((city-id :col-type integer :reader   city-id)
+   (title   :col-type string  :accessor title :initarg :title))
   (:metaclass dao-class)
   (:keys id))
 
