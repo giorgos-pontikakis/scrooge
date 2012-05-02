@@ -57,30 +57,30 @@
 ;;; Validation
 ;;; ----------------------------------------------------------------------
 
-(defun company-referenced-p (id)
+(defun company-referenced-p (company-id)
   (with-db ()
     (or (query (:select 1 :from 'project
-                :where (:= 'company-id id)))
+                :where (:= 'company-id company-id)))
         (query (:select 1 :from 'cheque
-                :where (:= 'company-id id)))
+                :where (:= 'company-id company-id)))
         (query (:select 1 :from 'tx
-                :where (:= 'company-id id))))))
+                :where (:= 'company-id company-id))))))
 
-(define-existence-predicate company-id-exists-p company id)
-(define-existence-predicate contact-id-exists-p contact id)
-(define-existence-predicate* company-title-exists-p company title id)
-(define-existence-predicate* tin-exists-p company tin id)
+(define-existence-predicate company-id-exists-p company company-id)
+(define-existence-predicate contact-id-exists-p contact contact-id)
+(define-existence-predicate* company-title-exists-p company title company-id)
+(define-existence-predicate* tin-exists-p company tin company-id)
 
 
-(defun chk-company-id (id)
-  (if (company-id-exists-p id)
+(defun chk-company-id (company-id)
+  (if (company-id-exists-p company-id)
       nil
       :company-id-unknown))
 
-(defun chk-company-id/ref (id)
-  (if (and (not (null id))
-           (not (chk-company-id id))
-           (not (company-referenced-p id)))
+(defun chk-company-id/ref (company-id)
+  (if (and (not (null company-id))
+           (not (chk-company-id company-id))
+           (not (company-referenced-p company-id)))
       nil
       :company-referenced))
 
@@ -89,9 +89,9 @@
         ((company-title-exists-p title) :company-title-exists)
         (t nil)))
 
-(defun chk-company-title/update (title id)
+(defun chk-company-title/update (title company-id)
   (cond ((eql :null title) :company-title-null)
-        ((company-title-exists-p title id) :company-title-exists)
+        ((company-title-exists-p title company-id) :company-title-exists)
         (t nil)))
 
 (defun chk-company-title (title)
@@ -107,9 +107,9 @@
          :tin-invalid)
         (t nil)))
 
-(defun chk-tin/update (tin id)
+(defun chk-tin/update (tin company-id)
   (cond ((eql :null tin) nil)
-        ((tin-exists-p tin id)
+        ((tin-exists-p tin company-id)
          :tin-exists)
         ((not (valid-tin-p tin))
          :tin-invalid)
@@ -139,9 +139,9 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-catalogue-link (id filter)
+(defun company-catalogue-link (company-id filter)
   (html ()
-    (:a :href (apply #'company :id id filter)
+    (:a :href (apply #'company :company-id company-id filter)
         (:img :src "/scrooge/img/application_view_list.png")
         "Κατάλογος")))
 
@@ -151,10 +151,10 @@
         (:img :src "/scrooge/img/add.png")
         "Νέα Εταιρία")))
 
-(defun company-print-link (id filter)
+(defun company-print-link (company-id filter)
   (html ()
     (:a :href (apply #'company/tx/print
-                     :id id filter)
+                     :company-id company-id filter)
         (:img :src "/scrooge/img/printer.png")
         "Εκτύπωση")))
 
@@ -165,33 +165,36 @@
     ((:update :details) '(print))
     ((:tx) nil)))
 
-(defun company-top-actions (op id filter)
+(defun company-top-actions (op company-id filter)
   (top-actions (make-instance 'menu
-                              :spec `((catalogue ,(company-catalogue-link id filter))
+                              :spec `((catalogue ,(company-catalogue-link company-id filter))
                                       (create ,(company-create-link filter))
-                                      (print ,(company-print-link id filter)))
+                                      (print ,(company-print-link company-id filter)))
                               :css-class "hmenu"
                               :disabled (company-disabled-actions op))
                (searchbox #'actions/company/search
                           #'(lambda (&rest args)
-                              (apply #'company :id id args))
+                              (apply #'company :company-id company-id args))
                           filter
                           "ac-company")))
 
-(defun company-actions (op id filter)
+(defun company-actions (op company-id filter)
   (actions-menu (append (make-menu-spec
-                         (action-anchors/crud+details (apply #'company/details :id id filter)
-                                                      (apply #'company/update :id id filter)
-                                                      (if (chk-company-id/ref id)
-                                                          nil
-                                                          (apply #'company/delete :id id filter))))
+                         (action-anchors/crud+details
+                          (apply #'company/details :company-id company-id filter)
+                          (apply #'company/update :company-id company-id filter)
+                          (if (chk-company-id/ref company-id)
+                              nil
+                              (apply #'company/delete
+                                     :company-id company-id filter))))
                         `((:create-project
                            ,(html ()
-                              (:a :href (project/create :company (and id
-                                                                      (title (get-dao 'company id))))
+                              (:a :href (project/create
+                                         :company-id (and company-id
+                                                          (title (get-dao 'company company-id))))
                                   :class "create"
                                   "Νέο Έργο")))))
-                (enabled-actions/crud+details op id :create-project)))
+                (enabled-actions/crud+details op company-id :create-project)))
 
 (defun company-filters (filter)
   (let* ((filter* (remove-from-plist filter :subset))
@@ -206,20 +209,21 @@
     (filter-area (filter-navbar filter-spec
                                 :active (getf filter :subset)))))
 
-(defun company-tabs (id filter active content)
+(defun company-tabs (company-id filter active content)
   (with-html
     (:div :class "grid_12"
           (:div :id "company-area"
-                (when id
+                (when company-id
                   (htm (:div :id "company-title"
                              (:h3 :class "grid_12 alpha"
-                                  (str (title (get-dao 'company id))))
+                                  (str (title (get-dao 'company company-id))))
                              (navbar
-                              `((data ,(apply #'company/details :id id filter)
+                              `((data ,(apply #'company/details :company-id company-id filter)
                                       "Στοιχεία")
-                                (tx ,(apply #'company/tx :id id filter)
+                                (tx ,(apply #'company/tx :company-id company-id filter)
                                     "Συναλλαγές")
-                                (cheque ,(apply #'company/cheque "receivable" :id id filter)
+                                (cheque ,(apply #'company/cheque "receivable"
+                                                :company-id company-id filter)
                                         "Επιταγές"))
                               :css-class "hnavbar grid_5 prefix_7"
                               :active active
@@ -239,7 +243,9 @@
       (if (or (not records)
               (and records (cdr records)))
           (see-other (apply #'company filter))
-          (see-other (apply #'company/details :id (getf (first records) :id) filter))))))
+          (see-other (apply #'company/details
+                            :company-id (getf (first records) :company-id)
+                            filter))))))
 
 
 
@@ -284,7 +290,7 @@
               (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
               (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
-(defmethod get-record ((type (eql 'company)) id)
+(defmethod get-record ((type (eql 'company)) company-id)
   (declare (ignore type))
   (query (:select 'company.title 'occupation
                   'tin (:as 'tof.title 'tof)
@@ -292,10 +298,10 @@
                   'zipcode 'pobox 'notes
           :from 'company
           :left-join 'city
-          :on (:= 'company.city-id 'city.id)
+          :on (:= 'company.city-id 'city.city-id)
           :left-join 'tof
-          :on (:=  'company.tof-id 'tof.id)
-          :where (:= 'company.id id))
+          :on (:=  'company.tof-id 'tof.tof-id)
+          :where (:= 'company.id company-id))
          :plist))
 
 
@@ -317,20 +323,20 @@
   (let* ((search (getf (filter table) :search))
          (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
-         (base-query `(:select company.id company.title tin
+         (base-query `(:select company-id company.title tin
                                (:as tof.title tof)
                                address occupation
                                (:as city.title city-name)
                        :distinct
-                               :from company
-                               :left-join city
-                               :on (:= city.id company.city-id)
-                               :left-join tof
-                               :on (:= tof.id company.tof-id)
-                               :left-join contact
-                               :on (:= contact.company-id company.id)
-                               :left-join project
-                               :on (:= project.company-id company.id)))
+                       :from company
+                       :left-join city
+                       :on (:= city.city-id company.city-id)
+                       :left-join tof
+                       :on (:= tof.tof-id company.tof-id)
+                       :left-join contact
+                       :on (:= contact.company-id company.company-id)
+                       :left-join project
+                       :on (:= project.company-id company.company-id)))
          (where nil))
     (when search
       (push `(:or (:ilike company.title ,ilike-term)
@@ -349,44 +355,44 @@
                where))
         ((member subset (list "credit" "debt") :test #'string=)
          (push `(,(if (string= subset "credit") :< :>)
-                  (:select (coalesce (sum tx.amount) 0)
-                   :from tx
-                   :left-join cheque-event
-                   :on (:= cheque-event.tx-id tx.id)
-                   :where (:and
-                           (:= tx.company-id company.id)
-                           (:or (:= tx.credit-acc-id ,*cash-acc-id*)
-                                (:in tx.credit-acc-id
-                                     (:set ,@*revenues-accounts*))
-                                (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
-                                      (:not (:exists (:select 1
-                                                      :from (:as tx tx2)
-                                                      :inner-join (:as cheque-event cheque-event2)
-                                                      :on (:= cheque-event2.tx-id tx2.id)
-                                                      :where (:and
-                                                              (:= cheque-event2.cheque-id
-                                                                  cheque-event.cheque-id)
-                                                              (:= tx2.debit-acc-id
-                                                                  ,*cheque-payable-acc-id*)))))))))
-                  (:select (coalesce (sum tx.amount) 0)
-                   :from tx
-                   :left-join cheque-event
-                   :on (:= cheque-event.tx-id tx.id)
-                   :where (:and
-                           (:= tx.company-id company.id)
-                           (:or (:= tx.debit-acc-id ,*cash-acc-id*)
-                                (:in tx.debit-acc-id
-                                     (:set ,@*expense-accounts*))
-                                (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
-                                      (:not (:exists (:select 1
-                                                      :from (:as tx tx2)
-                                                      :inner-join (:as cheque-event cheque-event2)
-                                                      :on (:= cheque-event2.tx-id tx2.id)
-                                                      :where (:and
-                                                              (:= cheque-event2.cheque-id
-                                                                  cheque-event.cheque-id)
-                                                              (:= tx2.credit-acc-id
-                                                                  ,*cheque-receivable-acc-id*))))))))))
+                 (:select (coalesce (sum tx.amount) 0)
+                  :from tx
+                  :left-join cheque-event
+                  :on (:= cheque-event.tx-id tx.tx-id)
+                  :where (:and
+                          (:= tx.company-id company.company-id)
+                          (:or (:= tx.credit-acc-id ,*cash-acc-id*)
+                               (:in tx.credit-acc-id
+                                    (:set ,@*revenues-accounts*))
+                               (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
+                                     (:not (:exists (:select 1
+                                                     :from (:as tx tx2)
+                                                     :inner-join (:as cheque-event cheque-event2)
+                                                     :on (:= cheque-event2.tx-id tx2.tx-id)
+                                                     :where (:and
+                                                             (:= cheque-event2.cheque-id
+                                                                 cheque-event.cheque-id)
+                                                             (:= tx2.debit-acc-id
+                                                                 ,*cheque-payable-acc-id*)))))))))
+                 (:select (coalesce (sum tx.amount) 0)
+                  :from tx
+                  :left-join cheque-event
+                  :on (:= cheque-event.tx-id tx.tx-id)
+                  :where (:and
+                          (:= tx.company-id company.company-id)
+                          (:or (:= tx.debit-acc-id ,*cash-acc-id*)
+                               (:in tx.debit-acc-id
+                                    (:set ,@*expense-accounts*))
+                               (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
+                                     (:not (:exists (:select 1
+                                                     :from (:as tx tx2)
+                                                     :inner-join (:as cheque-event cheque-event2)
+                                                     :on (:= cheque-event2.tx-id tx2.tx-id)
+                                                     :where (:and
+                                                             (:= cheque-event2.cheque-id
+                                                                 cheque-event.cheque-id)
+                                                             (:= tx2.credit-acc-id
+                                                                 ,*cheque-receivable-acc-id*))))))))))
                where))
         (t nil)))
     (let ((sql `(:order-by (,@base-query :where
@@ -414,7 +420,7 @@
     (list*
      (html ()
        (:a :href (apply #'company/details
-                        :id (key row)
+                        :company-id (key row)
                         (filter (collection row)))
            (str (lisp->html (getf record :title)))))
      (mapcar (lambda (name)
@@ -439,10 +445,10 @@
 ;;; ------------------------------------------------------------
 
 (defpage company-page company ("company")
-    ((id     integer chk-company-id)
-     (search string)
-     (subset string)
-     (start  integer))
+    ((company-id integer chk-company-id)
+     (search     string)
+     (subset     string)
+     (start      integer))
   (with-view-page
     (let* ((op :catalogue)
            (filter (params->filter))
@@ -450,10 +456,10 @@
                                          :op op
                                          :filter filter
                                          :start-index (val start))))
-      ;; if id exists and is not found among records, ignore search term
-      (when (and (val id)
-                 (not (find (val id) (rows company-table) :key #'key)))
-        (see-other (company :id (val id))))
+      ;; if company-id exists and is not found among records, ignore search term
+      (when (and (val company-id)
+                 (not (find (val company-id) (rows company-table) :key #'key)))
+        (see-other (company :company-id (val company-id))))
       (with-document ()
         (:head
          (:title "Εταιρίες » Κατάλογος")
@@ -462,30 +468,32 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions op (val id) filter)
+               (company-top-actions op (val company-id) filter)
                (company-filters filter)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title"  "Κατάλογος")
-                           (company-actions op (val id) filter)
+                           (company-actions op (val company-id) filter)
                            (display company-table
-                                    :key (val id))))
+                                    :key (val company-id))))
                (footer)))))))
 
 (defpage company-page company/details ("company/details")
     ((search     string)
      (subset     string)
-     (id         integer chk-company-id t)
-     (contact-id integer (chk-contact-id id contact-id)))
+     (company-id         integer chk-company-id t)
+     (contact-id integer (chk-contact-id company-id contact-id)))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
-                                        :record (get-record 'company (val id))
-                                        :cancel-url (apply #'company :id (val id) filter)))
+                                        :record (get-record 'company (val company-id))
+                                        :cancel-url (apply #'company
+                                                           :company-id (val company-id)
+                                                           filter)))
            (contact-table (make-instance 'contact-table
                                          :op :catalogue
-                                         :company-id (val id))))
+                                         :company-id (val company-id))))
       (with-document ()
         (:head
          (:title "Εταιρία » Λεπτομέρειες")
@@ -494,19 +502,19 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :details (val id) filter)
-               (company-tabs (val id) filter 'data
+               (company-top-actions :details (val company-id) filter)
+               (company-tabs (val company-id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (company-actions :details (val id) filter)
+                                           (company-actions :details (val company-id) filter)
                                            (display company-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
                                            (contact-actions :catalogue
-                                                            (val id)
+                                                            (val company-id)
                                                             (val contact-id)
                                                             filter)
                                            (display contact-table
@@ -587,7 +595,7 @@
                                        :pobox (val pobox)
                                        :notes (val notes))))
       (insert-dao new-company)
-      (see-other (apply #'company/details :id (company-id new-company)
+      (see-other (apply #'company/details :company-id (company-id new-company)
                         (params->filter))))))
 
 
@@ -599,12 +607,12 @@
 (defpage company-page company/update ("company/update")
     ((search     string)
      (subset     string)
-     (id         integer chk-company-id t)
-     (contact-id integer (chk-contact-id id contact-id))
-     (title      string  (chk-company-title/update title id))
+     (company-id integer chk-company-id                              t)
+     (contact-id integer (chk-contact-id company-id contact-id))
+     (title      string  (chk-company-title/update title company-id))
      (occupation string)
      (tof        string  chk-tof-title)
-     (tin        string  (chk-tin/update tin id))
+     (tin        string  (chk-tin/update tin company-id))
      (address    string)
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
@@ -615,11 +623,12 @@
            (filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op op
-                                        :record (get-record 'company (val id))
-                                        :cancel-url (apply #'company/details :id (val id) filter)))
+                                        :record (get-record 'company (val company-id))
+                                        :cancel-url (apply #'company/details
+                                                           :company-id (val company-id) filter)))
            (contact-table (make-instance 'contact-table
                                          :op :catalogue
-                                         :company-id (val id))))
+                                         :company-id (val company-id))))
       (with-document ()
         (:head
          (:title "Εταιρία » Επεξεργασία")
@@ -628,23 +637,24 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions op (val id) filter)
-               (company-tabs (val id) filter 'data
+               (company-top-actions op (val company-id) filter)
+               (company-tabs (val company-id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Επεξεργασία")
-                                           (company-actions :update (val id) filter)
+                                           (company-actions :update (val company-id) filter)
                                            (notifications)
-                                           (with-form (actions/company/update :id (val id)
-                                                                              :search (val search))
+                                           (with-form (actions/company/update
+                                                       :company-id (val company-id)
+                                                       :search (val search))
                                              (display company-form :payload (params->payload)
                                                                    :styles (params->styles)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
                                            (contact-actions :catalogue
-                                                            (val id)
+                                                            (val company-id)
                                                             (val contact-id)
                                                             filter)
                                            (display contact-table
@@ -655,11 +665,11 @@
                                               :request-type :post)
     ((search     string)
      (subset     string)
-     (id         integer chk-company-id)
-     (title      string  (chk-company-title/update title id))
+     (company-id integer chk-company-id)
+     (title      string  (chk-company-title/update title company-id))
      (occupation string)
      (tof        string  chk-tof-title)
-     (tin        string  (chk-tin/update tin id))
+     (tin        string  (chk-tin/update tin company-id))
      (address    string)
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
@@ -678,8 +688,8 @@
                         'pobox (val pobox)
                         'zipcode (val zipcode)
                         'notes (val notes)
-                        :where (:= 'id (val id))))
-      (see-other (apply #'company/details :id (val id)
+                        :where (:= 'company-id (val company-id))))
+      (see-other (apply #'company/details :company-id (val company-id)
                         (params->filter))))))
 
 
@@ -689,9 +699,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-page company/delete ("company/delete")
-    ((id     integer chk-company-id/ref t)
-     (search string)
-     (subset string))
+    ((company-id integer chk-company-id/ref t)
+     (search     string)
+     (subset     string))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
@@ -706,27 +716,27 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions op (val id) filter)
+               (company-top-actions op (val company-id) filter)
                (company-filters filter)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title" "Εταιρία » Διαγραφή")
                            (company-actions op nil filter)
-                           (with-form (actions/company/delete :id (val id)
+                           (with-form (actions/company/delete :company-id (val company-id)
                                                               :search (val search))
                              (display company-table
-                                      :key (val id)))))
+                                      :key (val company-id)))))
                (footer)))))))
 
 (defpage company-page actions/company/delete ("actions/company/delete"
                                               :request-type :post)
-    ((id     integer chk-company-id)
-     (search string)
-     (subset string))
+    ((company-id integer chk-company-id)
+     (search     string)
+     (subset     string))
   (with-controller-page (company/delete)
     (with-transaction ()
       (execute (:delete-from 'contact
-                :where (:= 'company-id (val id))))
-      (delete-dao (get-dao 'company (val id))))
+                :where (:= 'company-id (val company-id))))
+      (delete-dao (get-dao 'company (val company-id))))
     (see-other (apply #'company
                       (params->filter)))))

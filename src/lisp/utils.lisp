@@ -202,7 +202,7 @@ if it already exists in the database."
 (defmacro define-existence-predicate* (name table field primary-key)
   "Defines a predicate which takes the value of the field and checks if it
 already exists in the database. The predicate also accepts the value of the
-primary key of the database; if given, the record with this primary key value is
+primary key of the table; if given, the record with this primary key value is
 excluded for the search - useful for updates."
   `(defun ,name (,field &optional ,primary-key)
      (with-db ()

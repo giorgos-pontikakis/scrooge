@@ -159,12 +159,12 @@
     (:update '())
     (:delete '())))
 
-(defun enabled-actions/crud+details (op id &rest extra-ids)
+(defun enabled-actions/crud+details (op id &rest extra-ops)
   (ecase op
     (:catalogue (if id
-                    `(:details :delete ,@extra-ids)
+                    `(:details :delete ,@extra-ops)
                     '()))
-    (:details `(:update :delete ,@extra-ids))
+    (:details `(:update :delete ,@extra-ops))
     (:create '())
     (:update '())
     (:delete '())))

@@ -97,7 +97,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass company ()
-  ((id         :col-type integer    :reader   company-id)
+  ((company-id :col-type integer    :reader   company-id)
    (title      :col-type string     :accessor title      :initarg :title)
    (occupation :col-type string     :accessor occupation :initarg :occupation)
    (tof-id     :col-type integer    :accessor tof-id     :initarg :tof-id)
@@ -108,7 +108,7 @@
    (zipcode    :col-type integer    :accessor zipcode    :initarg :zipcode)
    (notes      :col-type string     :accessor notes      :initarg :notes))
   (:metaclass dao-class)
-  (:keys id))
+  (:keys company-id))
 
 (defmethod company-id ((title (eql :null)))
   :null)
@@ -116,13 +116,13 @@
 (define-surrogate-key-readers company ((title string)) company-id)
 
 (defclass contact ()
-  ((id         :col-type integer :reader   contact-id)
+  ((contact-id :col-type integer :reader   contact-id)
    (company-id :col-type integer :accessor company-id :initarg :company-id)
    (tag        :col-type string  :accessor tag        :initarg :tag)
    (phone      :col-type string  :accessor phone      :initarg :phone)
    (rank       :col-type integer :accessor rank       :initarg :rank))
   (:metaclass dao-class)
-  (:keys id))
+  (:keys contact-id))
 
 
 
