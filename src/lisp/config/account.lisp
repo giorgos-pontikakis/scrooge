@@ -33,12 +33,12 @@
 
 (defun ref-subaccounts (account-id)
   (with-db ()
-    (query (:select 'account-id :from 'account :where (:= 'parent-id account-id))
+    (query (:select 'id :from 'account :where (:= 'parent-id account-id))
            :single)))
 
 (defun ref-transactions (account-id)
   (with-db ()
-    (query (:select 'account-id
+    (query (:select 'id
             :from 'tx
             :where (:or (:= 'debit-acc-id account-id)
                         (:= 'credit-acc-id account-id)))
@@ -164,7 +164,7 @@
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
-  (query (:select 'id 'title 'parent-id
+  (query (:select (:as 'id (key-name tree)) 'title 'parent-id
           :from 'account
           :where (:= 'debit-p (debit-p tree)))
          :plists))
@@ -209,7 +209,7 @@
 
 (defmethod display ((form account-form) &key styles)
   (let* ((record (record form))
-         (dependent-tx-p (if (slot-boundp record 'account-id)
+         (dependent-tx-p (if (slot-boundp record 'id)
                              (ref-transactions (account-id record))
                              nil)))
     (with-html
