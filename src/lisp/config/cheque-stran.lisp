@@ -45,10 +45,10 @@
 ;;; Checks
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate cheque-state-id-exists-p cheque-state cheque-stran-id)
+(define-existence-predicate cheque-state-id-exists-p cheque-state id)
 
-(define-existence-predicate cheque-stran-exists-p cheque-stran cheque-stran-id)
-(define-existence-predicate* cheque-stran-title-exists-p cheque-stran title cheque-stran-id)
+(define-existence-predicate cheque-stran-exists-p cheque-stran id)
+(define-existence-predicate* cheque-stran-title-exists-p cheque-stran title id)
 
 (defun chk-cheque-stran-id (cheque-stran-id)
   (if (cheque-stran-exists-p cheque-stran-id)
@@ -103,7 +103,7 @@
                 :where (:and (:= 'from-state-id from-state-id)
                              (:= 'to-state-id to-state-id)
                              (:= 'payable-p (string= kind "payable"))
-                             (:not (:= 'cheque-stran-id cheque-stran-id))))
+                             (:not (:= 'id cheque-stran-id))))
                :plists))))
 
 (defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id kind)
@@ -179,12 +179,12 @@
   (:default-initargs :item-class 'cheque-stran-row))
 
 (defmethod get-records ((table cheque-stran-table))
-  (query (:order-by (:select 'cheque-stran.cheque-stran-id 'cheque-stran.title
+  (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
                              'from-state-id 'to-state-id
                              (:as 'temtx.title 'temtx)
                              :from 'cheque-stran
                              :inner-join 'temtx
-                             :on (:= 'temtx-id 'temtx.temtx-id)
+                             :on (:= 'temtx-id 'temtx.id)
                              :where (:= 'payable-p (string= (kind table) "payable")))
                     'cheque-stran.title)
          :plists))
@@ -245,8 +245,8 @@
 
 (defpage cheque-stran-page config/cheque-stran
     (("config/cheque-stran/" (kind "(receivable|payable)")))
-    ((start integer)
-     (cheque-stran-id    integer chk-cheque-stran-id))
+    ((start           integer)
+     (cheque-stran-id integer chk-cheque-stran-id))
   (with-view-page
     (let ((op :catalogue)
           (cheque-stran-table (make-instance 'cheque-stran-table
@@ -333,11 +333,11 @@
 
 (defpage cheque-stran-page config/cheque-stran/update
     (("config/cheque-stran/" (kind "(receivable|payable)") "/update"))
-    ((cheque-stran-id            integer chk-cheque-stran-id                      t)
-     (title         string  (chk-cheque-stran-title/update title cheque-stran-id))
-     (from-state-id string  chk-cheque-state-id*)
-     (to-state-id   string  chk-cheque-state-id)
-     (temtx         string  chk-temtx-title))
+    ((cheque-stran-id integer chk-cheque-stran-id                                   t)
+     (title           string  (chk-cheque-stran-title/update title cheque-stran-id))
+     (from-state-id   string  chk-cheque-state-id*)
+     (to-state-id     string  chk-cheque-state-id)
+     (temtx           string  chk-temtx-title))
   (check-cheque-stran-parameters from-state-id to-state-id kind cheque-stran-id)
   (with-view-page
     (let* ((op :update)
@@ -359,7 +359,8 @@
                            (:div :class "title" "Επεξεργασία")
                            (cheque-stran-actions op kind (val cheque-stran-id))
                            (notifications)
-                           (with-form (actions/config/cheque-stran/update kind :cheque-stran-id (val cheque-stran-id))
+                           (with-form
+                               (actions/config/cheque-stran/update kind :cheque-stran-id (val cheque-stran-id))
                              (display cheque-stran-table :key (val cheque-stran-id)
                                                          :payload (params->payload)))))
                (footer)))))))
@@ -380,7 +381,7 @@
                         'from-state-id (val from-state-id)
                         'to-state-id (val to-state-id)
                         'temtx-id temtx-id
-                        :where (:= 'cheque-stran-id (val cheque-stran-id)))))
+                        :where (:= 'id (val cheque-stran-id)))))
     (see-other (config/cheque-stran kind :cheque-stran-id (val cheque-stran-id)))))
 
 

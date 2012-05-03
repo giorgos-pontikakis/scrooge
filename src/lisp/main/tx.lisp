@@ -176,10 +176,10 @@
   ())
 
 (defmethod selector ((row tx-row) selected-p)
-  (simple-selector row selected-p #'tx))
+  (simple-selector row selected-p #'tx :tx-id))
 
 (defmethod controls ((row tx-row) controls-p)
-  (simple-controls row controls-p #'tx))
+  (simple-controls row controls-p #'tx :tx-id))
 
 (defmethod payload ((row tx-row) enabled-p)
   (let ((record (record row))

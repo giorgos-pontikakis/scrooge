@@ -339,10 +339,10 @@
   ())
 
 (defmethod selector ((row project-row) selected-p)
-  (simple-selector row selected-p #'project))
+  (simple-selector row selected-p #'project :project-id))
 
 (defmethod controls ((row project-row) controls-p)
-  (simple-controls row controls-p #'project))
+  (simple-controls row controls-p #'project :project-id))
 
 (defmethod payload ((row project-row) enabled-p)
   (let ((record (record row)))

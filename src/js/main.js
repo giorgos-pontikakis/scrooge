@@ -41,9 +41,13 @@ function selectableRows () {
       e.stopPropagation();
    });
 
+   $(".crud-table select").click(function (e){
+      e.stopPropagation();
+   });
+
    $(".crud-table tr td.selector a").click(function(e) {
       e.stopPropagation();
-      window.location = $(this).attr("href");;
+      window.location = $(this).attr("href");
    });
 
    $(".crud-table tr").click(function () {
@@ -55,7 +59,6 @@ function selectableRows () {
       e.stopPropagation();
       $(".crud-tree li.selected").removeClass("selected");
       $(this).parent().parent().parent().addClass("selected");
-      console.log("crud-tree -> click")
    });
 
 }

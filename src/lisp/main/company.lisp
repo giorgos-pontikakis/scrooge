@@ -410,10 +410,10 @@
   ())
 
 (defmethod selector ((row company-row) selected-p)
-  (simple-selector row selected-p #'company))
+  (simple-selector row selected-p #'company :company-id))
 
 (defmethod controls ((row company-row) controls-p)
-  (simple-controls row controls-p #'company))
+  (simple-controls row controls-p #'company :company-id))
 
 (defmethod payload ((row company-row) enabled-p)
   (let ((record (record row)))

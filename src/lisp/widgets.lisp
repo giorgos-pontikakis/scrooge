@@ -7,7 +7,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-table (crud-table)
-  ((key-name :accessor key-name :initarg :key-name))
+  ()
   (:default-initargs :css-class "crud-table crud-table-full"))
 
 ;;; crud rows with records being daos
@@ -21,9 +21,8 @@
                      :css-controls "controls"))
 
 (defmethod key ((item scrooge-row/obj))
-  (let ((rec (record item)))
-    (handler-case (first (dao-keys rec))
-      (unbound-slot () nil))))
+  (handler-case (slot-value (record item) 'id)
+    (unbound-slot () nil)))
 
 
 ;;; rows with records being plists
@@ -76,8 +75,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-tree (crud-tree)
-  ((key-name        :accessor   key-name :initarg  :key-name)
-   (root-parent-key :allocation :class   :initform :null))
+  ((root-parent-key :allocation :class   :initform :null))
   (:default-initargs :css-class "crud-tree" :root-key nil))
 
 
@@ -93,14 +91,12 @@
                      :css-indent "indent"))
 
 (defmethod key ((item scrooge-row/obj))
-  (let ((rec (record item)))
-    (handler-case (first (dao-keys rec))
-      (unbound-slot () nil))))
+  (handler-case (slot-value (record item) 'id)
+    (unbound-slot () nil)))
 
 (defmethod parent-key ((item scrooge-row/obj))
-  (let ((rec (record item)))
-    (handler-case (parent-id rec)
-      (unbound-slot () nil))))
+  (handler-case (slot-value (record item) 'parent-id)
+    (unbound-slot () nil)))
 
 
 ;;; crud tree with records being plists
@@ -115,7 +111,7 @@
     :css-indent "indent"))
 
 (defmethod key ((item scrooge-node/plist))
-  (getf (record item) (key-name (collection item))))
+  (getf (record item) :id))
 
 (defmethod parent-key ((item scrooge-node/plist))
   (getf (record item) :parent-id))
@@ -181,7 +177,7 @@
 ;;; selector and controls for crud collections
 ;;; ------------------------------------------------------------
 
-(defun simple-selector (row selected-p url-fn)
+(defun simple-selector (row selected-p url-fn id-key)
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
@@ -191,19 +187,19 @@
           :href (if selected-p
                     (apply url-fn :start start filter)
                     (apply url-fn
-                           (key-name (collection row))
+                           id-key
                            id
                            filter))
           (selector-img selected-p)))))
 
-(defun simple-controls (row enabled-p url-fn)
+(defun simple-controls (row enabled-p url-fn id-key)
   (let ((id (key row))
         (table (collection row)))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
                              :href (apply url-fn
-                                          (key-name (collection row))
+                                          id-key
                                           id
                                           (filter table))))
         (list nil nil))))

@@ -110,8 +110,7 @@
   ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator     :initform (make-instance 'bank-paginator
                                            :id "bank-paginator"
-                                           :css-class "paginator"))
-   (key-name      :initform :bank-id))
+                                           :css-class "paginator")))
   (:default-initargs :id "config-table"
                      :item-class 'bank-row))
 
@@ -125,10 +124,10 @@
   ((record-class :allocation :class :initform 'bank)))
 
 (defmethod selector ((row bank-row) selected-p)
-  (simple-selector row selected-p #'config/bank))
+  (simple-selector row selected-p #'config/bank :bank-id))
 
 (defmethod controls ((row bank-row) controls-p)
-  (simple-controls row controls-p #'config/bank))
+  (simple-controls row controls-p #'config/bank :bank-id))
 
 
 ;;; paginator

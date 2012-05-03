@@ -52,7 +52,7 @@
 
 (defmethod selector ((row contact-row) selected-p)
   (let ((company-id (company-id (collection row)))
-        (contact-id (getf (record row) :contact-id)))
+        (contact-id (key row)))
     (html ()
       (:a :href (if selected-p
                     (company/details :company-id company-id)
@@ -71,7 +71,7 @@
 
 (defmethod controls ((row contact-row) enabled-p)
   (let ((table (collection row))
-        (contact-id (getf (record row) :contact-id)))
+        (contact-id (key row)))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button

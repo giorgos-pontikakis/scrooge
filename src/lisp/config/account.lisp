@@ -84,17 +84,17 @@
       :acc-referenced
       nil))
 
-(defun chk-acc-title/create (title)
+(defun chk-account-title/create (title)
   (cond ((eql :null title) :account-title-null)
         ((account-title-exists-p title) :account-title-exists)
         (t nil)))
 
-(defun chk-acc-title/update (title account-id)
+(defun chk-account-title/update (title account-id)
   (cond ((eql title :null) :account-title-null)
         ((account-title-exists-p title account-id) :account-title-unknown)
         (t nil)))
 
-(defun chk-acc-title (title)
+(defun chk-account-title (title)
   (cond ((eql title :null) :account-title-null)
         ((not (account-title-exists-p title)) :account-title-unknown)
         (t nil)))
@@ -157,14 +157,13 @@
 ;;; tree
 
 (defclass account-tree (scrooge-tree)
-  ((debit-p  :accessor debit-p
-             :initarg :debit-p
-             :initform (error "While making an account-tree instance, debit-p slot is unbound"))
-   (key-name :initform :account-id))
+  ((debit-p :accessor debit-p
+            :initarg :debit-p
+            :initform (error "While making an account-tree instance, debit-p slot is unbound")))
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
-  (query (:select (:as 'id (key-name tree)) 'title 'parent-id
+  (query (:select 'id 'title 'parent-id
           :from 'account
           :where (:= 'debit-p (debit-p tree)))
          :plists))
@@ -278,7 +277,7 @@
 (defpage account-page config/account/create ("config/account/create")
     ((parent-id  integer chk-parent-acc-id)
      (debitp     boolean (chk-debitp debitp parent-id))
-     (title      string  chk-acc-title/create)
+     (title      string  chk-account-title/create)
      (chequing-p boolean))
   (with-view-page
     (let* ((op :create)
@@ -310,7 +309,7 @@
 (defpage account-page actions/config/account/create ("actions/account/create"
                                                      :request-type :post)
     ((parent-id  integer chk-parent-acc-id)
-     (title      string  chk-acc-title/create          t)
+     (title      string  chk-account-title/create      t)
      (debitp     boolean (chk-debitp debitp parent-id))
      (chequing-p boolean))
   (with-controller-page (config/account/create)
@@ -333,8 +332,8 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/update ("config/account/update")
-    ((account-id integer chk-account-id                          t)
-     (title      string  (chk-acc-title/update title account-id))
+    ((account-id integer chk-account-id                              t)
+     (title      string  (chk-account-title/update title account-id))
      (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-view-page
     (let* ((op :update)
@@ -365,8 +364,8 @@
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
                                                      :request-type :post)
-    ((account-id integer chk-account-id                          t)
-     (title      string  (chk-acc-title/update title account-id) t)
+    ((account-id integer chk-account-id                              t)
+     (title      string  (chk-account-title/update title account-id) t)
      (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-controller-page (config/account/update)
     (execute (:update 'account :set

@@ -111,8 +111,7 @@
   ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
    (paginator     :initform (make-instance 'tof-paginator
                                            :id "tof-paginator"
-                                           :css-class "paginator"))
-   (key-name      :initform :tof-id))
+                                           :css-class "paginator")))
   (:default-initargs :id "config-table"
                      :item-class 'tof-row))
 
@@ -126,10 +125,10 @@
   ((record-class :allocation :class :initform 'tof)))
 
 (defmethod selector ((row tof-row) enabled-p)
-  (simple-selector row enabled-p #'config/tof))
+  (simple-selector row enabled-p #'config/tof :tof-id))
 
 (defmethod controls ((row tof-row) enabled-p)
-  (simple-controls row enabled-p #'config/tof))
+  (simple-controls row enabled-p #'config/tof :tof-id))
 
 
 ;;; paginator

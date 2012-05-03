@@ -45,8 +45,8 @@
 ;;; Validation
 ;;; ----------------------------------------------------------------------
 
-(define-existence-predicate temtx-exists-p temtx temtx-id)
-(define-existence-predicate* temtx-title-exists-p temtx title temtx-id)
+(define-existence-predicate temtx-exists-p temtx id)
+(define-existence-predicate* temtx-title-exists-p temtx title id)
 
 (defun chk-temtx-id (temtx-id)
   (if (temtx-exists-p temtx-id)
@@ -108,7 +108,7 @@
   (:default-initargs :item-class 'temtx-row))
 
 (defmethod get-records ((table temtx-table))
-  (query (:order-by (:select 'temtx.temtx-id 'temtx.title
+  (query (:order-by (:select 'temtx.id 'temtx.title
                              (:as 'debit-account.title 'debit-account)
                              (:as 'credit-account.title 'credit-account)
                              :from 'temtx
@@ -126,7 +126,7 @@
   ())
 
 (defmethod selector ((row temtx-row) selected-p)
-  (simple-selector row selected-p #'config/temtx))
+  (simple-selector row selected-p #'config/temtx :temtx-id))
 
 (defmethod payload ((row temtx-row) enabled-p)
   (let ((record (record row))
@@ -147,7 +147,7 @@
                          :disabled disabled))))
 
 (defmethod controls ((row temtx-row) controls-p)
-  (simple-controls row controls-p #'config/temtx))
+  (simple-controls row controls-p #'config/temtx :temtx-id))
 
 
 ;;; paginator
@@ -197,8 +197,8 @@
 
 (defpage temtx-page config/temtx/create ("config/temtx/create")
   ((title          string chk-temtx-title/create)
-   (debit-account  string chk-acc-title)
-   (credit-account string chk-acc-title))
+   (debit-account  string chk-account-title)
+   (credit-account string chk-account-title))
   (with-view-page
       (let ((op :create)
             (temtx-table (make-instance 'temtx-table
@@ -222,8 +222,8 @@
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
   ((title          string chk-temtx-title/create)
-   (debit-account  string chk-acc-title)
-   (credit-account string chk-acc-title))
+   (debit-account  string chk-account-title)
+   (credit-account string chk-account-title))
   (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
@@ -243,8 +243,8 @@
 (defpage temtx-page config/temtx/update ("config/temtx/update")
   ((temtx-id       integer chk-temtx-id                            t)
    (title          string  (chk-temtx-title/update title temtx-id))
-   (debit-account  string  chk-acc-title)
-   (credit-account string  chk-acc-title))
+   (debit-account  string  chk-account-title)
+   (credit-account string  chk-account-title))
   (with-view-page
       (let* ((op :update)
              (temtx-table (make-instance 'temtx-table
@@ -271,8 +271,8 @@
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
   ((temtx-id       integer chk-temtx-id                            t)
    (title          string  (chk-temtx-title/update title temtx-id))
-   (debit-account  string  chk-acc-title)
-   (credit-account string  chk-acc-title))
+   (debit-account  string  chk-account-title)
+   (credit-account string  chk-account-title))
   (with-controller-page (config/temtx/update)
     (let ((debit-acc-id (account-id (val debit-account)))
           (credit-acc-id (account-id (val credit-account))))
@@ -280,7 +280,7 @@
                         'title (val title)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
-                        :where (:= 'temtx-id (val temtx-id)))))
+                        :where (:= 'id (val temtx-id)))))
     (see-other (config/temtx :temtx-id (val temtx-id)))))
 
 
