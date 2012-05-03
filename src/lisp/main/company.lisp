@@ -9,7 +9,7 @@
 (defclass company-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id tx-id start))
+    :initform '(company-id tx-id start))
    (payload-parameter-names
     :allocation :class
     :initform '(title occupation tof tin address city pobox zipcode notes))
@@ -66,10 +66,10 @@
         (query (:select 1 :from 'tx
                 :where (:= 'company-id company-id))))))
 
-(define-existence-predicate company-id-exists-p company company-id)
-(define-existence-predicate contact-id-exists-p contact contact-id)
-(define-existence-predicate* company-title-exists-p company title company-id)
-(define-existence-predicate* tin-exists-p company tin company-id)
+(define-existence-predicate company-id-exists-p company id)
+(define-existence-predicate contact-id-exists-p contact id)
+(define-existence-predicate* company-title-exists-p company title id)
+(define-existence-predicate* tin-exists-p company tin id)
 
 
 (defun chk-company-id (company-id)
@@ -154,7 +154,8 @@
 (defun company-print-link (company-id filter)
   (html ()
     (:a :href (apply #'company/tx/print
-                     :company-id company-id filter)
+                     :company-id company-id
+                     filter)
         (:img :src "/scrooge/img/printer.png")
         "Εκτύπωση")))
 
@@ -163,7 +164,7 @@
     ((:catalogue :delete) '(catalogue print))
     ((:create '(create print)))
     ((:update :details) '(print))
-    ((:tx) nil)))
+    ((:tx-cheque) ())))
 
 (defun company-top-actions (op company-id filter)
   (top-actions (make-instance 'menu
@@ -190,8 +191,8 @@
                         `((:create-project
                            ,(html ()
                               (:a :href (project/create
-                                         :company-id (and company-id
-                                                          (title (get-dao 'company company-id))))
+                                         :company (and company-id
+                                                       (title (get-dao 'company company-id))))
                                   :class "create"
                                   "Νέο Έργο")))))
                 (enabled-actions/crud+details op company-id :create-project)))
@@ -298,9 +299,9 @@
                   'zipcode 'pobox 'notes
           :from 'company
           :left-join 'city
-          :on (:= 'company.city-id 'city.city-id)
+          :on (:= 'company.city-id 'city.id)
           :left-join 'tof
-          :on (:=  'company.tof-id 'tof.tof-id)
+          :on (:=  'company.tof-id 'tof.id)
           :where (:= 'company.id company-id))
          :plist))
 
@@ -323,20 +324,20 @@
   (let* ((search (getf (filter table) :search))
          (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
-         (base-query `(:select company-id company.title tin
+         (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
                                address occupation
                                (:as city.title city-name)
                        :distinct
                        :from company
                        :left-join city
-                       :on (:= city.city-id company.city-id)
+                       :on (:= city.id company.city-id)
                        :left-join tof
-                       :on (:= tof.tof-id company.tof-id)
+                       :on (:= tof.id company.tof-id)
                        :left-join contact
-                       :on (:= contact.company-id company.company-id)
+                       :on (:= contact.company-id company.id)
                        :left-join project
-                       :on (:= project.company-id company.company-id)))
+                       :on (:= project.company-id company.id)))
          (where nil))
     (when search
       (push `(:or (:ilike company.title ,ilike-term)
@@ -351,16 +352,16 @@
     (when subset
       (cond
         ((string= subset "projects")
-         (push `(:= project.state "ongoing")
+         (push `(:= project.state-id "ongoing")
                where))
         ((member subset (list "credit" "debt") :test #'string=)
          (push `(,(if (string= subset "credit") :< :>)
                  (:select (coalesce (sum tx.amount) 0)
                   :from tx
                   :left-join cheque-event
-                  :on (:= cheque-event.tx-id tx.tx-id)
+                  :on (:= cheque-event.tx-id tx.id)
                   :where (:and
-                          (:= tx.company-id company.company-id)
+                          (:= tx.company-id company.id)
                           (:or (:= tx.credit-acc-id ,*cash-acc-id*)
                                (:in tx.credit-acc-id
                                     (:set ,@*revenues-accounts*))
@@ -368,7 +369,7 @@
                                      (:not (:exists (:select 1
                                                      :from (:as tx tx2)
                                                      :inner-join (:as cheque-event cheque-event2)
-                                                     :on (:= cheque-event2.tx-id tx2.tx-id)
+                                                     :on (:= cheque-event2.id tx2.id)
                                                      :where (:and
                                                              (:= cheque-event2.cheque-id
                                                                  cheque-event.cheque-id)
@@ -377,9 +378,9 @@
                  (:select (coalesce (sum tx.amount) 0)
                   :from tx
                   :left-join cheque-event
-                  :on (:= cheque-event.tx-id tx.tx-id)
+                  :on (:= cheque-event.tx-id tx.id)
                   :where (:and
-                          (:= tx.company-id company.company-id)
+                          (:= tx.company-id company.id)
                           (:or (:= tx.debit-acc-id ,*cash-acc-id*)
                                (:in tx.debit-acc-id
                                     (:set ,@*expense-accounts*))
@@ -387,7 +388,7 @@
                                      (:not (:exists (:select 1
                                                      :from (:as tx tx2)
                                                      :inner-join (:as cheque-event cheque-event2)
-                                                     :on (:= cheque-event2.tx-id tx2.tx-id)
+                                                     :on (:= cheque-event2.tx-id tx2.id)
                                                      :where (:and
                                                              (:= cheque-event2.cheque-id
                                                                  cheque-event.cheque-id)
@@ -688,7 +689,7 @@
                         'pobox (val pobox)
                         'zipcode (val zipcode)
                         'notes (val notes)
-                        :where (:= 'company-id (val company-id))))
+                        :where (:= 'id (val company-id))))
       (see-other (apply #'company/details :company-id (val company-id)
                         (params->filter))))))
 

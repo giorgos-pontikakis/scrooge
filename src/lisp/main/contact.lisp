@@ -279,7 +279,7 @@
     (execute (:update 'contact :set
                       'tag (val tag)
                       'phone (val phone)
-                      :where (:= 'contact-id (val contact-id))))
+                      :where (:= 'id (val contact-id))))
     (see-other (apply #'company/details :company-id (val company-id) :contact-id (val contact-id)
                       (params->filter)))))
 

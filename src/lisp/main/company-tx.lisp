@@ -8,7 +8,7 @@
 (defclass company-tx-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id tx-id start))
+    :initform '(company-id tx-id start))
    (payload-parameter-names
     :allocation :class
     :initform '(tx-date description debit-amount credit-amount))
@@ -58,12 +58,12 @@
                         (apply url-fn args))
                       filter))))
 
-(defun company-tx-actions (op id tx-id filter)
-  (let ((auto-p (if id (auto-tx-p tx-id) nil)))
+(defun company-tx-actions (op company-id tx-id filter)
+  (let ((auto-p (if company-id (auto-tx-p tx-id) nil)))
     (actions-menu (make-menu-spec
                    (action-anchors/crud (if auto-p
                                             nil
-                                            (apply #'company/tx/update :id id
+                                            (apply #'company/tx/update :company-id company-id
                                                                        :tx-id tx-id
                                                                        filter))
                                         nil))
@@ -134,7 +134,7 @@
 
 
 (defun company-debits (company-id roles &optional since until)
-  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
+  (let ((base-query '(:select tx-date (:as tx.id id) tx.description
                       (:as tx.amount debit-amount) cheque.due-date cheque.state-id
                       :from tx
                       :left-join cheque-event
@@ -163,7 +163,7 @@
              :plists))))
 
 (defun company-credits (company-id roles &optional since until)
-  (let ((base-query '(:select tx-date (:as tx.id tx-id) tx.description
+  (let ((base-query '(:select tx-date (:as tx.id id) tx.description
                       (:as tx.amount credit-amount) cheque.due-date cheque.state-id
                       :from tx
                       :left-join cheque-event
@@ -244,9 +244,6 @@
 (defclass company-tx-row (scrooge-row/plist)
   ())
 
-(defmethod key ((row company-tx-row))
-  (getf (record row) :tx-id))
-
 (defmethod selector ((row company-tx-row) selected-p)
   (let* ((table (collection row))
          (tx-id (key row))
@@ -255,21 +252,21 @@
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
       (:a :href (if selected-p
-                    (apply #'company/tx :id company-id
+                    (apply #'company/tx :company-id company-id
                                         :start start filter)
-                    (apply #'company/tx :id company-id
+                    (apply #'company/tx :company-id company-id
                                         :tx-id tx-id filter))
           (selector-img selected-p)))))
 
 (defmethod controls ((row company-tx-row) controls-p)
-  (let ((id (key row))
+  (let ((tx-id (key row))
         (table (collection row)))
     (if controls-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
                              :href (apply #'company/tx
-                                          :id (company-id table)
-                                          :tx-id id
+                                          :company-id (company-id table)
+                                          :tx-id tx-id
                                           (filter table))))
         (list nil nil))))
 
@@ -306,7 +303,7 @@
   ())
 
 (defmethod target-url ((pg company-tx-paginator) start)
-  (apply #'company/tx :start start :id (company-id (table pg)) (filter (table pg))))
+  (apply #'company/tx :start start :company-id (company-id (table pg)) (filter (table pg))))
 
 
 
@@ -315,14 +312,14 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-tx-page company/tx ("company/tx")
-    ((search string)
-     (subset string)
-     (id     integer chk-company-id t)
-     (tx-id  integer chk-tx-id)
-     (since  date)
-     (until  date)
-     (start  integer)
-     (role   string))
+    ((search     string)
+     (subset     string)
+     (company-id integer chk-company-id t)
+     (tx-id      integer chk-tx-id)
+     (since      date)
+     (until      date)
+     (start      integer)
+     (role       string))
   (with-view-page
     (let ((filter (params->filter))
           (company-filter (params->company-filter))
@@ -330,7 +327,7 @@
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val id) roles (val since) (val until))
+          (company-debits/credits (val company-id) roles (val since) (val until))
         (with-document ()
           (:head
            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
@@ -339,44 +336,44 @@
            (:div :id "container" :class "container_12"
                  (header)
                  (main-navbar 'company)
-                 (company-top-actions :tx (val id)
-                                      company-filter)
-                 (company-tabs (val id) company-filter 'tx
-                               (html ()
-                                 (:div :class "secondary-filter-area"
-                                       (company-tx-filters (list* :id (val id) filter)))
-                                 (:div :id "company-tx-window" :class "window"
-                                       (:div :class "title" "Συναλλαγές")
-                                       (company-tx-actions :catalogue (val id) (val tx-id) filter)
-                                       (display (make-instance 'company-tx-table
-                                                               :records records
-                                                               :company-id (val id)
-                                                               :op :details
-                                                               :filter filter
-                                                               :start-index (val start))
-                                                :key (val tx-id))
-                                       (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                                       (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                 (company-top-actions :tx-cheque (val company-id) company-filter)
+                 (company-tabs
+                  (val company-id) company-filter 'tx
+                  (html ()
+                    (:div :class "secondary-filter-area"
+                          (company-tx-filters (list* :company-id (val company-id) filter)))
+                    (:div :id "company-tx-window" :class "window"
+                          (:div :class "title" "Συναλλαγές")
+                          (company-tx-actions :catalogue (val company-id) (val tx-id) filter)
+                          (display (make-instance 'company-tx-table
+                                                  :records records
+                                                  :company-id (val company-id)
+                                                  :op :details
+                                                  :filter filter
+                                                  :start-index (val start))
+                                   :key (val tx-id))
+                          (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                          (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                          (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
                  (footer))))))))
 
 (defpage company-tx-page company/tx/print ("company/tx/print")
-    ((search string)
-     (subset string)
-     (id     integer chk-company-id t)
-     (tx-id  integer chk-tx-id)
-     (since  date)
-     (until  date)
-     (role   string))
+    ((search     string)
+     (subset     string)
+     (company-id integer chk-company-id t)
+     (tx-id      integer chk-tx-id)
+     (since      date)
+     (until      date)
+     (role       string))
   (with-view-page
     (let ((filter (params->filter))
-          (system (params->plist #'val-or-raw (list id tx-id)))
+          (system (params->plist #'val-or-raw (list company-id tx-id)))
           (misc  (params->plist #'val-or-raw (list since until)))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum)
-          (company-debits/credits (val id) roles (val since) (val until))
+          (company-debits/credits (val company-id) roles (val since) (val until))
         (with-document ()
           (:head
            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
@@ -389,12 +386,12 @@
                            "« Επιστροφή")
                        (:div :id "company-tx-window" :class "window"
                              (:div :class "title"
-                                   (:h3 (str (title (get-dao 'company (val id)))))
+                                   (:h3 (str (title (get-dao 'company (val company-id)))))
                                    (display (datebox #'company/tx/print
                                                      (append system filter misc))))
                              (display (make-instance 'company-tx-table
                                                      :records records
-                                                     :company-id (val id)
+                                                     :company-id (val company-id)
                                                      :op :details
                                                      :filter (append system filter misc)
                                                      :paginator nil))
@@ -412,7 +409,7 @@
 (defpage company-tx-page company/tx/update ("company/tx/update")
     ((search        string)
      (subset        string)
-     (id            integer chk-company-id t)
+     (company-id    integer chk-company-id t)
      (tx-id         integer chk-tx-id)
      (since         date)
      (until         date)
@@ -428,7 +425,7 @@
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val id) roles (val since) (val until))
+          (company-debits/credits (val company-id) roles (val since) (val until))
         (with-document ()
           (:head
            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Επεξεργασία")
@@ -437,41 +434,41 @@
            (:div :id "container" :class "container_12"
                  (header)
                  (main-navbar 'company)
-                 (company-top-actions :tx (val id)
-                                      company-filter)
-                 (company-tabs (val id) company-filter 'tx
-                               (html ()
-                                 (:div :class "secondary-filter-area"
-                                       (company-tx-filters (list* :id (val id) filter)))
-                                 (:div :id "company-tx-window" :class "window"
-                                       (:div :class "title" "Συναλλαγές")
-                                       (company-tx-actions :update (val id) (val tx-id) filter)
-                                       (notifications)
-                                       (with-form
-                                           (actions/company/tx/update :id (val id)
-                                                                      :tx-id (val tx-id)
-                                                                      :search (val search)
-                                                                      :subset (val subset)
-                                                                      :since (val since)
-                                                                      :until (val until)
-                                                                      :role (val role))
-                                         (display (make-instance 'company-tx-table
-                                                                 :records records
-                                                                 :company-id (val id)
-                                                                 :op :update
-                                                                 :filter filter)
-                                                  :key (val tx-id)
-                                                  :payload (params->payload)))
-                                       (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                                       (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                                       (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                 (company-top-actions :tx-cheque (val company-id) company-filter)
+                 (company-tabs
+                  (val company-id) company-filter 'tx
+                  (html ()
+                    (:div :class "secondary-filter-area"
+                          (company-tx-filters (list* :company-id (val company-id) filter)))
+                    (:div :company-id "company-tx-window" :class "window"
+                          (:div :class "title" "Συναλλαγές")
+                          (company-tx-actions :update (val company-id) (val tx-id) filter)
+                          (notifications)
+                          (with-form
+                              (actions/company/tx/update :company-id (val company-id)
+                                                         :tx-id (val tx-id)
+                                                         :search (val search)
+                                                         :subset (val subset)
+                                                         :since (val since)
+                                                         :until (val until)
+                                                         :role (val role))
+                            (display (make-instance 'company-tx-table
+                                                    :records records
+                                                    :company-id (val company-id)
+                                                    :op :update
+                                                    :filter filter)
+                                     :key (val tx-id)
+                                     :payload (params->payload)))
+                          (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                          (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                          (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
                  (footer))))))))
 
 (defpage company-tx-page actions/company/tx/update
     ("actions/company/tx/update" :request-type :post)
     ((search        string)
      (subset        string)
-     (id            integer chk-company-id t)
+     (company-id    integer chk-company-id t)
      (tx-id         integer chk-tx-id)
      (since         date)
      (until         date)
@@ -484,10 +481,10 @@
     (execute (:update 'tx :set
                       'tx-date (val tx-date)
                       'description (val description)
-                      'company-id (val id)
+                      'company-id (val company-id)
                       'amount (or (val debit-amount)
                                   (val credit-amount))
                       :where (:= 'id (val tx-id))))
-    (see-other (apply #'company/tx :id (val id)
+    (see-other (apply #'company/tx :company-id (val company-id)
                                    :tx-id (val tx-id)
                                    (params->filter)))))
