@@ -37,19 +37,20 @@
 (defmethod selector ((row company-cheque-row) selected-p)
   (let* ((table (collection row))
          (cheque-id (key row))
-         (company-id (getf (filter table) :company-id))
-         (page-filter (remove-from-plist (filter table) :company-id))
+         (filter (filter table))
          (pg (paginator table))
          (kind (kind table))
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
-                    (apply #'company/cheque kind :company-id company-id
-                                                 :start (page-start pg (index row) start)
-                                                 page-filter)
-                    (apply #'company/cheque kind :company-id company-id
-                                                 :cheque-id cheque-id
-                                                 page-filter))
+                    (apply #'company/cheque
+                           kind
+                           :start (page-start pg (index row) start)
+                           filter)
+                    (apply #'company/cheque
+                           kind
+                           :cheque-id cheque-id
+                           filter))
           (selector-img selected-p)))))
 
 (defmethod payload ((row company-cheque-row) enabled-p)
@@ -77,15 +78,14 @@
   (let* ((cheque-id (key row))
          (table (collection row))
          (filter (filter table))
-         (kind (kind table))
-         (company-id (getf filter :company-id))
-         (page-filter (remove-from-plist filter :company-id)))
+         (kind (kind table)))
     (if controls-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply #'company/cheque kind :company-id company-id
-                                                                :cheque-id cheque-id
-                                                                page-filter)))
+                             :href (apply #'company/cheque
+                                          kind
+                                          :cheque-id cheque-id
+                                          filter)))
         (list nil nil))))
 
 
@@ -95,11 +95,8 @@
   ())
 
 (defmethod target-url ((pg company-cheque-paginator) start)
-  (let* ((table (table pg))
-         (company-id (getf (filter table) :company-id))
-         (page-filter (remove-from-plist (filter table) :company-id)))
-    (apply #'company/cheque (kind table) :company-id company-id
-                                         :start start page-filter)))
+  (apply #'company/cheque (kind table) :company-id company-id
+                                       :start start (filter (table pg))))
 
 
 
@@ -165,7 +162,8 @@
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :details
-                                        :filter (list* :company-id (val company-id) cheque-filter)
+                                        :filter (list* :company-id (val company-id)
+                                                       cheque-filter)
                                         :start-index (val start)
                                         :kind kind))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
@@ -184,7 +182,8 @@
                              (html ()
                                (:div :class "secondary-filter-area"
                                      (display (cheque-filters kind
-                                                              (list* :id (val company-id) filter)
+                                                              (list* :company-id (val company-id)
+                                                                     filter)
                                                               #'company/cheque)))
                                (:div :id "company-tx-window"
                                      (:div :class "window"
