@@ -9,7 +9,7 @@
 (defclass bill-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id bill-id))
+    :initform '(project-id bill-id))
    (payload-parameter-names
     :allocation :class
     :initform '(tag amount))
@@ -43,7 +43,7 @@
                      :create-pos :last))
 
 (defmethod get-records ((table bill-table))
-  (query (:order-by (:select (:as 'id 'bill-id) 'tag 'amount 'rank
+  (query (:order-by (:select 'id 'tag 'amount 'rank
                              :from 'bill
                              :where (:= 'project-id (project-id table)))
                     'rank)
@@ -60,8 +60,8 @@
         (bill-id (getf (record row) :bill-id)))
     (html ()
       (:a :href (if selected-p
-                    (project/details :id (project-id table))
-                    (project/details :id (project-id table) :bill-id bill-id))
+                    (project/details :project-id (project-id table))
+                    (project/details :project-id (project-id table) :bill-id bill-id))
           (selector-img selected-p)))))
 
 (defmethod payload ((row bill-row) enabled-p)
@@ -81,12 +81,9 @@
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (project/details :id (project-id table)
+                             :href (project/details :project-id (project-id table)
                                                     :bill-id bill-id)))
         (list nil nil))))
-
-(defmethod key ((item bill-row))
-  (getf (record item) :bill-id))
 
 
 
@@ -94,30 +91,30 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun bill-actions (op id bill-id filter)
+(defun bill-actions (op project-id bill-id filter)
   (actions-menu
    `((:create ,(html ()
                  (:a :class "create"
-                     :href (apply #'bill/create :id id filter)
+                     :href (apply #'bill/create :project-id project-id filter)
                      "Δημιουργία")))
      (:update ,(html ()
                  (:a :class "update"
-                     :href (apply #'bill/update :id id :bill-id bill-id filter)
+                     :href (apply #'bill/update :project-id project-id :bill-id bill-id filter)
                      "Επεξεργασία")))
      (:delete ,(html ()
                  (:a :class "delete"
-                     :href (apply #'bill/delete :id id :bill-id bill-id filter)
+                     :href (apply #'bill/delete :project-id project-id :bill-id bill-id filter)
                      "Διαγραφή")))
      (:rank-up ,(make-instance 'form
                                :action (action/bill/rank-dec)
                                :reqtype :post
-                               :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                               :hidden `(:project-id ,project-id :bill-id ,bill-id ,@filter)
                                :body (make-instance 'submit
                                                     :body "Πάνω" :css-class "up")))
      (:rank-down ,(make-instance 'form
                                  :action (action/bill/rank-inc)
                                  :reqtype :post
-                                 :hidden `(:id ,id :bill-id ,bill-id ,@filter)
+                                 :hidden `(:project-id ,project-id :bill-id ,bill-id ,@filter)
                                  :body (make-instance 'submit
                                                       :body "Κάτω" :css-class "down"))))
    (enabled-actions/crud+ranks op bill-id)))
@@ -129,24 +126,24 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page action/bill/rank-inc ("action/bill/rank-inc" :request-type :post)
-    ((search  string)
-     (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t))
   (with-controller-page nil
     (swap-ranks (get-dao 'bill (val bill-id)) +1)
-    (see-other (apply #'project/details :id (val id)
+    (see-other (apply #'project/details :project-id (val project-id)
                                         :bill-id (val bill-id)
                                         (params->filter)))))
 
 (defpage bill-page action/bill/rank-dec ("action/bill/rank-dec" :request-type :post)
     ((search  string)
      (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t))
+     (project-id      integer chk-project-id           t)
+     (bill-id integer (chk-bill-id project-id bill-id) t))
   (with-controller-page nil
     (swap-ranks (get-dao 'bill (val bill-id)) -1)
-    (see-other (apply #'project/details :id (val id)
+    (see-other (apply #'project/details :project-id (val project-id)
                                         :bill-id (val bill-id)
                                         (params->filter)))))
 
@@ -157,20 +154,20 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/create ("project/details/bill/create")
-    ((search string)
-     (cstate string)
-     (id     integer chk-project-id t)
-     (tag    string)
-     (amount float   chk-amount*))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id t)
+     (tag        string)
+     (amount     float   chk-amount*))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :details
-                                        :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter)))
+                                        :record (get-record 'project (val project-id))
+                                        :cancel-url (apply #'project :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :create
-                                      :project-id (val id))))
+                                      :project-id (val project-id))))
       (with-document ()
         (:head
          (:title "Κοστολόγηση » Δημιουργία")
@@ -179,38 +176,38 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions :details (val id) filter)
-               (project-tabs (val id)
+               (project-top-actions :details (val project-id) filter)
+               (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (project-actions :details (val id) filter)
+                                           (project-actions :details (val project-id) filter)
                                            (display project-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Δημιουργία")
-                                           (bill-actions :create (val id) nil filter)
+                                           (bill-actions :create (val project-id) nil filter)
                                            (notifications)
-                                           (with-form (actions/bill/create :id (val id))
+                                           (with-form (actions/bill/create :project-id (val project-id))
                                              (display bill-table
                                                       :payload (params->payload)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
-    ((search string)
-     (cstate string)
-     (id     integer chk-project-id)
-     (tag    string)
-     (amount float   chk-amount*))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id)
+     (tag        string)
+     (amount     float   chk-amount*))
   (with-controller-page (bill/create)
     (let ((new-bill (make-instance 'bill
-                                   :project-id (val id)
+                                   :project-id (val project-id)
                                    :tag (val tag)
                                    :amount (val amount))))
       (setf (rank new-bill) (1+ (max-rank new-bill)))
       (insert-dao new-bill)
-      (see-other (apply #'project/details :id (val id) :bill-id (bill-id new-bill)
+      (see-other (apply #'project/details :project-id (val project-id) :bill-id (bill-id new-bill)
                         (params->filter))))))
 
 
@@ -220,21 +217,21 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/update ("project/details/bill/update")
-    ((search  string)
-     (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t)
-     (tag     string)
-     (amount  float   chk-amount*))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t)
+     (tag        string)
+     (amount     float   chk-amount*))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :details
-                                        :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter)))
+                                        :record (get-record 'project (val project-id))
+                                        :cancel-url (apply #'project :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :update
-                                      :project-id (val id))))
+                                      :project-id (val project-id))))
       (with-document ()
         (:head
          (:title "Κοστολόγηση » Επεξεργασία")
@@ -243,19 +240,19 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions :details (val id) filter)
-               (project-tabs (val id)
+               (project-top-actions :details (val project-id) filter)
+               (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (project-actions :details (val id) filter)
+                                           (project-actions :details (val project-id) filter)
                                            (display project-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Επεξεργασία")
-                                           (bill-actions :update (val id) (val bill-id) filter)
-                                           (with-form (actions/bill/update :id (val id)
+                                           (bill-actions :update (val project-id) (val bill-id) filter)
+                                           (with-form (actions/bill/update :project-id (val project-id)
                                                                            :bill-id (val bill-id))
                                              (display bill-table :key (val bill-id)
                                                                  :payload (params->payload)))))))
@@ -263,18 +260,18 @@
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
                                         :request-type :post)
-    ((search  string)
-     (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t)
-     (tag     string)
-     (amount  float   chk-amount*))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t)
+     (tag        string)
+     (amount     float   chk-amount*))
   (with-controller-page (bill/update)
     (execute (:update 'bill :set
                       'tag (val tag)
                       'amount (val amount)
                       :where (:= 'id (val bill-id))))
-    (see-other (apply #'project/details :id (val id) :bill-id (val bill-id)
+    (see-other (apply #'project/details :project-id (val project-id) :bill-id (val bill-id)
                       (params->filter)))))
 
 
@@ -284,19 +281,19 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/delete ("project/details/bill/delete")
-    ((search  string)
-     (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :details
-                                        :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project :id (val id) filter)))
+                                        :record (get-record 'project (val project-id))
+                                        :cancel-url (apply #'project :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :delete
-                                      :project-id (val id))))
+                                      :project-id (val project-id))))
       (with-document ()
         (:head
          (:title "Κοστολόγηση » Διαγραφή")
@@ -305,33 +302,33 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions :details (val id) filter)
-               (project-tabs (val id)
+               (project-top-actions :details (val project-id) filter)
+               (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (project-actions :details (val id) filter)
+                                           (project-actions :details (val project-id) filter)
                                            (display project-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Διαγραφή")
-                                           (bill-actions :delete (val id) (val bill-id) filter)
-                                           (with-form (actions/bill/delete :id (val id)
+                                           (bill-actions :delete (val project-id) (val bill-id) filter)
+                                           (with-form (actions/bill/delete :project-id (val project-id)
                                                                            :bill-id (val bill-id))
                                              (display bill-table :key (val bill-id)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"
                                         :request-type :post)
-    ((search  string)
-     (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id) t))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t))
   (with-controller-page (bill/delete)
     (with-transaction ()
       (let ((dao  (get-dao 'bill (val bill-id))))
         (shift-higher-rank-daos dao -1)
         (delete-dao dao)))
-    (see-other (apply #'project/details :id (val id)
+    (see-other (apply #'project/details :project-id (val project-id)
                       (params->filter)))))

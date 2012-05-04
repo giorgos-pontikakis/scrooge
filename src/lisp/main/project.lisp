@@ -9,7 +9,7 @@
 (defclass project-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(project-id))
    (payload-parameter-names
     :allocation :class
     :initform '(company description location price vat state-id quote-date start-date end-date notes))
@@ -70,25 +70,25 @@
 (define-existence-predicate project-id-exists-p project id)
 (define-existence-predicate bill-id-exists-p bill id)
 
-(defun project-description-exists-p (description company &optional id)
+(defun project-description-exists-p (description company &optional project-id)
   (unless  (chk-company-title company)
     ;; Don't even bother to check without a valid company title
     (let ((company-id (company-id company)))
       (with-db ()
-        (if id
+        (if project-id
             (query
              (:select 1 :from 'project :where
                       (:and (:= 'description description)
                             (:= company-id 'company-id)
-                            (:not (:= 'id id))))
+                            (:not (:= 'id project-id))))
              :single)
             (query (:select 1 :from 'project
                     :where (:and (:= 'description description)
                                  (:= company-id 'company-id)))
                    :single))))))
 
-(defun chk-project-id (id)
-  (if (project-id-exists-p id)
+(defun chk-project-id (project-id)
+  (if (project-id-exists-p project-id)
       nil
       :project-id-unknown))
 
@@ -97,9 +97,9 @@
         ((project-description-exists-p description company) :project-description-exists)
         (t nil)))
 
-(defun chk-project-description/update (description company id)
+(defun chk-project-description/update (description company project-id)
   (cond ((eql :null description) :project-description-null)
-        ((project-description-exists-p description company id) :project-description-exists)
+        ((project-description-exists-p description company project-id) :project-description-exists)
         (t nil)))
 
 (defun chk-quote-date (date state-id)
@@ -156,11 +156,11 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-top-actions (op id filter)
+(defun project-top-actions (op project-id filter)
   (top-actions (make-instance 'menu
                               :spec `((catalogue
                                        ,(html ()
-                                          (:a :href (apply #'project :id id filter)
+                                          (:a :href (apply #'project :project-id project-id filter)
                                               (:img :src "/scrooge/img/application_view_list.png")
                                               "Κατάλογος")))
                                       (create
@@ -177,15 +177,15 @@
                                                nil)))
                (searchbox #'actions/project/search
                           #'(lambda (&rest args)
-                              (apply #'project :id id args))
+                              (apply #'project :project-id project-id args))
                           filter
                           "ac-project")))
-(defun project-actions (op id filter)
+(defun project-actions (op project-id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'project/details :id id filter)
-                                              (apply #'project/update :id id filter)
-                                              (apply #'project/delete :id id filter)))
-                (enabled-actions/crud+details op id)))
+                 (action-anchors/crud+details (apply #'project/details :project-id project-id filter)
+                                              (apply #'project/update :project-id project-id filter)
+                                              (apply #'project/delete :project-id project-id filter)))
+                (enabled-actions/crud+details op project-id)))
 
 (defun project-filters (filter)
   (let ((filter* (remove-from-plist filter :cstate)))
@@ -198,15 +198,15 @@
                     (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
                   :active (getf filter :cstate)))))
 
-(defun project-tabs (id content)
+(defun project-tabs (project-id content)
   (with-html
     (:div :class "grid_12"
           (:div :id "project-area"
-                (when id
+                (when project-id
                   (htm
                    (:div :id "project-title"
                          (:h3 :class "grid_8 alpha"
-                              (str (description (get-dao 'project id))))
+                              (str (description (get-dao 'project project-id))))
                          (clear))))
                 (display content)
                 (clear)))))
@@ -221,7 +221,7 @@
       (if (or (not records)
               (and records (cdr records)))
           (see-other (apply #'project filter))
-          (see-other (apply #'project/details :id (getf (first records) :id) filter))))))
+          (see-other (apply #'project/details :project-id (key (first records)) filter))))))
 
 
 
@@ -272,15 +272,15 @@
                     (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
-(defmethod get-record ((type (eql 'project)) id)
+(defmethod get-record ((type (eql 'project)) project-id)
   (declare (ignore type))
   (query (:select 'project.id (:as 'company.title 'company)
                   'description 'location 'state-id 'quote-date
                   'start-date 'end-date 'price 'vat 'project.notes
-                  :from 'project
-                  :left-join 'company
-                  :on (:= 'project.company-id 'company.id)
-                  :where (:= 'project.id id))
+          :from 'project
+          :left-join 'company
+          :on (:= 'project.company-id 'company.id)
+          :where (:= 'project.id project-id))
          :plist))
 
 
@@ -349,11 +349,11 @@
     (list
      (html ()
        (:a :href (apply #'project/details
-                        :id (key row)
+                        :project-id (key row)
                         (filter (collection row)))
            (str (lisp->html (getf record :description)))))
      (html ()
-       (:a :href (company/details :id (getf record :company-id))
+       (:a :href (company/details :company-id (getf record :company-id))
            (str (getf record :company))))
      (html ()
        (str (lisp->html (fmt-amount (getf record :price) 0)))))))
@@ -374,10 +374,10 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project ("project")
-    ((id     integer chk-project-id)
-     (cstate string)
-     (search string)
-     (start  integer))
+    ((project-id integer chk-project-id)
+     (cstate     string)
+     (search     string)
+     (start      integer))
   (with-view-page
     (let* ((op :catalogue)
            (filter (params->filter))
@@ -385,10 +385,10 @@
                                          :op op
                                          :filter filter
                                          :start-index (val start))))
-      ;; if id exists and is not found among records, ignore search term
-      (when (and (val id)
-                 (not (find (val id) (rows project-table) :key #'key)))
-        (see-other (project :id (val id) :cstate (state-id (get-dao 'project (val id))))))
+      ;; if project-id exists and is not found among records, ignore search term
+      (when (and (val project-id)
+                 (not (find (val project-id) (rows project-table) :key #'key)))
+        (see-other (project :project-id (val project-id) :cstate (state-id (get-dao 'project (val project-id))))))
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")
@@ -397,30 +397,30 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val id) filter)
+               (project-top-actions op (val project-id) filter)
                (project-filters filter)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (project-actions op (val id) filter)
+                           (project-actions op (val project-id) filter)
                            (display project-table
-                                    :key (val id))))
+                                    :key (val project-id))))
                (footer)))))))
 
 (defpage project-page project/details ("project/details")
-    ((search  string)
-     (cstate  string)
-     (id      integer chk-project-id           t)
-     (bill-id integer (chk-bill-id id bill-id)))
+    ((search     string)
+     (cstate     string)
+     (project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id)))
   (with-view-page
     (let* ((op :details)
            (filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op op
-                                        :record (get-record 'project (val id))))
+                                        :record (get-record 'project (val project-id))))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
-                                      :project-id (val id))))
+                                      :project-id (val project-id))))
       (with-document ()
         (:head
          (:title "Έργο » Λεπτομέρειες")
@@ -429,19 +429,19 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val id) filter)
-               (project-tabs (val id)
+               (project-top-actions op (val project-id) filter)
+               (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:p :class "title" "Λεπτομέρειες")
-                                           (project-actions op (val id) filter)
+                                           (project-actions op (val project-id) filter)
                                            (display project-form
-                                                    :payload (get-record 'project (val id)))))
+                                                    :payload (get-record 'project (val project-id)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")
-                                           (bill-actions :catalogue (val id) (val bill-id) filter)
+                                           (bill-actions :catalogue (val project-id) (val bill-id) filter)
                                            (display bill-table
                                                     :key (val bill-id))))))
                (footer)))))))
@@ -522,7 +522,7 @@
                                        :state-id (val state-id)
                                        :notes (val notes))))
       (insert-dao new-project)
-      (see-other (apply #'project/details :id (project-id new-project)
+      (see-other (apply #'project/details :project-id (project-id new-project)
                         (params->filter))))))
 
 
@@ -533,11 +533,11 @@
 
 (defpage project-page project/update ("project/update")
     ((search      string)
-     (cstate      string chk-project-state-id)
-     (id          integer chk-project-id)
-     (bill-id     integer (chk-bill-id id bill-id))
+     (cstate      string  chk-project-state-id)
+     (project-id  integer chk-project-id)
+     (bill-id     integer (chk-bill-id project-id bill-id))
      (company     string  chk-company-title)
-     (description string  (chk-project-description/update description company id))
+     (description string  (chk-project-description/update description company project-id))
      (location    string)
      (price       float   (chk-price price state-id))
      (vat         float   chk-amount*)
@@ -551,11 +551,11 @@
            (filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :update
-                                        :record (get-record 'project (val id))
-                                        :cancel-url (apply #'project/details :id (val id) filter)))
+                                        :record (get-record 'project (val project-id))
+                                        :cancel-url (apply #'project/details :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
-                                      :project-id (val id))))
+                                      :project-id (val project-id))))
       (with-document ()
         (:head
          (:title "Έργο » Επεξεργασία")
@@ -564,15 +564,15 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val id) filter)
-               (project-tabs (val id)
+               (project-top-actions op (val project-id) filter)
+               (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:p :class "title" "Επεξεργασία")
-                                           (project-actions op (val id) filter)
+                                           (project-actions op (val project-id) filter)
                                            (notifications)
-                                           (with-form (actions/project/update :id (val id)
+                                           (with-form (actions/project/update :project-id (val project-id)
                                                                               :search (val search)
                                                                               :cstate (val cstate))
                                              (display project-form :payload (params->payload)
@@ -580,7 +580,7 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")
-                                           (bill-actions :catalogue (val id) (val bill-id) filter)
+                                           (bill-actions :catalogue (val project-id) (val bill-id) filter)
                                            (display bill-table
                                                     :key (val bill-id))))))
                (footer)))))))
@@ -589,9 +589,9 @@
                                               :request-type :post)
     ((search      string)
      (cstate      string  chk-project-state-id)
-     (id          integer chk-project-id)
+     (project-id  integer chk-project-id)
      (company     string  chk-company-title)
-     (description string  (chk-project-description/update description company id))
+     (description string  (chk-project-description/update description company project-id))
      (location    string)
      (price       float   (chk-price price state-id))
      (vat         float   chk-amount*)
@@ -613,8 +613,8 @@
                         'end-date (val end-date)
                         'state-id (val state-id)
                         'notes (val notes)
-                        :where (:= 'id (val id))))
-      (see-other (apply #'project/details :id (val id)
+                        :where (:= 'id (val project-id))))
+      (see-other (apply #'project/details :project-id (val project-id)
                         (params->filter))))))
 
 
@@ -624,9 +624,9 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/delete ("project/delete")
-    ((id     integer chk-project-id t)
-     (search string)
-     (cstate string chk-project-state-id))
+    ((project-id integer chk-project-id       t)
+     (search     string)
+     (cstate     string  chk-project-state-id))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
@@ -641,27 +641,27 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val id) filter)
-               (project-filters filter )
+               (project-top-actions op (val project-id) filter)
+               (project-filters filter)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Έργο » Διαγραφή")
-                           (project-actions op (val id) filter)
-                           (with-form (actions/project/delete :id (val id)
+                           (project-actions op (val project-id) filter)
+                           (with-form (actions/project/delete :project-id (val project-id)
                                                               :search (val search)
                                                               :cstate (val cstate))
                              (display project-table
-                                      :key (val id)))))
+                                      :key (val project-id)))))
                (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/project/delete"
                                               :request-type :post)
-    ((id     integer chk-project-id)
-     (search string)
-     (cstate string chk-project-state-id))
+    ((project-id integer chk-project-id)
+     (search     string)
+     (cstate     string  chk-project-state-id))
   (with-controller-page (project/delete)
     (with-transaction ()
       (execute (:delete-from 'bill
-                :where (:= 'project-id (val id))))
-      (delete-dao (get-dao 'project (val id))))
+                :where (:= 'project-id (val project-id))))
+      (delete-dao (get-dao 'project (val project-id))))
     (see-other (apply #'project (params->filter)))))
