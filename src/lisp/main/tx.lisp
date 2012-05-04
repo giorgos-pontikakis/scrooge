@@ -63,7 +63,7 @@
 (define-existence-predicate* tx-description-exists-p tx description id)
 
 (defun chk-tx-id (tx-id)
-  (if (tx-tx-id-exists-p id)
+  (if (tx-id-exists-p tx-id)
       nil
       :tx-id-unknown))
 
@@ -400,7 +400,7 @@
                         'amount (val amount)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
-                        :where (:= 'tx-id (val id))))
+                        :where (:= 'tx-id (val tx-id))))
       (see-other (apply #'tx :tx-id (val tx-id) (params->filter))))))
 
 
