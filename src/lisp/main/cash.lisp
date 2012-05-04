@@ -9,7 +9,7 @@
 (defclass cash-page (regex-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(tx-id))
    (payload-parameter-names
     :allocation :class
     :initform '(tx-date company description amount account-id))
@@ -139,7 +139,7 @@
   ())
 
 (defmethod selector ((row cash-tx-row) selected-p)
-  (let* ((id (key row))
+  (let* ((tx-id (key row))
          (table (collection row))
          (pg (paginator table))
          (filter (filter table))
@@ -148,14 +148,14 @@
     (html ()
       (:a :href (if selected-p
                     (apply #'cash kind :start (page-start pg (index row) start) filter)
-                    (apply #'cash kind :id id filter))
+                    (apply #'cash kind :tx-id tx-id filter))
           (selector-img selected-p)))))
 
 (defmethod payload ((row cash-tx-row) enabled-p)
   (let ((record (record row)))
     (insert-list 1
                  (html ()
-                   (:a :href (company/details :id (getf record :company-id))
+                   (:a :href (company/details :company-id (getf record :company-id))
                        (str (getf record :company))))
                  (mapcar (lambda (name)
                            (make-instance 'textbox
@@ -165,13 +165,13 @@
                          '(tx-date description amount account)))))
 
 (defmethod controls ((row cash-tx-row) controls-p)
-  (let* ((id (key row))
+  (let* ((tx-id (key row))
          (table (collection row))
          (filter (filter table))
          (kind (kind table)))
     (if controls-p
         (list (make-instance 'ok-button)
-              (make-instance 'cancel-button :href (apply #'cash kind :id id filter)))
+              (make-instance 'cancel-button :href (apply #'cash kind :tx-id tx-id filter)))
         (list nil nil))))
 
 
@@ -198,7 +198,7 @@
         ((string-equal kind "expense") "Έξοδα")
         (t (error "Internal error in cash-page-title"))))
 
-(defun cash-top-actions (op kind id filter)
+(defun cash-top-actions (op kind tx-id filter)
   (let ((new-cash-label (conc "Νέο "
                               (cond ((string-equal kind "revenue") "Έσοδo")
                                     ((string-equal kind "expense") "Έξοδo")
@@ -206,7 +206,7 @@
     (top-actions (make-instance 'menu
                                 :spec `((catalogue
                                          ,(html ()
-                                            (:a :href (apply #'cash kind :id id filter)
+                                            (:a :href (apply #'cash kind :tx-id tx-id filter)
                                                 (:img :src "/scrooge/img/application_view_list.png")
                                                 "Κατάλογος")))
                                         (create
@@ -224,16 +224,16 @@
                  (searchbox #'(lambda (&rest args)
                                 (apply #'actions/cash/search kind args))
                             #'(lambda (&rest args)
-                                (apply #'cash kind :id id args))
+                                (apply #'cash kind :tx-id tx-id args))
                             filter
                             "ac-company"))))
 
-(defun cash-actions (op kind id filter)
+(defun cash-actions (op kind tx-id filter)
   (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'cash/details kind :id id filter)
-                                              (apply #'cash/update kind :id id filter)
-                                              (apply #'cash/delete kind :id id filter)))
-                (enabled-actions/crud+details op id)))
+                 (action-anchors/crud+details (apply #'cash/details kind :tx-id tx-id filter)
+                                              (apply #'cash/update kind :tx-id tx-id filter)
+                                              (apply #'cash/delete kind :tx-id tx-id filter)))
+                (enabled-actions/crud+details op tx-id)))
 
 (defun cash-filters (kind filter)
   (filter-area (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
@@ -255,7 +255,7 @@
       (if (or (not records)
               (and records (cdr records)))
           (see-other (apply #'cash kind filter))
-          (see-other (apply #'cash/details kind :id (getf (first records) :id) filter))))))
+          (see-other (apply #'cash/details kind :tx-id (key (first records)) filter))))))
 
 
 
@@ -326,7 +326,7 @@
      (start  integer)
      (since  date)
      (until  date)
-     (id     integer chk-tx-id))
+     (tx-id  integer chk-tx-id))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :catalogue)
@@ -337,16 +337,16 @@
                                          :op op
                                          :filter filter
                                          :start-index (val start))))
-      ;; if id exists and is not found among records, ignore search term
-      (when (and (val id)
-                 (not (find (val id) (rows cash-tx-table) :key #'key)))
-        (let ((tx (get-dao 'tx (val id))))
+      ;; if tx-id exists and is not found among records, ignore search term
+      (when (and (val tx-id)
+                 (not (find (val tx-id) (rows cash-tx-table) :key #'key)))
+        (let ((tx (get-dao 'tx (val tx-id))))
           (see-other (cash (cond ((eql (debit-acc-id tx) *cash-acc-id*)
                                   "revenue")
                                  ((eql (credit-acc-id tx) *cash-acc-id*)
                                   "expense")
                                  (t (error 'bad-request-error)))
-                           :id (val id)))))
+                           :tx-id (val tx-id)))))
       ;; otherwise continue as usually
       (with-document ()
         (:head
@@ -356,14 +356,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-top-actions op kind (val id) filter)
+               (cash-top-actions op kind (val tx-id) filter)
                (cash-filters kind filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind (val id) filter)
+                           (cash-actions op kind (val tx-id) filter)
                            (display cash-tx-table
-                                    :key (val id)
+                                    :key (val tx-id)
                                     :payload nil)))
                (footer)))))))
 
@@ -371,7 +371,7 @@
     ((search string)
      (since  date)
      (until  date)
-     (id     integer chk-tx-id t))
+     (tx-id  integer chk-tx-id t))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :details)
@@ -379,8 +379,8 @@
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
-                                     :record (get-record 'tx (val id))
-                                     :cancel-url (apply #'cash kind :id (val id) filter)))
+                                     :record (get-record 'tx (val tx-id))
+                                     :cancel-url (apply #'cash kind :tx-id (val tx-id) filter)))
            (page-title (conc (cash-page-title kind) " » Λεπτομέρειες")))
       (with-document ()
         (:head
@@ -390,11 +390,11 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-top-actions op kind (val id) filter)
+               (cash-top-actions op kind (val tx-id) filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" "Λεπτομέρειες")
-                           (cash-actions op kind (val id) filter)
+                           (cash-actions op kind (val tx-id) filter)
                            (display cash-form)))
                (footer)))))))
 
@@ -473,7 +473,7 @@
                                   :debit-acc-id debit-acc-id
                                   :auto t)))
       (insert-dao new-tx)
-      (see-other (apply #'cash/details kind :id (tx-id new-tx)
+      (see-other (apply #'cash/details kind :tx-id (tx-id new-tx)
                         (params->filter))))))
 
 
@@ -487,7 +487,7 @@
     ((search      string)
      (since       date)
      (until       date)
-     (id          integer chk-tx-id t)
+     (tx-id       integer chk-tx-id         t)
      (tx-date     date)
      (company     string  chk-company-title)
      (description string)
@@ -500,8 +500,11 @@
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
-                                     :record (get-record 'tx (val id))
-                                     :cancel-url (apply #'cash/details kind :id (val id) filter)))
+                                     :record (get-record 'tx (val tx-id))
+                                     :cancel-url (apply #'cash/details
+                                                        kind
+                                                        :tx-id (val tx-id)
+                                                        filter)))
            (page-title (conc (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
@@ -511,14 +514,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-top-actions op kind (val id) filter)
+               (cash-top-actions op kind (val tx-id) filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind (val id) filter)
+                           (cash-actions op kind (val tx-id) filter)
                            (notifications)
                            (with-form (actions/cash/update kind
-                                                           :id (val id)
+                                                           :tx-id (val tx-id)
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
@@ -531,7 +534,7 @@
     ((search      string)
      (since       date)
      (until       date)
-     (id          integer chk-tx-id         t)
+     (tx-id       integer chk-tx-id         t)
      (tx-date     date)
      (description string)
      (company     string  chk-company-title)
@@ -553,8 +556,8 @@
                         'amount (val amount)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
-                        :where (:= 'id (val id))))
-      (see-other (apply #'cash/details kind :id (val id) (params->filter))))))
+                        :where (:= 'id (val tx-id))))
+      (see-other (apply #'cash/details kind :id (val tx-id) (params->filter))))))
 
 
 
@@ -567,7 +570,7 @@
     ((search string)
      (since  date)
      (until  date)
-     (id     integer chk-tx-id t))
+     (tx-id  integer chk-tx-id t))
   (with-view-page
     (check-cash-accounts)
     (let* ((op :delete)
@@ -585,19 +588,19 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cash)
-               (cash-top-actions op kind (val id) filter)
+               (cash-top-actions op kind (val tx-id) filter)
                (cash-filters kind filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind (val id) filter)
+                           (cash-actions op kind (val tx-id) filter)
                            (with-form (actions/cash/delete kind
-                                                           :id (val id)
+                                                           :tx-id (val tx-id)
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
                              (display cash-tx-table
-                                      :key (val id)))))
+                                      :key (val tx-id)))))
                (footer)))))))
 
 (defpage cash-page actions/cash/delete
@@ -605,8 +608,8 @@
     ((search string)
      (since  date)
      (until  date)
-     (id     integer chk-tx-id t))
+     (tx-id  integer chk-tx-id t))
   (with-controller-page (cash/delete)
     (check-cash-accounts)
-    (delete-dao (get-dao 'tx (val id)))
+    (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'cash kind (params->filter)))))
