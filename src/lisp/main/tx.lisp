@@ -9,7 +9,7 @@
 (defclass tx-page (dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
-    :initform '(id))
+    :initform '(tx-id))
    (payload-parameter-names
     :allocation :class
     :initform '(tx-date description company amount non-chq-debit-acc non-chq-credit-acc))
@@ -62,8 +62,8 @@
 (define-existence-predicate tx-id-exists-p tx id)
 (define-existence-predicate* tx-description-exists-p tx description id)
 
-(defun chk-tx-id (id)
-  (if (tx-id-exists-p id)
+(defun chk-tx-id (tx-id)
+  (if (tx-tx-id-exists-p id)
       nil
       :tx-id-unknown))
 
@@ -80,7 +80,7 @@
               :where (:= 'tx-id tx-id)))
       nil))
 
-(defun tx-top-actions (id filter)
+(defun tx-top-actions (tx-id filter)
   (top-actions
    (make-instance 'menu
                   :spec `((create ,(html ()
@@ -91,29 +91,29 @@
                   :disabled nil)
    (searchbox #'tx
               #'(lambda (&rest args)
-                  (apply #'tx :id id args))
+                  (apply #'tx :tx-id tx-id args))
               filter
               "ac-company")))
 
-(defun tx-disabled-actions (op id auto-p)
+(defun tx-disabled-actions (op tx-id auto-p)
   (ecase op
-    (:catalogue (if (or (not id) auto-p)
+    (:catalogue (if (or (not tx-id) auto-p)
                     '()
                     '(:update :delete)))
     (:create '())
     (:update '())
     (:delete '())))
 
-(defun tx-actions (op id filter)
-  (let ((auto-p (if id (auto-tx-p id) nil)))
+(defun tx-actions (op tx-id filter)
+  (let ((auto-p (if tx-id (auto-tx-p tx-id) nil)))
     (actions-menu (make-menu-spec
                    (action-anchors/crud (if auto-p
                                             nil
-                                            (apply #'tx/update :id id filter))
+                                            (apply #'tx/update :tx-id tx-id filter))
                                         (if auto-p
                                             nil
-                                            (apply #'tx/delete :id id filter))))
-                  (tx-disabled-actions op id auto-p))))
+                                            (apply #'tx/delete :tx-id tx-id filter))))
+                  (tx-disabled-actions op tx-id auto-p))))
 
 (defun tx-filters (filter)
   (filter-area (datebox #'tx filter)))
@@ -199,7 +199,7 @@
                               :disabled (not enabled-p)
                               :css-class (if enabled-p (getf css-class 'company) nil))
                (html ()
-                 (:a :href (company/details :id (getf record :company-id))
+                 (:a :href (company/details :company-id (getf record :company-id))
                      (str (getf record :company)))))
            (append (mapcar (lambda (name)
                       (make-instance 'textbox
@@ -230,7 +230,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx ("tx")
-    ((id     integer chk-tx-id)
+    ((tx-id  integer chk-tx-id)
      (search string)
      (since  date)
      (until  date)
@@ -250,14 +250,14 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions (val id) filter)
+               (tx-top-actions (val tx-id) filter)
                (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (tx-actions op (val id) filter)
+                           (tx-actions op (val tx-id) filter)
                            (display tx-table
-                                    :key (val id))))
+                                    :key (val tx-id))))
                (footer)))))))
 
 
@@ -305,15 +305,15 @@
 
 (defpage tx-page actions/tx/create ("actions/tx/create"
                                     :request-type :post)
-    ((search         string)
-     (since          date)
-     (until          date)
-     (tx-date        date    chk-date)
-     (description    string)
-     (company        string  chk-company-title)
-     (amount         float   chk-amount)
-     (non-chq-debit-acc  string  chk-non-chq-acc-title)
-     (non-chq-credit-acc string  chk-non-chq-acc-title))
+    ((search             string)
+     (since              date)
+     (until              date)
+     (tx-date            date   chk-date)
+     (description        string)
+     (company            string chk-company-title)
+     (amount             float  chk-amount)
+     (non-chq-debit-acc  string chk-non-chq-acc-title)
+     (non-chq-credit-acc string chk-non-chq-acc-title))
   (with-controller-page (tx/create)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (account-id (val non-chq-debit-acc)))
@@ -326,7 +326,7 @@
                                   :credit-acc-id credit-acc-id
                                   :debit-acc-id debit-acc-id)))
       (insert-dao new-tx)
-      (see-other (apply #'tx :id (tx-id new-tx) (params->filter))))))
+      (see-other (apply #'tx :tx-id (tx-id new-tx) (params->filter))))))
 
 
 
@@ -336,7 +336,7 @@
 
 (defpage tx-page tx/update ("tx/update")
     ((search             string)
-     (id                 integer chk-tx-id             t)
+     (tx-id              integer chk-tx-id             t)
      (since              date)
      (until              date)
      (tx-date            date    chk-date)
@@ -347,7 +347,7 @@
      (non-chq-credit-acc string  chk-non-chq-acc-title))
   ;; post validation - prevent update if automatically created
   (with-db ()
-    (validate-parameters #'auto-tx-p id))
+    (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
     (let* ((op :update)
            (filter (params->filter))
@@ -362,31 +362,31 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions id filter)
+               (tx-top-actions tx-id filter)
                (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (tx-actions op (val id) filter)
+                           (tx-actions op (val tx-id) filter)
                            (notifications)
-                           (with-form (actions/tx/update :id (val id)
+                           (with-form (actions/tx/update :tx-id (val tx-id)
                                                          :search (val search)
                                                          :since (val since)
                                                          :until (val until))
-                             (display tx-table :key (val id)
+                             (display tx-table :key (val tx-id)
                                                :payload (params->payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
                                     :request-type :post)
-    ((search         string)
-     (since          date)
-     (until          date)
-     (id             integer chk-tx-id t)
-     (tx-date        date    chk-date)
-     (description    string)
-     (company        string  chk-company-title)
-     (amount         float   chk-amount)
+    ((search      string)
+     (since       date)
+     (until       date)
+     (tx-id       integer chk-tx-id         t)
+     (tx-date     date    chk-date)
+     (description string)
+     (company     string  chk-company-title)
+     (amount      float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
   (with-controller-page (tx/update)
@@ -400,8 +400,8 @@
                         'amount (val amount)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
-                        :where (:= 'id (val id))))
-      (see-other (apply #'tx :id (val id) (params->filter))))))
+                        :where (:= 'tx-id (val id))))
+      (see-other (apply #'tx :tx-id (val tx-id) (params->filter))))))
 
 
 
@@ -410,13 +410,13 @@
 ;;; -----------------------------------------------------------------------
 
 (defpage tx-page tx/delete ("tx/delete")
-    ((id     integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id t)
      (since  date)
      (until  date)
      (search string))
   ;; post validation - prevent delete if automatically created
   (with-db ()
-    (validate-parameters #'auto-tx-p id))
+    (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
     (let* ((op :delete)
            (filter (params->filter))
@@ -431,27 +431,27 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions (val id) filter)
+               (tx-top-actions (val tx-id) filter)
                (tx-filters filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (tx-actions op (val id) filter)
-                           (with-form (actions/tx/delete :id (val id)
+                           (tx-actions op (val tx-id) filter)
+                           (with-form (actions/tx/delete :tx-id (val tx-id)
                                                          :search (val search)
                                                          :since (val since)
                                                          :until (val until))
-                             (display tx-table :key (val id)))))
+                             (display tx-table :key (val tx-id)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/delete ("actions/tx/delete"
                                     :request-type :post)
-    ((id     integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id t)
      (since  date)
      (until  date)
      (search string))
   (with-controller-page (tx/delete)
-    (delete-dao (get-dao 'tx (val id)))
+    (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'tx (params->filter)))))
 
 
@@ -461,7 +461,7 @@
 ;;; TX form
 ;;; ----------------------------------------------------------------------
 
-(defmethod get-record ((type (eql 'tx)) id)
+(defmethod get-record ((type (eql 'tx)) tx-id)
   (declare (ignore type))
   (query (:select 'tx.id 'tx-date
                   (:as 'company.title 'company)
@@ -478,5 +478,5 @@
                   :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
                   :left-join (:as 'account 'non-chq-credit-acc)
                   :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
-                  :where (:= 'tx.id id))
+                  :where (:= 'tx.id tx-id))
          :plist))
