@@ -303,7 +303,10 @@
   ())
 
 (defmethod target-url ((pg company-tx-paginator) start)
-  (apply #'company/tx :start start :company-id (company-id (table pg)) (filter (table pg))))
+  (let ((table (table pg)))
+    (apply #'company/tx :start start
+                        :company-id (company-id table)
+                        (filter table))))
 
 
 

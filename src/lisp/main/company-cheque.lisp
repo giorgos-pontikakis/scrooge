@@ -95,8 +95,10 @@
   ())
 
 (defmethod target-url ((pg company-cheque-paginator) start)
-  (apply #'company/cheque (kind table) :company-id company-id
-                                       :start start (filter (table pg))))
+  (let ((table (table pg)))
+   (apply #'company/cheque (kind table) :company-id (company-id table)
+                                        :start start
+                                        (filter table))))
 
 
 
