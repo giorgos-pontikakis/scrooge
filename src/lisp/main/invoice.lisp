@@ -330,7 +330,8 @@
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"
-                  (display lit 'tx-date "Ημερομηνία" :extra-styles "datepicker" :value (today))
+                  (display lit 'tx-date "Ημερομηνία" :extra-styles "datepicker"
+                                                     :default-value (today))
                   (display lit 'description "Περιγραφή")
                   (display lit 'company "Εταιρία" :extra-styles "ac-company")
                   (display lit 'amount "Ποσό")

@@ -257,7 +257,8 @@
                    (:legend "Χρονοδιάγραμμα")
                    (:ul
                     (:li (display lit 'quote-date "Ημερομηνία προσφοράς"
-                                  :extra-styles "datepicker"))
+                                  :extra-styles "datepicker"
+                                  :default-value (today)))
                     (:li (display lit 'start-date "Ημερομηνία έναρξης"
                                   :extra-styles "datepicker"))
                     (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης"
