@@ -76,7 +76,7 @@
 ;;; table
 
 (defclass cash-tx-table (tx-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "Λογαριασμός" "" ""))
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
    (paginator :initform (make-instance 'cash-paginator
                                        :css-class "paginator")))
@@ -153,16 +153,25 @@
 
 (defmethod payload ((row cash-tx-row) enabled-p)
   (let ((record (record row)))
-    (insert-list 1
-                 (html ()
-                   (:a :href (company/details :company-id (getf record :company-id))
-                       (str (getf record :company))))
-                 (mapcar (lambda (name)
-                           (make-instance 'textbox
-                                          :name name
-                                          :value (getf record (make-keyword name))
-                                          :disabled (not enabled-p)))
-                         '(tx-date description amount account)))))
+    (list (make-instance 'textbox
+                         :name 'tx-date
+                         :value (getf record :tx-date)
+                         :disabled (not enabled-p))
+          (html ()
+            (:a :href (company/details :company-id (getf record :company-id))
+                (str (getf record :company))))
+          (make-instance 'textbox
+                         :name 'description
+                         :value (getf record :description)
+                         :disabled (not enabled-p))
+          (make-instance 'textbox
+                         :name 'account
+                         :value (getf record :account)
+                         :disabled (not enabled-p))
+          (make-instance 'textbox
+                         :name 'amount
+                         :value (fmt-amount (getf record :amount))
+                         :disabled (not enabled-p)))))
 
 (defmethod controls ((row cash-tx-row) controls-p)
   (let* ((tx-id (key row))

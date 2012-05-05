@@ -77,7 +77,7 @@
 ;;; table
 
 (defclass invoice-tx-table (tx-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Ποσό" "Λογαριασμός" "" ""))
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
    (issuer :accessor issuer :initarg :issuer)
    (paginator :initform (make-instance 'invoice-paginator
@@ -160,12 +160,17 @@
                  (html ()
                    (:a :href (company/details :company-id (getf record :company-id))
                        (str (getf record :company))))
-                 (mapcar (lambda (name)
-                           (make-instance 'textbox
-                                          :name name
-                                          :value (getf record (make-keyword name))
-                                          :disabled (not enabled-p)))
-                         '(tx-date description amount account)))))
+                 (append (mapcar (lambda (name)
+                                   (make-instance 'textbox
+                                                  :name name
+                                                  :value (getf record (make-keyword name))
+                                                  :disabled (not enabled-p)))
+                                 '(tx-date description account))
+                         (list
+                          (make-instance 'textbox
+                                         :name 'amount
+                                         :value (fmt-amount (getf record :amount))
+                                         :disabled (not enabled-p)))))))
 
 (defmethod controls ((row invoice-tx-row) controls-p)
   (let* ((tx-id (key row))

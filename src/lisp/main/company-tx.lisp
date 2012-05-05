@@ -283,17 +283,17 @@
                          :disabled (not enabled-p))
           (make-instance 'textbox
                          :name 'debit-amount
-                         :value (getf record :debit-amount)
+                         :value (fmt-amount (getf record :debit-amount))
                          :disabled (or (not (getf record :debit-amount))
                                        (not enabled-p)))
           (make-instance 'textbox
                          :name 'credit-amount
-                         :value (getf record :credit-amount)
+                         :value (fmt-amount (getf record :credit-amount))
                          :disabled (or (not (getf record :credit-amount))
                                        (not enabled-p)))
           (make-instance 'textbox
                          :name 'total
-                         :value (getf record :total)
+                         :value (fmt-amount (getf record :total))
                          :disabled t))))
 
 

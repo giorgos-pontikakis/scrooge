@@ -133,6 +133,40 @@
     padding: 10px 0px 0px 0px;
 }
 
+#company-tx-table td:nth-child(4), #company-tx-table th:nth-child(4),
+#company-tx-table td:nth-child(5), #company-tx-table th:nth-child(5),
+#company-tx-table td:nth-child(6), #company-tx-table th:nth-child(6)
+{
+    width: 70px;
+    text-align: right;
+}
+
+#company-tx-table td:nth-child(4) input,
+#company-tx-table td:nth-child(5) input,
+#company-tx-table td:nth-child(6) input
+{
+    width: 60px;
+    text-align: right;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Company-Cheque Table */
+/* ---------------------------------------------------------------------- */
+
+#company-cheque-table td:nth-child(5), #company-cheque-table th:nth-child(5)
+{
+    width: 70px;
+    text-align: right;
+}
+
+#company-cheque-table td:nth-child(5) input {
+    width: 60px;
+    text-align: right;
+}
+
+
 /* ---------------------------------------------------------------------- */
 /* Contact Table */
 /* ---------------------------------------------------------------------- */
@@ -226,6 +260,71 @@
 
 
 /* ---------------------------------------------------------------------- */
+/* project-table */
+/* ---------------------------------------------------------------------- */
+
+#project-table td:nth-child(4), #project-table th:nth-child(4) {
+    text-align: right;
+}
+
+
+
+
+
+
+/* ---------------------------------------------------------------------- */
+/* cash-tx-table */
+/* ---------------------------------------------------------------------- */
+
+#cash-tx-table td:nth-child(6), #cash-tx-table th:nth-child(6)
+{
+    width: 60px;
+    text-align: right;
+}
+
+#cash-tx-table td:nth-child(6) input {
+    width: 50px;
+    text-align: right;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* cheque-table */
+/* ---------------------------------------------------------------------- */
+
+#cheque-table td:nth-child(6), #cheque-table th:nth-child(6)
+{
+    width: 60px;
+    text-align: right;
+}
+
+#cheque-table td:nth-child(6) input
+{
+    width: 50px;
+    text-align: right;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* invoice-tx-table */
+/* ---------------------------------------------------------------------- */
+
+#invoice-tx-table td:nth-child(6), #invoice-tx-table th:nth-child(6)
+{
+    width: 60px;
+    text-align: right;
+}
+
+#invoice-tx-table td:nth-child(6) input {
+    width: 50px;
+    text-align: right;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
 /* Transactions */
 /* ---------------------------------------------------------------------- */
 
@@ -270,14 +369,5 @@
 
 #tx-table td:nth-child(7) input {
     width: 50px;
-    text-align: right;
-}
-
-
-/* ---------------------------------------------------------------------- */
-/* project-table */
-/* ---------------------------------------------------------------------- */
-
-#project-table td:nth-child(4), #project-table th:nth-child(4) {
     text-align: right;
 }

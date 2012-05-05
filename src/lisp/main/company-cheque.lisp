@@ -27,6 +27,7 @@
   ((header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
                               "Ημερομηνία<br />λήξης" "<br />Ποσό")))
   (:default-initargs :item-class 'company-cheque-row
+                     :id "company-cheque-table"
                      :paginator (make-instance 'company-cheque-paginator
                                                :id "cheque-paginator"
                                                :css-class "paginator")))
@@ -71,7 +72,7 @@
                          :disabled (not enabled-p))
           (make-instance 'textbox
                          :name 'amount
-                         :value (getf record :amount)
+                         :value (fmt-amount (getf record :amount))
                          :disabled (not enabled-p)))))
 
 (defmethod controls ((row company-cheque-row) controls-p)

@@ -283,6 +283,7 @@
    (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
                                "Ημερομηνία<br />λήξης" "<br />Ποσό")))
   (:default-initargs :item-class 'cheque-row
+                     :id "cheque-table"
                      :kind nil
                      :paginator (make-instance 'cheque-paginator
                                               :id "cheque-paginator"
@@ -369,7 +370,7 @@
                          :disabled (not enabled-p))
           (make-instance 'textbox
                          :name 'amount
-                         :value (getf record :amount)
+                         :value (fmt-amount (getf record :amount))
                          :disabled (not enabled-p)))))
 
 (defmethod controls ((row cheque-row) controls-p)

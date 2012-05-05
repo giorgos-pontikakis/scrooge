@@ -127,7 +127,7 @@
 ;;; table
 
 (defclass tx-table (scrooge-table)
-  ((header-labels  :initform '("" "Ημ/νία" "Εταιρία" "Περιγραφή"
+  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
                                "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
    (paginator      :initform (make-instance 'tx-paginator
                                             :id "tx-paginator"
@@ -211,8 +211,7 @@
                    (list (make-instance 'textbox
                                         :name 'amount
                                         :value (fmt-amount (getf record :amount))
-                                        :disabled (not enabled-p)
-                                        :css-class (if enabled-p (getf css-class 'amount) nil)))))))
+                                        :disabled (not enabled-p)))))))
 
 
 ;;; paginator
