@@ -291,14 +291,15 @@
     ((search string))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (get-records (make-instance 'invoice-tx-table
-                                                :issuer issuer
-                                                :kind kind
-                                                :filter filter))))
-      (if (or (not records)
-              (and records (cdr records)))
-          (see-other (apply #'invoice issuer kind filter))
-          (see-other (apply #'invoice/details issuer kind :tx-id (key (first records)) filter))))))
+           (rows (rows (make-instance 'invoice-tx-table
+                                      :issuer issuer
+                                      :kind kind
+                                      :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'invoice/details issuer kind
+                            :tx-id (key (first rows))
+                            filter))
+          (see-other (apply #'invoice issuer kind filter))))))
 
 
 

@@ -239,14 +239,12 @@
     ((search string))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (get-records (make-instance 'company-table
-                                                :filter filter))))
-      (if (or (not records)
-              (and records (cdr records)))
-          (see-other (apply #'company filter))
+           (rows (rows (make-instance 'company-table :filter filter))))
+      (if (single-item-list-p rows)
           (see-other (apply #'company/details
-                            :company-id (getf (first records) :company-id)
-                            filter))))))
+                            :company-id (key (first rows))
+                            filter))
+          (see-other (apply #'company filter))))))
 
 
 
@@ -480,10 +478,10 @@
                (footer)))))))
 
 (defpage company-page company/details ("company/details")
-    ((search     string)
-     (subset     string)
-     (company-id         integer chk-company-id t)
-     (contact-id integer (chk-contact-id company-id contact-id)))
+    ((company-id integer chk-company-id                         t)
+     (contact-id integer (chk-contact-id company-id contact-id))
+     (search     string)
+     (subset     string))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form

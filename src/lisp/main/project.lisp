@@ -216,12 +216,12 @@
      (cstate string  chk-project-state-id))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (get-records (make-instance 'project-table
-                                                :filter filter))))
-      (if (or (not records)
-              (and records (cdr records)))
-          (see-other (apply #'project filter))
-          (see-other (apply #'project/details :project-id (key (first records)) filter))))))
+           (rows (rows (make-instance 'project-table :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'project/details
+                            :project-id (key (first rows))
+                            filter))
+          (see-other (apply #'project filter))))))
 
 
 

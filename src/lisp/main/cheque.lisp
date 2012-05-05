@@ -178,13 +178,14 @@
     ((search string))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (get-records (make-instance 'cheque-table
-                                                :kind kind
-                                                :filter filter))))
-      (if (or (not records)
-              (and records (cdr records)))
-          (see-other (apply #'cheque kind filter))
-          (see-other (apply #'cheque/details kind :cheque-id (key (first records)) filter))))))
+           (rows (rows (make-instance 'cheque-table
+                                      :kind kind
+                                      :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'cheque/details kind
+                            :cheque-id (key (first rows))
+                            filter))
+          (see-other (apply #'cheque kind filter))))))
 
 
 

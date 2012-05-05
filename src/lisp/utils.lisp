@@ -220,6 +220,9 @@ excluded for the search - useful for updates."
 ;;; Miscellaneous
 ;;;----------------------------------------------------------------------
 
+(defun single-item-list-p (list)
+           (and list (null (cdr list))))
+
 (defun fmt-amount (amount &optional (decimal-digits 2))
   (let ((format-control (concatenate 'string
                                      "~," (write-to-string decimal-digits) "F")))
