@@ -400,7 +400,7 @@
                         'amount (val amount)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
-                        :where (:= 'tx-id (val tx-id))))
+                        :where (:= 'id (val tx-id))))
       (see-other (apply #'tx :tx-id (val tx-id) (params->filter))))))
 
 

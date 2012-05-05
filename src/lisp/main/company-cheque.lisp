@@ -381,7 +381,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx kind (val company-id)
+               (company-cheque-top-actions :tx-cheque kind (val company-id)
                                            company-filter cheque-filter filter)
                (company-tabs
                 (val company-id) company-filter 'cheque
@@ -483,7 +483,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx kind (val company-id)
+               (company-cheque-top-actions :tx-cheque kind (val company-id)
                                            company-filter cheque-filter filter)
                (company-tabs
                 (val company-id) company-filter 'cheque

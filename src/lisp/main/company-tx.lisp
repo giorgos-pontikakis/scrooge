@@ -443,7 +443,7 @@
                   (html ()
                     (:div :class "secondary-filter-area"
                           (company-tx-filters (list* :company-id (val company-id) filter)))
-                    (:div :company-id "company-tx-window" :class "window"
+                    (:div :id "company-tx-window" :class "window"
                           (:div :class "title" "Συναλλαγές")
                           (company-tx-actions :update (val company-id) (val tx-id) filter)
                           (notifications)

@@ -267,11 +267,11 @@
                                       :debit-acc-id (debit-acc-id temtx))))
           (insert-dao new-tx)
           (insert-dao (make-instance 'cheque-event
-                                                :tstamp (now)
-                                                :cheque-id (cheque-id cheque-dao)
-                                                :from-state-id (from-state-id cheque-stran)
-                                                :to-state-id (to-state-id cheque-stran)
-                                                :tx-id (tx-id new-tx)))))
+                                     :tstamp (now)
+                                     :cheque-id (cheque-id cheque-dao)
+                                     :from-state-id (from-state-id cheque-stran)
+                                     :to-state-id (to-state-id cheque-stran)
+                                     :tx-id (tx-id new-tx)))))
       ;; In any case, update cheque's data
       (setf (state-id cheque-dao) to-state-id)
       (call-next-method)

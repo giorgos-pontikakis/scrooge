@@ -558,7 +558,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'cash/details kind :id (val tx-id) (params->filter))))))
+      (see-other (apply #'cash/details kind :tx-id (val tx-id) (params->filter))))))
 
 
 
