@@ -433,8 +433,8 @@
             (due-date cheque-dao) (val due-date)
             (amount cheque-dao) (val amount)
             (serial cheque-dao) (val serial)
-            (state-id cheque-dao) (list :from-state-id (state-id cheque-dao)
-                                        :to-state-id (state-id cheque-dao))) ; unchanged
+            (old-state-id cheque-dao) (state-id cheque-dao)
+            (state-id cheque-dao) (state-id cheque-dao)) ; unchanged
       (update-dao cheque-dao)
       (see-other (apply #'company/cheque kind :company-id (val company-id)
                                               :cheque-id (val cheque-id)

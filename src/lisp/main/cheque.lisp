@@ -607,32 +607,32 @@
 
 (defpage cheque-page actions/cheque/update
     (("actions/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
-    ((search   string)
-     (cstate   string  chk-cheque-state-id)
-     (since    date    chk-date)
-     (until    date    chk-date)
-     (cheque-id       integer chk-cheque-id     t)
-     (serial   string  chk-cheque-serial)
-     (bank     string  chk-bank-title)
-     (company  string  chk-company-title t)
-     (due-date date    chk-date          t)
-     (amount   float   chk-amount        t)
-     (state-id string  chk-cheque-state-id))
+    ((search    string)
+     (cstate    string  chk-cheque-state-id)
+     (since     date    chk-date)
+     (until     date    chk-date)
+     (cheque-id integer chk-cheque-id       t)
+     (serial    string  chk-cheque-serial)
+     (bank      string  chk-bank-title)
+     (company   string  chk-company-title   t)
+     (due-date  date    chk-date            t)
+     (amount    float   chk-amount          t)
+     (state-id  string  chk-cheque-state-id))
   (with-controller-page (cheque/update kind)
     (check-cheque-accounts)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
            (old-state-id (state-id cheque-dao))
-           (new-state-id (if (string= "nil" (val state-id))
+           (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
+                                 (null (val state-id)))         ; no following states
                              old-state-id ;; unchanged
                              (val state-id))))
       ;; Don't touch company-id, state-id and payable-p
-      ;; HACK: Pass plist of states
       (setf (bank-id cheque-dao) (bank-id (val bank))
             (company-id cheque-dao) (company-id (val company))
             (due-date cheque-dao) (val due-date)
             (amount cheque-dao) (val amount)
-            (state-id cheque-dao) (list :from-state-id old-state-id
-                                        :to-state-id new-state-id)
+            (old-state-id cheque-dao) old-state-id
+            (state-id cheque-dao) new-state-id
             (serial cheque-dao) (val serial))
       (update-dao cheque-dao)
       (see-other (apply #'cheque/details kind :cheque-id (val cheque-id) (params->filter))))))
