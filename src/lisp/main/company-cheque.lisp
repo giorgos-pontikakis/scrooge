@@ -107,27 +107,36 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun company-cheque-filters (kind company-id filter)
+  (let ((filter* (list* :company-id company-id filter)))
+    (cheque-filters kind filter* #'company/cheque)))
+
 (defun company-cheque-top-actions (op kind company-id company-filter cheque-filter filter)
-  (top-actions (make-instance 'menu
-                              :spec `((catalogue ,(company-catalogue-link company-id
-                                                                          company-filter))
-                                      (company-create ,(company-create-link company-filter))
-                                      (cheque-create ,(cheque-create-link #'company/cheque
-                                                                          kind
-                                                                          cheque-filter))
-                                      (print
-                                       ,(html ()
-                                          (:a :href (apply #'company/cheque/print
-                                                           kind :company-id company-id filter)
-                                              (:img :src "/scrooge/img/printer.png")
-                                              "Εκτύπωση"))))
-                              :css-class "hmenu"
-                              :disabled (company-disabled-actions op))
-               (searchbox #'actions/company/search
-                          #'(lambda (&rest args)
-                              (apply #'company :company-id company-id args))
-                          company-filter
-                          "ac-company")))
+  (top-actions
+   (make-instance 'menu
+                  :spec `((catalogue ,(company-catalogue-link company-id
+                                                              company-filter))
+                          (company-create ,(company-create-link company-filter))
+                          (cheque-create ,(cheque-create-link (lambda (kind &rest args)
+                                                                (apply #'company/cheque/create
+                                                                       kind
+                                                                       :company-id company-id
+                                                                       args))
+                                                              kind
+                                                              cheque-filter))
+                          (print
+                           ,(html ()
+                              (:a :href (apply #'company/cheque/print
+                                               kind :company-id company-id filter)
+                                  (:img :src "/scrooge/img/printer.png")
+                                  "Εκτύπωση"))))
+                  :css-class "hmenu"
+                  :disabled (company-disabled-actions op))
+   (searchbox #'actions/company/search
+              #'(lambda (&rest args)
+                  (apply #'company :company-id company-id args))
+              company-filter
+              "ac-company")))
 
 (defun company-cheque-actions (op kind company-id cheque-id filter)
   (actions-menu
@@ -137,8 +146,7 @@
                                                              filter)
                          (apply #'company/cheque/delete kind :company-id company-id
                                                              :cheque-id cheque-id
-                                                             filter)
-                         (apply #'company/cheque/create kind :company-id company-id filter)))
+                                                             filter)))
    (enabled-actions/crud op cheque-id)))
 
 
@@ -184,10 +192,9 @@
                (company-tabs (val company-id) company-filter 'cheque
                              (html ()
                                (:div :class "secondary-filter-area"
-                                     (display (cheque-filters kind
-                                                              (list* :company-id (val company-id)
-                                                                     filter)
-                                                              #'company/cheque)))
+                                     (display (company-cheque-filters kind
+                                                                      (val company-id)
+                                                                      filter)))
                                (:div :id "company-tx-window"
                                      (:div :class "window"
                                            (:div :class "title" (str page-title))
@@ -290,10 +297,9 @@
                 (val company-id) company-filter 'cheque
                 (html ()
                   (:div :class "secondary-filter-area"
-                        (display (cheque-filters kind
-                                                 (list* :company-id (val company-id)
-                                                        filter)
-                                                 #'company/cheque)))
+                        (display (company-cheque-filters kind
+                                                         (val company-id)
+                                                         filter)))
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
@@ -388,9 +394,9 @@
                 (val company-id) company-filter 'cheque
                 (html ()
                   (:div :class "secondary-filter-area"
-                        (display (cheque-filters kind
-                                                 (list* :company-id (val company-id) filter)
-                                                 #'company/cheque)))
+                        (display (company-cheque-filters kind
+                                                         (val company-id)
+                                                         filter)))
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
@@ -490,9 +496,9 @@
                 (val company-id) company-filter 'cheque
                 (html ()
                   (:div :class "secondary-filter-area"
-                        (display (cheque-filters kind
-                                                 (list* :company-id (val company-id) filter)
-                                                 #'company/cheque)))
+                        (display (company-cheque-filters kind
+                                                         (val company-id)
+                                                         filter)))
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))

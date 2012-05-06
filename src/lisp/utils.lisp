@@ -56,15 +56,6 @@
 
 ;;; Page families
 
-(defclass root-page (dynamic-page page-family-mixin)
-  ((system-parameter-names :initarg  :system-parameter-names)
-   (user-parameter-names   :initarg  :user-parameter-names)
-   (filter-parameter-names :initarg  :filter-parameter-names)
-   (allowed-groups         :initform '("user" "admin")))
-  (:default-initargs :system-parameter-names ()
-                     :user-parameter-names ()
-                     :filter-parameter-names ()))
-
 (defclass page-family-mixin ()
   ((system-parameter-names  :reader system-parameter-names)
    (payload-parameter-names :reader payload-parameter-names)
@@ -85,7 +76,6 @@
 
   (defun filter-parameters (&key (page *page*) (parameters *parameters*))
     (collect-parameters (filter-parameter-names page) parameters)))
-
 
 
 ;;; Authentication and page macros

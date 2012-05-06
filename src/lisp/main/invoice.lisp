@@ -129,7 +129,6 @@
                                  (:and ,@(invoice-base-where issuer kind)
                                        ,@where))
                    (:desc tx-date) account company description)))
-        ;; (break "~A" (sql-compile sql))
         (query (sql-compile sql)
                :plists)))))
 

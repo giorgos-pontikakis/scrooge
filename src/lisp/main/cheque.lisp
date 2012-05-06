@@ -22,29 +22,28 @@
    (messages
     :allocation :class
     :reader messages
-    :initform
-    '((due-date (:date-null
-                 "Η ημερομηνία της επιταγής είναι κενή"
-                 :parse-error
-                 "Η ημερομηνία της επιταγής είναι άκυρη"))
-      (bank (:bank-title-null
-             "Το όνομα της τράπεζας είναι κενό."
-             :bank-title-unknown
-             "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
-      (company
-       (:company-title-unknown
-        "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
-        :company-title-null
-        "Η επωνυμία της εταιρίας είναι κενή"))
-      (amount
-       (:empty-amount
-        "Το ποσό της επιταγής είναι κενό"
-        :non-positive-amount
-        "Το ποσό της επιταγής δεν είναι θετικός αριθμός"
-        :amount-overflow
-        "Το ποσό της επιταγής είναι δεν πρέπει να ξεπερνά το 9,999,999.99"
-        :parse-error
-        "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες"))))))
+    :initform '((due-date (:date-null
+                           "Η ημερομηνία της επιταγής είναι κενή"
+                           :parse-error
+                           "Η ημερομηνία της επιταγής είναι άκυρη"))
+                (bank (:bank-title-null
+                       "Το όνομα της τράπεζας είναι κενό."
+                       :bank-title-unknown
+                       "Δεν έχει καταχωρηθεί τράπεζα με αυτή την επωνυμία"))
+                (company
+                 (:company-title-unknown
+                  "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
+                  :company-title-null
+                  "Η επωνυμία της εταιρίας είναι κενή"))
+                (amount
+                 (:empty-amount
+                  "Το ποσό της επιταγής είναι κενό"
+                  :non-positive-amount
+                  "Το ποσό της επιταγής δεν είναι θετικός αριθμός"
+                  :amount-overflow
+                  "Το ποσό της επιταγής είναι δεν πρέπει να ξεπερνά το 9,999,999.99"
+                  :parse-error
+                  "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες"))))))
 
 (defun params->cheque-filter ()
   (params->filter :page (find-page 'cheque)))
@@ -147,7 +146,7 @@
                                               (apply #'cheque/delete kind :cheque-id cheque-id filter)))
                 (enabled-actions/crud+details op cheque-id)))
 
-(defun cheque-filters (kind filter url-fn)
+(defun cheque-filters (kind filter &optional (url-fn #'cheque))
   (let* ((filter* (remove-from-plist filter kind :cstate))
          (filter-spec `((nil      ,(apply url-fn kind filter*)
                                   "Όλες")
@@ -434,7 +433,7 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val cheque-id) filter)
-               (filter-area (cheque-filters kind filter #'cheque))
+               (filter-area (cheque-filters kind filter))
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -668,7 +667,7 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val cheque-id) filter)
-               (filter-area (cheque-filters kind filter #'cheque))
+               (filter-area (cheque-filters kind filter))
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))

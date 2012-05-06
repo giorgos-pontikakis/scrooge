@@ -43,6 +43,19 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
+(defun company-tx-top-actions (op company-id filter)
+  (top-actions (make-instance 'menu
+                              :spec `((catalogue ,(company-catalogue-link company-id filter))
+                                      (create ,(company-create-link filter))
+                                      (print ,(company-print-link company-id filter)))
+                              :css-class "hmenu"
+                              :disabled (company-disabled-actions op))
+               (searchbox #'actions/company/search
+                          #'(lambda (&rest args)
+                              (apply #'company :company-id company-id args))
+                          filter
+                          "ac-company")))
+
 (defun company-tx-filters (filter)
   (let* ((url-fn #'company/tx)
          (filter* (remove-from-plist filter :role))
