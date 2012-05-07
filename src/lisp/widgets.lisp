@@ -10,6 +10,27 @@
   ()
   (:default-initargs :css-class "crud-table crud-table-full"))
 
+(defgeneric actions (table &key key)
+  (:documentation "Prints the html for the actions of the table"))
+
+(defgeneric enabled-actions (table)
+  (:documentation "Returns a list of the enabled actions per op"))
+
+(defmethod enabled-actions ((table scrooge-table))
+  (ecase (op table)
+    (:catalogue (if (and (slot-boundp table 'key)
+                         (key table))
+                    `(:details :delete)
+                    '()))
+    (:create '())
+    (:update '())
+    (:delete '())))
+
+(defmethod action-anchors ((table scrooge-table))
+  (append (if create `((:create ,create "Δημιουργία")) nil)
+          `((:update ,update "Επεξεργασία")
+            (:delete ,delete "Διαγραφή"))))
+
 ;;; crud rows with records being daos
 
 (defclass scrooge-row/obj (crud-row/obj)
@@ -155,9 +176,9 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-form (widget)
-  ((op           :accessor op           :initarg :op)
-   (cancel-url   :accessor cancel-url   :initarg :cancel-url)
-   (record       :accessor record       :initarg :record)))
+  ((op         :accessor op         :initarg :op)
+   (cancel-url :accessor cancel-url :initarg :cancel-url)
+   (record     :accessor record     :initarg :record)))
 
 (defclass crud-form/plist (crud-form record/plist-mixin)
   ())
@@ -170,6 +191,13 @@
     (setf (record form) (make-record form payload)))
   (when (eql (op form) :update)
     (update-record form payload)))
+
+(defmethod enabled-actions ((form crud-form))
+  (ecase (op form)
+    (:details `(:update :delete))
+    (:create '())
+    (:update '())
+    (:delete '())))
 
 
 

@@ -401,6 +401,46 @@
       (query (sql-compile sql)
              :plists))))
 
+(defmethod actions ((tbl company-table) &key key)
+  (let ((company-id key)
+        (filter (filter tbl)))
+    (actions-menu (append (make-menu-spec
+                           (action-anchors/crud+details
+                            (apply #'company/details :company-id company-id filter)
+                            (apply #'company/update :company-id company-id filter)
+                            (if (chk-company-id/ref company-id)
+                                nil
+                                (apply #'company/delete :company-id company-id filter))))
+                          `((:create-project
+                             ,(html ()
+                                (:a :href (project/create
+                                           :company (and company-id
+                                                         (title (get-dao 'company company-id))))
+                                    :class "create"
+                                    "Νέο Έργο")))))
+                  (enabled-actions tbl))))
+
+(defmethod actions ((obj company-form))
+  (let ((company-id key)
+        (filter (filter tbl)))
+    (actions-menu (append (make-menu-spec
+                           (action-anchors/crud+details
+                            (apply #'company/details :company-id company-id filter)
+                            (apply #'company/update :company-id company-id filter)
+                            (if (chk-company-id/ref company-id)
+                                nil
+                                (apply #'company/delete :company-id company-id filter))))
+                          `((:create-project
+                             ,(html ()
+                                (:a :href (project/create
+                                           :company (and company-id
+                                                         (title (get-dao 'company company-id))))
+                                    :class "create"
+                                    "Νέο Έργο")))))
+                  (enabled-actions tbl))))
+
+(defmethod enabled-actions ((tbl company-table))
+  (append ))
 
 
 ;;; rows
@@ -472,9 +512,8 @@
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title"  "Κατάλογος")
-                           (company-actions op (val company-id) filter)
-                           (display company-table
-                                    :key (val company-id))))
+                           (actions company-table :key (val company-id))
+                           (display company-table :key (val company-id))))
                (footer)))))))
 
 (defpage company-page company/details ("company/details")
@@ -720,6 +759,7 @@
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title" "Εταιρία » Διαγραφή")
+                           (actions company-table :key (val company-id))
                            (company-actions op nil filter)
                            (with-form (actions/company/delete :company-id (val company-id)
                                                               :search (val search))
