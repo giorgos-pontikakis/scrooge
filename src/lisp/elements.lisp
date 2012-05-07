@@ -146,6 +146,10 @@
 
 ;;; actions menu
 
+(defparameter *action-labels* '((:details . "Λεπτομέρειες")
+                                (:update  . "Επεξεργασία")
+                                (:delete  . "Διαγραφή")))
+
 (defun action-anchors/crud (update delete &optional create)
   (append (if create `((:create ,create "Δημιουργία")) nil)
           `((:update ,update "Επεξεργασία")
@@ -186,6 +190,17 @@
     (:update '())
     (:delete '())))
 
+(defun acti0ns-menu (spec &optional disabled)
+  (let ((all (plist-keys spec)))
+    (if (set-equal disabled all)
+        (with-html
+          (:div :class "hmenu actions"
+                (:ul
+                 (:li :class "invisible" "No available action."))))
+        (funcall #'menu spec
+                 :css-class "hmenu actions"
+                 :disabled disabled))))
+
 (defun actions-menu (spec enabled)
   (if (emptyp enabled)
       (with-html
@@ -208,6 +223,26 @@
                                   (str label))))))))
           anchor-spec))
 
+(defgeneric make-spec-line (action link))
+
+(defmethod make-spec-line ((action symbol) (link string))
+  (html ()
+    (:a :href link
+        :class (string-downcase action)
+        (str (assoc-value *action-labels* action)))))
+
+(defmethod make-spec-line ((action symbol) (link function))
+  link)
+
+(defmethod make-spec-line ((action symbol) (link null))
+  nil)
+
+(defun make-menu-spcf (actions-and-links)
+  (iter
+    (for key in actions-and-links by #'cddr)
+    (for val in (cdr actions-and-links) by #'cddr)
+    (when val
+      (collect (list key (make-spec-line key val))))))
 
 ;;; widgets
 

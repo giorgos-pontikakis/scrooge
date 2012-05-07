@@ -2,6 +2,16 @@
 
 
 
+(defgeneric actions (widget &key)
+  (:documentation "Prints the html for the actions of the widget"))
+
+(defgeneric disabled-actions (widget)
+  (:documentation "Returns a list of the disabled actions of the widget"))
+
+(defgeneric get-rec0rd (widget)
+  (:documentation "Returs a record of the widget"))
+
+
 ;;; ----------------------------------------------------------------------
 ;;; Tables
 ;;; ----------------------------------------------------------------------
@@ -10,26 +20,7 @@
   ()
   (:default-initargs :css-class "crud-table crud-table-full"))
 
-(defgeneric actions (table &key key)
-  (:documentation "Prints the html for the actions of the table"))
 
-(defgeneric enabled-actions (table)
-  (:documentation "Returns a list of the enabled actions per op"))
-
-(defmethod enabled-actions ((table scrooge-table))
-  (ecase (op table)
-    (:catalogue (if (and (slot-boundp table 'key)
-                         (key table))
-                    `(:details :delete)
-                    '()))
-    (:create '())
-    (:update '())
-    (:delete '())))
-
-(defmethod action-anchors ((table scrooge-table))
-  (append (if create `((:create ,create "Δημιουργία")) nil)
-          `((:update ,update "Επεξεργασία")
-            (:delete ,delete "Διαγραφή"))))
 
 ;;; crud rows with records being daos
 
@@ -176,7 +167,8 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-form (widget)
-  ((op         :accessor op         :initarg :op)
+  ((key        :accessor key        :initarg :key)
+   (op         :accessor op         :initarg :op)
    (cancel-url :accessor cancel-url :initarg :cancel-url)
    (record     :accessor record     :initarg :record)))
 
@@ -192,12 +184,16 @@
   (when (eql (op form) :update)
     (update-record form payload)))
 
-(defmethod enabled-actions ((form crud-form))
+(defmethod disabled-actions ((form crud-form))
   (ecase (op form)
-    (:details `(:update :delete))
-    (:create '())
-    (:update '())
-    (:delete '())))
+    (:details '())
+    (:create '(:create-project :update :delete))
+    (:update '(:create-project :delete))
+    (:delete '(:create-project :update))))
+
+(defmethod initialize-instance :after ((widget crud-form) &key)
+  (setf (slot-value widget 'record)
+        (get-rec0rd widget)))
 
 
 

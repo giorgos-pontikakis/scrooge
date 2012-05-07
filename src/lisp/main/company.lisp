@@ -289,20 +289,33 @@
               (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
               (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
-(defmethod get-record ((type (eql 'company)) company-id)
-  (declare (ignore type))
-  (query (:select 'company.title 'occupation
-                  'tin (:as 'tof.title 'tof)
-                  'address (:as 'city.title 'city)
-                  'zipcode 'pobox 'notes
-          :from 'company
-          :left-join 'city
-          :on (:= 'company.city-id 'city.id)
-          :left-join 'tof
-          :on (:=  'company.tof-id 'tof.id)
-          :where (:= 'company.id company-id))
-         :plist))
+(defmethod get-rec0rd ((form company-form))
+  (let ((company-id (key form)))
+    (query (:select 'company.title 'occupation
+                    'tin (:as 'tof.title 'tof)
+                    'address (:as 'city.title 'city)
+                    'zipcode 'pobox 'notes
+            :from 'company
+            :left-join 'city
+            :on (:= 'company.city-id 'city.id)
+            :left-join 'tof
+            :on (:=  'company.tof-id 'tof.id)
+            :where (:= 'company.id company-id))
+           :plist)))
 
+(defmethod actions ((form company-form) &key filter)
+  (let* ((company-id (key form))
+         (spec (list :update (apply #'company/update :company-id company-id filter)
+                     :delete (if (chk-company-id/ref company-id)
+                                 nil
+                                 (apply #'company/delete :company-id company-id filter))
+                     :create-project (html ()
+                                       (:a :href (project/create
+                                                  :company (title (get-dao 'company company-id)))
+                                           :class "create"
+                                           "Νέο Έργο")))))
+    (acti0ns-menu (make-menu-spcf spec)
+                  (disabled-actions form))))
 
 
 ;;; ------------------------------------------------------------
@@ -402,45 +415,21 @@
              :plists))))
 
 (defmethod actions ((tbl company-table) &key key)
-  (let ((company-id key)
-        (filter (filter tbl)))
-    (actions-menu (append (make-menu-spec
-                           (action-anchors/crud+details
-                            (apply #'company/details :company-id company-id filter)
-                            (apply #'company/update :company-id company-id filter)
-                            (if (chk-company-id/ref company-id)
-                                nil
-                                (apply #'company/delete :company-id company-id filter))))
-                          `((:create-project
-                             ,(html ()
-                                (:a :href (project/create
-                                           :company (and company-id
-                                                         (title (get-dao 'company company-id))))
-                                    :class "create"
-                                    "Νέο Έργο")))))
-                  (enabled-actions tbl))))
+  (let* ((company-id key)
+         (filter (filter tbl))
+         (hrefs (if company-id
+                    (list :details (apply #'company/details :company-id company-id filter)
+                          :delete (if (chk-company-id/ref company-id)
+                                      nil
+                                      (apply #'company/delete :company-id company-id filter))
+                          :create-project (html ()
+                                            (:a :href (project/create
+                                                       :company (title (get-dao 'company company-id)))
+                                                :class "create"
+                                                "Νέο Έργο")))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs))))
 
-(defmethod actions ((obj company-form))
-  (let ((company-id key)
-        (filter (filter tbl)))
-    (actions-menu (append (make-menu-spec
-                           (action-anchors/crud+details
-                            (apply #'company/details :company-id company-id filter)
-                            (apply #'company/update :company-id company-id filter)
-                            (if (chk-company-id/ref company-id)
-                                nil
-                                (apply #'company/delete :company-id company-id filter))))
-                          `((:create-project
-                             ,(html ()
-                                (:a :href (project/create
-                                           :company (and company-id
-                                                         (title (get-dao 'company company-id))))
-                                    :class "create"
-                                    "Νέο Έργο")))))
-                  (enabled-actions tbl))))
-
-(defmethod enabled-actions ((tbl company-table))
-  (append ))
 
 
 ;;; rows
@@ -525,7 +514,7 @@
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
-                                        :record (get-record 'company (val company-id))
+                                        :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))
@@ -546,7 +535,7 @@
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (company-actions :details (val company-id) filter)
+                                           (actions company-form :filter filter)
                                            (display company-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
@@ -604,7 +593,6 @@
                                              (display company-form :payload (params->payload)
                                                                    :styles (params->styles)))))))
                (footer)))))))
-
 
 (defpage company-page actions/company/create ("actions/company/create"
                                               :request-type :post)
