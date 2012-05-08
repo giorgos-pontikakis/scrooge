@@ -21,7 +21,6 @@
   (:default-initargs :css-class "crud-table crud-table-full"))
 
 
-
 ;;; crud rows with records being daos
 
 (defclass scrooge-row/obj (crud-row/obj)
@@ -80,6 +79,17 @@
                            (img "resultset_next.png")))
                   (img "resultset_last.png")))))))
 
+;;; table mixins
+
+(defclass ranked-table-mixin ()
+  ())
+
+(defmethod disabled-actions ((tbl ranked-table-mixin) &key key)
+  (ecase (op tbl)
+    (:catalogue (if key
+                    nil
+                    '(:update :delete :rank-up :rank-down)))
+    ((:create :update :delete) '(:create :update :delete :rank-up :rank-down))))
 
 
 ;;; ----------------------------------------------------------------------

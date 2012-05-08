@@ -421,7 +421,7 @@
     (acti0ns-menu (make-menu-spcf hrefs)
                   (disabled-actions tbl))))
 
-(defmethod disabled-actions ((tbl company-table) &key key)
+(defmethod disabled-actions ((tbl company-table) &key)
   (ecase (op tbl)
     (:catalogue '())
     (:delete '(:details :delete :create-project))))
@@ -536,12 +536,8 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
-                                           (contact-actions :catalogue
-                                                            (val company-id)
-                                                            (val contact-id)
-                                                            filter)
-                                           (display contact-table
-                                                    :key (val contact-id))))))
+                                           (actions contact-table :key (val contact-id))
+                                           (display contact-table :key (val contact-id))))))
                (footer)))))))
 
 
@@ -675,12 +671,8 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
-                                           (contact-actions contact-op
-                                                            (val company-id)
-                                                            (val contact-id)
-                                                            filter)
-                                           (display contact-table
-                                                    :key (val contact-id))))))
+                                           (actions contact-table :key (val contact-id))
+                                           (display contact-table :key (val contact-id))))))
                (footer)))))))
 
 (defpage company-page actions/company/update ("actions/company/update"

@@ -28,7 +28,7 @@
 
 ;;; table
 
-(defclass contact-table (scrooge-table)
+(defclass contact-table (scrooge-table ranked-table-mixin)
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
@@ -48,49 +48,41 @@
   (let* ((contact-id key)
          (company-id (company-id tbl))
          (filter (filter tbl))
-         (hrefs `((:create
-                   ,(html ()
-                      (:a :class "create"
-                          :href (apply #'contact/create
-                                       :company-id company-id filter)
-                          "Νέα Επαφή")))
-                  (:update
-                   ,(html ()
-                      (:a :class "update"
-                          :href (apply #'contact/update
-                                       :company-id company-id :contact-id contact-id filter)
-                          "Αλλαγή")))
-                  (:delete
-                   ,(html ()
-                      (:a :class "delete"
-                          :href (apply #'contact/delete
-                                       :company-id company-id :contact-id contact-id filter)
-                          "Διαγραφή")))
-                  (:rank-up
-                   ,(make-instance 'form
-                                   :action (action/contact/rank-dec)
-                                   :reqtype :post
-                                   :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
-                                   :body (make-instance 'submit
-                                                        :body "Πάνω" :css-class "up")))
-                  (:rank-down
-                   ,(make-instance 'form
-                                   :action (action/contact/rank-inc)
-                                   :reqtype :post
-                                   :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
-                                   :body (make-instance 'submit
-                                                        :body "Κάτω" :css-class "down"))))))
-    (acti0ns-menu (make-menu-spcf hrefs)
-                  (disabled-actions tbl))))
+         (spec `((:create
+                  ,(html ()
+                     (:a :class "create"
+                         :href (apply #'contact/create
+                                      :company-id company-id filter)
+                         "Νέα Επαφή")))
+                 (:update
+                  ,(html ()
+                     (:a :class "update"
+                         :href (apply #'contact/update
+                                      :company-id company-id :contact-id contact-id filter)
+                         "Επεξεργασία")))
+                 (:delete
+                  ,(html ()
+                     (:a :class "delete"
+                         :href (apply #'contact/delete
+                                      :company-id company-id :contact-id contact-id filter)
+                         "Διαγραφή")))
+                 (:rank-up
+                  ,(make-instance 'form
+                                  :action (action/contact/rank-dec)
+                                  :reqtype :post
+                                  :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
+                                  :body (make-instance 'submit
+                                                       :body "Πάνω" :css-class "up")))
+                 (:rank-down
+                  ,(make-instance 'form
+                                  :action (action/contact/rank-inc)
+                                  :reqtype :post
+                                  :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
+                                  :body (make-instance 'submit
+                                                       :body "Κάτω" :css-class "down"))))))
+    (acti0ns-menu spec
+                  (disabled-actions tbl :key contact-id))))
 
-(defmethod disabled-actions ((tbl contact-table) &key key)
-  (ecase (op tbl)
-    (:catalogue (if key
-                    '(:create)
-                    '(:create :update :delete :rank-up :rank-down)))
-    (:create '(:details :delete :rank-up :rank-down))
-    (:update '(:details :delete :rank-up :rank-down))
-    (:delete '(:details :delete :rank-up :rank-down))))
 
 
 ;;; rows
@@ -126,42 +118,6 @@
                              :href (company/details :company-id (company-id table)
                                                     :contact-id contact-id)))
         (list nil nil))))
-
-
-;;; ------------------------------------------------------------
-;;; UI elements
-;;; ------------------------------------------------------------
-
-(defun contact-actions (op company-id contact-id filter)
-  (actions-menu
-   `((:create ,(html ()
-                 (:a :class "create"
-                     :href (apply #'contact/create
-                                  :company-id company-id filter)
-                     "Νέα Επαφή")))
-     (:update ,(html ()
-                 (:a :class "update"
-                     :href (apply #'contact/update
-                                  :company-id company-id :contact-id contact-id filter)
-                     "Αλλαγή")))
-     (:delete ,(html ()
-                 (:a :class "delete"
-                     :href (apply #'contact/delete
-                                  :company-id company-id :contact-id contact-id filter)
-                     "Διαγραφή")))
-     (:rank-up ,(make-instance 'form
-                               :action (action/contact/rank-dec)
-                               :reqtype :post
-                               :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
-                               :body (make-instance 'submit
-                                                    :body "Πάνω" :css-class "up")))
-     (:rank-down ,(make-instance 'form
-                                 :action (action/contact/rank-inc)
-                                 :reqtype :post
-                                 :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
-                                 :body (make-instance 'submit
-                                                      :body "Κάτω" :css-class "down"))))
-   (enabled-actions/crud+ranks op contact-id)))
 
 
 
@@ -235,7 +191,7 @@
                                (:div :class "grid_6 omega"
                                      (:div :company-id "contact-window" :class "window"
                                            (:div :class "title" "Δημιουργία")
-                                           (contact-actions :create (val company-id) nil filter)
+                                           (actions contact-table)
                                            (with-form
                                                (actions/contact/create :company-id (val company-id))
                                              (display contact-table))))))
@@ -301,10 +257,7 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επεξεργασία")
-                                           (contact-actions :update
-                                                            (val company-id)
-                                                            (val contact-id)
-                                                            filter)
+                                           (actions contact-table :key (val contact-id))
                                            (with-form
                                                (actions/contact/update :company-id (val company-id)
                                                                        :contact-id (val contact-id))
@@ -368,10 +321,7 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Διαγραφή")
-                                           (contact-actions :delete
-                                                            (val company-id)
-                                                            (val contact-id)
-                                                            filter)
+                                           (actions contact-table :key (val contact-id))
                                            (with-form
                                                (actions/contact/delete :company-id (val company-id)
                                                                        :contact-id (val contact-id))
