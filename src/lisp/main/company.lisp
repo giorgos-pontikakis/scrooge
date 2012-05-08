@@ -216,7 +216,6 @@
                 (display content)
                 (clear)))))
 
-
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string))
   (with-db ()
@@ -301,11 +300,12 @@
     (acti0ns-menu (make-menu-spcf spec)
                   (disabled-actions form))))
 
-(defmethod disabled-actions ((form company-form))
+(defmethod disabled-actions ((form company-form) &key)
   (ecase (op form)
     (:details '())
     (:update '(:create-project :update :delete))
     (:delete '(:create-project :update :delete))))
+
 
 
 ;;; ------------------------------------------------------------
@@ -421,11 +421,10 @@
     (acti0ns-menu (make-menu-spcf hrefs)
                   (disabled-actions tbl))))
 
-(defmethod disabled-actions ((tbl company-table))
+(defmethod disabled-actions ((tbl company-table) &key key)
   (ecase (op tbl)
     (:catalogue '())
     (:delete '(:details :delete :create-project))))
-
 
 
 ;;; rows
@@ -453,6 +452,7 @@
                               :value (getf record (make-keyword name))
                               :disabled (not enabled-p)))
              '(tin tof)))))
+
 
 ;;; paginator
 

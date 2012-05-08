@@ -5,7 +5,7 @@
 (defgeneric actions (widget &key)
   (:documentation "Prints the html for the actions of the widget"))
 
-(defgeneric disabled-actions (widget)
+(defgeneric disabled-actions (widget &key)
   (:documentation "Returns a list of the disabled actions of the widget"))
 
 (defgeneric get-rec0rd (widget)
@@ -192,7 +192,7 @@
   (when (eql (op form) :update)
     (update-record form payload)))
 
-(defmethod disabled-actions ((form crud-form))
+(defmethod disabled-actions ((form crud-form) &key)
   (ecase (op form)
     (:details '())
     (:update '(:update :delete))

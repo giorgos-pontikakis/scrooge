@@ -38,11 +38,59 @@
                      :create-pos :last))
 
 (defmethod get-records ((table contact-table))
-  (query (:order-by (:select (:as 'id 'contact-id) 'tag 'phone 'rank
+  (query (:order-by (:select 'id 'tag 'phone 'rank
                              :from 'contact
                              :where (:= 'company-id (company-id table)))
                     'rank)
          :plists))
+
+(defmethod actions ((tbl contact-table) &key key)
+  (let* ((contact-id key)
+         (company-id (company-id tbl))
+         (filter (filter tbl))
+         (hrefs `((:create
+                   ,(html ()
+                      (:a :class "create"
+                          :href (apply #'contact/create
+                                       :company-id company-id filter)
+                          "Νέα Επαφή")))
+                  (:update
+                   ,(html ()
+                      (:a :class "update"
+                          :href (apply #'contact/update
+                                       :company-id company-id :contact-id contact-id filter)
+                          "Αλλαγή")))
+                  (:delete
+                   ,(html ()
+                      (:a :class "delete"
+                          :href (apply #'contact/delete
+                                       :company-id company-id :contact-id contact-id filter)
+                          "Διαγραφή")))
+                  (:rank-up
+                   ,(make-instance 'form
+                                   :action (action/contact/rank-dec)
+                                   :reqtype :post
+                                   :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
+                                   :body (make-instance 'submit
+                                                        :body "Πάνω" :css-class "up")))
+                  (:rank-down
+                   ,(make-instance 'form
+                                   :action (action/contact/rank-inc)
+                                   :reqtype :post
+                                   :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
+                                   :body (make-instance 'submit
+                                                        :body "Κάτω" :css-class "down"))))))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
+
+(defmethod disabled-actions ((tbl contact-table) &key key)
+  (ecase (op tbl)
+    (:catalogue (if key
+                    '(:create)
+                    '(:create :update :delete :rank-up :rank-down)))
+    (:create '(:details :delete :rank-up :rank-down))
+    (:update '(:details :delete :rank-up :rank-down))
+    (:delete '(:details :delete :rank-up :rank-down))))
 
 
 ;;; rows
@@ -78,10 +126,6 @@
                              :href (company/details :company-id (company-id table)
                                                     :contact-id contact-id)))
         (list nil nil))))
-
-(defmethod key ((item contact-row))
-  (getf (record item) :contact-id))
-
 
 
 ;;; ------------------------------------------------------------
