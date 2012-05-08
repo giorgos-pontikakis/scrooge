@@ -28,7 +28,7 @@
 
 ;;; table
 
-(defclass contact-table (scrooge-table ranked-table-mixin)
+(defclass contact-table (ranked-table-mixin scrooge-table)
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
@@ -58,13 +58,17 @@
                   ,(html ()
                      (:a :class "update"
                          :href (apply #'contact/update
-                                      :company-id company-id :contact-id contact-id filter)
+                                      :company-id company-id
+                                      :contact-id contact-id
+                                      filter)
                          "Επεξεργασία")))
                  (:delete
                   ,(html ()
                      (:a :class "delete"
                          :href (apply #'contact/delete
-                                      :company-id company-id :contact-id contact-id filter)
+                                      :company-id company-id
+                                      :contact-id contact-id
+                                      filter)
                          "Διαγραφή")))
                  (:rank-up
                   ,(make-instance 'form

@@ -216,17 +216,6 @@
                 (display content)
                 (clear)))))
 
-(defpage company-page actions/company/search ("actions/company/search" :request-type :get)
-    ((search string))
-  (with-db ()
-    (let* ((filter (params->filter))
-           (rows (rows (make-instance 'company-table :filter filter))))
-      (if (single-item-list-p rows)
-          (see-other (apply #'company/details
-                            :company-id (key (first rows))
-                            filter))
-          (see-other (apply #'company filter))))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -303,8 +292,7 @@
 (defmethod disabled-actions ((form company-form) &key)
   (ecase (op form)
     (:details '())
-    (:update '(:create-project :update :delete))
-    (:delete '(:create-project :update :delete))))
+    ((:create :update :delete) '(:create-project :update :delete))))
 
 
 
@@ -461,6 +449,23 @@
 
 (defmethod target-url ((pg company-paginator) start)
   (apply #'company :start start (filter (table pg))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; SEARCH
+;;; ----------------------------------------------------------------------
+
+(defpage company-page actions/company/search ("actions/company/search" :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (rows (rows (make-instance 'company-table :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'company/details
+                            :company-id (key (first rows))
+                            filter))
+          (see-other (apply #'company filter))))))
 
 
 
@@ -637,7 +642,6 @@
      (notes      string))
   (with-view-page
     (let* ((company-op :update)
-           (contact-op :catalogue)
            (filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op company-op
@@ -645,7 +649,7 @@
                                         :cancel-url (apply #'company/details
                                                            :company-id (val company-id) filter)))
            (contact-table (make-instance 'contact-table
-                                         :op contact-op
+                                         :op :catalogue
                                          :company-id (val company-id))))
       (with-document ()
         (:head

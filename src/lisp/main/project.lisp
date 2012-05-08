@@ -180,12 +180,6 @@
                               (apply #'project :project-id project-id args))
                           filter
                           "ac-project")))
-(defun project-actions (op project-id filter)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'project/details :project-id project-id filter)
-                                              (apply #'project/update :project-id project-id filter)
-                                              (apply #'project/delete :project-id project-id filter)))
-                (enabled-actions/crud+details op project-id)))
 
 (defun project-filters (filter)
   (let ((filter* (remove-from-plist filter :cstate)))
@@ -210,18 +204,6 @@
                          (clear))))
                 (display content)
                 (clear)))))
-
-(defpage project-page actions/project/search ("actions/project/search" :request-type :get)
-    ((search string)
-     (cstate string  chk-project-state-id))
-  (with-db ()
-    (let* ((filter (params->filter))
-           (rows (rows (make-instance 'project-table :filter filter))))
-      (if (single-item-list-p rows)
-          (see-other (apply #'project/details
-                            :project-id (key (first rows))
-                            filter))
-          (see-other (apply #'project filter))))))
 
 
 
@@ -273,16 +255,25 @@
                     (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
                     (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
-(defmethod get-record ((type (eql 'project)) project-id)
-  (declare (ignore type))
-  (query (:select 'project.id (:as 'company.title 'company)
-                  'description 'location 'state-id 'quote-date
-                  'start-date 'end-date 'price 'vat 'project.notes
-          :from 'project
-          :left-join 'company
-          :on (:= 'project.company-id 'company.id)
-          :where (:= 'project.id project-id))
-         :plist))
+(defmethod get-rec0rd ((form project-form))
+  (if (key form)
+      (let ((project-id (key form)))
+        (query (:select 'project.id (:as 'company.title 'company)
+                        'description 'location 'state-id 'quote-date
+                        'start-date 'end-date 'price 'vat 'project.notes
+                :from 'project
+                :left-join 'company
+                :on (:= 'project.company-id 'company.id)
+                :where (:= 'project.id project-id))
+               :plist))
+      nil))
+
+(defmethod actions ((form project-form) &key filter)
+  (let* ((project-id (key form))
+         (spec (list :update (apply #'project/update :project-id project-id filter)
+                     :delete (apply #'project/delete :project-id project-id filter))))
+    (acti0ns-menu (make-menu-spcf spec)
+                  (disabled-actions form))))
 
 
 
@@ -333,6 +324,17 @@
       (query (sql-compile final-query)
              :plists))))
 
+(defmethod actions ((tbl project-table) &key key)
+  (let* ((project-id key)
+         (filter (filter tbl))
+         (hrefs (if project-id
+                    (list :details (apply #'project/details :project-id project-id filter)
+                          :delete (apply #'project/delete :project-id project-id filter))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
+
+
 
 ;;; rows
 
@@ -371,6 +373,24 @@
 
 
 ;;; ------------------------------------------------------------
+;;; SEARCH
+;;; ------------------------------------------------------------
+
+(defpage project-page actions/project/search ("actions/project/search" :request-type :get)
+    ((search string)
+     (cstate string  chk-project-state-id))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (rows (rows (make-instance 'project-table :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'project/details
+                            :project-id (key (first rows))
+                            filter))
+          (see-other (apply #'project filter))))))
+
+
+
+;;; ------------------------------------------------------------
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
@@ -403,9 +423,8 @@
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (project-actions op (val project-id) filter)
-                           (display project-table
-                                    :key (val project-id))))
+                           (actions project-table :key (val project-id))
+                           (display project-table :key (val project-id))))
                (footer)))))))
 
 (defpage project-page project/details ("project/details")
@@ -418,7 +437,7 @@
            (filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op op
-                                        :record (get-record 'project (val project-id))))
+                                        :key (val project-id)))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
                                       :project-id (val project-id))))
@@ -436,15 +455,13 @@
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:p :class "title" "Λεπτομέρειες")
-                                           (project-actions op (val project-id) filter)
-                                           (display project-form
-                                                    :payload (get-record 'project (val project-id)))))
+                                           (actions project-form :filter filter)
+                                           (display project-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")
-                                           (bill-actions :catalogue (val project-id) (val bill-id) filter)
-                                           (display bill-table
-                                                    :key (val bill-id))))))
+                                           (actions bill-table :key (val bill-id))
+                                           (display bill-table :key (val bill-id))))))
                (footer)))))))
 
 
@@ -471,7 +488,6 @@
            (filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op op
-                                        :record nil
                                         :cancel-url (apply #'project filter))))
       (with-document ()
         (:head
@@ -487,7 +503,7 @@
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:div :class "title" "Νέο Έργο")
-                                           (project-actions op nil filter)
+                                           (actions project-form)
                                            (notifications)
                                            (with-form (actions/project/create :search (val search)
                                                                               :cstate (val cstate))
@@ -548,12 +564,13 @@
      (end-date    date    (chk-end-date end-date state-id))
      (notes       string))
   (with-view-page
-    (let* ((op :update)
+    (let* ((project-op :update)
            (filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :update
-                                        :record (get-record 'project (val project-id))
-                                        :cancel-url (apply #'project/details :project-id (val project-id) filter)))
+                                        :op project-op
+                                        :key (val project-id)
+                                        :cancel-url (apply #'project/details
+                                                           :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
                                       :project-id (val project-id))))
@@ -565,25 +582,25 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val project-id) filter)
+               (project-top-actions project-op (val project-id) filter)
                (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "project-window" :class "window"
                                            (:p :class "title" "Επεξεργασία")
-                                           (project-actions op (val project-id) filter)
+                                           (actions project-form :filter filter)
                                            (notifications)
-                                           (with-form (actions/project/update :project-id (val project-id)
-                                                                              :search (val search)
-                                                                              :cstate (val cstate))
+                                           (with-form
+                                               (actions/project/update :project-id (val project-id)
+                                                                       :search (val search)
+                                                                       :cstate (val cstate))
                                              (display project-form :payload (params->payload)
                                                                    :styles (params->styles)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")
-                                           (bill-actions :catalogue (val project-id) (val bill-id) filter)
-                                           (display bill-table
-                                                    :key (val bill-id))))))
+                                           (actions bill-table :key (val bill-id))
+                                           (display bill-table :key (val bill-id))))))
                (footer)))))))
 
 (defpage project-page actions/project/update ("actions/project/update"
@@ -647,7 +664,7 @@
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Έργο » Διαγραφή")
-                           (project-actions op (val project-id) filter)
+                           (actions project-table :key (val project-id))
                            (with-form (actions/project/delete :project-id (val project-id)
                                                               :search (val search)
                                                               :cstate (val cstate))

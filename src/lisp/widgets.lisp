@@ -20,6 +20,11 @@
   ()
   (:default-initargs :css-class "crud-table crud-table-full"))
 
+(defmethod disabled-actions ((tbl scrooge-table) &key)
+  (ecase (op tbl)
+    (:catalogue '())
+    ((:create :update :delete) '(:details :create :update :delete))))
+
 
 ;;; crud rows with records being daos
 
@@ -205,8 +210,7 @@
 (defmethod disabled-actions ((form crud-form) &key)
   (ecase (op form)
     (:details '())
-    (:update '(:update :delete))
-    (:delete '(:update :delete))))
+    ((:create :update :delete) '(:update :delete))))
 
 
 
