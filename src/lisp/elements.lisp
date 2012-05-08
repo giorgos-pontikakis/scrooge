@@ -191,8 +191,8 @@
     (:delete '())))
 
 (defun acti0ns-menu (spec &optional disabled)
-  (let ((all (plist-keys spec)))
-    (if (set-equal disabled all)
+  (let ((all (mapcar #'first spec)))
+    (if (subsetp all disabled)
         (with-html
           (:div :class "hmenu actions"
                 (:ul

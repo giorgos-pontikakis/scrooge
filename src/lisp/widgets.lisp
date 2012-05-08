@@ -170,13 +170,21 @@
   ((key        :accessor key        :initarg :key)
    (op         :accessor op         :initarg :op)
    (cancel-url :accessor cancel-url :initarg :cancel-url)
-   (record     :accessor record     :initarg :record)))
+   (record     :accessor record     :initarg :record))
+  (:default-initargs :key nil))
 
 (defclass crud-form/plist (crud-form record/plist-mixin)
   ())
 
 (defclass crud-form/obj (crud-form record/obj-mixin)
   ())
+
+(defmethod initialize-instance :after ((form crud-form) &key)
+  (when (and (eql (op form) :create)
+             (key form))
+    (error "Contradiction in crud-form initialization. Slot OP is :create and slot KEY is not null"))
+  (setf (slot-value form 'record)
+        (get-rec0rd form)))
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (eql (op form) :create)
@@ -187,13 +195,10 @@
 (defmethod disabled-actions ((form crud-form))
   (ecase (op form)
     (:details '())
-    (:create '(:create-project :update :delete))
-    (:update '(:create-project :delete))
-    (:delete '(:create-project :update))))
+    (:update '(:update :delete))
+    (:delete '(:update :delete))))
 
-(defmethod initialize-instance :after ((widget crud-form) &key)
-  (setf (slot-value widget 'record)
-        (get-rec0rd widget)))
+
 
 
 

@@ -165,7 +165,7 @@
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
-                                        :record (get-record 'company (val company-id))
+                                        :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))
@@ -186,7 +186,7 @@
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (company-actions :details (val company-id) filter)
+                                           (actions company-form :filter filter)
                                            (display company-form)))
                                (:div :class "grid_6 omega"
                                      (:div :company-id "contact-window" :class "window"
@@ -231,7 +231,7 @@
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
-                                        :record (get-record 'company (val company-id))
+                                        :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))
@@ -252,7 +252,7 @@
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (company-actions :details (val company-id) filter)
+                                           (actions company-form :filter filter)
                                            (display company-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
@@ -298,7 +298,7 @@
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
-                                        :record (get-record 'company (val company-id))
+                                        :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))
@@ -319,7 +319,7 @@
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
                                            (:div :class "title" "Λεπτομέρειες")
-                                           (company-actions :details (val company-id) filter)
+                                           (actions company-form :filter filter)
                                            (display company-form)))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
