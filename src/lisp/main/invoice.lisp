@@ -132,6 +132,17 @@
         (query (sql-compile sql)
                :plists)))))
 
+(defmethod actions ((tbl invoice-tx-table) &key key)
+  (let* ((tx-id key)
+         (kind (kind tbl))
+         (issuer (issuer tbl))
+         (filter (filter tbl))
+         (hrefs (if tx-id
+                    (list :details (apply #'invoice/details issuer kind :tx-id tx-id filter)
+                          :delete (apply #'invoice/delete issuer kind :tx-id tx-id filter))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 
 ;;; rows
@@ -264,14 +275,6 @@
               filter
               "ac-company")))
 
-(defun invoice-actions (op issuer kind tx-id filter)
-  (actions-menu
-   (make-menu-spec
-    (action-anchors/crud+details (apply #'invoice/details issuer kind :tx-id tx-id filter)
-                                 (apply #'invoice/update issuer kind :tx-id tx-id filter)
-                                 (apply #'invoice/delete issuer kind :tx-id tx-id filter)))
-   (enabled-actions/crud+details op tx-id)))
-
 (defun invoice-filters (issuer kind filter)
   (filter-area (filter-navbar `((customer ,(apply #'invoice "customer" "debit" filter)
                                           "Πελάτες")
@@ -289,31 +292,14 @@
                           (apply #'invoice issuer kind args))
                         filter)))
 
-(defpage invoice-page actions/invoice/search
-    (("actions/invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/search")
-     :request-type :get)
-    ((search string))
-  (with-db ()
-    (let* ((filter (params->filter))
-           (rows (rows (make-instance 'invoice-tx-table
-                                      :issuer issuer
-                                      :kind kind
-                                      :filter filter))))
-      (if (single-item-list-p rows)
-          (see-other (apply #'invoice/details issuer kind
-                            :tx-id (key (first rows))
-                            filter))
-          (see-other (apply #'invoice issuer kind filter))))))
-
 
 
 ;;; ----------------------------------------------------------------------
 ;;; Invoice form
 ;;; ----------------------------------------------------------------------
 
-(defclass invoice-form (crud-form/plist)
-  ((issuer :accessor issuer :initarg :issuer)
-   (kind   :accessor kind   :initarg :kind)))
+(defclass invoice-form (tx-form)
+  ((issuer :accessor issuer :initarg :issuer)))
 
 (defmethod display ((form invoice-form) &key styles)
   (let* ((issuer (issuer form))
@@ -351,6 +337,37 @@
                                                           :debit-acc-id))
                                          (root-key tree))))
             (clear)))))
+
+(defmethod actions ((form invoice-form) &key filter)
+  (let* ((tx-id (key form))
+         (issuer (issuer form))
+         (kind (kind form))
+         (hrefs (list :update (apply #'invoice/update issuer kind :tx-id tx-id filter)
+                      :delete (apply #'invoice/delete issuer kind :tx-id tx-id filter))))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions form))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; SEARCH
+;;; ----------------------------------------------------------------------
+
+(defpage invoice-page actions/invoice/search
+    (("actions/invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/search")
+     :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (rows (rows (make-instance 'invoice-tx-table
+                                      :issuer issuer
+                                      :kind kind
+                                      :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'invoice/details issuer kind
+                            :tx-id (key (first rows))
+                            filter))
+          (see-other (apply #'invoice issuer kind filter))))))
 
 
 
@@ -408,10 +425,8 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (invoice-actions op issuer kind (val tx-id) filter)
-                           (display invoice-tx-table
-                                    :key (val tx-id)
-                                    :payload nil)))
+                           (actions invoice-tx-table :key (val tx-id))
+                           (display invoice-tx-table :key (val tx-id))))
                (footer)))))))
 
 (defpage invoice-page invoice/details (("invoice/"
@@ -430,7 +445,7 @@
                                         :issuer issuer
                                         :kind kind
                                         :op op
-                                        :record (get-record 'tx (val tx-id))))
+                                        :key (val tx-id)))
            (page-title (invoice-page-title issuer kind "Λεπτομέρειες")))
       (with-document ()
         (:head
@@ -444,7 +459,7 @@
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:p :class "title" "Λεπτομέρειες")
-                           (invoice-actions op issuer kind (val tx-id) filter)
+                           (actions invoice-form :filter filter)
                            (display invoice-form)))
                (footer)))))))
 
@@ -471,7 +486,6 @@
                                         :issuer issuer
                                         :kind kind
                                         :op op
-                                        :record nil
                                         :cancel-url (apply #'invoice issuer kind filter)))
            (page-title (invoice-page-title issuer kind "Δημιουργία")))
       (with-document ()
@@ -486,7 +500,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (invoice-actions op issuer kind nil filter)
+                           (actions invoice-form :filter filter)
                            (notifications)
                            (with-form (actions/invoice/create issuer kind
                                                               :search (val search)
@@ -549,9 +563,10 @@
                                         :issuer issuer
                                         :kind kind
                                         :op op
-                                        :record (get-record 'tx (val tx-id))
+                                        :key (val tx-id)
                                         :cancel-url (apply #'invoice/details issuer kind
-                                                           :tx-id (val tx-id) filter)))
+                                                           :tx-id (val tx-id)
+                                                           filter)))
            (page-title (invoice-page-title issuer kind "Επεξεργασία")))
       (with-document ()
         (:head
@@ -565,7 +580,7 @@
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:p :class "title" "Επεξεργασία")
-                           (invoice-actions op issuer kind (val tx-id) filter)
+                           (actions invoice-form :filter filter)
                            (notifications)
                            (with-form (actions/invoice/update issuer kind
                                                               :tx-id (val tx-id)
@@ -639,7 +654,7 @@
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (invoice-actions op issuer kind (val tx-id) filter)
+                           (actions invoice-tx-table :key (val tx-id))
                            (with-form (actions/invoice/delete issuer kind
                                                               :tx-id (val tx-id)
                                                               :search (val search)

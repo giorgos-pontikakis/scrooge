@@ -165,20 +165,6 @@
                      (apply url-fn kind args))
                    filter))))
 
-(defpage cheque-page actions/cheque/search
-    (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
-    ((search string))
-  (with-db ()
-    (let* ((filter (params->filter))
-           (rows (rows (make-instance 'cheque-table
-                                      :kind kind
-                                      :filter filter))))
-      (if (single-item-list-p rows)
-          (see-other (apply #'cheque/details kind
-                            :cheque-id (key (first rows))
-                            filter))
-          (see-other (apply #'cheque kind filter))))))
-
 
 
 ;;; ----------------------------------------------------------------------
@@ -406,6 +392,26 @@
 (defmethod target-url ((pg cheque-paginator) start)
   (let ((table (table pg)))
    (apply #'cheque (kind table) :start start (filter table))))
+
+
+
+;;; ------------------------------------------------------------
+;;; SEARCH
+;;; ------------------------------------------------------------
+
+(defpage cheque-page actions/cheque/search
+    (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (rows (rows (make-instance 'cheque-table
+                                      :kind kind
+                                      :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'cheque/details kind
+                            :cheque-id (key (first rows))
+                            filter))
+          (see-other (apply #'cheque kind filter))))))
 
 
 

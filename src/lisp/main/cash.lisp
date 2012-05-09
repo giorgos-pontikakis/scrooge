@@ -132,6 +132,17 @@
         (query (sql-compile sql)
                :plists)))))
 
+(defmethod actions ((tbl cash-tx-table) &key key)
+  (let* ((tx-id key)
+         (kind (kind tbl))
+         (filter (filter tbl))
+         (hrefs (if tx-id
+                    (list :details (apply #'cash/details kind :tx-id tx-id filter)
+                          :delete (apply #'cash/delete kind :tx-id tx-id filter))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
+
 
 ;;; rows
 
@@ -237,13 +248,6 @@
                             filter
                             "ac-company"))))
 
-(defun cash-actions (op kind tx-id filter)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'cash/details kind :tx-id tx-id filter)
-                                              (apply #'cash/update kind :tx-id tx-id filter)
-                                              (apply #'cash/delete kind :tx-id tx-id filter)))
-                (enabled-actions/crud+details op tx-id)))
-
 (defun cash-filters (kind filter)
   (filter-area (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
                                 (expense ,(apply #'cash "expense" filter) "Έξοδα"))
@@ -253,28 +257,14 @@
                           (apply #'cash kind args))
                         filter)))
 
-(defpage cash-page actions/cash/search
-    (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
-    ((search string))
-  (with-db ()
-    (let* ((filter (params->filter))
-           (rows (rows (make-instance 'cash-tx-table
-                                      :kind kind
-                                      :filter filter))))
-      (if (single-item-list-p rows)
-          (see-other (apply #'cash/details kind
-                            :tx-id (key (first rows))
-                            filter))
-          (see-other (apply #'cash kind filter))))))
-
 
 
 ;;; ------------------------------------------------------------
 ;;; Cash form
 ;;; ------------------------------------------------------------
 
-(defclass cash-form (crud-form/plist)
-  ((kind :accessor kind :initarg :kind)))
+(defclass cash-form (tx-form)
+  ())
 
 (defmethod display ((form cash-form) &key styles)
   (let* ((revenues-p (revenues-p (kind form)))
@@ -326,6 +316,34 @@
                                 :key tree-key)))
             (clear)))))
 
+(defmethod actions ((form cash-form) &key filter)
+  (let* ((tx-id (key form))
+         (kind (kind form))
+         (hrefs (list :update (apply #'cash/update kind :tx-id tx-id filter)
+                      :delete (apply #'cash/delete kind :tx-id tx-id filter))))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions form))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; SEARCH
+;;; ----------------------------------------------------------------------
+
+(defpage cash-page actions/cash/search
+    (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
+    ((search string))
+  (with-db ()
+    (let* ((filter (params->filter))
+           (rows (rows (make-instance 'cash-tx-table
+                                      :kind kind
+                                      :filter filter))))
+      (if (single-item-list-p rows)
+          (see-other (apply #'cash/details kind
+                            :tx-id (key (first rows))
+                            filter))
+          (see-other (apply #'cash kind filter))))))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -372,10 +390,8 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind (val tx-id) filter)
-                           (display cash-tx-table
-                                    :key (val tx-id)
-                                    :payload nil)))
+                           (actions cash-tx-table :key (val tx-id))
+                           (display cash-tx-table :key (val tx-id))))
                (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))
@@ -390,7 +406,7 @@
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
-                                     :record (get-record 'tx (val tx-id))
+                                     :key (val tx-id)
                                      :cancel-url (apply #'cash kind :tx-id (val tx-id) filter)))
            (page-title (conc (cash-page-title kind) " » Λεπτομέρειες")))
       (with-document ()
@@ -405,7 +421,7 @@
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" "Λεπτομέρειες")
-                           (cash-actions op kind (val tx-id) filter)
+                           (actions cash-form :filter filter)
                            (display cash-form)))
                (footer)))))))
 
@@ -443,10 +459,11 @@
                (header)
                (main-navbar 'cash)
                (cash-top-actions op kind nil filter)
+               (actions cash-form :filter filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind nil filter)
+                           (actions cash-form :filter filter)
                            (notifications)
                            (with-form (actions/cash/create kind
                                                            :search (val search)
@@ -511,9 +528,8 @@
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
-                                     :record (get-record 'tx (val tx-id))
-                                     :cancel-url (apply #'cash/details
-                                                        kind
+                                     :key (val tx-id)
+                                     :cancel-url (apply #'cash/details kind
                                                         :tx-id (val tx-id)
                                                         filter)))
            (page-title (conc (cash-page-title kind) " » Επεξεργασία")))
@@ -529,7 +545,7 @@
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind (val tx-id) filter)
+                           (actions cash-form :filter filter)
                            (notifications)
                            (with-form (actions/cash/update kind
                                                            :tx-id (val tx-id)
@@ -604,7 +620,7 @@
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (cash-actions op kind (val tx-id) filter)
+                           (actions cash-tx-table :key (val tx-id))
                            (with-form (actions/cash/delete kind
                                                            :tx-id (val tx-id)
                                                            :search (val search)
