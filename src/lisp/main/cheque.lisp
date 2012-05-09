@@ -139,13 +139,6 @@
               filter
               "ac-company")))
 
-(defun cheque-actions (op kind cheque-id filter)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud+details (apply #'cheque/details kind :cheque-id cheque-id filter)
-                                              (apply #'cheque/update kind :cheque-id cheque-id filter)
-                                              (apply #'cheque/delete kind :cheque-id cheque-id filter)))
-                (enabled-actions/crud+details op cheque-id)))
-
 (defun cheque-filters (kind filter &optional (url-fn #'cheque))
   (let* ((filter* (remove-from-plist filter kind :cstate))
          (filter-spec `((nil      ,(apply url-fn kind filter*)
@@ -242,24 +235,33 @@
                    :where (:and (:= 'from-state-id from-state-id)
                                 (:= 'payable-p payable-p))))))
 
+(defmethod get-rec0rd ((form cheque-form))
+  (if-let (cheque-id (key form))
+    (query (:select 'cheque.id (:as 'bank.title 'bank)
+                    'due-date (:as 'company.title 'company)
+                    'amount 'payable-p 'state-id 'serial
+                    :from 'cheque
+                    :left-join 'bank
+                    :on (:= 'bank.id 'cheque.bank-id)
+                    :inner-join 'company
+                    :on (:= 'company.id 'cheque.company-id)
+                    :where (:= 'cheque.id cheque-id))
+           :plist)
+    nil))
+
+(defmethod actions ((form cheque-form) &key filter)
+  (let* ((cheque-id (key form))
+         (kind (kind form))
+         (hrefs (list :update (apply #'cheque/update kind :cheque-id cheque-id filter)
+                      :delete (apply #'cheque/delete kind :cheque-id cheque-id filter))))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions form))))
+
 
 
 ;;; ----------------------------------------------------------------------
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
-
-(defmethod get-record ((type (eql 'cheque)) cheque-id)
-  (declare (ignore type))
-  (query (:select 'cheque.id (:as 'bank.title 'bank)
-                  'due-date (:as 'company.title 'company)
-                  'amount 'payable-p 'state-id 'serial
-                  :from 'cheque
-                  :left-join 'bank
-                  :on (:= 'bank.id 'cheque.bank-id)
-                  :inner-join 'company
-                  :on (:= 'company.id 'cheque.company-id)
-                  :where (:= 'cheque.id cheque-id))
-         :plist))
 
 (defun get-cheque-events (cheque-id)
   (query (:order-by (:select 'to-state-id 'tstamp
@@ -324,6 +326,18 @@
                            due-date)))
       (query (sql-compile sql)
              :plists))))
+
+(defmethod actions ((tbl cheque-table) &key key)
+  (let* ((cheque-id key)
+         (kind (kind tbl))
+         (filter (filter tbl))
+         (hrefs (if cheque-id
+                    (list :details (apply #'cheque/details kind :cheque-id cheque-id filter)
+                          :update (apply #'cheque/update kind :cheque-id cheque-id filter)
+                          :delete (apply #'cheque/delete kind :cheque-id cheque-id filter))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 
 ;;; rows
@@ -437,10 +451,8 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (cheque-actions op kind (val cheque-id) filter)
-                           (display cheque-table
-                                    :key (val cheque-id)
-                                    :payload nil)))
+                           (actions cheque-table :key (val cheque-id))
+                           (display cheque-table :key (val cheque-id))))
                (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))
@@ -458,7 +470,7 @@
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
                                        :op op
-                                       :record (get-record 'cheque (val cheque-id))
+                                       :key (val cheque-id)
                                        :cancel-url (apply #'cheque
                                                           kind
                                                           :cheque-id (val cheque-id)
@@ -475,7 +487,7 @@
                (:div :class "grid_12"
                      (:div :id "cheque-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (cheque-actions op kind (val cheque-id) filter)
+                           (actions cheque-form :filter filter)
                            (display cheque-form)))
                (footer)))))))
 
@@ -516,7 +528,6 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (cheque-actions op kind nil filter)
                            (notifications)
                            (with-form (actions/cheque/create kind
                                                              :search (val search)
@@ -575,7 +586,7 @@
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
                                        :op op
-                                       :record (get-record 'cheque (val cheque-id))
+                                       :key (val cheque-id)
                                        :cancel-url (apply #'cheque/details
                                                           kind
                                                           :cheque-id (val cheque-id)
@@ -593,7 +604,7 @@
                (:div :class "grid_12"
                      (:div :id "cheque-window" :class "window"
                            (:p :class "title" (str page-title))
-                           (cheque-actions op kind (val cheque-id) filter)
+                           (actions cheque-form :filter filter)
                            (notifications)
                            (with-form (actions/cheque/update kind
                                                              :cheque-id (val cheque-id)
@@ -671,7 +682,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (cheque-actions op kind (val cheque-id) filter)
+                           (actions cheque-table :key (val cheque-id))
                            (with-form (actions/cheque/delete kind
                                                              :cheque-id (val cheque-id)
                                                              :search (val search)
