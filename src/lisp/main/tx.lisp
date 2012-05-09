@@ -199,6 +199,16 @@
       (query (sql-compile sql)
              :plists))))
 
+(defmethod actions ((tbl tx-table) &key key)
+  (let* ((tx-id key)
+         (filter (filter tbl))
+         (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
+                    (list :update (apply #'tx/update :tx-id tx-id filter)
+                          :delete (apply #'tx/delete :tx-id tx-id filter))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
+
 
 ;;; rows
 
@@ -284,9 +294,8 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (tx-actions op (val tx-id) filter)
-                           (display tx-table
-                                    :key (val tx-id))))
+                           (actions tx-table :key (val tx-id))
+                           (display tx-table :key (val tx-id))))
                (footer)))))))
 
 
@@ -324,7 +333,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
-                           (tx-actions op nil filter)
+                           (actions tx-table)
                            (notifications)
                            (with-form (actions/tx/create :search (val search)
                                                          :since (val since)
@@ -396,7 +405,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (tx-actions op (val tx-id) filter)
+                           (actions tx-table :key (val tx-id))
                            (notifications)
                            (with-form (actions/tx/update :tx-id (val tx-id)
                                                          :search (val search)
@@ -465,7 +474,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (tx-actions op (val tx-id) filter)
+                           (actions tx-table :key (val tx-id))
                            (with-form (actions/tx/delete :tx-id (val tx-id)
                                                          :search (val search)
                                                          :since (val since)
