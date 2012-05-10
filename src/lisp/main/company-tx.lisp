@@ -243,16 +243,14 @@
 (defmethod actions ((tbl company-tx-table) &key key)
   (let* ((company-id (company-id tbl))
          (filter (filter tbl))
-         (auto-p (if company-id (auto-tx-p key) nil))
-         (op (op tbl)))
-    (actions-menu (make-menu-spec
-                   (action-anchors/crud (if auto-p
-                                            nil
-                                            (apply #'company/tx/update :company-id company-id
-                                                                       :tx-id key
-                                                                       filter))
-                                        nil))
-                  (tx-disabled-actions op key auto-p))))
+         (tx-id key)
+         (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
+                    (list :update (apply #'company/tx/update :company-id company-id
+                                                             :tx-id key
+                                                             filter))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 ;;; rows
 
