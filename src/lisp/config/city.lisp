@@ -48,10 +48,8 @@
       :city-id-unknown))
 
 (defun chk-city-id/ref (city-id)
-  (if (and (null (chk-city-id city-id))
-           (null (city-referenced-p city-id)))
-      nil
-      :city-referenced))
+  (or (chk-city-id city-id)
+      (city-referenced-p city-id)))
 
 (defun chk-city-title/create (title)
   (cond ((eql :null title) :city-title-null)
@@ -92,8 +90,7 @@
 (defun city-actions (op city-id filter)
   (actions-menu (make-menu-spec
                  (action-anchors/crud (apply #'config/city/update :city-id city-id filter)
-                                      (if (or (null city-id)
-                                              (city-referenced-p city-id))
+                                      (if (chk-city-id/ref city-id)
                                           nil
                                           (apply #'config/city/delete :city-id city-id filter))))
                 (enabled-actions/crud op city-id)))
@@ -116,6 +113,18 @@
 
 (defmethod get-records ((table city-table))
   (config-data 'city (getf (filter table) :search)))
+
+(defmethod actions ((tbl city-table) &key key)
+  (let* ((city-id key)
+         (filter (filter tbl))
+         (hrefs (if city-id
+                    (list :update (apply #'config/city/update :city-id city-id filter)
+                          :delete (if (chk-city-id/ref city-id)
+                                      nil
+                                      (apply #'config/city/delete :city-id city-id filter)))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 
 ;;; rows
@@ -167,7 +176,7 @@
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (city-actions op (val city-id) filter)
+                           (actions city-table :key (val city-id))
                            (display city-table :key (val city-id))))
                (footer)))))))
 
@@ -198,7 +207,7 @@
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Δημιουργία")
-                           (city-actions op nil filter)
+                           (actions city-table)
                            (notifications)
                            (with-form (actions/config/city/create :search (val search))
                              (display city-table
@@ -241,7 +250,7 @@
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (city-actions op (val city-id) filter)
+                           (actions city-table :key (val city-id))
                            (notifications)
                            (with-form (actions/config/city/update :city-id (val city-id)
                                                                   :search (val search))
@@ -287,7 +296,7 @@
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (city-actions op (val city-id) filter)
+                           (actions city-table :key (val city-id))
                            (with-form (actions/config/city/delete :city-id (val city-id)
                                                                   :search (val search))
                              (display city-table
