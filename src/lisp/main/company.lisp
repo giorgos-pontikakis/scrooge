@@ -259,7 +259,7 @@
               (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
               (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
-(defmethod get-rec0rd ((form company-form))
+(defmethod get-record ((form company-form))
   (if (key form)
       (let ((company-id (key form)))
         (query (:select 'company.title 'occupation

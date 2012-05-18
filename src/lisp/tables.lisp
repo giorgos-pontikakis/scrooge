@@ -14,9 +14,6 @@
                                                 (mapcar #'first surrogate-key-types))))))))
                  slots))))
 
-(defgeneric get-record (type primary-key)
-  (:documentation "Modeled after get-dao, but it should return a plist"))
-
 
 
 ;;; ------------------------------------------------------------

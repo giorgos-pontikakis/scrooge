@@ -107,7 +107,7 @@
 (defclass tx-form (crud-form/plist)
   ((kind :accessor kind :initarg :kind)))
 
-(defmethod get-rec0rd ((form tx-form))
+(defmethod get-record ((form tx-form))
   (if-let (tx-id (key form))
     (query (:select 'tx.id 'tx-date
                     (:as 'company.title 'company)

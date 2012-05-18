@@ -8,7 +8,7 @@
 (defgeneric disabled-actions (widget &key)
   (:documentation "Returns a list of the disabled actions of the widget"))
 
-(defgeneric get-rec0rd (widget)
+(defgeneric get-record (widget)
   (:documentation "Returs a record of the widget"))
 
 
@@ -199,7 +199,7 @@
              (key form))
     (error "Contradiction in crud-form initialization. Slot OP is :create and slot KEY is not null"))
   (setf (slot-value form 'record)
-        (get-rec0rd form)))
+        (get-record form)))
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (eql (op form) :create)

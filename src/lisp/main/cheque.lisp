@@ -221,7 +221,7 @@
                    :where (:and (:= 'from-state-id from-state-id)
                                 (:= 'payable-p payable-p))))))
 
-(defmethod get-rec0rd ((form cheque-form))
+(defmethod get-record ((form cheque-form))
   (if-let (cheque-id (key form))
     (query (:select 'cheque.id (:as 'bank.title 'bank)
                     'due-date (:as 'company.title 'company)
