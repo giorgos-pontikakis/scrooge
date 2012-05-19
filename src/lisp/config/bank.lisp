@@ -48,10 +48,8 @@
       :bank-id-unknown))
 
 (defun chk-bank-id/ref (bank-id)
-  (if (and (null (chk-bank-id bank-id))
-           (null (bank-referenced-p bank-id)))
-      nil
-      :bank-referenced))
+  (or (chk-bank-id bank-id)
+      (bank-referenced-p bank-id)))
 
 (defun chk-bank-title/create (title)
   (cond ((eql :null title) :bank-title-null)
@@ -89,15 +87,6 @@
               filter
               "ac-bank")))
 
-(defun bank-actions (op bank-id filter)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud (apply #'config/bank/update :bank-id bank-id filter)
-                                      (if (or (null bank-id)
-                                              (bank-referenced-p bank-id))
-                                          nil
-                                          (apply #'config/bank/delete :bank-id bank-id filter))))
-                (enabled-actions/crud op bank-id)))
-
 
 
 ;;; ------------------------------------------------------------
@@ -116,6 +105,18 @@
 
 (defmethod get-records ((table bank-table))
   (config-data 'bank (getf (filter table) :search)))
+
+(defmethod actions ((tbl bank-table) &key key)
+  (let* ((bank-id key)
+         (filter (filter tbl))
+         (hrefs (if bank-id
+                    (list :update (apply #'config/bank/update :bank-id bank-id filter)
+                          :delete (if (chk-bank-id/ref bank-id)
+                                      nil
+                                      (apply #'config/bank/delete :bank-id bank-id filter)))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 
 ;;; rows
@@ -167,9 +168,8 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (bank-actions op (val bank-id) filter)
-                           (display bank-table
-                                    :key (val bank-id))))
+                           (actions bank-table :key (val bank-id))
+                           (display bank-table :key (val bank-id))))
                (footer)))))))
 
 
@@ -199,7 +199,7 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Δημιουργία")
-                           (bank-actions op nil filter)
+                           (actions bank-table)
                            (notifications)
                            (with-form (actions/config/bank/create :search (val search))
                              (display bank-table
@@ -243,7 +243,7 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (bank-actions op (val bank-id) filter)
+                           (actions bank-table :key (val bank-id))
                            (notifications)
                            (with-form (actions/config/bank/update :bank-id (val bank-id)
                                                                   :search (val search))
@@ -289,7 +289,7 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (bank-actions op (val bank-id) filter)
+                           (actions bank-table :key (val bank-id))
                            (with-form (actions/config/bank/delete :bank-id (val bank-id)
                                                                   :search (val search))
                              (display bank-table

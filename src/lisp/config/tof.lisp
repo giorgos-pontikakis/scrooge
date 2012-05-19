@@ -48,10 +48,8 @@
       :tof-id-unknown))
 
 (defun chk-tof-id/ref (tof-id)
-  (if (and (null (chk-tof-id tof-id))
-           (null (tof-referenced-p tof-id)))
-      nil
-      :tof-referenced))
+  (or (chk-tof-id tof-id)
+      (tof-referenced-p tof-id)))
 
 (defun chk-tof-title/create (title)
   (cond ((eql :null title) :tof-title-null)
@@ -89,16 +87,6 @@
               filter
               "ac-tof")))
 
-(defun tof-actions (op tof-id filter)
-  (with-html
-    (actions-menu (make-menu-spec
-                   (action-anchors/crud (apply #'config/tof/update :tof-id tof-id filter)
-                                        (if (or (null tof-id)
-                                                (tof-referenced-p tof-id))
-                                            nil
-                                            (apply #'config/tof/delete :tof-id tof-id filter))))
-                  (enabled-actions/crud op tof-id))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -117,6 +105,18 @@
 
 (defmethod get-records ((table tof-table))
   (config-data 'tof (getf (filter table) :search)))
+
+(defmethod actions ((tbl tof-table) &key key)
+  (let* ((tof-id key)
+         (filter (filter tbl))
+         (hrefs (if tof-id
+                    (list :update (apply #'config/tof/update :tof-id tof-id filter)
+                          :delete (if (chk-tof-id/ref tof-id)
+                                      nil
+                                      (apply #'config/tof/delete :tof-id tof-id filter)))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 
 ;; rows
@@ -168,7 +168,7 @@
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (tof-actions op (val tof-id) filter)
+                           (actions tof-table :key (val tof-id))
                            (display tof-table :key (val tof-id))))
                (footer)))))))
 
@@ -199,7 +199,7 @@
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Δημιουργία")
-                           (tof-actions op nil filter)
+                           (actions tof-table)
                            (notifications)
                            (with-form (actions/config/tof/create :search (val search))
                              (display tof-table
@@ -243,7 +243,7 @@
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (tof-actions op (val tof-id) filter)
+                           (actions tof-table :key (val tof-id))
                            (notifications)
                            (with-form (actions/config/tof/update :tof-id (val tof-id)
                                                                  :filter (val search))
@@ -289,7 +289,7 @@
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (tof-actions op (val tof-id) filter)
+                           (actions tof-table :key (val tof-id))
                            (with-form (actions/config/tof/delete :tof-id (val tof-id)
                                                                  :search (val search))
                              (display tof-table

@@ -87,14 +87,6 @@
               filter
               "ac-city")))
 
-(defun city-actions (op city-id filter)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud (apply #'config/city/update :city-id city-id filter)
-                                      (if (chk-city-id/ref city-id)
-                                          nil
-                                          (apply #'config/city/delete :city-id city-id filter))))
-                (enabled-actions/crud op city-id)))
-
 
 
 ;;; ------------------------------------------------------------
