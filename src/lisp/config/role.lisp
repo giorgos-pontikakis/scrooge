@@ -39,22 +39,6 @@
       :account-role-id-unknown))
 
 
-;;; ----------------------------------------------------------------------
-;;; UI elements
-;;; ----------------------------------------------------------------------
-
-(defun account-role-actions (op account-role-id)
-  (actions-menu
-   (make-menu-spec
-    `((:catalogue ,(config/account-role :account-role-id account-role-id) "Προβολή")
-      (:update ,(config/account-role/update :account-role-id account-role-id) "Επεξεργασία")))
-   (if account-role-id
-       (ecase op
-         (:update '())
-         (:catalogue '(:update)))
-       nil)))
-
-
 
 ;;; ----------------------------------------------------------------------
 ;;; Account-Role table
@@ -75,6 +59,14 @@
                     'rank)
          :plists))
 
+(defmethod actions ((tbl account-role-table) &key key)
+  (let ((hrefs (if key
+                   (list :update (config/account-role/update :account-role-id key))
+                   nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (if (and key (eql (op tbl) :update))
+                      '(:update)
+                      '()))))
 
 ;;; rows
 
@@ -90,7 +82,7 @@
           (selector-img selected-p)))))
 
 (defmethod controls ((row account-role-row) controls-p)
-  (simple-controls row controls-p #'config/account-role :account-id))
+  (simple-controls row controls-p #'config/account-role :account-role-id))
 
 (defmethod payload ((row account-role-row) enabled-p)
   (list (make-instance 'textbox
@@ -126,7 +118,7 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (account-role-actions op (val account-role-id))
+                           (actions account-role-table :key (val account-role-id))
                            (display account-role-table :key (val account-role-id))))
                (footer)))))))
 
@@ -154,7 +146,7 @@
                (:div :class "grid_12"
                      (:div :id "account-role-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (account-role-actions op (val account-role-id))
+                           (actions account-role-table :key (val account-role-id))
                            (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
                              (display account-role-table :key (val account-role-id)
                                                          :payload (params->payload)
