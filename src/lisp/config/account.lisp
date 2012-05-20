@@ -74,25 +74,19 @@
   (cond ((eql :null account-id)
          :account-id-null)
         ((not (account-id-exists-p account-id))
-         :acc-id-unknown)
-        (t
-         nil)))
+         :acc-id-unknown)))
 
 (defun chk-account-id/ref (account-id)
-  (if (or (chk-account-id account-id)
-          (acc-referenced-p account-id))
-      :acc-referenced
-      nil))
+  (cond ((chk-account-id account-id))
+        ((acc-referenced-p account-id) :account-referenced)))
 
 (defun chk-account-title/create (title)
   (cond ((eql :null title) :account-title-null)
-        ((account-title-exists-p title) :account-title-exists)
-        (t nil)))
+        ((account-title-exists-p title) :account-title-exists)))
 
 (defun chk-account-title/update (title account-id)
   (cond ((eql title :null) :account-title-null)
-        ((account-title-exists-p title account-id) :account-title-unknown)
-        (t nil)))
+        ((account-title-exists-p title account-id) :account-title-unknown)))
 
 (defun chk-account-title (title)
   (cond ((eql title :null) :account-title-null)
@@ -101,13 +95,11 @@
 
 (defun chk-chq-acc-title (title)
   (cond ((eql title :null) :account-title-null)
-        ((not (chq-account-title-exists-p title)) :account-title-unknown)
-        (t nil)))
+        ((not (chq-account-title-exists-p title)) :account-title-unknown)))
 
 (defun chk-non-chq-acc-title (title)
   (cond ((eql title :null) :account-title-null)
-        ((not (non-chq-account-title-exists-p title)) :account-title-unknown)
-        (t nil)))
+        ((not (non-chq-account-title-exists-p title)) :account-title-unknown)))
 
 (defun chk-debitp (debitp account-id)
   (with-db ()
@@ -128,29 +120,6 @@
 
 
 ;;; ------------------------------------------------------------
-;;; UI elements
-;;; ------------------------------------------------------------
-
-(defun account-actions (op account-id debitp)
-  (let ((spec `((:create ,(config/account/create :debitp debitp
-                                                 :parent-id account-id) "Νέος Λογαριασμός")
-                (:update ,(config/account/update :account-id account-id) "Επεξεργασία")
-                (:delete ,(if (or (null account-id)
-                                  (acc-referenced-p account-id))
-                              nil
-                              (config/account/delete :account-id account-id)) "Διαγραφή"))))
-    (actions-menu (make-menu-spec spec)
-                  (ecase op
-                    (:catalogue (if account-id
-                                    '(:create :update :delete)
-                                    '()))
-                    (:create '())
-                    (:update '())
-                    (:delete '())))))
-
-
-
-;;; ------------------------------------------------------------
 ;;; Account tree
 ;;; ------------------------------------------------------------
 
@@ -167,6 +136,23 @@
           :from 'account
           :where (:= 'debit-p (debit-p tree)))
          :plists))
+
+(defmethod actions ((tree account-tree) &key key)
+  (let* ((account-id key)
+         (spec (if (and account-id
+                        (eql (debit-p tree)
+                             (debit-p (get-dao 'account account-id))))
+                   `((:create . "Νέος Λογαριασμός") ,(config/account/create :debitp (debit-p tree)
+                                                                            :parent-id account-id)
+                     :update ,(config/account/update :account-id account-id)
+                     :delete ,(if (chk-account-id/ref account-id)
+                                  nil
+                                  (config/account/delete :account-id account-id)))
+                   nil)))
+    (acti0ns-menu (make-menu-spcf spec)
+                  (if account-id
+                      '()
+                      '(:create :update :delete)))))
 
 
 ;;; nodes
@@ -227,6 +213,11 @@
                   (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
                   (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
+(defmethod get-record ((form account-form))
+  (if (key form)
+      (get-dao 'account (key form))
+      nil))
+
 
 
 ;;; ------------------------------------------------------------
@@ -248,8 +239,8 @@
                (iter
                  (for debit-p in (list t nil))
                  (for div-id in '("debit-accounts" "credit-accounts"))
-                 (for id-debit-p = (and (suppliedp account-id)
-                                        (eql debit-p (debit-p (get-dao 'account (val account-id))))))
+                 #|(for id-debit-p = (and (suppliedp account-id)
+                                        (eql debit-p (debit-p (get-dao 'account (val account-id))))))|#
                  (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                  (for account-tree = (make-instance 'account-tree
                                                     :op op
@@ -260,11 +251,7 @@
                           (:div :id div-id :class "window"
                                 (:div :class "title" (str window-title))
                                 (notifications)
-                                (account-actions op
-                                                 (if id-debit-p
-                                                     (val account-id)
-                                                     nil)
-                                                 debit-p)
+                                (actions account-tree :key (val account-id))
                                 (display account-tree :key (val account-id) :hide-root-p t))))))
                (footer)))))))
 
@@ -283,7 +270,7 @@
     (let* ((op :create)
            (account-form (make-instance 'account-form
                                         :op op
-                                        :record nil
+                                        :key nil
                                         :cancel-url (config/account))))
       (with-document ()
         (:head
@@ -297,9 +284,7 @@
                      (:div :class "window"
                            (:div :class "title" "Λογαριασμός » Δημιουργία")
                            (notifications)
-                           (account-actions op
-                                            (val parent-id)
-                                            debitp)
+                           (actions account-form)
                            (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                      :debitp (val debitp))
                              (display account-form :payload (params->payload)
@@ -339,7 +324,7 @@
     (let* ((op :update)
            (account-form (make-instance 'account-form
                                         :op op
-                                        :record (get-dao 'account (val account-id))
+                                        :key (val account-id)
                                         :cancel-url (config/account :account-id (val account-id)))))
       (with-document ()
         (:head
@@ -353,10 +338,7 @@
                      (:div :class "window"
                            (:div :class "title" "Λογαριασμός » Επεξεργασία")
                            (notifications)
-                           (account-actions op
-                                            (val account-id)
-                                            (debit-p (with-db ()
-                                                       (get-dao 'account (val account-id)))))
+                           (actions account-form)
                            (with-form (actions/config/account/update :account-id (val account-id))
                              (display account-form :payload (params->payload)
                                                    :styles (params->styles)))))
@@ -405,7 +387,7 @@
                         (:div :id div-id :class "window"
                               (:div :class "title" (str window-title))
                               (notifications)
-                              (account-actions op (val account-id) debit-p)
+                              (actions account-tree :key (val account-id))
                               (with-form (actions/config/account/delete :account-id (val account-id))
                                 (display account-tree :key (val account-id) :hide-root-p t))))))
                (footer)))))))

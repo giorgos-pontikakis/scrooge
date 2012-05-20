@@ -48,8 +48,8 @@
       :city-id-unknown))
 
 (defun chk-city-id/ref (city-id)
-  (or (chk-city-id city-id)
-      (city-referenced-p city-id)))
+  (cond ((chk-city-id city-id))
+        ((city-referenced-p city-id) :city-referenced)))
 
 (defun chk-city-title/create (title)
   (cond ((eql :null title) :city-title-null)

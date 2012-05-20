@@ -146,7 +146,8 @@
 
 ;;; actions menu
 
-(defparameter *action-labels* '((:details . "Λεπτομέρειες")
+(defparameter *action-labels* '((:create  . "Δημιουργία")
+                                (:details . "Λεπτομέρειες")
                                 (:update  . "Επεξεργασία")
                                 (:delete  . "Διαγραφή")))
 
@@ -223,7 +224,7 @@
                                   (str label))))))))
           anchor-spec))
 
-(defgeneric make-spec-line (action link))
+(defgeneric make-spec-line (action link ))
 
 (defmethod make-spec-line ((action symbol) (link string))
   (html ()
@@ -231,10 +232,18 @@
         :class (string-downcase action)
         (str (assoc-value *action-labels* action)))))
 
+(defmethod make-spec-line ((action cons) (link string))
+  (html ()
+    (:a :href link
+        :class (string-downcase (car action))
+        (str (cdr action)))))
+
 (defmethod make-spec-line ((action symbol) (link function))
+  (declare (ignore action))
   link)
 
 (defmethod make-spec-line ((action symbol) (link null))
+  (declare (ignore action link))
   nil)
 
 (defun make-menu-spcf (actions-and-links)

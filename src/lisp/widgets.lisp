@@ -207,12 +207,14 @@
   (when (eql (op form) :update)
     (update-record form payload)))
 
+(defmethod actions ((form crud-form) &key)
+  (declare (ignore form))
+  (acti0ns-menu nil))
+
 (defmethod disabled-actions ((form crud-form) &key)
   (ecase (op form)
     (:details '())
     ((:create :update :delete) '(:update :delete))))
-
-
 
 
 

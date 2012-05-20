@@ -48,18 +48,16 @@
       :tof-id-unknown))
 
 (defun chk-tof-id/ref (tof-id)
-  (or (chk-tof-id tof-id)
-      (tof-referenced-p tof-id)))
+  (cond ((chk-tof-id tof-id))
+        ((tof-referenced-p tof-id) :tof-referenced)))
 
 (defun chk-tof-title/create (title)
   (cond ((eql :null title) :tof-title-null)
-        ((tof-title-exists-p title) :tof-title-exists)
-        (t nil)))
+        ((tof-title-exists-p title) :tof-title-exists)))
 
 (defun chk-tof-title/update (title tof-id)
   (cond ((eql :null title) :tof-title-null)
-        ((tof-title-exists-p title tof-id) :tof-title-exists)
-        (t nil)))
+        ((tof-title-exists-p title tof-id) :tof-title-exists)))
 
 (defun chk-tof-title (title)
   (if (or (eql :null title)

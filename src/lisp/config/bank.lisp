@@ -48,18 +48,16 @@
       :bank-id-unknown))
 
 (defun chk-bank-id/ref (bank-id)
-  (or (chk-bank-id bank-id)
-      (bank-referenced-p bank-id)))
+  (cond ((chk-bank-id bank-id))
+        ((bank-referenced-p bank-id) :bank-referenced)))
 
 (defun chk-bank-title/create (title)
   (cond ((eql :null title) :bank-title-null)
-        ((bank-title-exists-p title) :bank-title-exists)
-        (t nil)))
+        ((bank-title-exists-p title) :bank-title-exists)))
 
 (defun chk-bank-title/update (title bank-id)
   (cond ((eql :null title) :bank-title-null)
-        ((bank-title-exists-p title bank-id) :bank-title-exists)
-        (t nil)))
+        ((bank-title-exists-p title bank-id) :bank-title-exists)))
 
 (defun chk-bank-title (title)
   (if (or (eql :null title)
