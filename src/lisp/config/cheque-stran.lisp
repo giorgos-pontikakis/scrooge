@@ -152,11 +152,6 @@
                               :css-class "hmenu")
                nil))
 
-(defun cheque-stran-actions (op kind cheque-stran-id)
-  (actions-menu (make-menu-spec (action-anchors/crud (config/cheque-stran/update kind :cheque-stran-id cheque-stran-id)
-                                                     (config/cheque-stran/delete kind :cheque-stran-id cheque-stran-id)))
-                (enabled-actions/crud op cheque-stran-id)))
-
 (defun cheque-stran-filters (kind)
   (filter-area (filter-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
                                 (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
@@ -188,6 +183,17 @@
                              :where (:= 'payable-p (string= (kind table) "payable")))
                     'cheque-stran.title)
          :plists))
+
+(defmethod actions ((table cheque-stran-table) &key key)
+  (let* ((cheque-stran-id key)
+         (hrefs (if cheque-stran-id
+                    (list :update (config/cheque-stran/update (kind table)
+                                                              :cheque-stran-id cheque-stran-id)
+                          :delete (config/cheque-stran/delete (kind table)
+                                                              :cheque-stran-id cheque-stran-id))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions table))))
 
 
 ;;; rows
@@ -248,8 +254,7 @@
     ((start           integer)
      (cheque-stran-id integer chk-cheque-stran-id))
   (with-view-page
-    (let ((op :catalogue)
-          (cheque-stran-table (make-instance 'cheque-stran-table
+    (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :op :catalogue
                                              :id "cheque-stran-table"
                                              :kind kind)))
@@ -266,9 +271,8 @@
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (cheque-stran-actions op kind (val cheque-stran-id))
-                           (display cheque-stran-table
-                                    :key (val cheque-stran-id))))
+                           (actions cheque-stran-table :key (val cheque-stran-id))
+                           (display cheque-stran-table :key (val cheque-stran-id))))
                (footer)))))))
 
 
@@ -302,7 +306,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
-                           (cheque-stran-actions op kind nil)
+                           (actions cheque-stran-table)
                            (notifications)
                            (with-form (actions/config/cheque-stran/create kind)
                              (display cheque-stran-table :payload (params->payload)))))))))))
@@ -357,7 +361,7 @@
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (cheque-stran-actions op kind (val cheque-stran-id))
+                           (actions cheque-stran-table :key (val cheque-stran-id))
                            (notifications)
                            (with-form
                                (actions/config/cheque-stran/update kind :cheque-stran-id (val cheque-stran-id))
@@ -411,7 +415,7 @@
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (cheque-stran-actions op kind (val cheque-stran-id))
+                           (actions cheque-stran-table :key (val cheque-stran-id))
                            (with-form (actions/config/cheque-stran/delete kind
                                                                           :cheque-stran-id (val cheque-stran-id))
                              (display cheque-stran-table

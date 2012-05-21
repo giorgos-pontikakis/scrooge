@@ -87,12 +87,6 @@
                   :css-class "hmenu")
    nil))
 
-(defun temtx-actions (op temtx-id)
-  (actions-menu (make-menu-spec
-                 (action-anchors/crud (config/temtx/update :temtx-id temtx-id)
-                                      (config/temtx/delete :temtx-id temtx-id)))
-                (enabled-actions/crud op temtx-id)))
-
 
 
 ;;; ------------------------------------------------------------
@@ -118,6 +112,15 @@
                              :on (:= 'credit-acc-id 'credit-account.id))
                     'temtx.title)
          :plists))
+
+(defmethod actions ((tbl temtx-table) &key key)
+  (let* ((temtx-id key)
+         (hrefs (if temtx-id
+                    (list :update (config/temtx/update :temtx-id temtx-id)
+                          :delete (config/temtx/delete :temtx-id temtx-id))
+                    nil)))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions tbl))))
 
 
 ;;; rows
@@ -184,9 +187,8 @@
                  (:div :class "grid_12"
                        (:div :id "temtx-window" :class "window"
                              (:div :class "title" "Κατάλογος")
-                             (temtx-actions op (val temtx-id))
-                             (display temtx-table
-                                      :key (val temtx-id))))
+                             (actions temtx-table :key (val temtx-id))
+                             (display temtx-table :key (val temtx-id))))
                  (footer)))))))
 
 
@@ -200,8 +202,7 @@
    (debit-account  string chk-account-title)
    (credit-account string chk-account-title))
   (with-view-page
-      (let ((op :create)
-            (temtx-table (make-instance 'temtx-table
+      (let ((temtx-table (make-instance 'temtx-table
                                         :op :create)))
         (with-document ()
           (:head
@@ -215,7 +216,7 @@
                  (:div :class "grid_12"
                        (:div :class "window"
                              (:div :class "title" "Δημιουργία")
-                             (temtx-actions op nil)
+                             (actions temtx-table)
                              (notifications)
                              (with-form (actions/config/temtx/create)
                                (display temtx-table :payload (params->payload)))))))))))
@@ -261,7 +262,7 @@
                  (:div :class "grid_12"
                        (:div :id "temtx-window" :class "window"
                              (:div :class "title" "Επεξεργασία")
-                             (temtx-actions op (val temtx-id))
+                             (actions temtx-table :key (val temtx-id))
                              (notifications)
                              (with-form (actions/config/temtx/update :temtx-id (val temtx-id))
                                (display temtx-table :key (val temtx-id)
@@ -292,8 +293,7 @@
 (defpage temtx-page config/temtx/delete ("config/temtx/delete")
   ((temtx-id integer chk-temtx-id t))
   (with-view-page
-      (let* ((op :delete)
-             (temtx-table (make-instance 'temtx-table
+      (let* ((temtx-table (make-instance 'temtx-table
                                          :op :delete)))
         (with-document ()
           (:head
@@ -307,7 +307,7 @@
                  (:div :class "grid_12"
                        (:div :id "temtx-window" :class "window"
                              (:div :class "title" "Διαγραφή")
-                             (temtx-actions op (val temtx-id))
+                             (actions temtx-table :key (val temtx-id))
                              (with-form (actions/config/temtx/delete :temtx-id (val temtx-id))
                                (display temtx-table :key (val temtx-id)))))
                  (footer)))))))
