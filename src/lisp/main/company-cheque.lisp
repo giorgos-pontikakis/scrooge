@@ -25,12 +25,42 @@
 
 (defclass company-cheque-table (cheque-table)
   ((header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
-                              "Ημερομηνία<br />λήξης" "<br />Ποσό")))
+                              "Ημερομηνία<br />λήξης" "<br />Ποσό"))
+   (company-id    :accessor company-id
+                  :initarg :company-id))
   (:default-initargs :item-class 'company-cheque-row
                      :id "company-cheque-table"
                      :paginator (make-instance 'company-cheque-paginator
                                                :id "cheque-paginator"
                                                :css-class "paginator")))
+
+(defmethod get-records ((table company-cheque-table))
+  (get-cheque-records table (company-id table)))
+
+(defun company-cheque-actions (op kind company-id cheque-id filter)
+  (actions-menu
+   (make-menu-spec
+    (action-anchors/crud (apply #'company/cheque/update kind :company-id company-id
+                                                             :cheque-id cheque-id
+                                                             filter)
+                         (apply #'company/cheque/delete kind :company-id company-id
+                                                             :cheque-id cheque-id
+                                                             filter)))
+   (enabled-actions/crud op cheque-id)))
+
+(defmethod actions ((table cheque-table) &key key)
+  (let* ((cheque-id key)
+         (kind (kind table))
+         (filter (filter table))
+         (company-id (company-id table))
+         (hrefs (list :update (apply #'company/cheque/update kind :company-id company-id
+                                                                  :cheque-id cheque-id
+                                                                  filter)
+                      :delete (apply #'company/cheque/delete kind :company-id company-id
+                                                                  :cheque-id cheque-id
+                                                                  filter))))
+    (acti0ns-menu (make-menu-spcf hrefs)
+                  (disabled-actions table))))
 
 (defclass company-cheque-row (cheque-row)
   ())
@@ -138,18 +168,6 @@
               company-filter
               "ac-company")))
 
-(defun company-cheque-actions (op kind company-id cheque-id filter)
-  (actions-menu
-   (make-menu-spec
-    (action-anchors/crud (apply #'company/cheque/update kind :company-id company-id
-                                                             :cheque-id cheque-id
-                                                             filter)
-                         (apply #'company/cheque/delete kind :company-id company-id
-                                                             :cheque-id cheque-id
-                                                             filter)))
-   (enabled-actions/crud op cheque-id)))
-
-
 
 ;;; ------------------------------------------------------------
 ;;; VIEW
@@ -173,8 +191,7 @@
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :details
-                                        :filter (list* :company-id (val company-id)
-                                                       cheque-filter)
+                                        :filter cheque-filter
                                         :start-index (val start)
                                         :kind kind))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
@@ -222,12 +239,14 @@
                                          :op :details
                                          :filter filter
                                          :start-index (val start)
-                                         :kind "payable"))
+                                         :kind "payable"
+                                         :company-id (val company-id)))
            (receivable-table (make-instance 'company-cheque-table
                                             :op :details
                                             :filter filter
                                             :start-index (val start)
-                                            :kind "receivable")))
+                                            :kind "receivable"
+                                            :company-id (val company-id))))
       (with-document ()
         (:head
          (:title "Εταιρία » Λεπτομέρειες » Επιταγές » Εκτύπωση")
@@ -277,9 +296,10 @@
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
-                                        :filter (list* :company-id (val company-id) cheque-filter)
+                                        :filter cheque-filter
                                         :start-index (val start)
-                                        :kind kind))
+                                        :kind kind
+                                        :company-id (val company-id)))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
                              (cheque-page-title kind)
                              " » Δημιουργία")))
@@ -374,9 +394,10 @@
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
-                                        :filter (list* :company-id (val company-id) cheque-filter)
+                                        :filter cheque-filter
                                         :start-index (val start)
-                                        :kind kind))
+                                        :kind kind
+                                        :company-id (val company-id)))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
                              (cheque-page-title kind)
                              " » Επεξεργασία")))
@@ -476,7 +497,7 @@
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
-                                        :filter (list* :company-id (val company-id) cheque-filter)
+                                        :filter cheque-filter
                                         :start-index (val start)
                                         :kind kind))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "

@@ -233,12 +233,14 @@
 
 (defclass company-tx-table (tx-table)
   ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" ""))
-   (paginator     :initform (make-instance 'company-tx-paginator
-                                           :id "company-tx-paginator"
-                                           :css-class "paginator")
-                  :initarg :paginator)
-   (company-id    :accessor company-id :initarg :company-id))
-  (:default-initargs :item-class 'company-tx-row :id "company-tx-table"))
+   (paginator     :initarg :paginator)
+   (company-id    :accessor company-id
+                  :initarg :company-id))
+  (:default-initargs :item-class 'company-tx-row
+                     :id "company-tx-table"
+                     :paginator (make-instance 'company-tx-paginator
+                                               :id "company-tx-paginator"
+                                               :css-class "paginator")))
 
 (defmethod actions ((tbl company-tx-table) &key key)
   (let* ((company-id (company-id tbl))
@@ -443,10 +445,10 @@
       (multiple-value-bind (records debit-sum credit-sum total)
           (company-debits/credits (val company-id) roles (val since) (val until))
         (let ((company-tx-table (make-instance 'company-tx-table
-                                                    :records records
-                                                    :company-id (val company-id)
-                                                    :op :update
-                                                    :filter filter)))
+                                               :records records
+                                               :company-id (val company-id)
+                                               :op :update
+                                               :filter filter)))
           (with-document ()
             (:head
              (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Επεξεργασία")
