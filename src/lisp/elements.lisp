@@ -143,53 +143,7 @@
                 (display search)))))
 
 
-
 ;;; actions menu
-
-(defparameter *action-labels* '((:create  . "Δημιουργία")
-                                (:details . "Λεπτομέρειες")
-                                (:update  . "Επεξεργασία")
-                                (:delete  . "Διαγραφή")))
-
-(defun action-anchors/crud (update delete &optional create)
-  (append (if create `((:create ,create "Δημιουργία")) nil)
-          `((:update ,update "Επεξεργασία")
-            (:delete ,delete "Διαγραφή"))))
-
-(defun action-anchors/crud+details (details update delete)
-  `((:details ,details "Λεπτομέρειες")
-    (:update  ,update  "Επεξεργασία")
-    (:delete  ,delete  "Διαγραφή")))
-
-(defun enabled-actions/crud (op id)
-  (ecase op
-    (:catalogue (if id
-                    '(:create :update :delete)
-                    '(:create)))
-    (:create '())
-    (:update '())
-    (:delete '())))
-
-(defun enabled-actions/crud+details (op id &rest extra-ops)
-  (ecase op
-    (:catalogue (if id
-                    `(:details :delete ,@extra-ops)
-                    '()))
-    (:details `(:update :delete ,@extra-ops))
-    (:create '())
-    (:update '())
-    (:delete '())))
-
-
-
-(defun enabled-actions/crud+ranks (op id)
-  (ecase op
-    (:catalogue (if id
-                    '(:create :update :delete :rank-up :rank-down)
-                    '(:create)))
-    (:create '())
-    (:update '())
-    (:delete '())))
 
 (defun acti0ns-menu (spec &optional disabled)
   (let ((all (mapcar #'first spec)))
@@ -201,28 +155,6 @@
         (funcall #'menu spec
                  :css-class "hmenu actions"
                  :disabled disabled))))
-
-(defun actions-menu (spec enabled)
-  (if (emptyp enabled)
-      (with-html
-        (:div :class "hmenu actions"
-              (:ul
-               (:li :class "invisible" "No available action."))))
-      (let ((disabled (set-difference (mapcar #'first spec) enabled)))
-        (funcall #'menu spec
-                 :css-class "hmenu actions"
-                 :disabled disabled))))
-
-(defun make-menu-spec (anchor-spec)
-  (mapcan (lambda (item)
-            (destructuring-bind (action href label) item
-              (when href
-                (list (list action
-                            (html ()
-                              (:a :href href
-                                  :class (string-downcase action)
-                                  (str label))))))))
-          anchor-spec))
 
 (defgeneric make-spec-line (action link ))
 
@@ -252,6 +184,7 @@
     (for val in (cdr actions-and-links) by #'cddr)
     (when val
       (collect (list key (make-spec-line key val))))))
+
 
 ;;; widgets
 

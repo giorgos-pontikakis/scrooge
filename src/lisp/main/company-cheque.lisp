@@ -37,28 +37,19 @@
 (defmethod get-records ((table company-cheque-table))
   (get-cheque-records table (company-id table)))
 
-(defun company-cheque-actions (op kind company-id cheque-id filter)
-  (actions-menu
-   (make-menu-spec
-    (action-anchors/crud (apply #'company/cheque/update kind :company-id company-id
-                                                             :cheque-id cheque-id
-                                                             filter)
-                         (apply #'company/cheque/delete kind :company-id company-id
-                                                             :cheque-id cheque-id
-                                                             filter)))
-   (enabled-actions/crud op cheque-id)))
-
-(defmethod actions ((table cheque-table) &key key)
+(defmethod actions ((table company-cheque-table) &key key)
   (let* ((cheque-id key)
          (kind (kind table))
          (filter (filter table))
          (company-id (company-id table))
-         (hrefs (list :update (apply #'company/cheque/update kind :company-id company-id
-                                                                  :cheque-id cheque-id
-                                                                  filter)
-                      :delete (apply #'company/cheque/delete kind :company-id company-id
-                                                                  :cheque-id cheque-id
-                                                                  filter))))
+         (hrefs (if cheque-id
+                    (list :update (apply #'company/cheque/update kind :company-id company-id
+                                                                      :cheque-id cheque-id
+                                                                      filter)
+                          :delete (apply #'company/cheque/delete kind :company-id company-id
+                                                                      :cheque-id cheque-id
+                                                                      filter))
+                    nil)))
     (acti0ns-menu (make-menu-spcf hrefs)
                   (disabled-actions table))))
 
@@ -68,6 +59,7 @@
 (defmethod selector ((row company-cheque-row) selected-p)
   (let* ((table (collection row))
          (cheque-id (key row))
+         (company-id (company-id table))
          (filter (filter table))
          (pg (paginator table))
          (kind (kind table))
@@ -77,10 +69,12 @@
                     (apply #'company/cheque
                            kind
                            :start (page-start pg (index row) start)
+                           :company-id company-id
                            filter)
                     (apply #'company/cheque
                            kind
                            :cheque-id cheque-id
+                           :company-id company-id
                            filter))
           (selector-img selected-p)))))
 
@@ -108,6 +102,7 @@
 (defmethod controls ((row company-cheque-row) controls-p)
   (let* ((cheque-id (key row))
          (table (collection row))
+         (company-id (company-id table))
          (filter (filter table))
          (kind (kind table)))
     (if controls-p
@@ -116,6 +111,7 @@
                              :href (apply #'company/cheque
                                           kind
                                           :cheque-id cheque-id
+                                          :company-id company-id
                                           filter)))
         (list nil nil))))
 
@@ -185,15 +181,15 @@
      (cstate     string))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :catalogue)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (cheque-filter (params->cheque-filter))
            (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op :details
+                                        :op :catalogue
                                         :filter cheque-filter
                                         :start-index (val start)
-                                        :kind kind))
+                                        :kind kind
+                                        :company-id (val company-id)))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
                              (cheque-page-title kind))))
       (with-document ()
@@ -215,11 +211,8 @@
                                (:div :id "company-tx-window"
                                      (:div :class "window"
                                            (:div :class "title" (str page-title))
-                                           (company-cheque-actions op kind
-                                                                   (val company-id) (val cheque-id)
-                                                                   filter)
-                                           (display cheque-table
-                                                    :key (val cheque-id))))))
+                                           (actions cheque-table :key (val cheque-id))
+                                           (display cheque-table :key (val cheque-id))))))
                (footer)))))))
 
 (defpage company-cheque-page company/cheque/print (("company/cheque/"
@@ -323,9 +316,7 @@
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
-                              (company-cheque-actions op kind
-                                                      (val company-id) nil
-                                                      filter)
+                              (actions cheque-table)
                               (notifications)
                               (with-form (actions/company/cheque/create kind
                                                                         :company-id (val company-id)
@@ -421,9 +412,7 @@
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
-                              (company-cheque-actions op kind
-                                                      (val company-id) (val cheque-id)
-                                                      filter)
+                              (actions cheque-table :key (val company-id))
                               (notifications)
                               (with-form (actions/company/cheque/update kind
                                                                         :company-id (val company-id)
@@ -456,7 +445,6 @@
     (check-cheque-accounts)
     (let ((cheque-dao (get-dao 'cheque (val cheque-id))))
       ;; Don't touch company-id, state-id and payable-p
-      ;; HACK: Pass plist of states
       (setf (bank-id cheque-dao) (bank-id (val bank))
             (due-date cheque-dao) (val due-date)
             (amount cheque-dao) (val amount)
@@ -499,7 +487,8 @@
                                         :op op
                                         :filter cheque-filter
                                         :start-index (val start)
-                                        :kind kind))
+                                        :kind kind
+                                        :company-id (val company-id)))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
                              (cheque-page-title kind)
                              " » Διαγραφή")))
@@ -523,9 +512,7 @@
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
-                              (company-cheque-actions op kind
-                                                      (val company-id) (val cheque-id)
-                                                      filter)
+                              (actions cheque-table :key (val company-id))
                               (notifications)
                               (with-form (actions/company/cheque/delete kind
                                                                         :company-id (val company-id)
