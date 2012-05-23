@@ -188,12 +188,17 @@
                              (:h3 :class "grid_12 alpha"
                                   (str (title (get-dao 'company company-id))))
                              (navbar
-                              `((data ,(apply #'company/details :company-id company-id filter)
+                              `((data ,(apply #'company/details
+                                              :company-id company-id
+                                              filter)
                                       "Στοιχεία")
-                                (tx ,(apply #'company/tx :company-id company-id filter)
+                                (tx ,(apply #'company/tx
+                                            :company-id company-id
+                                            filter)
                                     "Συναλλαγές")
                                 (cheque ,(apply #'company/cheque "receivable"
-                                                :company-id company-id filter)
+                                                :company-id company-id
+                                                filter)
                                         "Επιταγές"))
                               :css-class "hnavbar grid_5 prefix_7"
                               :active active

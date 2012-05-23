@@ -132,7 +132,12 @@
   (with-html
     (:div :class "grid_12"
           (:div :class "filter-area"
-                (mapc #'display widgets)))))
+                (display widgets)))))
+
+(defun secondary-filter-area (&rest widgets)
+  (with-html
+    (:div :class "secondary-filter-area"
+          (display widgets))))
 
 (defun top-actions (actions search)
   (with-html ()

@@ -462,7 +462,6 @@
                (header)
                (main-navbar 'cash)
                (cash-top-actions op kind nil filter)
-               (actions cash-form :filter filter)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))

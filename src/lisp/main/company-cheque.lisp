@@ -23,6 +23,8 @@
 ;;; Company cheque table
 ;;; ------------------------------------------------------------
 
+;;; table
+
 (defclass company-cheque-table (cheque-table)
   ((header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
                               "Ημερομηνία<br />λήξης" "<br />Ποσό"))
@@ -52,6 +54,52 @@
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions table))))
+
+(defmethod filters ((tbl company-cheque-table))
+  (let* ((kind (kind tbl))
+         (filter (filter tbl))
+         (company-id (company-id tbl))
+         (filter* (remove-from-plist filter kind :cstate))
+         (filter-spec `((nil      ,(apply #'company/cheque kind filter*)
+                                  "Όλες")
+                        (pending  ,(apply #'company/cheque kind :cstate "pending"
+                                                                :company-id company-id
+                                                                filter*)
+                                  "Σε εκκρεμότητα")
+                        (paid     ,(apply #'company/cheque kind :cstate "paid"
+                                                                :company-id company-id
+                                                                filter*)
+                                  "Πληρωμένες")
+                        (bounced  ,(apply #'company/cheque kind :cstate "bounced"
+                                                                :company-id company-id
+                                                                filter*)
+                                  "Ακάλυπτες")
+                        (returned ,(apply #'company/cheque kind :cstate "returned"
+                                                                :company-id company-id
+                                                                filter*)
+                                  "Επιστραμμένες")
+                        (stamped  ,(apply #'company/cheque kind :cstate "stamped"
+                                                                :company-id company-id
+                                                                filter*)
+                                  "Σφραγισμένες"))))
+    (secondary-filter-area (filter-navbar `((receivable ,(apply #'company/cheque "receivable"
+                                                                :company-id company-id
+                                                                filter)
+                                                        "Προς είσπραξη")
+                                            (payable ,(apply #'company/cheque "payable"
+                                                             :company-id company-id
+                                                             filter)
+                                                     "Προς πληρωμή"))
+                                          :active kind
+                                          :id "cheque-kind-navbar")
+                           (filter-navbar filter-spec
+                                          :active (getf filter :cstate))
+                           (datebox (lambda (&rest args)
+                                      (apply #'company/cheque kind :company-id company-id args))
+                                    filter))))
+
+
+;;; row
 
 (defclass company-cheque-row (cheque-row)
   ())
@@ -133,10 +181,6 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-cheque-filters (kind company-id filter)
-  (let ((filter* (list* :company-id company-id filter)))
-    (cheque-filters kind filter* #'company/cheque)))
-
 (defun company-cheque-top-actions (op kind company-id company-filter cheque-filter filter)
   (top-actions
    (make-instance 'menu
@@ -204,10 +248,7 @@
                                            company-filter cheque-filter filter)
                (company-tabs (val company-id) company-filter 'cheque
                              (html ()
-                               (:div :class "secondary-filter-area"
-                                     (display (company-cheque-filters kind
-                                                                      (val company-id)
-                                                                      filter)))
+                               (filters cheque-table)
                                (:div :id "company-tx-window"
                                      (:div :class "window"
                                            (:div :class "title" (str page-title))
@@ -309,10 +350,7 @@
                (company-tabs
                 (val company-id) company-filter 'cheque
                 (html ()
-                  (:div :class "secondary-filter-area"
-                        (display (company-cheque-filters kind
-                                                         (val company-id)
-                                                         filter)))
+                  (filters cheque-table)
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
@@ -405,10 +443,7 @@
                (company-tabs
                 (val company-id) company-filter 'cheque
                 (html ()
-                  (:div :class "secondary-filter-area"
-                        (display (company-cheque-filters kind
-                                                         (val company-id)
-                                                         filter)))
+                  (filters cheque-table)
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
@@ -506,9 +541,7 @@
                 (val company-id) company-filter 'cheque
                 (html ()
                   (:div :class "secondary-filter-area"
-                        (display (company-cheque-filters kind
-                                                         (val company-id)
-                                                         filter)))
+                        (filters cheque-table))
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))

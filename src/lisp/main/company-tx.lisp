@@ -56,21 +56,6 @@
                           filter
                           "ac-company")))
 
-(defun company-tx-filters (filter)
-  (let* ((url-fn #'company/tx)
-         (filter* (remove-from-plist filter :role))
-         (filter-spec `((nil      ,(apply url-fn filter*)
-                                  "Μικτός ρόλος")
-                        (customer  ,(apply url-fn :role "customer" filter*)
-                                   "Πελάτης")
-                        (supplier ,(apply url-fn :role "supplier" filter*)
-                                  "Προμηθευτής"))))
-    (display (filter-navbar filter-spec
-                            :active (getf filter :role)))
-    (display (datebox (lambda (&rest args)
-                        (apply url-fn args))
-                      filter))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -131,9 +116,6 @@
                                      cheque-event.cheque-id)
                                  (:= tx2.debit-acc-id
                                      ,*cheque-payable-acc-id*)))))))
-
-
-
 
 (defun company-debits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
@@ -254,6 +236,24 @@
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
+(defmethod filters ((tbl company-tx-table))
+  (let* ((company-id (company-id tbl))
+         (filter (filter tbl))
+         (filter* (remove-from-plist filter :role))
+         (filter-spec `((nil      ,(apply #'company/tx :company-id company-id filter*)
+                                  "Μικτός ρόλος")
+                        (customer  ,(apply #'company/tx :company-id company-id
+                                                        :role "customer" filter*)
+                                   "Πελάτης")
+                        (supplier ,(apply #'company/tx :company-id company-id
+                                                       :role "supplier" filter*)
+                                  "Προμηθευτής"))))
+    (secondary-filter-area (filter-navbar filter-spec
+                                          :active (getf filter :role))
+                           (datebox #'company/tx
+                                    (list* :company-id company-id filter)))))
+
+
 ;;; rows
 
 (defclass company-tx-row (scrooge-row/plist)
@@ -364,8 +364,7 @@
                    (company-tabs
                     (val company-id) company-filter 'tx
                     (html ()
-                      (:div :class "secondary-filter-area"
-                            (company-tx-filters (list* :company-id (val company-id) filter)))
+                      (filters company-tx-table)
                       (:div :id "company-tx-window" :class "window"
                             (:div :class "title" "Συναλλαγές")
                             (actions company-tx-table :key (val tx-id))
@@ -461,8 +460,7 @@
                    (company-tabs
                     (val company-id) company-filter 'tx
                     (html ()
-                      (:div :class "secondary-filter-area"
-                            (company-tx-filters (list* :company-id (val company-id) filter)))
+                      (filters company-tx-table)
                       (:div :id "company-tx-window" :class "window"
                             (:div :class "title" "Συναλλαγές")
                             (actions company-tx-table :key (val tx-id))

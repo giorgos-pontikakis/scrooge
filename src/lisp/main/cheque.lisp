@@ -139,32 +139,6 @@
               filter
               "ac-company")))
 
-(defun cheque-filters (kind filter &optional (url-fn #'cheque))
-  (let* ((filter* (remove-from-plist filter kind :cstate))
-         (filter-spec `((nil      ,(apply url-fn kind filter*)
-                                  "Όλες")
-                        (pending  ,(apply url-fn kind :cstate "pending" filter*)
-                                  "Σε εκκρεμότητα")
-                        (paid     ,(apply url-fn kind :cstate "paid" filter*)
-                                  "Πληρωμένες")
-                        (bounced  ,(apply url-fn kind :cstate "bounced" filter*)
-                                  "Ακάλυπτες")
-                        (returned ,(apply url-fn kind :cstate "returned" filter*)
-                                  "Επιστραμμένες")
-                        (stamped  ,(apply url-fn kind :cstate "stamped" filter*)
-                                  "Σφραγισμένες"))))
-    (list (filter-navbar `((receivable ,(apply url-fn "receivable" filter)
-                                       "Προς είσπραξη")
-                           (payable ,(apply url-fn "payable" filter)
-                                    "Προς πληρωμή"))
-                         :active kind
-                         :id "cheque-kind-navbar")
-          (filter-navbar filter-spec
-                         :active (getf filter :cstate))
-          (datebox (lambda (&rest args)
-                     (apply url-fn kind args))
-                   filter))))
-
 
 
 ;;; ----------------------------------------------------------------------
@@ -326,6 +300,34 @@
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
+(defmethod filters ((tbl cheque-table))
+  (let* ((kind (kind tbl))
+         (filter (filter tbl))
+         (filter* (remove-from-plist filter kind :cstate))
+         (filter-spec `((nil      ,(apply #'cheque kind filter*)
+                                  "Όλες")
+                        (pending  ,(apply #'cheque kind :cstate "pending" filter*)
+                                  "Σε εκκρεμότητα")
+                        (paid     ,(apply #'cheque kind :cstate "paid" filter*)
+                                  "Πληρωμένες")
+                        (bounced  ,(apply #'cheque kind :cstate "bounced" filter*)
+                                  "Ακάλυπτες")
+                        (returned ,(apply #'cheque kind :cstate "returned" filter*)
+                                  "Επιστραμμένες")
+                        (stamped  ,(apply #'cheque kind :cstate "stamped" filter*)
+                                  "Σφραγισμένες"))))
+    (filter-area (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
+                                              "Προς είσπραξη")
+                                  (payable ,(apply #'cheque "payable" filter)
+                                           "Προς πληρωμή"))
+                                :active kind
+                                :id "cheque-kind-navbar")
+                 (filter-navbar filter-spec
+                                :active (getf filter :cstate))
+                 (datebox (lambda (&rest args)
+                            (apply #'cheque kind args))
+                          filter))))
+
 
 ;;; rows
 
@@ -454,7 +456,7 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val cheque-id) filter)
-               (filter-area (cheque-filters kind filter))
+               (filters cheque-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -535,6 +537,7 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
+                           (actions cheque-table)
                            (notifications)
                            (with-form (actions/cheque/create kind
                                                              :search (val search)
@@ -685,7 +688,7 @@
                (header)
                (main-navbar 'cheque)
                (cheque-top-actions op kind (val cheque-id) filter)
-               (filter-area (cheque-filters kind filter))
+               (filters cheque-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
