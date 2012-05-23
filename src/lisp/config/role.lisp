@@ -63,7 +63,7 @@
   (let ((hrefs (if key
                    (list :update (config/account-role/update :account-role-id key))
                    nil)))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (if (and key (eql (op tbl) :update))
                       '(:update)
                       '()))))

@@ -141,7 +141,7 @@
                     (list :details (apply #'invoice/details issuer kind :tx-id tx-id filter)
                           :delete (apply #'invoice/delete issuer kind :tx-id tx-id filter))
                     nil)))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 
@@ -344,7 +344,7 @@
          (kind (kind form))
          (hrefs (list :update (apply #'invoice/update issuer kind :tx-id tx-id filter)
                       :delete (apply #'invoice/delete issuer kind :tx-id tx-id filter))))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
 
 

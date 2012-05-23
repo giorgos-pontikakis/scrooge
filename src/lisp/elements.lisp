@@ -145,7 +145,7 @@
 
 ;;; actions menu
 
-(defun acti0ns-menu (spec &optional disabled)
+(defun actions-menu (spec &optional disabled)
   (let ((all (mapcar #'first spec)))
     (if (subsetp all disabled)
         (with-html
@@ -156,7 +156,7 @@
                  :css-class "hmenu actions"
                  :disabled disabled))))
 
-(defgeneric make-spec-line (action link ))
+(defgeneric make-spec-line (action link))
 
 (defmethod make-spec-line ((action symbol) (link string))
   (html ()
@@ -178,7 +178,7 @@
   (declare (ignore action link))
   nil)
 
-(defun make-menu-spcf (actions-and-links)
+(defun make-menu-spec (actions-and-links)
   (iter
     (for key in actions-and-links by #'cddr)
     (for val in (cdr actions-and-links) by #'cddr)

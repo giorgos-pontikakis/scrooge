@@ -149,7 +149,7 @@
                                   nil
                                   (config/account/delete :account-id account-id)))
                    nil)))
-    (acti0ns-menu (make-menu-spcf spec)
+    (acti0ns-menu (make-menu-spec spec)
                   (if account-id
                       '()
                       '(:create :update :delete)))))

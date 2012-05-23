@@ -286,7 +286,7 @@
                                                   :company (title (get-dao 'company company-id)))
                                            :class "create"
                                            "Νέο Έργο")))))
-    (acti0ns-menu (make-menu-spcf spec)
+    (acti0ns-menu (make-menu-spec spec)
                   (disabled-actions form))))
 
 (defmethod disabled-actions ((form company-form) &key)
@@ -406,7 +406,7 @@
                                                 :class "create"
                                                 "Νέο Έργο")))
                     nil)))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 (defmethod disabled-actions ((tbl company-table) &key)

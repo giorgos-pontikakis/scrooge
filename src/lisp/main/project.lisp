@@ -272,7 +272,7 @@
   (let* ((project-id (key form))
          (spec (list :update (apply #'project/update :project-id project-id filter)
                      :delete (apply #'project/delete :project-id project-id filter))))
-    (acti0ns-menu (make-menu-spcf spec)
+    (acti0ns-menu (make-menu-spec spec)
                   (disabled-actions form))))
 
 
@@ -331,7 +331,7 @@
                     (list :details (apply #'project/details :project-id project-id filter)
                           :delete (apply #'project/delete :project-id project-id filter))
                     nil)))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 

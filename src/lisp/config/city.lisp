@@ -115,7 +115,7 @@
                                       nil
                                       (apply #'config/city/delete :city-id city-id filter)))
                     nil)))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 

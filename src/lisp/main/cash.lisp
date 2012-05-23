@@ -140,7 +140,7 @@
                     (list :details (apply #'cash/details kind :tx-id tx-id filter)
                           :delete (apply #'cash/delete kind :tx-id tx-id filter))
                     nil)))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 
@@ -321,7 +321,7 @@
          (kind (kind form))
          (hrefs (list :update (apply #'cash/update kind :tx-id tx-id filter)
                       :delete (apply #'cash/delete kind :tx-id tx-id filter))))
-    (acti0ns-menu (make-menu-spcf hrefs)
+    (acti0ns-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
 
 
