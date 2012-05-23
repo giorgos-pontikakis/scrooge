@@ -143,6 +143,18 @@
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
+(defmethod filters ((tbl cash-tx-table))
+  (let ((kind (kind tbl))
+        (filter (filter tbl)))
+    (filter-area (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
+                                  (expense ,(apply #'cash "expense" filter) "Έξοδα"))
+                                :active kind
+                                :id "kind-navbar")
+                 (datebox (lambda (&rest args)
+                            (apply #'cash kind args))
+                          filter))))
+
+
 
 ;;; rows
 
@@ -247,15 +259,6 @@
                                 (apply #'cash kind :tx-id tx-id args))
                             filter
                             "ac-company"))))
-
-(defun cash-filters (kind filter)
-  (filter-area (filter-navbar `((revenue ,(apply #'cash "revenue" filter) "Έσοδα")
-                                (expense ,(apply #'cash "expense" filter) "Έξοδα"))
-                              :active kind
-                              :id "kind-navbar")
-               (datebox (lambda (&rest args)
-                          (apply #'cash kind args))
-                        filter)))
 
 
 
@@ -386,7 +389,7 @@
                (header)
                (main-navbar 'cash)
                (cash-top-actions op kind (val tx-id) filter)
-               (cash-filters kind filter)
+               (filters cash-tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -616,7 +619,7 @@
                (header)
                (main-navbar 'cash)
                (cash-top-actions op kind (val tx-id) filter)
-               (cash-filters kind filter)
+               (filters cash-tx-table)
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))

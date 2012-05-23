@@ -95,9 +95,6 @@
               filter
               "ac-company")))
 
-(defun tx-filters (filter)
-  (filter-area (datebox #'tx filter)))
-
 
 
 ;;; ----------------------------------------------------------------------
@@ -189,6 +186,9 @@
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
+(defmethod filters ((tbl tx-table))
+  (filter-area (datebox #'tx (filter tbl))))
+
 
 ;;; rows
 
@@ -270,7 +270,7 @@
                (header)
                (main-navbar 'tx)
                (tx-top-actions (val tx-id) filter)
-               (tx-filters filter)
+               (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -309,7 +309,7 @@
                (header)
                (main-navbar 'tx)
                (tx-top-actions nil filter)
-               (tx-filters filter)
+               (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -381,7 +381,7 @@
                (header)
                (main-navbar 'tx)
                (tx-top-actions tx-id filter)
-               (tx-filters filter)
+               (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -450,7 +450,7 @@
                (header)
                (main-navbar 'tx)
                (tx-top-actions (val tx-id) filter)
-               (tx-filters filter)
+               (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Διαγραφή")

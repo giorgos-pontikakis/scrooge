@@ -144,6 +144,25 @@
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
+(defmethod filters ((tbl invoice-tx-table))
+  (let ((issuer (issuer tbl))
+        (kind (kind tbl))
+        (filter (filter tbl)))
+    (filter-area (filter-navbar `((customer ,(apply #'invoice "customer" "debit" filter)
+                                            "Πελάτες")
+                                  (supplier ,(apply #'invoice "supplier" "credit" filter)
+                                            "Προμηθευτές"))
+                                :active issuer
+                                :id "issuer-navbar")
+                 (filter-navbar `((debit ,(apply #'invoice issuer "debit" filter)
+                                         "Χρεώσεις")
+                                  (credit ,(apply #'invoice issuer "credit" filter)
+                                          "Πιστώσεις"))
+                                :active kind
+                                :id "kind-navbar")
+                 (datebox (lambda (&rest args)
+                            (apply #'invoice issuer kind args))
+                          filter))))
 
 ;;; rows
 
@@ -275,23 +294,6 @@
               filter
               "ac-company")))
 
-(defun invoice-filters (issuer kind filter)
-  (filter-area (filter-navbar `((customer ,(apply #'invoice "customer" "debit" filter)
-                                          "Πελάτες")
-                                (supplier ,(apply #'invoice "supplier" "credit" filter)
-                                          "Προμηθευτές"))
-                              :active issuer
-                              :id "issuer-navbar")
-               (filter-navbar `((debit ,(apply #'invoice issuer "debit" filter)
-                                       "Χρεώσεις")
-                                (credit ,(apply #'invoice issuer "credit" filter)
-                                        "Πιστώσεις"))
-                              :active kind
-                              :id "kind-navbar")
-               (datebox (lambda (&rest args)
-                          (apply #'invoice issuer kind args))
-                        filter)))
-
 
 
 ;;; ----------------------------------------------------------------------
@@ -421,7 +423,7 @@
                (header)
                (main-navbar 'invoice)
                (invoice-top-actions op issuer kind (val tx-id) filter)
-               (invoice-filters issuer kind filter)
+               (filters invoice-tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -650,7 +652,7 @@
                (header)
                (main-navbar 'invoice)
                (invoice-top-actions op issuer kind (val tx-id) filter)
-               (invoice-filters issuer kind filter)
+               (filters invoice-tx-table)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:div :class "title" (str page-title))
