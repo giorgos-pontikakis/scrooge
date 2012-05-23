@@ -84,7 +84,7 @@
                                   :hidden `(:company-id ,company-id :contact-id ,contact-id ,@filter)
                                   :body (make-instance 'submit
                                                        :body "Κάτω" :css-class "down"))))))
-    (acti0ns-menu spec
+    (actions-menu spec
                   (disabled-actions tbl :key contact-id))))
 
 

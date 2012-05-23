@@ -50,7 +50,7 @@
                                                                       :cheque-id cheque-id
                                                                       filter))
                     nil)))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions table))))
 
 (defclass company-cheque-row (cheque-row)

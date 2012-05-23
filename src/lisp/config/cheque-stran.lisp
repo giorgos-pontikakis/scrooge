@@ -192,7 +192,7 @@
                           :delete (config/cheque-stran/delete (kind table)
                                                               :cheque-stran-id cheque-stran-id))
                     nil)))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions table))))
 
 

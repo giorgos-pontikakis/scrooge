@@ -240,7 +240,7 @@
          (kind (kind form))
          (hrefs (list :update (apply #'cheque/update kind :cheque-id cheque-id filter)
                       :delete (apply #'cheque/delete kind :cheque-id cheque-id filter))))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
 
 
@@ -323,7 +323,7 @@
                           :update (apply #'cheque/update kind :cheque-id cheque-id filter)
                           :delete (apply #'cheque/delete kind :cheque-id cheque-id filter))
                     nil)))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 

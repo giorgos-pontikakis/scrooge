@@ -209,7 +209,7 @@
 
 (defmethod actions ((form crud-form) &key)
   (declare (ignore form))
-  (acti0ns-menu nil))
+  (actions-menu nil))
 
 (defmethod disabled-actions ((form crud-form) &key)
   (ecase (op form)

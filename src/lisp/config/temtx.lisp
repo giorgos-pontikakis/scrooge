@@ -119,7 +119,7 @@
                     (list :update (config/temtx/update :temtx-id temtx-id)
                           :delete (config/temtx/delete :temtx-id temtx-id))
                     nil)))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 

@@ -82,7 +82,7 @@
                                   :hidden `(:project-id ,project-id :bill-id ,bill-id ,@filter)
                                   :body (make-instance 'submit
                                                        :body "Κάτω" :css-class "down"))))))
-    (acti0ns-menu spec
+    (actions-menu spec
                   (disabled-actions tbl :key bill-id))))
 
 ;;; rows

@@ -113,7 +113,7 @@
                                       nil
                                       (apply #'config/bank/delete :bank-id bank-id filter)))
                     nil)))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 

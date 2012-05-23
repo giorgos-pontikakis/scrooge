@@ -251,7 +251,7 @@
                                                              :tx-id key
                                                              filter))
                     nil)))
-    (acti0ns-menu (make-menu-spec hrefs)
+    (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 ;;; rows
