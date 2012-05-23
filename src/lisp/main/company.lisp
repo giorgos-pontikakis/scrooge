@@ -179,19 +179,6 @@
                           filter
                           "ac-company")))
 
-(defun company-filters (filter)
-  (let* ((filter* (remove-from-plist filter :subset))
-         (filter-spec `(("nil"      ,(apply #'company filter*)
-                                    "Όλες")
-                        ("projects" ,(apply #'company :subset "projects" filter*)
-                                    "Με ενεργά έργα")
-                        ("debt"     ,(apply #'company :subset "debt" filter*)
-                                    "Με χρεωστικό υπόλοιπο")
-                        ("credit"   ,(apply #'company :subset "credit" filter*)
-                                    "Με πιστωτικό υπόλοιπο"))))
-    (filter-area (filter-navbar filter-spec
-                                :active (getf filter :subset)))))
-
 (defun company-tabs (company-id filter active content)
   (with-html
     (:div :class "grid_12"
@@ -414,6 +401,18 @@
     (:catalogue '())
     (:delete '(:details :delete :create-project))))
 
+(defmethod filters ((tbl company-table))
+  (let* ((filter* (remove-from-plist (filter tbl) :subset))
+         (filter-spec `(("nil"      ,(apply #'company filter*)
+                                    "Όλες")
+                        ("projects" ,(apply #'company :subset "projects" filter*)
+                                    "Με ενεργά έργα")
+                        ("debt"     ,(apply #'company :subset "debt" filter*)
+                                    "Με χρεωστικό υπόλοιπο")
+                        ("credit"   ,(apply #'company :subset "credit" filter*)
+                                    "Με πιστωτικό υπόλοιπο"))))
+    (filter-area (filter-navbar filter-spec
+                                :active (getf (filter tbl) :subset)))))
 
 ;;; rows
 
@@ -498,7 +497,7 @@
                (header)
                (main-navbar 'company)
                (company-top-actions op (val company-id) filter)
-               (company-filters filter)
+               (filters company-table)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title"  "Κατάλογος")
@@ -735,7 +734,7 @@
                (header)
                (main-navbar 'company)
                (company-top-actions op (val company-id) filter)
-               (company-filters filter)
+               (filters company-table)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title" "Εταιρία » Διαγραφή")

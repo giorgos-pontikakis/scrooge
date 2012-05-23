@@ -152,11 +152,6 @@
                               :css-class "hmenu")
                nil))
 
-(defun cheque-stran-filters (kind)
-  (filter-area (filter-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
-                                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
-                              :active (intern (string-upcase kind)))))
-
 
 
 ;;; ------------------------------------------------------------
@@ -194,6 +189,11 @@
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions table))))
+
+(defmethod filters ((tbl cheque-stran-table))
+  (filter-area (filter-navbar `((receivable ,(config/cheque-stran "receivable") "Προς είσπραξη")
+                                (payable    ,(config/cheque-stran "payable")    "Προς πληρωμή"))
+                              :active (intern (string-upcase (kind tbl))))))
 
 
 ;;; rows
@@ -267,7 +267,7 @@
                (header 'config)
                (config-navbar 'cheque-stran)
                (cheque-stran-top-actions kind)
-               (cheque-stran-filters kind)
+               (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -289,10 +289,9 @@
      (temtx         string chk-temtx-title))
   (check-cheque-stran-parameters from-state-id to-state-id kind)
   (with-view-page
-    (let* ((op :create)
-           (cheque-stran-table (make-instance 'cheque-stran-table
-                                              :kind kind
-                                              :op op)))
+    (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                             :kind kind
+                                             :op :create)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Επιταγών » Δημιουργία")
@@ -302,7 +301,7 @@
                (header 'config)
                (config-navbar 'cheque-stran)
                (cheque-stran-top-actions kind)
-               (cheque-stran-filters kind)
+               (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -344,10 +343,9 @@
      (temtx           string  chk-temtx-title))
   (check-cheque-stran-parameters from-state-id to-state-id kind cheque-stran-id)
   (with-view-page
-    (let* ((op :update)
-           (cheque-stran-table (make-instance 'cheque-stran-table
-                                              :kind kind
-                                              :op op)))
+    (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                             :kind kind
+                                             :op :update)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Επιταγών » Επεξεργασία")
@@ -357,7 +355,7 @@
                (header 'config)
                (config-navbar 'cheque-stran)
                (cheque-stran-top-actions kind)
-               (cheque-stran-filters kind)
+               (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -398,10 +396,9 @@
     (("config/cheque-stran/" (kind "(receivable|payable)") "/delete"))
     ((cheque-stran-id integer chk-cheque-stran-id t))
   (with-view-page
-    (let* ((op :delete)
-           (cheque-stran-table (make-instance 'cheque-stran-table
-                                              :kind kind
-                                              :op op)))
+    (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                             :kind kind
+                                             :op :delete)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Επιταγών » Διαγραφή")
@@ -411,7 +408,7 @@
                (header 'config)
                (config-navbar 'cheque-stran)
                (cheque-stran-top-actions kind)
-               (cheque-stran-filters kind)
+               (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Διαγραφή")

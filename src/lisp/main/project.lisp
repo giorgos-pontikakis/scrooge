@@ -181,17 +181,6 @@
                           filter
                           "ac-project")))
 
-(defun project-filters (filter)
-  (let ((filter* (remove-from-plist filter :cstate)))
-    (filter-area (filter-navbar
-                  `((nil      ,(project)                                    "Όλα")
-                    (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
-                    (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
-                    (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
-                    (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
-                    (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
-                  :active (getf filter :cstate)))))
-
 (defun project-tabs (project-id content)
   (with-html
     (:div :class "grid_12"
@@ -334,6 +323,16 @@
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
+(defmethod filters ((tbl project-table))
+  (let ((filter* (remove-from-plist (filter tbl) :cstate)))
+    (filter-area (filter-navbar
+                  `((nil      ,(project)                                    "Όλα")
+                    (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
+                    (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
+                    (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
+                    (archived ,(apply #'project :cstate "archived" filter*) "Αρχειοθετημένα")
+                    (canceled ,(apply #'project :cstate "canceled" filter*) "Άκυρα"))
+                  :active (getf (filter tbl) :cstate)))))
 
 
 ;;; rows
@@ -419,7 +418,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions op (val project-id) filter)
-               (project-filters filter)
+               (filters project-table)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -660,7 +659,7 @@
                (header)
                (main-navbar 'project)
                (project-top-actions op (val project-id) filter)
-               (project-filters filter)
+               (filters project-table)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Έργο » Διαγραφή")

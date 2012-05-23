@@ -11,6 +11,8 @@
 (defgeneric get-record (widget)
   (:documentation "Returs a record of the widget"))
 
+(defgeneric filters (collection)
+  (:documentation "Returns the filter linke of a collection widget"))
 
 ;;; ----------------------------------------------------------------------
 ;;; Tables
