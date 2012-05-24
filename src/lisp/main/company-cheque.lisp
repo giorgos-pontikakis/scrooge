@@ -6,7 +6,7 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass company-cheque-page (cheque-page page-family-mixin)
+(defclass company-cheque-page (cheque-page)
   ((system-parameter-names
     :allocation :class
     :initform '(company-id cheque-id start))
