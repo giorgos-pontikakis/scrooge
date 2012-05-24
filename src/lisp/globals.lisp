@@ -8,10 +8,12 @@
 (setf (doctype) :xhtml)
 (setf (indent-mode) t)
 
-(defparameter *action-labels* '((:create  . "Δημιουργία")
-                                (:details . "Λεπτομέρειες")
-                                (:update  . "Επεξεργασία")
-                                (:delete  . "Διαγραφή")))
+(defparameter *action-labels* '((:catalogue . "Κατάλογος")
+                                (:create    . "Δημιουργία")
+                                (:details   . "Λεπτομέρειες")
+                                (:update    . "Επεξεργασία")
+                                (:delete    . "Διαγραφή")
+                                (:print     . "Εκτύπωση")))
 
 (defparameter *project-state-ids* (lists->alist
                                 (with-db ()

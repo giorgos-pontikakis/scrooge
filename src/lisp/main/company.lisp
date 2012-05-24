@@ -49,6 +49,9 @@
                   :zipcode-invalid
                   "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
 
+(defclass company-widget (widget-family-mixin)
+  ((urls :initform (list :catalogue #'company))))
+
 (defun params->company-filter ()
   (params->filter :page (find-page 'company)))
 
@@ -179,6 +182,24 @@
                           filter
                           "ac-company")))
 
+(defmethod general-actions ((widget company-widget) &key key filter)
+  (let* ((company-id key)
+         (hrefs (list :catalogue (apply #'company :company-id company-id filter)
+                      (:create . "Νέα Εταιρία") (apply #'company/create filter)
+                      :print )))
+
+    (top-actions (make-instance 'menu
+                                :spec `((catalogue ,(company-catalogue-link company-id filter))
+                                        (create ,(company-create-link filter))
+                                        (print ,(company-print-link company-id filter)))
+                                :css-class "hmenu"
+                                :disabled (company-disabled-actions (op widget)))
+                 (searchbox #'actions/company/search
+                            #'(lambda (&rest args)
+                                (apply #'company :company-id company-id args))
+                            filter
+                            "ac-company"))))
+
 (defun company-tabs (company-id filter active content)
   (with-html
     (:div :class "grid_12"
@@ -214,7 +235,7 @@
 ;;; Company form
 ;;; ------------------------------------------------------------
 
-(defclass company-form (crud-form/plist)
+(defclass company-form (crud-form/plist company-widget-mixin)
   ())
 
 (defmethod display ((form company-form) &key styles)

@@ -1,6 +1,16 @@
 (in-package :scrooge)
 
 
+;;; ----------------------------------------------------------------------
+;;; Widget families
+;;; ----------------------------------------------------------------------
+
+(defclass widget-family-mixin ()
+  ((urls :accessor urls :initform nil)))
+
+(defgeneric disabled-general-actions (widget)
+  (:documentation "General actions for the widget"))
+
 
 (defgeneric actions (widget &key)
   (:documentation "Prints the html for the actions of the widget"))
