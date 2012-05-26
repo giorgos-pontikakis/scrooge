@@ -467,7 +467,7 @@
                                                            :since (val since)
                                                            :until (val until))
                              (display cash-form :payload (params->values :payload)
-                                                :styles (params->styles)))))
+                                                :styles (params->styles :payload)))))
                (footer)))))))
 
 (defpage cash-page actions/cash/create
@@ -550,7 +550,7 @@
                                                            :since (val since)
                                                            :until (val until))
                              (display cash-form :payload (params->values :payload)
-                                                :styles (params->styles)))))
+                                                :styles (params->styles :payload)))))
                (footer)))))))
 
 (defpage cash-page actions/cash/update

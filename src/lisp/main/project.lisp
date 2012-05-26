@@ -503,7 +503,7 @@
                                            (with-form (actions/project/create :search (val search)
                                                                               :cstate (val cstate))
                                              (display project-form :payload (params->values :payload)
-                                                                   :styles (params->styles)))))))
+                                                                   :styles (params->styles :payload)))))))
                (footer)))))))
 
 (defpage project-page actions/project/create ("actions/project/create"
@@ -590,7 +590,7 @@
                                                                        :search (val search)
                                                                        :cstate (val cstate))
                                              (display project-form :payload (params->values :payload)
-                                                                   :styles (params->styles)))))
+                                                                   :styles (params->styles :payload)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")

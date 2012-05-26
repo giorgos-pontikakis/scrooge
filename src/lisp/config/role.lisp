@@ -144,7 +144,7 @@
                            (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
                              (display account-role-table :key (val account-role-id)
                                                          :payload (params->values :payload)
-                                                         :styles (params->styles)))))
+                                                         :styles (params->styles :payload)))))
                (footer)))))))
 
 (defpage account-role-page actions/config/account-role/update

@@ -504,7 +504,7 @@
                                                               :since (val since)
                                                               :until (val until))
                              (display invoice-form :payload (params->values :payload)
-                                                   :styles (params->styles)))))
+                                                   :styles (params->styles :payload)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/create
@@ -585,7 +585,7 @@
                                                               :since (val since)
                                                               :until (val until))
                              (display invoice-form :payload (params->values :payload)
-                                                   :styles (params->styles)))))
+                                                   :styles (params->styles :payload)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/update

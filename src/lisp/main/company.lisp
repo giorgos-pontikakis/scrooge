@@ -174,8 +174,8 @@
                           filter
                           "ac-company")))
 
-(defmethod general-actions ((widget company-family) &key key filter)
-  (let* ((company-id key)
+(defmethod general-actions ((widget company-family))
+  (let* ((company-id (pkey widget))
          (hrefs (list :catalogue (apply #'company :company-id company-id filter)
                       '(:create . "Νέα Εταιρία") (apply #'company/create filter))))
 
@@ -602,8 +602,9 @@
                                            (actions company-form :filter filter)
                                            (notifications)
                                            (with-form (actions/company/create :search (val search))
-                                             (display company-form :payload (params->values :payload)
-                                                                   :styles (params->styles)))))))
+                                             (display company-form
+                                                      :payload (params->values :payload)
+                                                      :styles (params->styles :payload)))))))
                (footer)))))))
 
 (defpage company-page actions/company/create ("actions/company/create"
@@ -687,7 +688,7 @@
                                                        :company-id (val company-id)
                                                        :search (val search))
                                              (display company-form :payload (params->values :payload)
-                                                                   :styles (params->styles)))))
+                                                                   :styles (params->styles :payload)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
