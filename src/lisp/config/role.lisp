@@ -6,20 +6,14 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass account-role-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(account-role-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(account))
-   (filter-parameter-names
-    :allocation :class
-    :initform '())
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass account-role-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (account-role-id)
+                                         :payload (account)
+                                         :filter ())))
+
+(defclass account-role-page (auth-dynamic-page account-role-family)
+  (g(messages
     :allocation :class
     :reader messages
     :initform
@@ -149,7 +143,7 @@
                            (actions account-role-table :key (val account-role-id))
                            (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
                              (display account-role-table :key (val account-role-id)
-                                                         :payload (params->payload)
+                                                         :payload (params->values :payload)
                                                          :styles (params->styles)))))
                (footer)))))))
 

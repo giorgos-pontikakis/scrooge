@@ -6,16 +6,14 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass company-cheque-page (cheque-page)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(company-id cheque-id start))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(bank due-date amount tstamp serial))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))))
+(defclass company-cheque-family (cheque-family)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (company-id cheque-id start)
+                       :payload (bank due-date amount tstamp serial))))
+
+(defclass company-cheque-page (auth-regex-page company-cheque-family)
+  ())
 
 
 
@@ -225,9 +223,9 @@
      (cstate     string))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+    (let* ((filter (params->values :filter))
+           (cheque-filter (params->values :cheque-filter))
+           (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :catalogue
                                         :filter cheque-filter
@@ -268,7 +266,7 @@
      (start      integer)
      (cstate     string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (payable-table (make-instance 'company-cheque-table
                                          :op :details
                                          :filter filter
@@ -325,9 +323,9 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
-           (filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+           (filter (params->values :filter))
+           (cheque-filter (params->values :cheque-filter))
+           (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
                                         :filter cheque-filter
@@ -364,7 +362,7 @@
                                                                         :start (val start)
                                                                         :since (val since)
                                                                         :until (val until))
-                                (display cheque-table :payload (params->payload)))))))
+                                (display cheque-table :payload (params->values :payload)))))))
                (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/create
@@ -393,7 +391,7 @@
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque kind :company-id (val company-id)
                                               :cheque-id (cheque-id new-cheque)
-                                              (params->filter))))))
+                                              (params->values :filter))))))
 
 
 
@@ -418,9 +416,9 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :update)
-           (filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+           (filter (params->values :filter))
+           (cheque-filter (params->values :cheque-filter))
+           (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
                                         :filter cheque-filter
@@ -459,7 +457,7 @@
                                                                         :since (val since)
                                                                         :until (val until))
                                 (display cheque-table :key (val cheque-id)
-                                                      :payload (params->payload)))))))
+                                                      :payload (params->values :payload)))))))
                (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/update
@@ -489,7 +487,7 @@
       (update-dao cheque-dao)
       (see-other (apply #'company/cheque kind :company-id (val company-id)
                                               :cheque-id (val cheque-id)
-                                              (params->filter))))))
+                                              (params->values :filter))))))
 
 
 
@@ -515,9 +513,9 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :delete)
-           (filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+           (filter (params->values :filter))
+           (cheque-filter (params->values :cheque-filter))
+           (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
                                         :filter cheque-filter
@@ -572,4 +570,4 @@
   (with-controller-page (company/cheque/delete kind)
     (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val cheque-id)))
-    (see-other (apply #'company/cheque kind :company-id (val company-id) (params->filter)))))
+    (see-other (apply #'company/cheque kind :company-id (val company-id) (params->values :filter)))))

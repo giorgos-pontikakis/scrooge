@@ -6,20 +6,16 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass account-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(account-id parent-id debit-p))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title chequing-p))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(debit-p))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass account-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (account-id parent-id debit-p)
+                                         :payload (title chequing-p)
+                                         :filter (debit-p))))
+
+
+
+(defclass account-page (auth-dynamic-page account-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform '((title (:account-title-null "Το όνομα λογαριασμού είναι κενό."
@@ -287,7 +283,7 @@
                            (actions account-form)
                            (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                      :debitp (val debitp))
-                             (display account-form :payload (params->payload)
+                             (display account-form :payload (params->values :payload)
                                                    :styles (params->styles)))))
                (footer)))))))
 
@@ -340,7 +336,7 @@
                            (notifications)
                            (actions account-form)
                            (with-form (actions/config/account/update :account-id (val account-id))
-                             (display account-form :payload (params->payload)
+                             (display account-form :payload (params->values :payload)
                                                    :styles (params->styles)))))
                (footer)))))))
 

@@ -6,7 +6,7 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass project-stran-page (dynamic-page page-family-mixin)
+(defclass project-stran-page (auth-dynamic-page page-family-mixin)
   ((system-parameter-names
     :allocation :class
     :initform '(project-stran-id))
@@ -16,9 +16,6 @@
    (filter-parameter-names
     :allocation :class
     :initform '())
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
    (messages
     :allocation :class
     :reader messages
@@ -251,7 +248,7 @@
                            (project-stran-actions op nil)
                            (notifications)
                            (with-form (actions/config/project-stran/create)
-                             (display project-stran-table :payload (params->payload)))))))))))
+                             (display project-stran-table :payload (params->values :payload)))))))))))
 
 (defpage project-stran-page actions/config/project-stran/create
     ("actions/config/project-stran/create" :request-type :post)
@@ -302,7 +299,7 @@
                            (notifications)
                            (with-form (actions/config/project-stran/update :project-stran-id (val project-stran-id))
                              (display project-stran-table :key (val project-stran-id)
-                                                          :payload (params->payload)))))
+                                                          :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/update

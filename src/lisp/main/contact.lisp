@@ -6,19 +6,15 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass contact-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(company-id contact-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(tag phone))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))))
+(defclass contact-family (family-mixin)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (company-id contact-id)
+                       :payload (tag phone)
+                       :filter (search))))
+
+(defclass contact-page (auth-dynamic-page contact-family)
+  ())
 
 
 
@@ -139,7 +135,7 @@
     (swap-ranks (get-dao 'contact (val contact-id)) +1)
     (see-other (apply #'company/details :company-id (val company-id)
                                         :contact-id (val contact-id)
-                                        (params->filter)))))
+                                        (params->values :filter)))))
 
 (defpage contact-page action/contact/rank-dec ("action/contact/rank-dec" :request-type :post)
     ((search     string)
@@ -151,7 +147,7 @@
     (swap-ranks (get-dao 'contact (val contact-id)) -1)
     (see-other (apply #'company/details :company-id (val company-id)
                                         :contact-id (val contact-id)
-                                        (params->filter)))))
+                                        (params->values :filter)))))
 
 
 
@@ -166,7 +162,7 @@
      (tag        string)
      (phone      string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -216,7 +212,7 @@
       (insert-dao new-contact)
       (see-other (apply #'company/details :company-id (val company-id)
                                           :contact-id (contact-id new-contact)
-                                          (params->filter))))))
+                                          (params->values :filter))))))
 
 
 
@@ -232,7 +228,7 @@
      (tag        string)
      (phone      string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -282,7 +278,7 @@
                       'phone (val phone)
                       :where (:= 'id (val contact-id))))
     (see-other (apply #'company/details :company-id (val company-id) :contact-id (val contact-id)
-                      (params->filter)))))
+                      (params->values :filter)))))
 
 
 
@@ -296,7 +292,7 @@
      (company-id integer chk-company-id                         t)
      (contact-id integer (chk-contact-id company-id contact-id) t))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -344,4 +340,4 @@
         (shift-higher-rank-daos dao -1)
         (delete-dao dao)))
     (see-other (apply #'company/details :company-id (val company-id)
-                      (params->filter)))))
+                      (params->values :filter)))))

@@ -6,20 +6,15 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass cash-page (regex-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(tx-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(tx-date company description amount account-id))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search since until))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass cash-family (tx-family)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (tx-id)
+                       :payload (tx-date company description amount account-id)
+                       :filter (search since until))))
+
+(defclass cash-page (auth-regex-page cash-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -337,7 +332,7 @@
     (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
     ((search string))
   (with-db ()
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (rows (rows (make-instance 'cash-tx-table
                                       :kind kind
                                       :filter filter))))
@@ -362,7 +357,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (conc (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :kind kind
@@ -405,7 +400,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :details)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
@@ -447,7 +442,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
@@ -471,7 +466,7 @@
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
-                             (display cash-form :payload (params->payload)
+                             (display cash-form :payload (params->values :payload)
                                                 :styles (params->styles)))))
                (footer)))))))
 
@@ -504,7 +499,7 @@
                                   :auto t)))
       (insert-dao new-tx)
       (see-other (apply #'cash/details kind :tx-id (tx-id new-tx)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -526,7 +521,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
@@ -554,7 +549,7 @@
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
-                             (display cash-form :payload (params->payload)
+                             (display cash-form :payload (params->values :payload)
                                                 :styles (params->styles)))))
                (footer)))))))
 
@@ -586,7 +581,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'cash/details kind :tx-id (val tx-id) (params->filter))))))
+      (see-other (apply #'cash/details kind :tx-id (val tx-id) (params->values :filter))))))
 
 
 
@@ -603,7 +598,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (conc (cash-page-title kind) " » Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op op
@@ -641,4 +636,4 @@
   (with-controller-page (cash/delete)
     (check-cash-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
-    (see-other (apply #'cash kind (params->filter)))))
+    (see-other (apply #'cash kind (params->values :filter)))))

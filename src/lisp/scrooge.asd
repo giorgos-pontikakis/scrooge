@@ -10,6 +10,7 @@
                (:file "tables")
                (:file "init")
                (:file "globals")
+               (:file "family")
                (:file "widgets")
                (:file "errors")
                ;; -- Here come the pages! --

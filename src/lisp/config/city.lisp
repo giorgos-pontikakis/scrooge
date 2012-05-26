@@ -6,20 +6,14 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass city-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(city-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass city-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (city-id)
+                                         :payload (title)
+                                         :filter (search))))
+
+(defclass city-page (auth-dynamic-page city-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform '((title (:city-title-null "Το όνομα πόλης είναι κενό."
@@ -151,7 +145,7 @@
      (start   integer))
   (with-view-page
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (city-table (make-instance 'city-table
                                       :op op
                                       :filter filter
@@ -183,10 +177,11 @@
      (search string))
   (with-view-page
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (city-table (make-instance 'city-table
                                       :op op
-                                      :filter filter)))
+                                      :filter filter))
+           (payload (params->values :payload)))
       (with-document ()
         (:head
          (:title "Πόλη » Δημιουργία")
@@ -203,7 +198,7 @@
                            (notifications)
                            (with-form (actions/config/city/create :search (val search))
                              (display city-table
-                                      :payload (params->payload)))))
+                                      :payload payload))))
                (footer)))))))
 
 (defpage city-page actions/config/city/create ("actions/config/city/create" :request-type :post)
@@ -226,7 +221,7 @@
      (search  string))
   (with-view-page
     (let* ((op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (city-table (make-instance 'city-table
                                       :op op
                                       :filter filter)))
@@ -248,7 +243,7 @@
                                                                   :search (val search))
                              (display city-table
                                       :key (val city-id)
-                                      :payload (params->payload)))))
+                                      :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
@@ -272,7 +267,7 @@
      (search  string))
   (with-view-page
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (city-table (make-instance 'city-table
                                       :op op
                                       :filter filter)))

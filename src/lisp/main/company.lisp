@@ -6,20 +6,15 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass company-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(company-id tx-id start))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title occupation tof tin address city pobox zipcode notes))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search subset))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass company-family (family-mixin)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (company-id tx-id start)
+                       :payload (title occupation tof tin address city pobox zipcode notes)
+                       :filter (search subset))))
+
+(defclass company-page (auth-dynamic-page company-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform '((title
@@ -49,11 +44,8 @@
                   :zipcode-invalid
                   "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
 
-(defclass company-widget (widget-family-mixin)
-  ((urls :initform (list :catalogue #'company))))
-
 (defun params->company-filter ()
-  (params->filter :page (find-page 'company)))
+  (params->values :filter :page (find-page 'company)))
 
 
 ;;; ----------------------------------------------------------------------
@@ -182,11 +174,10 @@
                           filter
                           "ac-company")))
 
-(defmethod general-actions ((widget company-widget) &key key filter)
+(defmethod general-actions ((widget company-family) &key key filter)
   (let* ((company-id key)
          (hrefs (list :catalogue (apply #'company :company-id company-id filter)
-                      (:create . "Νέα Εταιρία") (apply #'company/create filter)
-                      :print )))
+                      '(:create . "Νέα Εταιρία") (apply #'company/create filter))))
 
     (top-actions (make-instance 'menu
                                 :spec `((catalogue ,(company-catalogue-link company-id filter))
@@ -235,7 +226,7 @@
 ;;; Company form
 ;;; ------------------------------------------------------------
 
-(defclass company-form (crud-form/plist company-widget-mixin)
+(defclass company-form (crud-form/plist company-family)
   ())
 
 (defmethod display ((form company-form) &key styles)
@@ -484,7 +475,7 @@
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string))
   (with-db ()
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (rows (rows (make-instance 'company-table :filter filter))))
       (if (single-item-list-p rows)
           (see-other (apply #'company/details
@@ -505,7 +496,7 @@
      (start      integer))
   (with-view-page
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (company-table (make-instance 'company-table
                                          :op op
                                          :filter filter
@@ -537,7 +528,7 @@
      (search     string)
      (subset     string))
   (with-view-page
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -590,7 +581,7 @@
      (notes      string))
   (with-view-page
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (company-form (make-instance 'company-form
                                         :op op
                                         :cancel-url (apply #'company filter))))
@@ -611,7 +602,7 @@
                                            (actions company-form :filter filter)
                                            (notifications)
                                            (with-form (actions/company/create :search (val search))
-                                             (display company-form :payload (params->payload)
+                                             (display company-form :payload (params->values :payload)
                                                                    :styles (params->styles)))))))
                (footer)))))))
 
@@ -643,7 +634,7 @@
                                        :notes (val notes))))
       (insert-dao new-company)
       (see-other (apply #'company/details :company-id (company-id new-company)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -667,7 +658,7 @@
      (notes      string))
   (with-view-page
     (let* ((company-op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (company-form (make-instance 'company-form
                                         :op company-op
                                         :key (val company-id)
@@ -695,7 +686,7 @@
                                            (with-form (actions/company/update
                                                        :company-id (val company-id)
                                                        :search (val search))
-                                             (display company-form :payload (params->payload)
+                                             (display company-form :payload (params->values :payload)
                                                                    :styles (params->styles)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
@@ -733,7 +724,7 @@
                         'notes (val notes)
                         :where (:= 'id (val company-id))))
       (see-other (apply #'company/details :company-id (val company-id)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -747,7 +738,7 @@
      (subset     string))
   (with-view-page
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (company-table (make-instance 'company-table
                                          :op op
                                          :filter filter)))
@@ -782,4 +773,4 @@
                 :where (:= 'company-id (val company-id))))
       (delete-dao (get-dao 'company (val company-id))))
     (see-other (apply #'company
-                      (params->filter)))))
+                      (params->values :filter)))))

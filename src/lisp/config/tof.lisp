@@ -6,20 +6,14 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass tof-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(tof-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass tof-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (tof-id)
+                                         :payload (title)
+                                         :filter (search))))
+
+(defclass tof-page (auth-dynamic-page tof-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
@@ -149,7 +143,7 @@
      (start  integer))
   (with-view-page
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tof-table (make-instance 'tof-table
                                      :op op
                                      :filter filter
@@ -181,7 +175,7 @@
      (search string))
   (with-view-page
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tof-table (make-instance 'tof-table
                                      :op op
                                      :filter filter)))
@@ -202,7 +196,7 @@
                            (with-form (actions/config/tof/create :search (val search))
                              (display tof-table
                                       :key nil
-                                      :payload (params->payload)))))
+                                      :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
@@ -225,7 +219,7 @@
      (search string))
   (with-view-page
     (let* ((op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tof-table (make-instance 'tof-table
                                      :op op
                                      :filter filter)))
@@ -247,7 +241,7 @@
                                                                  :filter (val search))
                              (display tof-table
                                       :key (val tof-id)
-                                      :payload (params->payload)))))
+                                      :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
@@ -271,7 +265,7 @@
      (search string))
   (with-view-page
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tof-table (make-instance 'tof-table
                                      :op op
                                      :filter filter)))

@@ -2,15 +2,8 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Widget families
+;;; Widget prototol
 ;;; ----------------------------------------------------------------------
-
-(defclass widget-family-mixin ()
-  ((urls :accessor urls :initform nil)))
-
-(defgeneric disabled-general-actions (widget)
-  (:documentation "General actions for the widget"))
-
 
 (defgeneric actions (widget &key)
   (:documentation "Prints the html for the actions of the widget"))
@@ -23,6 +16,7 @@
 
 (defgeneric filters (collection)
   (:documentation "Returns the filter linke of a collection widget"))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; Tables
@@ -260,6 +254,14 @@
                                           id
                                           (filter table))))
         (list nil nil))))
+
+
+;;; ------------------------------------------------------------
+;;; misc widgets
+;;; ------------------------------------------------------------
+
+(defgeneric disabled-general-actions (widget)
+  (:documentation "General actions for the widget"))
 
 
 

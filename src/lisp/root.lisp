@@ -1,14 +1,8 @@
 (in-package :scrooge)
 
 
-(defclass root-page (dynamic-page page-family-mixin)
-  ((system-parameter-names  :initarg  :system-parameter-names)
-   (payload-parameter-names :initarg  :payload-parameter-names)
-   (filter-parameter-names  :initarg  :filter-parameter-names)
-   (allowed-groups          :initform '("user" "admin")))
-  (:default-initargs :system-parameter-names ()
-                     :payload-parameter-names ()
-                     :filter-parameter-names ()))
+(defclass root-page (auth-dynamic-page family-mixin)
+  ())
 
 
 ;;; --- Autocomplete --------------------
@@ -18,7 +12,7 @@
     "[\"Session expired.\"]"))
 
 (defpage root-page autocomplete ("autocomplete" :content-type "text/plain"
-                                                :system-parameter-names '(table column term))
+                                                :parameter-groups '(:system (table column term)))
     ((table  symbol nil t)
      (column symbol nil t)
      (term   string nil t))

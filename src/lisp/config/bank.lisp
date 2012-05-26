@@ -6,20 +6,14 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass bank-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(bank-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass bank-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (bank-id)
+                                         :payload (title)
+                                         :filter (search))))
+
+(defclass bank-page (auth-dynamic-page bank-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
@@ -148,10 +142,9 @@
      (search  string)
      (start   integer))
   (with-view-page
-    (let* ((op :catalogue)
-           (filter (params->filter))
+    (let* ((filter (params->values :filter))
            (bank-table (make-instance 'bank-table
-                                      :op op
+                                      :op :catalogue
                                       :filter filter
                                       :start-index (val start))))
       (with-document ()
@@ -180,10 +173,9 @@
     ((title  string chk-bank-title/create)
      (search string))
   (with-view-page
-    (let* ((op :create)
-           (filter (params->filter))
+    (let* ((filter (params->values :filter))
            (bank-table (make-instance 'bank-table
-                                      :op op
+                                      :op :create
                                       :filter filter)))
       (with-document ()
         (:head
@@ -202,7 +194,7 @@
                            (with-form (actions/config/bank/create :search (val search))
                              (display bank-table
                                       :key nil
-                                      :payload (params->payload)))))
+                                      :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
@@ -224,10 +216,9 @@
      (title   string  (chk-bank-title/update title bank-id))
      (search  string))
   (with-view-page
-    (let* ((op :update)
-           (filter (params->filter))
+    (let* ((filter (params->values :filter))
            (bank-table (make-instance 'bank-table
-                                      :op op
+                                      :op :update
                                       :filter filter)))
       (with-document ()
         (:head
@@ -247,7 +238,7 @@
                                                                   :search (val search))
                              (display bank-table
                                       :key (val bank-id)
-                                      :payload (params->payload)))))
+                                      :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
@@ -270,10 +261,9 @@
     ((bank-id integer chk-bank-id/ref t)
      (search  string))
   (with-view-page
-    (let* ((op :delete)
-           (filter (params->filter))
+    (let* ((filter (params->values :filter))
            (bank-table (make-instance 'bank-table
-                                      :op op
+                                      :op :delete
                                       :filter filter)))
       (with-document ()
         (:head

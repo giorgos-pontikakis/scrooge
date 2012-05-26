@@ -6,20 +6,14 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass cheque-stran-page (regex-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(cheque-stran-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title from-state-id to-state-id temtx))
-   (filter-parameter-names
-    :allocation :class
-    :initform '())
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass cheque-stran-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (cheque-stran-id)
+                                         :payload (title from-state-id to-state-id temtx)
+                                         :filter ())))
+
+(defclass cheque-stran-page (auth-regex-page cheque-stran-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -308,7 +302,7 @@
                            (actions cheque-stran-table)
                            (notifications)
                            (with-form (actions/config/cheque-stran/create kind)
-                             (display cheque-stran-table :payload (params->payload)))))))))))
+                             (display cheque-stran-table :payload (params->values :payload)))))))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/create
     (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/create") :request-type :post)
@@ -364,7 +358,7 @@
                            (with-form
                                (actions/config/cheque-stran/update kind :cheque-stran-id (val cheque-stran-id))
                              (display cheque-stran-table :key (val cheque-stran-id)
-                                                         :payload (params->payload)))))
+                                                         :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/update

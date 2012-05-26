@@ -6,20 +6,15 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass invoice-page (regex-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(tx-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(tx-date company description amount account-id))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search since until))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass invoice-family (tx-family)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (tx-id)
+                       :payload (tx-date company description amount account-id)
+                       :filter (search since until))))
+
+(defclass invoice-page (auth-regex-page invoice-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -360,7 +355,7 @@
      :request-type :get)
     ((search string))
   (with-db ()
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (rows (rows (make-instance 'invoice-tx-table
                                       :issuer issuer
                                       :kind kind
@@ -400,7 +395,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (invoice-page-title issuer kind "Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :issuer issuer
@@ -442,7 +437,7 @@
      (tx-id  integer chk-tx-id t))
   (with-view-page
     (let* ((op :details)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
@@ -483,7 +478,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
@@ -508,7 +503,7 @@
                                                               :search (val search)
                                                               :since (val since)
                                                               :until (val until))
-                             (display invoice-form :payload (params->payload)
+                             (display invoice-form :payload (params->values :payload)
                                                    :styles (params->styles)))))
                (footer)))))))
 
@@ -538,7 +533,7 @@
                                   :auto t)))
       (insert-dao new-tx)
       (see-other (apply #'invoice/details issuer kind :tx-id (tx-id new-tx)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -560,7 +555,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
@@ -589,7 +584,7 @@
                                                               :search (val search)
                                                               :since (val since)
                                                               :until (val until))
-                             (display invoice-form :payload (params->payload)
+                             (display invoice-form :payload (params->values :payload)
                                                    :styles (params->styles)))))
                (footer)))))))
 
@@ -619,7 +614,7 @@
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
       (see-other (apply #'invoice/details issuer kind :tx-id (val tx-id)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -636,7 +631,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (invoice-page-title issuer kind "Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :issuer issuer
@@ -677,4 +672,4 @@
     (check-invoice-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'invoice issuer kind
-                      (params->filter)))))
+                      (params->values :filter)))))

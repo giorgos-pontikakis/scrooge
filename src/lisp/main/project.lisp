@@ -6,20 +6,16 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass project-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(project-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(company description location price vat state-id quote-date start-date end-date notes))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search cstate))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass project-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (project-id)
+                                         :payload (company description location price vat
+                                                   state-id quote-date start-date end-date notes)
+                                         :filter (search cstate))))
+
+
+(defclass project-page (auth-dynamic-page project-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -379,7 +375,7 @@
     ((search string)
      (cstate string  chk-project-state-id))
   (with-db ()
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (rows (rows (make-instance 'project-table :filter filter))))
       (if (single-item-list-p rows)
           (see-other (apply #'project/details
@@ -400,7 +396,7 @@
      (start      integer))
   (with-view-page
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (project-table (make-instance 'project-table
                                          :op op
                                          :filter filter
@@ -433,7 +429,7 @@
      (bill-id    integer (chk-bill-id project-id bill-id)))
   (with-view-page
     (let* ((op :details)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (project-form (make-instance 'project-form
                                         :op op
                                         :key (val project-id)))
@@ -484,7 +480,7 @@
      (notes       string))
   (with-view-page
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (project-form (make-instance 'project-form
                                         :op op
                                         :cancel-url (apply #'project filter))))
@@ -506,7 +502,7 @@
                                            (notifications)
                                            (with-form (actions/project/create :search (val search)
                                                                               :cstate (val cstate))
-                                             (display project-form :payload (params->payload)
+                                             (display project-form :payload (params->values :payload)
                                                                    :styles (params->styles)))))))
                (footer)))))))
 
@@ -539,7 +535,7 @@
                                        :notes (val notes))))
       (insert-dao new-project)
       (see-other (apply #'project/details :project-id (project-id new-project)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -564,7 +560,7 @@
      (notes       string))
   (with-view-page
     (let* ((project-op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (project-form (make-instance 'project-form
                                         :op project-op
                                         :key (val project-id)
@@ -593,7 +589,7 @@
                                                (actions/project/update :project-id (val project-id)
                                                                        :search (val search)
                                                                        :cstate (val cstate))
-                                             (display project-form :payload (params->payload)
+                                             (display project-form :payload (params->values :payload)
                                                                    :styles (params->styles)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
@@ -632,7 +628,7 @@
                         'notes (val notes)
                         :where (:= 'id (val project-id))))
       (see-other (apply #'project/details :project-id (val project-id)
-                        (params->filter))))))
+                        (params->values :filter))))))
 
 
 
@@ -646,7 +642,7 @@
      (cstate     string  chk-project-state-id))
   (with-view-page
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (project-table (make-instance 'project-table
                                          :op :delete
                                          :filter filter)))
@@ -681,4 +677,4 @@
       (execute (:delete-from 'bill
                 :where (:= 'project-id (val project-id))))
       (delete-dao (get-dao 'project (val project-id))))
-    (see-other (apply #'project (params->filter)))))
+    (see-other (apply #'project (params->values :filter)))))

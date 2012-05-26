@@ -6,20 +6,16 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass tx-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(tx-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(tx-date description company amount non-chq-debit-acc non-chq-credit-acc))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search since until))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass tx-family (family-mixin)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (tx-id)
+                       :payload (tx-date description company amount
+                                 non-chq-debit-acc non-chq-credit-acc)
+                       :filter  (search since until))))
+
+(defclass tx-page (auth-dynamic-page tx-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -256,7 +252,7 @@
      (start  integer))
   (with-view-page
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter
@@ -296,7 +292,7 @@
      (non-chq-credit-acc string chk-non-chq-acc-title))
   (with-view-page
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter)))
@@ -318,7 +314,7 @@
                            (with-form (actions/tx/create :search (val search)
                                                          :since (val since)
                                                          :until (val until))
-                             (display tx-table :payload (params->payload)))))
+                             (display tx-table :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/create ("actions/tx/create"
@@ -344,7 +340,7 @@
                                   :credit-acc-id credit-acc-id
                                   :debit-acc-id debit-acc-id)))
       (insert-dao new-tx)
-      (see-other (apply #'tx :tx-id (tx-id new-tx) (params->filter))))))
+      (see-other (apply #'tx :tx-id (tx-id new-tx) (params->values :filter))))))
 
 
 
@@ -368,7 +364,7 @@
     (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
     (let* ((op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter)))
@@ -392,7 +388,7 @@
                                                          :since (val since)
                                                          :until (val until))
                              (display tx-table :key (val tx-id)
-                                               :payload (params->payload)))))
+                                               :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
@@ -419,7 +415,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'tx :tx-id (val tx-id) (params->filter))))))
+      (see-other (apply #'tx :tx-id (val tx-id) (params->values :filter))))))
 
 
 
@@ -437,7 +433,7 @@
     (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
     (let* ((op :delete)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter)))
@@ -470,4 +466,4 @@
      (search string))
   (with-controller-page (tx/delete)
     (delete-dao (get-dao 'tx (val tx-id)))
-    (see-other (apply #'tx (params->filter)))))
+    (see-other (apply #'tx (params->values :filter)))))

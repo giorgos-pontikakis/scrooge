@@ -6,20 +6,15 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass cheque-page (regex-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(cheque-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(bank due-date company amount tstamp serial))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search since until cstate))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass cheque-family (family-mixin)
+  ()
+  (:default-initargs
+   :parameter-groups '(:system (cheque-id)
+                       :payload (bank due-date company amount tstamp serial)
+                       :filter (search since until cstate))))
+
+(defclass cheque-page (auth-regex-page cheque-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform '((due-date (:date-null
@@ -46,7 +41,7 @@
                   "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες"))))))
 
 (defun params->cheque-filter ()
-  (params->filter :page (find-page 'cheque)))
+  (params->values :filter :page (find-page 'cheque)))
 
 
 
@@ -406,7 +401,7 @@
     (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
     ((search string))
   (with-db ()
-    (let* ((filter (params->filter))
+    (let* ((filter (params->values :filter))
            (rows (rows (make-instance 'cheque-table
                                       :kind kind
                                       :filter filter))))
@@ -432,7 +427,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :catalogue)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
@@ -474,7 +469,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :details)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Λεπτομέρειες"))
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
@@ -519,7 +514,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Δημιουργία"))
            (cheque-table (make-instance 'cheque-table
                                         :kind kind
@@ -544,7 +539,7 @@
                                                              :since (val since)
                                                              :until (val until)
                                                              :cstate (val cstate))
-                             (display cheque-table :payload (params->payload)))))
+                             (display cheque-table :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/create
@@ -569,7 +564,7 @@
                                      :payable-p (string= kind "payable")
                                      :state-id "pending")))
       (insert-dao new-cheque)
-      (see-other (apply #'cheque kind :cheque-id (cheque-id new-cheque) (params->filter))))))
+      (see-other (apply #'cheque kind :cheque-id (cheque-id new-cheque) (params->values :filter))))))
 
 
 
@@ -592,7 +587,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :update)
-           (filter (params->filter))
+           (filter (params->values :filter))
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
                                        :op op
@@ -623,7 +618,7 @@
                                                              :until (val until)
                                                              :cstate (val cstate))
                              (display cheque-form :key (val cheque-id)
-                                                  :payload (params->payload)))))
+                                                  :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/update
@@ -656,7 +651,7 @@
             (state-id cheque-dao) new-state-id
             (serial cheque-dao) (val serial))
       (update-dao cheque-dao)
-      (see-other (apply #'cheque/details kind :cheque-id (val cheque-id) (params->filter))))))
+      (see-other (apply #'cheque/details kind :cheque-id (val cheque-id) (params->values :filter))))))
 
 
 
@@ -674,7 +669,7 @@
     (check-cheque-accounts)
     (let* ((op :delete)
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Διαγραφή"))
-           (filter (params->filter))
+           (filter (params->values :filter))
            (cheque-table (make-instance 'cheque-table
                                         :kind kind
                                         :op :delete
@@ -712,4 +707,4 @@
   (with-controller-page (cheque/delete kind)
     (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val cheque-id)))
-    (see-other (apply #'cheque kind (params->filter)))))
+    (see-other (apply #'cheque kind (params->values :filter)))))

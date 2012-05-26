@@ -5,20 +5,14 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass company-tx-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(company-id tx-id start))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(tx-date description debit-amount credit-amount))
-   (filter-parameter-names
-    :allocation :class
-    :initform '(search subset role since until))
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass company-tx-family (tx-family)
+  ()
+  (:default-initargs :parameter-groups '(:system (company-id tx-id start)
+                                         :payload (tx-date description debit-amount credit-amount)
+                                         :filter (search subset role since until))))
+
+(defclass company-tx-page (auth-dynamic-page tx-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -339,8 +333,8 @@
      (start      integer)
      (role       string))
   (with-view-page
-    (let ((filter (params->filter))
-          (company-filter (params->company-filter))
+    (let ((filter (params->values :filter))
+          (company-filter (params->values :company-filter))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -383,7 +377,7 @@
      (until      date)
      (role       string))
   (with-view-page
-    (let ((filter (params->filter))
+    (let ((filter (params->values :filter))
           (system (params->plist #'val-or-raw (list company-id tx-id)))
           (misc  (params->plist #'val-or-raw (list since until)))
           (roles (if (val role)
@@ -436,8 +430,8 @@
      (debit-amount  float   chk-amount)
      (credit-amount float   chk-amount))
   (with-view-page
-    (let ((filter (params->filter))
-          (company-filter (params->company-filter))
+    (let ((filter (params->values :filter))
+          (company-filter (params->values :company-filter))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -475,7 +469,7 @@
                                                            :role (val role))
                               (display company-tx-table
                                        :key (val tx-id)
-                                       :payload (params->payload)))
+                                       :payload (params->values :payload)))
                             (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
                             (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
@@ -504,4 +498,4 @@
                       :where (:= 'id (val tx-id))))
     (see-other (apply #'company/tx :company-id (val company-id)
                                    :tx-id (val tx-id)
-                                   (params->filter)))))
+                                   (params->values :filter)))))

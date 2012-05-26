@@ -6,20 +6,14 @@
 ;;; Page family
 ;;; ----------------------------------------------------------------------
 
-(defclass temtx-page (dynamic-page page-family-mixin)
-  ((system-parameter-names
-    :allocation :class
-    :initform '(temtx-id))
-   (payload-parameter-names
-    :allocation :class
-    :initform '(title debit-account credit-account))
-   (filter-parameter-names
-    :allocation :class
-    :initform '())
-   (allowed-groups
-    :allocation :class
-    :initform '("user" "admin"))
-   (messages
+(defclass temtx-family (family-mixin)
+  ()
+  (:default-initargs :parameter-groups '(:system (temtx-id)
+                                         :payload (title debit-account credit-account)
+                                         :filter ())))
+
+(defclass temtx-page (auth-dynamic-page temtx-family)
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -219,7 +213,7 @@
                              (actions temtx-table)
                              (notifications)
                              (with-form (actions/config/temtx/create)
-                               (display temtx-table :payload (params->payload)))))))))))
+                               (display temtx-table :payload (params->values :payload)))))))))))
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
   ((title          string chk-temtx-title/create)
@@ -266,7 +260,7 @@
                              (notifications)
                              (with-form (actions/config/temtx/update :temtx-id (val temtx-id))
                                (display temtx-table :key (val temtx-id)
-                                                    :payload (params->payload)))))
+                                                    :payload (params->values :payload)))))
                  (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
