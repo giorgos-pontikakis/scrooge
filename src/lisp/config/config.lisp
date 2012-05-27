@@ -1,6 +1,26 @@
 (in-package :scrooge)
 
 
+(defclass config-family (family-mixin)
+  ())
+
+(defmethod top-level-actions ((widget config-family))
+  (top-actions
+   (make-instance 'menu
+                  :spec `((create ,(html ()
+                                     (:a :href (apply (action-url-fn widget :create) (filter widget))
+                                         (:img :src "/scrooge/img/add.png"
+                                               (str (action-label widget :create)))))))
+                  :css-class "hmenu")
+   (searchbox (action-url-fn widget :catalogue)
+              #'(lambda (&rest args)
+                  (apply (action-url-fn widget :catalogue)
+                         (make-keyword (first (getf (parameter-groups widget) :system)))
+                         (selected-key widget)
+                         args))
+              (filter widget)
+              (ac-class widget))))
+
 
 ;;; config crud table and row classes
 

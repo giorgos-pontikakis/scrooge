@@ -37,8 +37,8 @@
 (defmethod get-records ((table company-cheque-table))
   (get-cheque-records table (company-id table)))
 
-(defmethod actions ((table company-cheque-table) &key key)
-  (let* ((cheque-id key)
+(defmethod actions ((table company-cheque-table) &key)
+  (let* ((cheque-id (selected-key table))
          (kind (kind table))
          (filter (filter table))
          (company-id (company-id table))
@@ -207,6 +207,7 @@
               "ac-company")))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; VIEW
 ;;; ------------------------------------------------------------
@@ -228,6 +229,7 @@
            (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :catalogue
+                                        :selected-key (val cheque-id)
                                         :filter cheque-filter
                                         :start-index (val start)
                                         :kind kind
@@ -250,8 +252,8 @@
                                (:div :id "company-tx-window"
                                      (:div :class "window"
                                            (:div :class "title" (str page-title))
-                                           (actions cheque-table :key (val cheque-id))
-                                           (display cheque-table :key (val cheque-id))))))
+                                           (actions cheque-table)
+                                           (display cheque-table)))))
                (footer)))))))
 
 (defpage company-cheque-page company/cheque/print (("company/cheque/"
@@ -269,12 +271,14 @@
     (let* ((filter (params->values :filter))
            (payable-table (make-instance 'company-cheque-table
                                          :op :details
+                                         :selected-key (val cheque-id)
                                          :filter filter
                                          :start-index (val start)
                                          :kind "payable"
                                          :company-id (val company-id)))
            (receivable-table (make-instance 'company-cheque-table
                                             :op :details
+                                            :selected-key (val cheque-id)
                                             :filter filter
                                             :start-index (val start)
                                             :kind "receivable"
@@ -293,13 +297,11 @@
                      (when (records payable-table)
                        (htm (:div :class "window"
                                   (:div :class "title" "Προς είσπραξη")
-                                  (display payable-table
-                                           :key (val cheque-id)))))
+                                  (display payable-table))))
                      (when (records receivable-table)
                        (htm (:div :class "window"
                                   (:div :class "title" "Προς πληρωμή")
-                                  (display receivable-table
-                                           :key (val cheque-id))))))))))))
+                                  (display receivable-table)))))))))))
 
 
 
@@ -421,9 +423,10 @@
            (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
+                                        :selected-key (val cheque-id)
+                                        :kind kind
                                         :filter cheque-filter
                                         :start-index (val start)
-                                        :kind kind
                                         :company-id (val company-id)))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
                              (cheque-page-title kind)
@@ -445,7 +448,7 @@
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
-                              (actions cheque-table :key (val company-id))
+                              (actions cheque-table)
                               (notifications)
                               (with-form (actions/company/cheque/update kind
                                                                         :company-id (val company-id)
@@ -456,8 +459,7 @@
                                                                         :start (val start)
                                                                         :since (val since)
                                                                         :until (val until))
-                                (display cheque-table :key (val cheque-id)
-                                                      :payload (params->values :payload)))))))
+                                (display cheque-table :payload (params->values :payload)))))))
                (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/update
@@ -518,6 +520,7 @@
            (company-filter (params->values :company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
+                                        :selected-key (val cheque-id)
                                         :filter cheque-filter
                                         :start-index (val start)
                                         :kind kind
@@ -543,7 +546,7 @@
                   (:div :id "company-tx-window"
                         (:div :class "window"
                               (:div :class "title" (str page-title))
-                              (actions cheque-table :key (val company-id))
+                              (actions cheque-table)
                               (notifications)
                               (with-form (actions/company/cheque/delete kind
                                                                         :company-id (val company-id)
@@ -554,7 +557,7 @@
                                                                         :start (val start)
                                                                         :since (val since)
                                                                         :until (val until))
-                                (display cheque-table :key (val cheque-id)))))))
+                                (display cheque-table))))))
                (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/delete

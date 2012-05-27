@@ -127,8 +127,8 @@
         (query (sql-compile sql)
                :plists)))))
 
-(defmethod actions ((tbl invoice-tx-table) &key key)
-  (let* ((tx-id key)
+(defmethod actions ((tbl invoice-tx-table) &key)
+  (let* ((tx-id (selected-key tbl))
          (kind (kind tbl))
          (issuer (issuer tbl))
          (filter (filter tbl))

@@ -6,8 +6,22 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass family-mixin ()
-  ((parameter-groups :reader parameter-groups :initarg :parameter-groups))
+  ((parameter-groups :reader parameter-groups :initarg :parameter-groups)
+   (action-url-fns   :reader action-url-fns   :initarg :action-url-fns)
+   (action-labels    :reader action-labels    :initarg :action-labels))
   (:default-initargs :parameter-groups '()))
+
+(defgeneric action-label (family-object op))
+
+(defmethod action-label ((obj family-mixin) op)
+  (or (getf (action-labels obj) op)
+      (assoc-value *action-labels* op)))
+
+
+(defgeneric action-url-fn (family-object op))
+
+(defmethod action-url-fn ((obj family-mixin) op)
+  (getf (action-url-fns obj) op))
 
 ;; (defun collect-parameters (parameter-names parameters)
 ;;   (remove-if-not (lambda (p)
@@ -49,7 +63,15 @@
   (params->plist #'sty
                  (collect-params group-name page parameters)))
 
+(defgeneric top-level-actions (family)
+  (:documentation "top-level actions"))
 
+(defgeneric zip-system-parameters (widget))
+
+(defmethod zip-system-parameters ((widget family-mixin))
+  (make-plist (mapcar #'make-keyword
+                      (getf (parameter-groups widget) :system))
+              (ensure-list (selected-key widget))))
 
 ;;; ------------------------------------------------------------
 ;;; AUTHENTICATION MIXIN

@@ -127,8 +127,8 @@
         (query (sql-compile sql)
                :plists)))))
 
-(defmethod actions ((tbl cash-tx-table) &key key)
-  (let* ((tx-id key)
+(defmethod actions ((tbl cash-tx-table) &key)
+  (let* ((tx-id (selected-key tbl))
          (kind (kind tbl))
          (filter (filter tbl))
          (hrefs (if tx-id
@@ -362,6 +362,7 @@
            (cash-tx-table (make-instance 'cash-tx-table
                                          :kind kind
                                          :op op
+                                         :selected-key (val tx-id)
                                          :filter filter
                                          :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
@@ -388,8 +389,8 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (actions cash-tx-table :key (val tx-id))
-                           (display cash-tx-table :key (val tx-id))))
+                           (actions cash-tx-table)
+                           (display cash-tx-table)))
                (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))
@@ -603,6 +604,7 @@
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op op
                                          :kind kind
+                                         :key (val tx-id)
                                          :filter filter)))
       (with-document ()
         (:head
@@ -617,14 +619,13 @@
                (:div :class "grid_12"
                      (:div :id "cash-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (actions cash-tx-table :key (val tx-id))
+                           (actions cash-tx-table)
                            (with-form (actions/cash/delete kind
                                                            :tx-id (val tx-id)
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
-                             (display cash-tx-table
-                                      :key (val tx-id)))))
+                             (display cash-tx-table))))
                (footer)))))))
 
 (defpage cash-page actions/cash/delete

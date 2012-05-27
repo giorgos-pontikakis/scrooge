@@ -133,8 +133,8 @@
           :where (:= 'debit-p (debit-p tree)))
          :plists))
 
-(defmethod actions ((tree account-tree) &key key)
-  (let* ((account-id key)
+(defmethod actions ((tree account-tree) &key)
+  (let* ((account-id (selected-key tree))
          (spec (if (and account-id
                         (eql (debit-p tree)
                              (debit-p (get-dao 'account account-id))))
@@ -223,33 +223,33 @@
 (defpage account-page config/account ("config/account")
     ((account-id integer chk-account-id))
   (with-view-page
-    (let ((op :catalogue))
-      (with-document ()
-        (:head
-         (:title "Λογαριασμοί")
-         (config-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'account)
-               (iter
-                 (for debit-p in (list t nil))
-                 (for div-id in '("debit-accounts" "credit-accounts"))
-                 #|(for id-debit-p = (and (suppliedp account-id)
-                                        (eql debit-p (debit-p (get-dao 'account (val account-id))))))|#
-                 (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                 (for account-tree = (make-instance 'account-tree
-                                                    :op op
-                                                    :debit-p debit-p))
-                 (let ()
-                   (htm
-                    (:div :class "grid_6"
-                          (:div :id div-id :class "window"
-                                (:div :class "title" (str window-title))
-                                (notifications)
-                                (actions account-tree :key (val account-id))
-                                (display account-tree :key (val account-id) :hide-root-p t))))))
-               (footer)))))))
+    (with-document ()
+      (:head
+       (:title "Λογαριασμοί")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-navbar 'account)
+             (iter
+               (for debit-p in (list t nil))
+               (for div-id in '("debit-accounts" "credit-accounts"))
+               #|(for id-debit-p = (and (suppliedp account-id)
+               (eql debit-p (debit-p (get-dao 'account (val account-id))))))|#
+               (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+               (for account-tree = (make-instance 'account-tree
+                                                  :op :catalogue
+                                                  :selected-key (val account-id)
+                                                  :debit-p debit-p))
+               (let ()
+                 (htm
+                  (:div :class "grid_6"
+                        (:div :id div-id :class "window"
+                              (:div :class "title" (str window-title))
+                              (notifications)
+                              (actions account-tree)
+                              (display account-tree :hide-root-p t))))))
+             (footer))))))
 
 
 
@@ -263,11 +263,9 @@
      (title      string  chk-account-title/create)
      (chequing-p boolean))
   (with-view-page
-    (let* ((op :create)
-           (account-form (make-instance 'account-form
-                                        :op op
-                                        :key nil
-                                        :cancel-url (config/account))))
+    (let ((account-form (make-instance 'account-form
+                                       :op :create
+                                       :cancel-url (config/account))))
       (with-document ()
         (:head
          (:title "Λογαριασμός » Δημιουργία")
@@ -317,11 +315,10 @@
      (title      string  (chk-account-title/update title account-id))
      (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-view-page
-    (let* ((op :update)
-           (account-form (make-instance 'account-form
-                                        :op op
-                                        :key (val account-id)
-                                        :cancel-url (config/account :account-id (val account-id)))))
+    (let ((account-form (make-instance 'account-form
+                                       :op :update
+                                       :key (val account-id)
+                                       :cancel-url (config/account :account-id (val account-id)))))
       (with-document ()
         (:head
          (:title "Λογαριασμός » Επεξεργασία")
@@ -361,32 +358,31 @@
 (defpage account-page config/account/delete ("config/account/delete")
     ((account-id integer chk-account-id/ref t))
   (with-view-page
-    (let ((op :delete))
-      (with-document ()
-        (:head
-         (:title "Λογαριασμός » Διαγραφή")
-         (config-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'account)
-               (iter
-                 (for debit-p in (list t nil))
-                 (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val account-id)))))
-                 (for div-id in '("debit-accounts" "credit-accounts"))
-                 (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                 (for account-tree = (make-instance 'account-tree
-                                                    :op op
-                                                    :debit-p debit-p))
-                 (htm
-                  (:div :class "grid_6"
-                        (:div :id div-id :class "window"
-                              (:div :class "title" (str window-title))
-                              (notifications)
-                              (actions account-tree :key (val account-id))
-                              (with-form (actions/config/account/delete :account-id (val account-id))
-                                (display account-tree :key (val account-id) :hide-root-p t))))))
-               (footer)))))))
+    (with-document ()
+      (:head
+       (:title "Λογαριασμός » Διαγραφή")
+       (config-headers))
+      (:body
+       (:div :id "container" :class "container_12"
+             (header 'config)
+             (config-navbar 'account)
+             (iter
+               (for debit-p in (list t nil))
+               (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val account-id)))))
+               (for div-id in '("debit-accounts" "credit-accounts"))
+               (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+               (for account-tree = (make-instance 'account-tree
+                                                  :op :delete
+                                                  :debit-p debit-p))
+               (htm
+                (:div :class "grid_6"
+                      (:div :id div-id :class "window"
+                            (:div :class "title" (str window-title))
+                            (notifications)
+                            (actions account-tree)
+                            (with-form (actions/config/account/delete :account-id (val account-id))
+                              (display account-tree :hide-root-p t))))))
+             (footer))))))
 
 (defpage account-page actions/config/account/delete ("actions/config/account/delete"
                                                      :request-type :post)

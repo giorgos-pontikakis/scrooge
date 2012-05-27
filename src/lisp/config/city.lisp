@@ -6,11 +6,16 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass city-family (family-mixin)
-  ()
+(defclass city-family (config-family)
+  ((ac-class :accessor ac-class :initform "ac-city"))
   (:default-initargs :parameter-groups '(:system (city-id)
                                          :payload (title)
-                                         :filter (search))))
+                                         :filter (search))
+                     :action-url-fns '(:catalogue config/city
+                                       :create config/city/create
+                                       :update config/city/update
+                                       :delete config/city/delete)
+                     :action-labels '(:create "Νέα πόλη")))
 
 (defclass city-page (auth-dynamic-page city-family)
   ((messages
@@ -47,13 +52,11 @@
 
 (defun chk-city-title/create (title)
   (cond ((eql :null title) :city-title-null)
-        ((city-title-exists-p title) :city-title-exists)
-        (t nil)))
+        ((city-title-exists-p title) :city-title-exists)))
 
 (defun chk-city-title/update (title city-id)
   (cond ((eql :null title) :city-title-null)
-        ((city-title-exists-p title city-id) :city-title-exists)
-        (t nil)))
+        ((city-title-exists-p title city-id) :city-title-exists)))
 
 (defun chk-city-title (title)
   (if (or (eql :null title)
@@ -64,32 +67,12 @@
 
 
 ;;; ------------------------------------------------------------
-;;; UI elements
-;;; ------------------------------------------------------------
-
-(defun city-top-actions (city-id filter)
-  (top-actions
-   (make-instance 'menu
-                  :spec `((create ,(html ()
-                                     (:a :href (apply #'config/city/create filter)
-                                         (:img :src "/scrooge/img/add.png")
-                                         (str "Νέα πόλη")))))
-                  :css-class "hmenu")
-   (searchbox #'config/city
-              #'(lambda (&rest args)
-                  (apply #'config/city :city-id city-id args))
-              filter
-              "ac-city")))
-
-
-
-;;; ------------------------------------------------------------
 ;;; City table
 ;;; ------------------------------------------------------------
 
 ;;; table
 
-(defclass city-table (config-table)
+(defclass city-table (config-table city-family)
   ((header-labels :initform '("" "Ονομασία πόλης" "" ""))
    (paginator     :initform (make-instance 'city-paginator
                                            :id "city-paginator"
@@ -100,8 +83,8 @@
 (defmethod get-records ((table city-table))
   (config-data 'city (getf (filter table) :search)))
 
-(defmethod actions ((tbl city-table) &key key)
-  (let* ((city-id key)
+(defmethod actions ((tbl city-table) &key)
+  (let* ((city-id (selected-key tbl))
          (filter (filter tbl))
          (hrefs (if city-id
                     (list :update (apply #'config/city/update :city-id city-id filter)
@@ -144,10 +127,10 @@
      (search  string)
      (start   integer))
   (with-view-page
-    (let* ((op :catalogue)
-           (filter (params->values :filter))
+    (let* ((filter (params->values :filter))
            (city-table (make-instance 'city-table
-                                      :op op
+                                      :op :catalogue
+                                      :selected-key (val city-id)
                                       :filter filter
                                       :start-index (val start))))
       (with-document ()
@@ -158,12 +141,12 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions (val city-id) filter)
+               (top-level-actions city-table)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (actions city-table :key (val city-id))
-                           (display city-table :key (val city-id))))
+                           (actions city-table)
+                           (display city-table)))
                (footer)))))))
 
 
@@ -176,10 +159,9 @@
     ((title  string chk-city-title/create)
      (search string))
   (with-view-page
-    (let* ((op :create)
-           (filter (params->values :filter))
+    (let* ((filter (params->values :filter))
            (city-table (make-instance 'city-table
-                                      :op op
+                                      :op :create
                                       :filter filter))
            (payload (params->values :payload)))
       (with-document ()
@@ -190,7 +172,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions nil filter)
+               (top-level-actions city-table)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -220,10 +202,10 @@
      (title   string  (chk-city-title/update title city-id))
      (search  string))
   (with-view-page
-    (let* ((op :update)
-           (filter (params->values :filter))
+    (let* ((filter (params->values :filter))
            (city-table (make-instance 'city-table
-                                      :op op
+                                      :op :update
+                                      :selected-key (val city-id)
                                       :filter filter)))
       (with-document ()
         (:head
@@ -233,16 +215,15 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions (val city-id) filter)
+               (top-level-actions city-table)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (actions city-table :key (val city-id))
+                           (actions city-table)
                            (notifications)
                            (with-form (actions/config/city/update :city-id (val city-id)
                                                                   :search (val search))
                              (display city-table
-                                      :key (val city-id)
                                       :payload (params->values :payload)))))
                (footer)))))))
 
@@ -266,10 +247,10 @@
     ((city-id integer chk-city-id/ref t)
      (search  string))
   (with-view-page
-    (let* ((op :delete)
-           (filter (params->values :filter))
+    (let* ((filter (params->values :filter))
            (city-table (make-instance 'city-table
-                                      :op op
+                                      :op :delete
+                                      :selected-key (val city-id)
                                       :filter filter)))
       (with-document ()
         (:head
@@ -279,15 +260,14 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions (val city-id) filter)
+               (top-level-actions city-table)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (actions city-table :key (val city-id))
+                           (actions city-table)
                            (with-form (actions/config/city/delete :city-id (val city-id)
                                                                   :search (val search))
-                             (display city-table
-                                      :key (val city-id)))))
+                             (display city-table))))
                (footer)))))))
 
 (defpage city-page actions/config/city/delete ("actions/config/city/delete" :request-type :post)

@@ -43,8 +43,8 @@
                     'rank)
          :plists))
 
-(defmethod actions ((tbl bill-table) &key key)
-  (let* ((bill-id key)
+(defmethod actions ((tbl bill-table) &key)
+  (let* ((bill-id (selected-key tbl))
          (project-id (project-id tbl))
          (filter (filter tbl))
          (spec `((:create
@@ -232,6 +232,7 @@
                                                            filter)))
            (bill-table (make-instance 'bill-table
                                       :op :update
+                                      :selected-key (val bill-id)
                                       :project-id (val project-id))))
       (with-document ()
         (:head
@@ -252,11 +253,10 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Επεξεργασία")
-                                           (actions bill-table :key (val bill-id))
+                                           (actions bill-table)
                                            (with-form (actions/bill/update :project-id (val project-id)
                                                                            :bill-id (val bill-id))
-                                             (display bill-table :key (val bill-id)
-                                                                 :payload (params->values :payload)))))))
+                                             (display bill-table :payload (params->values :payload)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
@@ -296,6 +296,7 @@
                                                            filter)))
            (bill-table (make-instance 'bill-table
                                       :op :delete
+                                      :selected-key (val bill-id)
                                       :project-id (val project-id))))
       (with-document ()
         (:head
@@ -316,10 +317,10 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Διαγραφή")
-                                           (actions bill-table :key (val bill-id))
+                                           (actions bill-table)
                                            (with-form (actions/bill/delete :project-id (val project-id)
                                                                            :bill-id (val bill-id))
-                                             (display bill-table :key (val bill-id)))))))
+                                             (display bill-table))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"

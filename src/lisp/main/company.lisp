@@ -396,8 +396,8 @@
       (query (sql-compile sql)
              :plists))))
 
-(defmethod actions ((tbl company-table) &key key)
-  (let* ((company-id key)
+(defmethod actions ((tbl company-table) &key)
+  (let* ((company-id (selected-key tbl))
          (filter (filter tbl))
          (hrefs (if company-id
                     (list :details (apply #'company/details :company-id company-id filter)
@@ -499,6 +499,7 @@
            (filter (params->values :filter))
            (company-table (make-instance 'company-table
                                          :op op
+                                         :selected-key (val company-id)
                                          :filter filter
                                          :start-index (val start))))
       ;; if company-id exists and is not found among records, ignore search term
@@ -518,8 +519,8 @@
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title"  "Κατάλογος")
-                           (actions company-table :key (val company-id))
-                           (display company-table :key (val company-id))))
+                           (actions company-table)
+                           (display company-table)))
                (footer)))))))
 
 (defpage company-page company/details ("company/details")
@@ -537,6 +538,7 @@
                                                            filter)))
            (contact-table (make-instance 'contact-table
                                          :op :catalogue
+                                         :selected-key (val contact-id)
                                          :company-id (val company-id))))
       (with-document ()
         (:head
@@ -557,8 +559,8 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
-                                           (actions contact-table :key (val contact-id))
-                                           (display contact-table :key (val contact-id))))))
+                                           (actions contact-table)
+                                           (display contact-table)))))
                (footer)))))))
 
 
@@ -667,6 +669,7 @@
                                                            :company-id (val company-id) filter)))
            (contact-table (make-instance 'contact-table
                                          :op :catalogue
+                                         :selected-key (val contact-id)
                                          :company-id (val company-id))))
       (with-document ()
         (:head
@@ -692,8 +695,8 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επαφές")
-                                           (actions contact-table :key (val contact-id))
-                                           (display contact-table :key (val contact-id))))))
+                                           (actions contact-table)
+                                           (display contact-table)))))
                (footer)))))))
 
 (defpage company-page actions/company/update ("actions/company/update"
@@ -742,6 +745,7 @@
            (filter (params->values :filter))
            (company-table (make-instance 'company-table
                                          :op op
+                                         :selected-key (val company-id)
                                          :filter filter)))
       (with-document ()
         (:head
@@ -756,11 +760,10 @@
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
                            (:div :class "title" "Εταιρία » Διαγραφή")
-                           (actions company-table :key (val company-id))
+                           (actions company-table)
                            (with-form (actions/company/delete :company-id (val company-id)
                                                               :search (val search))
-                             (display company-table
-                                      :key (val company-id)))))
+                             (display company-table))))
                (footer)))))))
 
 (defpage company-page actions/company/delete ("actions/company/delete"

@@ -173,8 +173,8 @@
                     'cheque-stran.title)
          :plists))
 
-(defmethod actions ((table cheque-stran-table) &key key)
-  (let* ((cheque-stran-id key)
+(defmethod actions ((table cheque-stran-table) &key)
+  (let* ((cheque-stran-id (selected-key table))
          (hrefs (if cheque-stran-id
                     (list :update (config/cheque-stran/update (kind table)
                                                               :cheque-stran-id cheque-stran-id)
@@ -250,6 +250,7 @@
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :op :catalogue
+                                             :selected-key (val cheque-stran-id)
                                              :id "cheque-stran-table"
                                              :kind kind)))
       (with-document ()
@@ -265,8 +266,8 @@
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (actions cheque-stran-table :key (val cheque-stran-id))
-                           (display cheque-stran-table :key (val cheque-stran-id))))
+                           (actions cheque-stran-table)
+                           (display cheque-stran-table)))
                (footer)))))))
 
 
@@ -339,6 +340,7 @@
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :kind kind
+                                             :selected-key (val cheque-stran-id)
                                              :op :update)))
       (with-document ()
         (:head
@@ -353,12 +355,12 @@
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (actions cheque-stran-table :key (val cheque-stran-id))
+                           (actions cheque-stran-table)
                            (notifications)
                            (with-form
-                               (actions/config/cheque-stran/update kind :cheque-stran-id (val cheque-stran-id))
-                             (display cheque-stran-table :key (val cheque-stran-id)
-                                                         :payload (params->values :payload)))))
+                               (actions/config/cheque-stran/update kind
+                                                                   :cheque-stran-id (val cheque-stran-id))
+                             (display cheque-stran-table :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/update
@@ -392,6 +394,7 @@
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :kind kind
+                                             :selected-key (val cheque-stran-id)
                                              :op :delete)))
       (with-document ()
         (:head
@@ -406,11 +409,11 @@
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (actions cheque-stran-table :key (val cheque-stran-id))
-                           (with-form (actions/config/cheque-stran/delete kind
-                                                                          :cheque-stran-id (val cheque-stran-id))
-                             (display cheque-stran-table
-                                      :key (val cheque-stran-id)))))
+                           (actions cheque-stran-table)
+                           (with-form
+                               (actions/config/cheque-stran/delete kind
+                                                                   :cheque-stran-id (val cheque-stran-id))
+                             (display cheque-stran-table))))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/delete

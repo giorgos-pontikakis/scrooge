@@ -309,8 +309,8 @@
       (query (sql-compile final-query)
              :plists))))
 
-(defmethod actions ((tbl project-table) &key key)
-  (let* ((project-id key)
+(defmethod actions ((tbl project-table) &key)
+  (let* ((project-id (selected-key tbl))
          (filter (filter tbl))
          (hrefs (if project-id
                     (list :details (apply #'project/details :project-id project-id filter)

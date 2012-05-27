@@ -13,7 +13,7 @@
                                          :filter ())))
 
 (defclass account-role-page (auth-dynamic-page account-role-family)
-  (g(messages
+  ((messages
     :allocation :class
     :reader messages
     :initform
@@ -53,12 +53,13 @@
                     'rank)
          :plists))
 
-(defmethod actions ((tbl account-role-table) &key key)
-  (let ((hrefs (if key
-                   (list :update (config/account-role/update :account-role-id key))
+(defmethod actions ((tbl account-role-table) &key)
+  (let ((hrefs (if (selected-key tbl)
+                   (list :update (config/account-role/update :account-role-id (selected-key tbl)))
                    nil)))
     (actions-menu (make-menu-spec hrefs)
-                  (if (and key (eql (op tbl) :update))
+                  (if (and (selected-key tbl)
+                           (eql (op tbl) :update))
                       '(:update)
                       '()))))
 
@@ -99,8 +100,9 @@
     ((account-role-id string chk-account-role-id)
      (account         string chk-account-title))
   (with-view-page
-    (let* ((op :catalogue)
-           (account-role-table (make-instance 'account-role-table :op op)))
+    (let ((account-role-table (make-instance 'account-role-table
+                                             :op :catalogue
+                                             :selected-key (val account-role-id))))
       (with-document ()
         (:head
          (:title "Ρόλοι λογαριασμών » Κατάλογος")
@@ -112,8 +114,8 @@
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (actions account-role-table :key (val account-role-id))
-                           (display account-role-table :key (val account-role-id))))
+                           (actions account-role-table)
+                           (display account-role-table)))
                (footer)))))))
 
 
@@ -126,9 +128,9 @@
     ((account-role-id string chk-account-role-id t)
      (account         string chk-account-title))
   (with-view-page
-    (let* ((op :update)
-           (account-role-table (make-instance 'account-role-table
-                                              :op op)))
+    (let ((account-role-table (make-instance 'account-role-table
+                                             :op :update
+                                             :selected-key (val account-role-id))))
       (with-document ()
         (:head
          (:title "Ρόλοι λογαριασμών » Επεξεργασία")
@@ -140,10 +142,9 @@
                (:div :class "grid_12"
                      (:div :id "account-role-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (actions account-role-table :key (val account-role-id))
+                           (actions account-role-table)
                            (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
-                             (display account-role-table :key (val account-role-id)
-                                                         :payload (params->values :payload)
+                             (display account-role-table :payload (params->values :payload)
                                                          :styles (params->styles :payload)))))
                (footer)))))))
 

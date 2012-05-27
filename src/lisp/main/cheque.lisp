@@ -283,8 +283,8 @@
 (defmethod get-records ((table cheque-table))
   (get-cheque-records table))
 
-(defmethod actions ((tbl cheque-table) &key key)
-  (let* ((cheque-id key)
+(defmethod actions ((tbl cheque-table) &key)
+  (let* ((cheque-id (selected-key tbl))
          (kind (kind tbl))
          (filter (filter tbl))
          (hrefs (if cheque-id
@@ -433,6 +433,7 @@
                                         :id "cheque-table"
                                         :kind kind
                                         :op op
+                                        :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start))))
       ;; if cheque-id exists and is not found among records, ignore search term
@@ -455,8 +456,8 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (actions cheque-table :key (val cheque-id))
-                           (display cheque-table :key (val cheque-id))))
+                           (actions cheque-table)
+                           (display cheque-table)))
                (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))
@@ -617,8 +618,7 @@
                                                              :since (val since)
                                                              :until (val until)
                                                              :cstate (val cstate))
-                             (display cheque-form :key (val cheque-id)
-                                                  :payload (params->values :payload)))))
+                             (display cheque-form :payload (params->values :payload)))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/update
@@ -673,6 +673,7 @@
            (cheque-table (make-instance 'cheque-table
                                         :kind kind
                                         :op :delete
+                                        :selected-key (val cheque-id)
                                         :filter filter)))
       (with-document ()
         (:head
@@ -687,14 +688,14 @@
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (actions cheque-table :key (val cheque-id))
+                           (actions cheque-table)
                            (with-form (actions/cheque/delete kind
                                                              :cheque-id (val cheque-id)
                                                              :search (val search)
                                                              :since (val since)
                                                              :until (val until)
                                                              :cstate (val cstate))
-                             (display cheque-table :key (val cheque-id)))))
+                             (display cheque-table))))
                (footer)))))))
 
 (defpage cheque-page actions/cheque/delete

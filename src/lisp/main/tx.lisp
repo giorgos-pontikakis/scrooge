@@ -172,8 +172,8 @@
       (query (sql-compile sql)
              :plists))))
 
-(defmethod actions ((tbl tx-table) &key key)
-  (let* ((tx-id key)
+(defmethod actions ((tbl tx-table) &key)
+  (let* ((tx-id (selected-key tbl))
          (filter (filter tbl))
          (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
                     (list :update (apply #'tx/update :tx-id tx-id filter)

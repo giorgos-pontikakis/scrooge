@@ -218,10 +218,10 @@
                                                :id "company-tx-paginator"
                                                :css-class "paginator")))
 
-(defmethod actions ((tbl company-tx-table) &key key)
+(defmethod actions ((tbl company-tx-table) &key)
   (let* ((company-id (company-id tbl))
          (filter (filter tbl))
-         (tx-id key)
+         (tx-id (selected-key tbl))
          (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
                     (list :update (apply #'company/tx/update :company-id company-id
                                                              :tx-id key
@@ -344,6 +344,7 @@
                                                :records records
                                                :company-id (val company-id)
                                                :op :catalogue
+                                               :selected-key (val tx-id)
                                                :filter filter
                                                :start-index (val start))))
           (with-document ()
@@ -361,8 +362,8 @@
                       (filters company-tx-table)
                       (:div :id "company-tx-window" :class "window"
                             (:div :class "title" "Συναλλαγές")
-                            (actions company-tx-table :key (val tx-id))
-                            (display company-tx-table :key (val tx-id))
+                            (actions company-tx-table)
+                            (display company-tx-table)
                             (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
                             (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
@@ -441,6 +442,7 @@
                                                :records records
                                                :company-id (val company-id)
                                                :op :update
+                                               :selected-key (val tx-id)
                                                :filter filter)))
           (with-document ()
             (:head
@@ -457,7 +459,7 @@
                       (filters company-tx-table)
                       (:div :id "company-tx-window" :class "window"
                             (:div :class "title" "Συναλλαγές")
-                            (actions company-tx-table :key (val tx-id))
+                            (actions company-tx-table)
                             (notifications)
                             (with-form
                                 (actions/company/tx/update :company-id (val company-id)
@@ -467,9 +469,7 @@
                                                            :since (val since)
                                                            :until (val until)
                                                            :role (val role))
-                              (display company-tx-table
-                                       :key (val tx-id)
-                                       :payload (params->values :payload)))
+                              (display company-tx-table :payload (params->values :payload)))
                             (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
                             (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))

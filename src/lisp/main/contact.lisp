@@ -40,8 +40,8 @@
                     'rank)
          :plists))
 
-(defmethod actions ((tbl contact-table) &key key)
-  (let* ((contact-id key)
+(defmethod actions ((tbl contact-table) &key)
+  (let* ((contact-id (selected-key tbl))
          (company-id (company-id tbl))
          (filter (filter tbl))
          (spec `((:create
@@ -237,6 +237,7 @@
                                                            filter)))
            (contact-table (make-instance 'contact-table
                                          :op :update
+                                         :selected-key (val contact-id)
                                          :company-id (val company-id))))
       (with-document ()
         (:head
@@ -257,11 +258,11 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Επεξεργασία")
-                                           (actions contact-table :key (val contact-id))
+                                           (actions contact-table)
                                            (with-form
                                                (actions/contact/update :company-id (val company-id)
                                                                        :contact-id (val contact-id))
-                                             (display contact-table :key (val contact-id)))))))
+                                             (display contact-table))))))
                (footer)))))))
 
 (defpage contact-page actions/contact/update ("actions/contact/update"
@@ -301,6 +302,7 @@
                                                            filter)))
            (contact-table (make-instance 'contact-table
                                          :op :delete
+                                         :selected-key (val contact-id)
                                          :company-id (val company-id))))
       (with-document ()
         (:head
@@ -321,11 +323,11 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "contact-window" :class "window"
                                            (:div :class "title" "Διαγραφή")
-                                           (actions contact-table :key (val contact-id))
+                                           (actions contact-table)
                                            (with-form
                                                (actions/contact/delete :company-id (val company-id)
                                                                        :contact-id (val contact-id))
-                                             (display contact-table :key (val contact-id)))))))
+                                             (display contact-table))))))
                (footer)))))))
 
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
