@@ -23,15 +23,6 @@
 (defmethod action-url-fn ((obj family-mixin) op)
   (getf (action-url-fns obj) op))
 
-;; (defun collect-parameters (parameter-names parameters)
-;;   (remove-if-not (lambda (p)
-;;                    (member (parameter-name (attributes p))
-;;                            parameter-names))
-;;                  parameters))
-
-;; (defun get-parameters (group-name &key (page *page*) (parameters *parameters*))
-;;   (collect-parameters (getf (parameter-groups page) group-name) parameters))
-
 (defun collect-params (group-name &optional (page *page*) (parameters *parameters*))
   (let ((parameter-names (getf (parameter-groups page) group-name)))
     (remove-if-not (lambda (p)
@@ -66,12 +57,14 @@
 (defgeneric top-level-actions (family)
   (:documentation "top-level actions"))
 
-(defgeneric zip-system-parameters (widget))
+;; (defgeneric zip-system-parameters (widget))
 
-(defmethod zip-system-parameters ((widget family-mixin))
-  (make-plist (mapcar #'make-keyword
-                      (getf (parameter-groups widget) :system))
-              (ensure-list (selected-key widget))))
+;; (defmethod zip-system-parameters ((widget family-mixin))
+;;   (make-plist (mapcar #'make-keyword
+;;                       (getf (parameter-groups widget) :system))
+;;               (ensure-list (selected-key widget))))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; AUTHENTICATION MIXIN

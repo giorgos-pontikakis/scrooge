@@ -11,7 +11,13 @@
   (:default-initargs
    :parameter-groups '(:system (company-id tx-id start)
                        :payload (title occupation tof tin address city pobox zipcode notes)
-                       :filter (search subset))))
+                       :filter (search subset))
+   :action-url-fns '(:catalogue company
+                     :create company/create
+                     :update company/update
+                     :delete company/delete
+                     :search actions/company/search)
+   :action-labels '(:create "Νέα εταιρία")))
 
 (defclass company-page (auth-dynamic-page company-family)
   ((messages
@@ -154,37 +160,34 @@
         (:img :src "/scrooge/img/printer.png")
         "Εκτύπωση")))
 
-(defun company-disabled-actions (op)
-  (ecase op
-    ((:catalogue :delete) '(catalogue print))
-    ((:create '(create print)))
-    ((:update :details) '(print))
-    ((:tx-cheque) ())))
+;; (defun company-disabled-actions (op)
+;;   (ecase op
+;;     ((:catalogue :delete) '(catalogue print))
+;;     ((:create '(create print)))
+;;     ((:update :details) '(print))
+;;     ((:tx-cheque) ())))
 
-(defun company-top-actions (op company-id filter)
-  (top-actions (make-instance 'menu
-                              :spec `((catalogue ,(company-catalogue-link company-id filter))
-                                      (create ,(company-create-link filter))
-                                      (print ,(company-print-link company-id filter)))
-                              :css-class "hmenu"
-                              :disabled (company-disabled-actions op))
-               (searchbox #'actions/company/search
-                          #'(lambda (&rest args)
-                              (apply #'company :company-id company-id args))
-                          filter
-                          "ac-company")))
+;; (defun company-top-actions (op company-id filter)
+;;   (top-actions (make-instance 'menu
+;;                               :spec `((catalogue ,(company-catalogue-link company-id filter))
+;;                                       (create ,(company-create-link filter))
+;;                                       (print ,(company-print-link company-id filter)))
+;;                               :css-class "hmenu"
+;;                               :disabled (company-disabled-actions op))
+;;                (searchbox #'actions/company/search
+;;                           #'(lambda (&rest args)
+;;                               (apply #'company :company-id company-id args))
+;;                           filter
+;;                           "ac-company")))
 
-(defmethod general-actions ((widget company-family))
-  (let* ((company-id (pkey widget))
-         (hrefs (list :catalogue (apply #'company :company-id company-id filter)
-                      '(:create . "Νέα Εταιρία") (apply #'company/create filter))))
+(defmethod t0p-actions ((page company-family) &key op company-id filter)
+  (let ((hrefs (list :catalogue (apply #'company :company-id company-id filter)
+                     '(:create . "Νέα Εταιρία") (apply #'company/create filter))))
 
     (top-actions (make-instance 'menu
-                                :spec `((catalogue ,(company-catalogue-link company-id filter))
-                                        (create ,(company-create-link filter))
-                                        (print ,(company-print-link company-id filter)))
+                                :spec (make-menu-spec hrefs)
                                 :css-class "hmenu"
-                                :disabled (company-disabled-actions (op widget)))
+                                :disabled (list op))
                  (searchbox #'actions/company/search
                             #'(lambda (&rest args)
                                 (apply #'company :company-id company-id args))
