@@ -190,13 +190,6 @@
     (when val
       (collect (list key (make-spec-line key val))))))
 
-(defmethod make-menu-spcf ((widget family-mixin) ops &rest args)
-  (iter
-    (for op in ops by #'cddr)
-    (let ((link (apply (action-url-fn widget op) args (filter widget))))
-      (when link
-        (collect (list key (make-spec-line key link)))))))
-
 
 ;;; widgets
 

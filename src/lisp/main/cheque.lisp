@@ -11,18 +11,15 @@
   (:default-initargs
    :parameter-groups '(:system (cheque-id)
                        :payload (bank due-date company amount tstamp serial)
-                       :filter (search since until cstate))
+                       :filter (since until cstate)
+                       :search (search))
    :action-url-fns '(:catalogue cheque
                      :create cheque/create
                      :update cheque/update
                      :delete cheque/delete
                      :search actions/cheque/search)
-   :action-labels '(:create (lambda (kind)
-                              (conc "Νέα "
-                                    (if (string-equal kind "receivable")
-                                        "Εισπρακτέα"
-                                        "Πληρωτέα")
-                                    " Επιταγή ")))))
+   :op-groups '((:catalogue :update :delete) (:system :filter)
+                :create (:filter))))
 
 
 
@@ -128,44 +125,22 @@
                        "Πληρωτέα")
                    " Επιταγή ")))))
 
-;; (defmethod top-level-actions ((page cheque-family))
-;;   (top-actions
-;;    (make-instance 'menu
-;;                   :spec (make-menu-spec
-;;                          (list :catalogue (apply #'cheque
-;;                                                  (kind widget)
-;;                                                  (filter widget))
-;;                                :create (apply #'cheque/create
-;;                                               (kind widget)
-;;                                               (filter widget))))
-;;                   :css-class "hmenu"
-;;                   :disabled (cond ((member op '(:catalogue :delete))
-;;                                    '(catalogue))
-;;                                   ((eql op :create)
-;;                                    '(create))))
-;;    (searchbox #'(lambda (&rest args)
-;;                   (apply #'actions/cheque/search kind args))
-;;               #'(lambda (&rest args)
-;;                   (apply #'cheque kind :cheque-id cheque-id args))
-;;               filter
-;;               "ac-company")))
-
-(defun cheque-top-actions (op kind cheque-id filter)
-  (top-actions
-   (make-instance 'menu
-                  :spec `((catalogue ,(cheque-catalogue-link kind cheque-id filter))
-                          (create ,(cheque-create-link #'cheque/create kind filter)))
-                  :css-class "hmenu"
-                  :disabled (cond ((member op '(:catalogue :delete))
-                                   '(catalogue))
-                                  ((eql op :create)
-                                   '(create))))
-   (searchbox #'(lambda (&rest args)
-                  (apply #'actions/cheque/search kind args))
-              #'(lambda (&rest args)
-                  (apply #'cheque kind :cheque-id cheque-id args))
-              filter
-              "ac-company")))
+(defun cheque-top-actions (op filter)
+  (break)
+  (top-actions (make-instance 'menu
+                              :spec (make-menu-spec
+                                     (list :catalogue (apply (url-fn :catalogue) filter)
+                                           :create (apply (url-fn :create) filter)))
+                              :css-class "hmenu"
+                              :disabled (cond ((member op '(:catalogue :delete))
+                                               '(catalogue))
+                                              ((eql op :create)
+                                               '(create))))
+               nil
+               #|(searchbox (url-fn :search)
+                          (url-fn :catalogue)
+                          filter
+                          "ac-company")|#))
 
 
 
@@ -450,14 +425,6 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defun make-link (op &rest group-names)
-  (let ((args (append *registers*
-                      (mapcan (lambda (grp)
-                                (params->values grp))
-                              group-names))))
-    (apply (getf (action-url-fns *page*) op)
-           args)))
-
 (defpage cheque-page cheque (("cheque/" (kind "(receivable|payable)")))
     ((cheque-id integer chk-cheque-id)
      (search    string)
@@ -465,45 +432,42 @@
      (since     date    chk-date)
      (until     date    chk-date)
      (start     integer))
-  (let ((link (make-link :catalogue :filter :system)))
-    (with-view-page
-      (check-cheque-accounts)
-      (let* ((op :catalogue)
-             (filter (params->values :filter))
-             (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Κατάλογος" ":: Link = " link))
-             (cheque-table (make-instance 'cheque-table
-                                          :id "cheque-table"
-                                          :kind kind
-                                          :op op
-                                          :selected-key (val cheque-id)
-                                          :filter filter
-                                          :start-index (val start))))
-        ;; if cheque-id exists and is not found among records, ignore search term
-        (when (and (val cheque-id)
-                   (not (find (val cheque-id) (rows cheque-table) :key #'key)))
-          (let ((dao (get-dao 'cheque (val cheque-id))))
-            (see-other (cheque (if (payable-p dao) "payable" "receivable")
-                               :cheque-id (val cheque-id)
-                               :cstate (state-id dao)))))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header)
-                 (main-navbar 'cheque)
-                 (cheque-top-actions op kind (val cheque-id) filter)
-                 (filters cheque-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions cheque-table)
-                             (display cheque-table)))
-                 (footer)
-                 (str (mapcar (lambda (op)
-                                (make-link op :filter :system))
-                              '(:update :delete))))))))))
+  (with-view-page
+    (check-cheque-accounts)
+    (let* ((op :catalogue)
+           (filter (params->values :filter))
+           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Κατάλογος"))
+           (cheque-table (make-instance 'cheque-table
+                                        :id "cheque-table"
+                                        :kind kind
+                                        :op op
+                                        :selected-key (val cheque-id)
+                                        :filter filter
+                                        :start-index (val start))))
+      ;; if cheque-id exists and is not found among records, ignore search term
+      (when (and (val cheque-id)
+                 (not (find (val cheque-id) (rows cheque-table) :key #'key)))
+        (let ((dao (get-dao 'cheque (val cheque-id))))
+          (see-other (cheque (if (payable-p dao) "payable" "receivable")
+                             :cheque-id (val cheque-id)
+                             :cstate (state-id dao)))))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'cheque)
+               (cheque-top-actions op filter)
+               (break "end")
+               (filters cheque-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions cheque-table)
+                           (display cheque-table)))
+               (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))
     ((cheque-id integer chk-cheque-id       t)
@@ -533,7 +497,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op kind (val cheque-id) filter)
+               (cheque-top-actions op filter)
                (:div :class "grid_12"
                      (:div :id "cheque-window" :class "window"
                            (:div :class "title" (str page-title))
@@ -574,7 +538,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op kind nil filter)
+               (cheque-top-actions op filter)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -632,11 +596,10 @@
      (state-id  string  chk-cheque-state-id))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :update)
-           (filter (params->values :filter))
+    (let* ((filter (params->values :filter))
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
-                                       :op op
+                                       :op :update
                                        :key (val cheque-id)
                                        :cancel-url (apply #'cheque/details
                                                           kind
@@ -651,7 +614,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op kind (val cheque-id) filter)
+               (cheque-top-actions :update filter)
                (:div :class "grid_12"
                      (:div :id "cheque-window" :class "window"
                            (:p :class "title" (str page-title))
@@ -728,7 +691,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op kind (val cheque-id) filter)
+               (cheque-top-actions op filter)
                (filters cheque-table)
                (:div :class "grid_12"
                      (:div :class "window"

@@ -188,11 +188,11 @@
 ;;; ------------------------------------------------------------
 
 (defclass crud-form (widget)
-  ((op           :accessor op           :initarg :op)
-   (selected-key :accessor selected-key :initarg :selected-key)
-   (filter       :accessor filter       :initarg :filter)
-   (cancel-url   :accessor cancel-url   :initarg :cancel-url)
-   (record       :accessor record       :initarg :record))
+  ((op         :accessor op         :initarg :op)
+   (key        :accessor key        :initarg :key)
+   (filter     :accessor filter     :initarg :filter)
+   (cancel-url :accessor cancel-url :initarg :cancel-url)
+   (record     :accessor record     :initarg :record))
   (:default-initargs :key nil))
 
 (defclass crud-form/plist (crud-form record/plist-mixin)

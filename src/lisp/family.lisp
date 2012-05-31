@@ -1,14 +1,18 @@
 (in-package :scrooge)
 
 
+
 ;;; ----------------------------------------------------------------------
 ;;; WIDGET FAMILIES
 ;;; ----------------------------------------------------------------------
 
 (defclass family-mixin ()
-  ((parameter-groups :reader parameter-groups :initarg :parameter-groups)
-   (action-url-fns   :reader action-url-fns   :initarg :action-url-fns)
-   (action-labels    :reader action-labels    :initarg :action-labels))
+  ((parameter-groups :reader   parameter-groups :initarg :parameter-groups)
+   (action-url-fns   :reader   action-url-fns   :initarg :action-url-fns)
+   (action-labels    :reader   action-labels    :initarg :action-labels)
+
+   (op-groups        :accessor op-groups        :initarg :op-groups)
+   )
   (:default-initargs :parameter-groups '()))
 
 (defgeneric action-label (family-object op))
@@ -63,6 +67,41 @@
 ;;   (make-plist (mapcar #'make-keyword
 ;;                       (getf (parameter-groups widget) :system))
 ;;               (ensure-list (selected-key widget))))
+
+(defun make-link (op &optional group-names parameter-values)
+  (apply (getf (action-url-fns *page*) op)
+         (make-family-args op group-names parameter-values)))
+
+(defun make-family-args (op &optional group-names parameter-values)
+  (append *registers*
+          (mapcan (lambda (grp)
+                    (or parameter-values (params->values grp)))
+                  (or group-names (default-group-names op *page*)))))
+
+(defun default-group-names (op page)
+  (let ((op-groups (op-groups page)))
+    (iter
+      (for key in op-groups by #'cddr)
+      (for val in (rest op-groups) by #'cddr)
+      (when (or (and (keywordp key) (eql op key))
+                (and (listp key) (member op key)))
+        (return val)))))
+
+(defun url-fn-aux ((url-fn-id symbol))
+  (let ((allowed-params (remove-if-not (lambda (p)
+                                         (requiredp (attributes p)))
+                                       (parameter-attributes (find-page url-fn-id)))))
+    (lambda (&rest args)
+      (apply (symbol-function url-fn-id)
+             (append *registers*
+                     (remove-if-not (lambda (reqp)
+                                      (member (parameter-name (attributes reqp))
+                                              parameter-names))
+                                    *parameters*)
+                     args)))))
+
+(defmethod url-fn ((op symbol))
+  (url-fn-aux (getf (action-url-fns *page*) op)))
 
 
 
