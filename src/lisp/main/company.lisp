@@ -167,18 +167,18 @@
 ;;     ((:update :details) '(print))
 ;;     ((:tx-cheque) ())))
 
-;; (defun company-top-actions (op company-id filter)
-;;   (top-actions (make-instance 'menu
-;;                               :spec `((catalogue ,(company-catalogue-link company-id filter))
-;;                                       (create ,(company-create-link filter))
-;;                                       (print ,(company-print-link company-id filter)))
-;;                               :css-class "hmenu"
-;;                               :disabled (company-disabled-actions op))
-;;                (searchbox #'actions/company/search
-;;                           #'(lambda (&rest args)
-;;                               (apply #'company :company-id company-id args))
-;;                           filter
-;;                           "ac-company")))
+(defun company-top-actions (op company-id filter)
+  (top-actions (make-instance 'menu
+                              :spec `((catalogue ,(company-catalogue-link company-id filter))
+                                      (create ,(company-create-link filter))
+                                      (print ,(company-print-link company-id filter)))
+                              :css-class "hmenu"
+                              :disabled (company-disabled-actions op))
+               (searchbox #'actions/company/search
+                          #'(lambda (&rest args)
+                              (apply #'company :company-id company-id args))
+                          filter
+                          "ac-company")))
 
 (defmethod t0p-actions ((page company-family) &key op company-id filter)
   (let ((hrefs (list :catalogue (apply #'company :company-id company-id filter)
@@ -524,7 +524,8 @@
                            (:div :class "title"  "Κατάλογος")
                            (actions company-table)
                            (display company-table)))
-               (footer)))))))
+               (footer)
+               (str (urlfn 'company))))))))
 
 (defpage company-page company/details ("company/details")
     ((company-id integer chk-company-id                         t)

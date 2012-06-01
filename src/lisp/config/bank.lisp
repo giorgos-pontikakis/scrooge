@@ -10,12 +10,7 @@
   ((ac-class :accessor ac-class :initform "ac-bank"))
   (:default-initargs :parameter-groups '(:system (bank-id)
                                          :payload (title)
-                                         :filter (search))
-                     :action-url-fns '(:catalogue config/bank
-                                       :create config/bank/create
-                                       :update config/bank/update
-                                       :delete config/bank/delete)
-                     :action-labels '(:create "Νέα τράπεζα")))
+                                         :filter (search))))
 
 (defclass bank-page (auth-dynamic-page bank-family)
   ((messages
@@ -23,6 +18,17 @@
     :reader messages
     :initform '((title (:bank-title-null "Το όνομα τράπεζας είναι κενό."
                         :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))))
+
+(defun bank-top-actions (op filter)
+  (top-actions
+   (make-instance 'scrooge-menu
+                  :spec (make-menu-spec `(:create ("Νέα τράπεζα" . ,(gurl 'config/bank/create))))
+                  :css-class "hmenu"
+                  :disabled (list op))
+   (searchbox (gurl-fn 'config/bank)
+              (gurl-fn 'config/bank :system)
+              filter
+              "ac-bank")))
 
 
 
@@ -127,7 +133,7 @@
      (search  string)
      (start   integer))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :catalogue
                                       :selected-key (val bank-id)
@@ -141,7 +147,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (top-level-actions bank-table)
+               (bank-top-actions :catalogue filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -159,7 +165,7 @@
     ((title  string chk-bank-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :create
                                       :filter filter)))
@@ -171,7 +177,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (top-level-actions bank-table)
+               (bank-top-actions :create filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -179,7 +185,7 @@
                            (notifications)
                            (with-form (actions/config/bank/create :search (val search))
                              (display bank-table
-                                      :payload (params->values :payload)))))
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
@@ -201,7 +207,7 @@
      (title   string  (chk-bank-title/update title bank-id))
      (search  string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :update
                                       :selected-key (val bank-id)
@@ -214,7 +220,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (top-level-actions bank-table)
+               (bank-top-actions :update filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -223,7 +229,7 @@
                            (with-form (actions/config/bank/update :bank-id (val bank-id)
                                                                   :search (val search))
                              (display bank-table
-                                      :payload (params->values :payload)))))
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
@@ -246,7 +252,7 @@
     ((bank-id integer chk-bank-id/ref t)
      (search  string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
                                       :op :delete
                                       :selected-key (val bank-id)
@@ -259,7 +265,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'bank)
-               (top-level-actions bank-table)
+               (bank-top-actions :delete filter)
                (:div :class "grid_12"
                      (:div :id "bank-window" :class "window"
                            (:div :class "title" "Διαγραφή")

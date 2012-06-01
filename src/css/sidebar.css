@@ -184,6 +184,7 @@
 .top-actions {
     background-color: #ddd;
     padding: 12px 0px 10px 0px;
+    min-height: 26px;
 }
 
 .top-actions .hmenu li a {

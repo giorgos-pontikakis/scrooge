@@ -33,6 +33,14 @@
         :temtx-title-unknown
         "Δεν έχει οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))))))
 
+(defun cheque-stran-top-actions (&optional op)
+  (top-actions
+   (make-instance 'menu
+                  :spec (make-menu-spec
+                         `(:create ("Νέα μετάπτωση" . ,(gurl 'config/cheque-stran/create))))
+                  :css-class "hmenu"
+                  :disabled (list op))
+   nil))
 
 
 ;;; ----------------------------------------------------------------------
@@ -136,15 +144,7 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun cheque-stran-top-actions (kind)
-  (top-actions (make-instance 'menu
-                              :spec `((create
-                                       ,(html ()
-                                          (:a :href (config/cheque-stran/create kind)
-                                              (:img :src "/scrooge/img/add.png")
-                                              "Νέα μετάπτωση"))))
-                              :css-class "hmenu")
-               nil))
+
 
 
 
@@ -261,7 +261,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions kind)
+               (cheque-stran-top-actions)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
@@ -295,7 +295,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions kind)
+               (cheque-stran-top-actions :create)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :class "window"
@@ -350,7 +350,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions kind)
+               (cheque-stran-top-actions)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
@@ -404,7 +404,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions kind)
+               (cheque-stran-top-actions)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"

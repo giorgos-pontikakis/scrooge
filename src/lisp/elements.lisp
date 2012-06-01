@@ -151,15 +151,9 @@
 ;;; actions menu
 
 (defun actions-menu (spec &optional disabled)
-  (let ((all (mapcar #'first spec)))
-    (if (subsetp all disabled)
-        (with-html
-          (:div :class "hmenu actions"
-                (:ul
-                 (:li :class "invisible" "No available action."))))
-        (funcall #'menu spec
-                 :css-class "hmenu actions"
-                 :disabled disabled))))
+  (scrooge-menu spec
+                :css-class "hmenu actions"
+                :disabled disabled))
 
 (defgeneric make-spec-line (action link))
 
@@ -169,11 +163,11 @@
         :class (string-downcase action)
         (str (assoc-value *action-labels* action)))))
 
-(defmethod make-spec-line ((action cons) (link string))
+(defmethod make-spec-line ((action symbol) (link cons))
   (html ()
-    (:a :href link
-        :class (string-downcase (car action))
-        (str (cdr action)))))
+    (:a :href (cdr link)
+        :class (string-downcase action)
+        (str (car link)))))
 
 (defmethod make-spec-line ((action symbol) (link function))
   (declare (ignore action))
@@ -189,6 +183,7 @@
     (for val in (cdr actions-and-links) by #'cddr)
     (when val
       (collect (list key (make-spec-line key val))))))
+
 
 
 ;;; widgets

@@ -10,12 +10,7 @@
   ((ac-class :accessor ac-class :initform "ac-city"))
   (:default-initargs :parameter-groups '(:system (city-id)
                                          :payload (title)
-                                         :filter (search))
-                     :action-url-fns '(:catalogue config/city
-                                       :create config/city/create
-                                       :update config/city/update
-                                       :delete config/city/delete)
-                     :action-labels '(:create "Νέα πόλη")))
+                                         :filter (search))))
 
 (defclass city-page (auth-dynamic-page city-family)
   ((messages
@@ -23,6 +18,17 @@
     :reader messages
     :initform '((title (:city-title-null "Το όνομα πόλης είναι κενό."
                         :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη."))))))
+
+(defun city-top-actions (op filter)
+  (top-actions
+   (make-instance 'scrooge-menu
+                  :spec (make-menu-spec `(:create  ("Νέα πόλη" . ,(gurl 'config/city/create))))
+                  :css-class "hmenu"
+                  :disabled (list op))
+   (searchbox (gurl-fn 'config/city)
+              (gurl-fn 'config/city :system)
+              filter
+              "ac-city")))
 
 
 
@@ -141,7 +147,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (top-level-actions city-table)
+               (city-top-actions :catalogue filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -172,7 +178,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (top-level-actions city-table)
+               (city-top-actions :create filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -215,7 +221,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (top-level-actions city-table)
+               (city-top-actions :update filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -260,7 +266,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (top-level-actions city-table)
+               (city-top-actions :delete filter)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Διαγραφή")

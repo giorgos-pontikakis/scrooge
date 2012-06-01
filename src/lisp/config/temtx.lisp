@@ -33,6 +33,15 @@
         :account-title-unknown
         "Άκυρος λογαριασμός πίστωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))))))
 
+(defun temtx-top-actions (op)
+  (top-actions
+   (make-instance 'scrooge-menu
+                  :spec (make-menu-spec
+                         `(:create ("Νέο Πρότυπο Συναλλαγής" . ,(gurl 'config/temtx/create))))
+                  :css-class "hmenu"
+                  :disabled (list op))
+   nil))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -64,22 +73,6 @@
          nil)
         (t
          :temtx-title-unknown)))
-
-
-
-;;; ------------------------------------------------------------
-;;; UI elements
-;;; ------------------------------------------------------------
-
-(defun temtx-top-actions ()
-  (top-actions
-   (make-instance 'menu
-                  :spec `((create ,(html ()
-                                     (:a :href (config/temtx/create)
-                                         (:img :src "/scrooge/img/add.png")
-                                         (str "Νέο Πρότυπο Συναλλαγής")))))
-                  :css-class "hmenu")
-   nil))
 
 
 
@@ -177,7 +170,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (temtx-top-actions)
+               (temtx-top-actions :catalogue)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -206,7 +199,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (temtx-top-actions)
+               (temtx-top-actions :create)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -252,7 +245,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (temtx-top-actions)
+               (temtx-top-actions :update)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -297,7 +290,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'temtx)
-               (temtx-top-actions)
+               (temtx-top-actions :delete)
                (:div :class "grid_12"
                      (:div :id "temtx-window" :class "window"
                            (:div :class "title" "Διαγραφή")

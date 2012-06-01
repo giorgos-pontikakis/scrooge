@@ -257,12 +257,23 @@
         (list nil nil))))
 
 
+
 ;;; ------------------------------------------------------------
-;;; misc widgets
+;;; menu widgets
 ;;; ------------------------------------------------------------
 
-(defgeneric disabled-general-actions (widget)
-  (:documentation "General actions for the widget"))
+(defclass scrooge-menu (menu)
+  ()
+  (:default-initargs :disabled-class "invisible" :css-class "actions hmenu"))
+
+(defun scrooge-menu (spec &key id css-class disabled disabled-class)
+  (let ((initargs (plist-collect-if #'identity
+                                    (list :id id
+                                          :css-class css-class
+                                          :disabled disabled
+                                          :disabled-class disabled-class)
+                                    :on-values-p t)))
+    (display (apply #'make-instance 'scrooge-menu :spec spec initargs))))
 
 
 

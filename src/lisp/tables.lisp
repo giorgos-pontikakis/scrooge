@@ -32,7 +32,8 @@
   ((id    :col-type integer :reader   bank-id)
    (title :col-type string  :accessor title   :initarg :title))
   (:metaclass dao-class)
-  (:keys id))
+  (:keys id)
+  (:default-initargs :title nil))
 
 (define-surrogate-key-readers bank ((title string)) bank-id)
 
@@ -44,7 +45,8 @@
   ((id    :col-type integer :reader   tof-id)
    (title :col-type string  :accessor title  :initarg :title))
   (:metaclass dao-class)
-  (:keys id))
+  (:keys id)
+  (:default-initargs :title nil))
 
 (define-surrogate-key-readers tof ((title string)) tof-id)
 
@@ -56,7 +58,8 @@
   ((id    :col-type integer :reader   city-id)
    (title :col-type string  :accessor title :initarg :title))
   (:metaclass dao-class)
-  (:keys id))
+  (:keys id)
+  (:default-initargs :title nil))
 
 (define-surrogate-key-readers city ((title string)) city-id)
 

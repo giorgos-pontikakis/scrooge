@@ -15,17 +15,26 @@
    )
   (:default-initargs :parameter-groups '()))
 
-(defgeneric action-label (family-object op))
 
-(defmethod action-label ((obj family-mixin) op)
-  (or (getf (action-labels obj) op)
-      (assoc-value *action-labels* op)))
+;;; Generics
+
+;; (defgeneric action-label (family-object op))
+
+;; (defmethod action-label ((obj family-mixin) op)
+;;   (or (getf (action-labels obj) op)
+;;       (assoc-value *action-labels* op)))
 
 
-(defgeneric action-url-fn (family-object op))
+;; (defgeneric action-url-fn (family-object op))
 
-(defmethod action-url-fn ((obj family-mixin) op)
-  (getf (action-url-fns obj) op))
+;; (defmethod action-url-fn ((obj family-mixin) op)
+;;   (getf (action-url-fns obj) op))
+
+(defgeneric top-level-actions (family op filter)
+  (:documentation "top level menu"))
+
+
+;;; Utilities
 
 (defun collect-params (group-name &optional (page *page*) (parameters *parameters*))
   (let ((parameter-names (getf (parameter-groups page) group-name)))
@@ -46,62 +55,48 @@
 
 (defun params->plist (fn params)
   (mapcan (lambda (param)
-            (list (parameter-key (attributes param))
-                  (funcall fn param)))
+            (if-let (value (funcall fn param))
+              (list (parameter-key (attributes param))
+                    value)
+              nil))
           params))
 
-(defun params->values (group-name &key (page *page*) (parameters *parameters*))
-  (params->plist #'val-or-raw
-                 (collect-params group-name page parameters)))
+(defun params->values (group-name &key (fn #'val) (page *page*) (parameters *parameters*))
+  (params->plist fn (collect-params group-name page parameters)))
 
-(defun params->styles (group-name &key (page *page*) (parameters *parameters*))
-  (params->plist #'sty
-                 (collect-params group-name page parameters)))
+(defun params->payload (&key (page *page*) (parameters *parameters*))
+  (params->values :payload :fn #'val-or-raw :page page :parameters parameters))
 
-(defgeneric top-level-actions (family)
-  (:documentation "top-level actions"))
+(defun params->filter (&key (page *page*) (parameters *parameters*))
+  (params->values :filter :fn #'val :page page :parameters parameters))
 
-;; (defgeneric zip-system-parameters (widget))
+(defun params->sty (&key (page *page*) (parameters *parameters*))
+  (params->values :payload :fn #'sty :page page :parameters parameters))
 
-;; (defmethod zip-system-parameters ((widget family-mixin))
-;;   (make-plist (mapcar #'make-keyword
-;;                       (getf (parameter-groups widget) :system))
-;;               (ensure-list (selected-key widget))))
-
-(defun make-link (op &optional group-names parameter-values)
-  (apply (getf (action-url-fns *page*) op)
-         (make-family-args op group-names parameter-values)))
-
-(defun make-family-args (op &optional group-names parameter-values)
-  (append *registers*
-          (mapcan (lambda (grp)
-                    (or parameter-values (params->values grp)))
-                  (or group-names (default-group-names op *page*)))))
-
-(defun default-group-names (op page)
-  (let ((op-groups (op-groups page)))
-    (iter
-      (for key in op-groups by #'cddr)
-      (for val in (rest op-groups) by #'cddr)
-      (when (or (and (keywordp key) (eql op key))
-                (and (listp key) (member op key)))
-        (return val)))))
-
-(defun url-fn-aux ((url-fn-id symbol))
-  (let ((allowed-params (remove-if-not (lambda (p)
-                                         (requiredp (attributes p)))
-                                       (parameter-attributes (find-page url-fn-id)))))
+(defun gurl-fn (page-name &rest group-names)
+  "Group URL function"
+  (let* ((page (find-page page-name))
+         (allowed-param-names (mapcar #'parameter-name (parameter-attributes page)))
+         (group-param-names (mappend (lambda (group-name)
+                                       (getf (parameter-groups page) group-name))
+                                     group-names))
+         (group-parameters (remove-if-not (lambda (param)
+                                            (member (parameter-name (attributes param))
+                                                    group-param-names))
+                                          *parameters*)))
     (lambda (&rest args)
-      (apply (symbol-function url-fn-id)
+      (apply page-name
              (append *registers*
-                     (remove-if-not (lambda (reqp)
-                                      (member (parameter-name (attributes reqp))
-                                              parameter-names))
-                                    *parameters*)
+                     (params->plist #'val
+                                    (remove-if-not (lambda (p)
+                                                     (member (parameter-name (attributes p))
+                                                             allowed-param-names))
+                                                   group-parameters))
                      args)))))
 
-(defmethod url-fn ((op symbol))
-  (url-fn-aux (getf (action-url-fns *page*) op)))
+(defun gurl (page-name &rest group-names)
+  "Group URL"
+  (funcall (apply #'gurl-fn page-name group-names)))
 
 
 
