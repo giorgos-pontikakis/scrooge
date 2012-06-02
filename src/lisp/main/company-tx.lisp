@@ -37,14 +37,15 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-tx-top-actions (op company-id filter)
+(defun company-tx-top-actions (op filter)
   (top-actions (make-instance 'menu
-                              :spec `((catalogue ,(company-catalogue-link company-id filter))
-                                      (create ,(company-create-link filter))
-                                      (print ,(company-print-link company-id filter)))
+                              :spec (make-menu-spec
+                                     `((:catalogue ,(gurl 'company :system :filter))
+                                       (:print ,(gurl 'company/tx/print :system :filter))))
                               :css-class "hmenu"
-                              :disabled (company-disabled-actions op))
-               (searchbox #'actions/company/search
+                              :disabled (list op))
+               (searchbox (gurl-fn 'actions/company/search)
+                          (gurl-fn 'company)
                           #'(lambda (&rest args)
                               (apply #'company :company-id company-id args))
                           filter
@@ -333,8 +334,8 @@
      (start      integer)
      (role       string))
   (with-view-page
-    (let ((filter (params->values :filter))
-          (company-filter (params->values :company-filter))
+    (let ((filter (params->filter))
+          (company-filter (params->company-filter))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -378,7 +379,7 @@
      (until      date)
      (role       string))
   (with-view-page
-    (let ((filter (params->values :filter))
+    (let ((filter (params->filter))
           (system (params->plist #'val-or-raw (list company-id tx-id)))
           (misc  (params->plist #'val-or-raw (list since until)))
           (roles (if (val role)
@@ -431,8 +432,8 @@
      (debit-amount  float   chk-amount)
      (credit-amount float   chk-amount))
   (with-view-page
-    (let ((filter (params->values :filter))
-          (company-filter (params->values :company-filter))
+    (let ((filter (params->filter))
+          (company-filter (params->company-filter))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -469,7 +470,7 @@
                                                            :since (val since)
                                                            :until (val until)
                                                            :role (val role))
-                              (display company-tx-table :payload (params->values :payload)))
+                              (display company-tx-table :payload (params->payload)))
                             (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
                             (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
@@ -498,4 +499,4 @@
                       :where (:= 'id (val tx-id))))
     (see-other (apply #'company/tx :company-id (val company-id)
                                    :tx-id (val tx-id)
-                                   (params->values :filter)))))
+                                   (params->filter)))))

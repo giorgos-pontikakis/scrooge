@@ -332,7 +332,7 @@
     (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
     ((search string))
   (with-db ()
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (rows (rows (make-instance 'cash-tx-table
                                       :kind kind
                                       :filter filter))))
@@ -357,7 +357,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :catalogue)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (page-title (conc (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :kind kind
@@ -401,7 +401,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :details)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
@@ -443,7 +443,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :create)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
@@ -467,7 +467,7 @@
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
-                             (display cash-form :payload (params->values :payload)
+                             (display cash-form :payload (params->payload)
                                                 :styles (params->styles :payload)))))
                (footer)))))))
 
@@ -500,7 +500,7 @@
                                   :auto t)))
       (insert-dao new-tx)
       (see-other (apply #'cash/details kind :tx-id (tx-id new-tx)
-                        (params->values :filter))))))
+                        (params->filter))))))
 
 
 
@@ -522,7 +522,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :update)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
                                      :op op
@@ -550,7 +550,7 @@
                                                            :search (val search)
                                                            :since (val since)
                                                            :until (val until))
-                             (display cash-form :payload (params->values :payload)
+                             (display cash-form :payload (params->payload)
                                                 :styles (params->styles :payload)))))
                (footer)))))))
 
@@ -582,7 +582,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'cash/details kind :tx-id (val tx-id) (params->values :filter))))))
+      (see-other (apply #'cash/details kind :tx-id (val tx-id) (params->filter))))))
 
 
 
@@ -599,7 +599,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((op :delete)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (page-title (conc (cash-page-title kind) " » Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op op
@@ -637,4 +637,4 @@
   (with-controller-page (cash/delete)
     (check-cash-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
-    (see-other (apply #'cash kind (params->values :filter)))))
+    (see-other (apply #'cash kind (params->filter)))))

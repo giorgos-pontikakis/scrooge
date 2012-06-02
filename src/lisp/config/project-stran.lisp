@@ -248,7 +248,7 @@
                            (project-stran-actions op nil)
                            (notifications)
                            (with-form (actions/config/project-stran/create)
-                             (display project-stran-table :payload (params->values :payload)))))))))))
+                             (display project-stran-table :payload (params->payload)))))))))))
 
 (defpage project-stran-page actions/config/project-stran/create
     ("actions/config/project-stran/create" :request-type :post)
@@ -299,7 +299,7 @@
                            (notifications)
                            (with-form (actions/config/project-stran/update :project-stran-id (val project-stran-id))
                              (display project-stran-table :key (val project-stran-id)
-                                                          :payload (params->values :payload)))))
+                                                          :payload (params->payload)))))
                (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/update

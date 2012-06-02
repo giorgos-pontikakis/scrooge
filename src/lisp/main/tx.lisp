@@ -252,7 +252,7 @@
      (start  integer))
   (with-view-page
     (let* ((op :catalogue)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter
@@ -292,7 +292,7 @@
      (non-chq-credit-acc string chk-non-chq-acc-title))
   (with-view-page
     (let* ((op :create)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter)))
@@ -314,7 +314,7 @@
                            (with-form (actions/tx/create :search (val search)
                                                          :since (val since)
                                                          :until (val until))
-                             (display tx-table :payload (params->values :payload)))))
+                             (display tx-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/create ("actions/tx/create"
@@ -340,7 +340,7 @@
                                   :credit-acc-id credit-acc-id
                                   :debit-acc-id debit-acc-id)))
       (insert-dao new-tx)
-      (see-other (apply #'tx :tx-id (tx-id new-tx) (params->values :filter))))))
+      (see-other (apply #'tx :tx-id (tx-id new-tx) (params->filter))))))
 
 
 
@@ -364,7 +364,7 @@
     (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
     (let* ((op :update)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter)))
@@ -388,7 +388,7 @@
                                                          :since (val since)
                                                          :until (val until))
                              (display tx-table :key (val tx-id)
-                                               :payload (params->values :payload)))))
+                                               :payload (params->payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
@@ -415,7 +415,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'tx :tx-id (val tx-id) (params->values :filter))))))
+      (see-other (apply #'tx :tx-id (val tx-id) (params->filter))))))
 
 
 
@@ -433,7 +433,7 @@
     (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
     (let* ((op :delete)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (tx-table (make-instance 'tx-table
                                     :op op
                                     :filter filter)))
@@ -466,4 +466,4 @@
      (search string))
   (with-controller-page (tx/delete)
     (delete-dao (get-dao 'tx (val tx-id)))
-    (see-other (apply #'tx (params->values :filter)))))
+    (see-other (apply #'tx (params->filter)))))

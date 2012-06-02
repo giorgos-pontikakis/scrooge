@@ -144,7 +144,7 @@
                            (:div :class "title" "Επεξεργασία")
                            (actions account-role-table)
                            (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
-                             (display account-role-table :payload (params->values :payload)
+                             (display account-role-table :payload (params->payload)
                                                          :styles (params->styles :payload)))))
                (footer)))))))
 

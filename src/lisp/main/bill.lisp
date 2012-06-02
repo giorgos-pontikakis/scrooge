@@ -129,7 +129,7 @@
     (swap-ranks (get-dao 'bill (val bill-id)) +1)
     (see-other (apply #'project/details :project-id (val project-id)
                                         :bill-id (val bill-id)
-                                        (params->values :filter)))))
+                                        (params->filter)))))
 
 (defpage bill-page action/bill/rank-dec ("action/bill/rank-dec" :request-type :post)
     ((search  string)
@@ -140,7 +140,7 @@
     (swap-ranks (get-dao 'bill (val bill-id)) -1)
     (see-other (apply #'project/details :project-id (val project-id)
                                         :bill-id (val bill-id)
-                                        (params->values :filter)))))
+                                        (params->filter)))))
 
 
 
@@ -155,7 +155,7 @@
      (tag        string)
      (amount     float   chk-amount*))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :details
                                         :key (val project-id)
@@ -189,7 +189,7 @@
                                            (with-form
                                                (actions/bill/create :project-id (val project-id))
                                              (display bill-table
-                                                      :payload (params->values :payload)))))))
+                                                      :payload (params->payload)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
@@ -207,7 +207,7 @@
       (insert-dao new-bill)
       (see-other (apply #'project/details :project-id (val project-id)
                                           :bill-id (bill-id new-bill)
-                                          (params->values :filter))))))
+                                          (params->filter))))))
 
 
 
@@ -223,7 +223,7 @@
      (tag        string)
      (amount     float   chk-amount*))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :details
                                         :key (val project-id)
@@ -256,7 +256,7 @@
                                            (actions bill-table)
                                            (with-form (actions/bill/update :project-id (val project-id)
                                                                            :bill-id (val bill-id))
-                                             (display bill-table :payload (params->values :payload)))))))
+                                             (display bill-table :payload (params->payload)))))))
                (footer)))))))
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
@@ -273,7 +273,7 @@
                       'amount (val amount)
                       :where (:= 'id (val bill-id))))
     (see-other (apply #'project/details :project-id (val project-id) :bill-id (val bill-id)
-                      (params->values :filter)))))
+                      (params->filter)))))
 
 
 
@@ -287,7 +287,7 @@
      (project-id integer chk-project-id                   t)
      (bill-id    integer (chk-bill-id project-id bill-id) t))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
                                         :op :details
                                         :key (val project-id)
@@ -335,4 +335,4 @@
         (shift-higher-rank-daos dao -1)
         (delete-dao dao)))
     (see-other (apply #'project/details :project-id (val project-id)
-                      (params->values :filter)))))
+                      (params->filter)))))

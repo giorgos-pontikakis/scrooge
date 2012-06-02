@@ -133,7 +133,7 @@
      (search  string)
      (start   integer))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :catalogue
                                       :selected-key (val city-id)
@@ -165,11 +165,11 @@
     ((title  string chk-city-title/create)
      (search string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :create
                                       :filter filter))
-           (payload (params->values :payload)))
+           (payload (params->payload)))
       (with-document ()
         (:head
          (:title "Πόλη » Δημιουργία")
@@ -208,7 +208,7 @@
      (title   string  (chk-city-title/update title city-id))
      (search  string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :update
                                       :selected-key (val city-id)
@@ -230,7 +230,7 @@
                            (with-form (actions/config/city/update :city-id (val city-id)
                                                                   :search (val search))
                              (display city-table
-                                      :payload (params->values :payload)))))
+                                      :payload (params->payload)))))
                (footer)))))))
 
 (defpage city-page actions/config/city/update ("actions/config/city/update" :request-type :post)
@@ -253,7 +253,7 @@
     ((city-id integer chk-city-id/ref t)
      (search  string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
                                       :op :delete
                                       :selected-key (val city-id)

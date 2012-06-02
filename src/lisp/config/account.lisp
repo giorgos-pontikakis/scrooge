@@ -281,7 +281,7 @@
                            (actions account-form)
                            (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                      :debitp (val debitp))
-                             (display account-form :payload (params->values :payload)
+                             (display account-form :payload (params->payload)
                                                    :styles (params->styles :payload)))))
                (footer)))))))
 
@@ -333,8 +333,8 @@
                            (notifications)
                            (actions account-form)
                            (with-form (actions/config/account/update :account-id (val account-id))
-                             (display account-form :payload (params->values :payload)
-                                                   :styles (params!->styles :payload)))))
+                             (display account-form :payload (params->payload)
+                                                   :styles (params->styles :payload)))))
                (footer)))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"

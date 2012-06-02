@@ -185,7 +185,6 @@
       (collect (list key (make-spec-line key val))))))
 
 
-
 ;;; widgets
 
 (defun filter-navbar (spec &key active id)
@@ -234,7 +233,6 @@
                          :href (apply submit-fn hidden)
                          (img "cross.png"))))
                   :hidden hidden)))))
-
 
 
 ;;; label-input-text for forms

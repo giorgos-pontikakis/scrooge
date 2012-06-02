@@ -11,12 +11,7 @@
   (:default-initargs
    :parameter-groups '(:system (cheque-id)
                        :payload (bank due-date company amount tstamp serial)
-                       :filter (since until cstate search))
-   :action-url-fns '(:catalogue cheque
-                     :create cheque/create
-                     :update cheque/update
-                     :delete cheque/delete
-                     :search actions/cheque/search)))
+                       :filter (since until cstate search))))
 
 
 
@@ -125,7 +120,7 @@
 (defun cheque-top-actions (op filter)
   (top-actions (make-instance 'menu
                               :spec (make-menu-spec
-                                     (list :catalogue (gurl 'cheque :filter)
+                                     (list :catalogue (gurl 'cheque :system :filter)
                                            :create (gurl 'cheque/create)))
                               :css-class "hmenu"
                               :disabled (cond ((member op '(:catalogue :delete))
@@ -464,9 +459,7 @@
                            (:div :class "title" (str page-title))
                            (actions cheque-table)
                            (display cheque-table)))
-               (footer)
-               (str (apply (urlfn 'cheque/update :system :filter)
-                           (list :since "foo")))))))))
+               (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))
     ((cheque-id integer chk-cheque-id       t)

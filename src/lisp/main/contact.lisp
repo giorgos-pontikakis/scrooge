@@ -135,7 +135,7 @@
     (swap-ranks (get-dao 'contact (val contact-id)) +1)
     (see-other (apply #'company/details :company-id (val company-id)
                                         :contact-id (val contact-id)
-                                        (params->values :filter)))))
+                                        (params->filter)))))
 
 (defpage contact-page action/contact/rank-dec ("action/contact/rank-dec" :request-type :post)
     ((search     string)
@@ -147,7 +147,7 @@
     (swap-ranks (get-dao 'contact (val contact-id)) -1)
     (see-other (apply #'company/details :company-id (val company-id)
                                         :contact-id (val contact-id)
-                                        (params->values :filter)))))
+                                        (params->filter)))))
 
 
 
@@ -162,7 +162,7 @@
      (tag        string)
      (phone      string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -212,7 +212,7 @@
       (insert-dao new-contact)
       (see-other (apply #'company/details :company-id (val company-id)
                                           :contact-id (contact-id new-contact)
-                                          (params->values :filter))))))
+                                          (params->filter))))))
 
 
 
@@ -228,7 +228,7 @@
      (tag        string)
      (phone      string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -279,7 +279,7 @@
                       'phone (val phone)
                       :where (:= 'id (val contact-id))))
     (see-other (apply #'company/details :company-id (val company-id) :contact-id (val contact-id)
-                      (params->values :filter)))))
+                      (params->filter)))))
 
 
 
@@ -293,7 +293,7 @@
      (company-id integer chk-company-id                         t)
      (contact-id integer (chk-contact-id company-id contact-id) t))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
                                         :key (val company-id)
@@ -342,4 +342,4 @@
         (shift-higher-rank-daos dao -1)
         (delete-dao dao)))
     (see-other (apply #'company/details :company-id (val company-id)
-                      (params->values :filter)))))
+                      (params->filter)))))

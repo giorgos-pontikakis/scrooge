@@ -303,7 +303,7 @@
                            (actions cheque-stran-table)
                            (notifications)
                            (with-form (actions/config/cheque-stran/create kind)
-                             (display cheque-stran-table :payload (params->values :payload)))))))))))
+                             (display cheque-stran-table :payload (params->payload)))))))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/create
     (("actions/config/cheque-stran/" (kind "(receivable|payable)") "/create") :request-type :post)
@@ -360,7 +360,7 @@
                            (with-form
                                (actions/config/cheque-stran/update kind
                                                                    :cheque-stran-id (val cheque-stran-id))
-                             (display cheque-stran-table :payload (params->values :payload)))))
+                             (display cheque-stran-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/update

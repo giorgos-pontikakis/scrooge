@@ -7,31 +7,14 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass family-mixin ()
-  ((parameter-groups :reader   parameter-groups :initarg :parameter-groups)
-   (action-url-fns   :reader   action-url-fns   :initarg :action-url-fns)
-   (action-labels    :reader   action-labels    :initarg :action-labels)
-
-   (op-groups        :accessor op-groups        :initarg :op-groups)
-   )
+  ((parameter-groups :reader   parameter-groups :initarg :parameter-groups))
   (:default-initargs :parameter-groups '()))
 
 
 ;;; Generics
 
-;; (defgeneric action-label (family-object op))
-
-;; (defmethod action-label ((obj family-mixin) op)
-;;   (or (getf (action-labels obj) op)
-;;       (assoc-value *action-labels* op)))
-
-
-;; (defgeneric action-url-fn (family-object op))
-
-;; (defmethod action-url-fn ((obj family-mixin) op)
-;;   (getf (action-url-fns obj) op))
-
-(defgeneric top-level-actions (family op filter)
-  (:documentation "top level menu"))
+;; (defgeneric top-level-actions (family op filter)
+;;   (:documentation "top level menu"))
 
 
 ;;; Utilities
@@ -70,7 +53,7 @@
 (defun params->filter (&key (page *page*) (parameters *parameters*))
   (params->values :filter :fn #'val :page page :parameters parameters))
 
-(defun params->sty (&key (page *page*) (parameters *parameters*))
+(defun params->styles (&key (page *page*) (parameters *parameters*))
   (params->values :payload :fn #'sty :page page :parameters parameters))
 
 (defun gurl-fn (page-name &rest group-names)

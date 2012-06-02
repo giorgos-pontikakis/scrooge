@@ -206,7 +206,7 @@
                            (actions temtx-table)
                            (notifications)
                            (with-form (actions/config/temtx/create)
-                             (display temtx-table :payload (params->values :payload)))))))))))
+                             (display temtx-table :payload (params->payload)))))))))))
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
     ((title          string chk-temtx-title/create)
@@ -252,7 +252,7 @@
                            (actions temtx-table)
                            (notifications)
                            (with-form (actions/config/temtx/update :temtx-id (val temtx-id))
-                             (display temtx-table :payload (params->values :payload)))))
+                             (display temtx-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)

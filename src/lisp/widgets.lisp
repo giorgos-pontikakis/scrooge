@@ -264,14 +264,14 @@
 
 (defclass scrooge-menu (menu)
   ()
-  (:default-initargs :disabled-class "invisible" :css-class "actions hmenu"))
+  (:default-initargs :css-disabled "invisible" :css-class "actions hmenu"))
 
-(defun scrooge-menu (spec &key id css-class disabled disabled-class)
+(defun scrooge-menu (spec &key id css-class disabled css-disabled)
   (let ((initargs (plist-collect-if #'identity
                                     (list :id id
                                           :css-class css-class
                                           :disabled disabled
-                                          :disabled-class disabled-class)
+                                          :css-disabled css-disabled)
                                     :on-values-p t)))
     (display (apply #'make-instance 'scrooge-menu :spec spec initargs))))
 

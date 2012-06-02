@@ -355,7 +355,7 @@
      :request-type :get)
     ((search string))
   (with-db ()
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (rows (rows (make-instance 'invoice-tx-table
                                       :issuer issuer
                                       :kind kind
@@ -395,7 +395,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :catalogue)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (page-title (invoice-page-title issuer kind "Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :issuer issuer
@@ -437,7 +437,7 @@
      (tx-id  integer chk-tx-id t))
   (with-view-page
     (let* ((op :details)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
@@ -478,7 +478,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :create)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
@@ -503,7 +503,7 @@
                                                               :search (val search)
                                                               :since (val since)
                                                               :until (val until))
-                             (display invoice-form :payload (params->values :payload)
+                             (display invoice-form :payload (params->payload)
                                                    :styles (params->styles :payload)))))
                (footer)))))))
 
@@ -533,7 +533,7 @@
                                   :auto t)))
       (insert-dao new-tx)
       (see-other (apply #'invoice/details issuer kind :tx-id (tx-id new-tx)
-                        (params->values :filter))))))
+                        (params->filter))))))
 
 
 
@@ -555,7 +555,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :update)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
@@ -584,7 +584,7 @@
                                                               :search (val search)
                                                               :since (val since)
                                                               :until (val until))
-                             (display invoice-form :payload (params->values :payload)
+                             (display invoice-form :payload (params->payload)
                                                    :styles (params->styles :payload)))))
                (footer)))))))
 
@@ -614,7 +614,7 @@
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
       (see-other (apply #'invoice/details issuer kind :tx-id (val tx-id)
-                        (params->values :filter))))))
+                        (params->filter))))))
 
 
 
@@ -631,7 +631,7 @@
   (with-view-page
     (check-invoice-accounts)
     (let* ((op :delete)
-           (filter (params->values :filter))
+           (filter (params->filter))
            (page-title (invoice-page-title issuer kind "Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :issuer issuer
@@ -672,4 +672,4 @@
     (check-invoice-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'invoice issuer kind
-                      (params->values :filter)))))
+                      (params->filter)))))

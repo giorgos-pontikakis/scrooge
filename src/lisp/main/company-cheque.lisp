@@ -179,30 +179,18 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-cheque-top-actions (op kind company-id company-filter cheque-filter filter)
+(defun company-cheque-top-actions (op company-filter)
   (top-actions
    (make-instance 'menu
-                  :spec `((catalogue ,(company-catalogue-link company-id
-                                                              company-filter))
-                          (company-create ,(company-create-link company-filter))
-                          (cheque-create ,(cheque-create-link (lambda (kind &rest args)
-                                                                (apply #'company/cheque/create
-                                                                       kind
-                                                                       :company-id company-id
-                                                                       args))
-                                                              kind
-                                                              cheque-filter))
-                          (print
-                           ,(html ()
-                              (:a :href (apply #'company/cheque/print
-                                               kind :company-id company-id filter)
-                                  (:img :src "/scrooge/img/printer.png")
-                                  "Εκτύπωση"))))
+                  :spec `((:catalogue ,(gurl 'company :system :filter))
+                          (:create-company ,(gurl 'company/create :filter))
+                          (:create-cheque ,(gurl 'company/cheque/create :filter))
+                          (:print ,(gurl 'company/cheque/print :filter)))
+
                   :css-class "hmenu"
-                  :disabled (company-disabled-actions op))
-   (searchbox #'actions/company/search
-              #'(lambda (&rest args)
-                  (apply #'company :company-id company-id args))
+                  :disabled (list op))
+   (searchbox (gurl-fn 'actions/company/search)
+              (gurl-fn 'company)
               company-filter
               "ac-company")))
 
@@ -224,9 +212,9 @@
      (cstate     string))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((filter (params->values :filter))
-           (cheque-filter (params->values :cheque-filter))
-           (company-filter (params->values :company-filter))
+    (let* ((filter (params->filter))
+           (cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :catalogue
                                         :selected-key (val cheque-id)
@@ -244,8 +232,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx-cheque kind (val company-id)
-                                           company-filter cheque-filter filter)
+               (company-cheque-top-actions :catalogue company-filter)
                (company-tabs (val company-id) company-filter 'cheque
                              (html ()
                                (filters cheque-table)
@@ -268,7 +255,7 @@
      (start      integer)
      (cstate     string))
   (with-view-page
-    (let* ((filter (params->values :filter))
+    (let* ((filter (params->filter))
            (payable-table (make-instance 'company-cheque-table
                                          :op :details
                                          :selected-key (val cheque-id)
@@ -325,9 +312,9 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
-           (filter (params->values :filter))
-           (cheque-filter (params->values :cheque-filter))
-           (company-filter (params->values :company-filter))
+           (filter (params->filter))
+           (cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
                                         :filter cheque-filter
@@ -345,8 +332,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx-cheque kind (val company-id)
-                                           company-filter cheque-filter filter)
+               (company-cheque-top-actions :tx-cheque company-filter)
                (company-tabs
                 (val company-id) company-filter 'cheque
                 (html ()
@@ -364,7 +350,7 @@
                                                                         :start (val start)
                                                                         :since (val since)
                                                                         :until (val until))
-                                (display cheque-table :payload (params->values :payload)))))))
+                                (display cheque-table :payload (params->payload)))))))
                (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/create
@@ -393,7 +379,7 @@
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque kind :company-id (val company-id)
                                               :cheque-id (cheque-id new-cheque)
-                                              (params->values :filter))))))
+                                              (params->filter))))))
 
 
 
@@ -418,9 +404,9 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :update)
-           (filter (params->values :filter))
-           (cheque-filter (params->values :cheque-filter))
-           (company-filter (params->values :company-filter))
+           (filter (params->filter))
+           (cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op op
                                         :selected-key (val cheque-id)
@@ -439,8 +425,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx-cheque kind (val company-id)
-                                           company-filter cheque-filter filter)
+               (company-cheque-top-actions :tx-cheque company-filter)
                (company-tabs
                 (val company-id) company-filter 'cheque
                 (html ()
@@ -459,7 +444,7 @@
                                                                         :start (val start)
                                                                         :since (val since)
                                                                         :until (val until))
-                                (display cheque-table :payload (params->values :payload)))))))
+                                (display cheque-table :payload (params->payload)))))))
                (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/update
@@ -489,7 +474,7 @@
       (update-dao cheque-dao)
       (see-other (apply #'company/cheque kind :company-id (val company-id)
                                               :cheque-id (val cheque-id)
-                                              (params->values :filter))))))
+                                              (params->filter))))))
 
 
 
@@ -514,12 +499,10 @@
      (amount     float   chk-amount))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :delete)
-           (filter (params->values :filter))
-           (cheque-filter (params->values :cheque-filter))
-           (company-filter (params->values :company-filter))
+    (let* ((cheque-filter (params->cheque-filter))
+           (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op op
+                                        :op :delete
                                         :selected-key (val cheque-id)
                                         :filter cheque-filter
                                         :start-index (val start)
@@ -536,8 +519,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx-cheque kind (val company-id)
-                                           company-filter cheque-filter filter)
+               (company-cheque-top-actions :delete company-filter)
                (company-tabs
                 (val company-id) company-filter 'cheque
                 (html ()
@@ -573,4 +555,4 @@
   (with-controller-page (company/cheque/delete kind)
     (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val cheque-id)))
-    (see-other (apply #'company/cheque kind :company-id (val company-id) (params->values :filter)))))
+    (see-other (apply #'company/cheque kind :company-id (val company-id) (params->filter)))))
