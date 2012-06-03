@@ -190,7 +190,9 @@
                                            "Νέα επιταγή" "create")
                            :print ,(family-url 'company/cheque/print :filter)))
                   :css-class "hmenu"
-                  :disabled (list op))
+                  :disabled (case op
+                              (:create '(:create-company :create-cheque :print))
+                              ((:update :delete) '(:print))))
    (searchbox (family-url-fn 'actions/company/search)
               (family-url-fn 'company :system)
               (family-params 'company :filter)

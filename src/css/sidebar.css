@@ -100,12 +100,6 @@
     border: none;
 }
 
-.inline-form a.cancel img {
-    padding: 0px 4px;
-    vertical-align: middle;
-}
-
-
 
 
 /* ---------------------------------------------------------------------- */
@@ -189,7 +183,7 @@
 
 .top-actions .hmenu li a {
     border: solid 1px #bbb;
-    padding: 7px 7px 7px 4px;
+    padding: 7px 7px 7px 26px;
     border-radius: 5px;
     background-color: #eee;
     margin-left: 10px;

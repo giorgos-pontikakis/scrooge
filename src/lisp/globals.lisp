@@ -5,8 +5,9 @@
 ;;; Globals
 ;;; ------------------------------------------------------------
 
-(setf (doctype) :xhtml)
-(setf (indent-mode) t)
+(eval-when (:compile-toplevel :load-toplevel)
+  (setf (doctype) :xhtml)
+  (setf (indent-mode) nil))
 
 (defparameter *action-labels* '((:catalogue . "Κατάλογος")
                                 (:create    . "Δημιουργία")

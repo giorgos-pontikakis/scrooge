@@ -39,7 +39,7 @@
 .hmenu li button {
     border: none;
     color: #001122;
-    padding: 0px 12px 0px 15px;
+    padding: 0px 0px 0px 19px;
 }
 
 .hmenu li button:hover {
@@ -56,7 +56,7 @@
 .hmenu li a {
     line-height: 26px;
     color: #222;
-    padding: 5px 10px 5px 20px;
+    padding: 5px 5px 5px 25px;
 }
 
 .hmenu li a img {

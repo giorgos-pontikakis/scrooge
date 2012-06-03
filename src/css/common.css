@@ -97,27 +97,31 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 .catalogue {
-    background: transparent url(/scrooge/img/application_view_list.png) no-repeat left center;
+    background: transparent url(/scrooge/img/application_view_list.png) no-repeat 6px center;
 }
 
 .details {
-    background: transparent url(/scrooge/img/application_form.png) no-repeat left center;
+    background: transparent url(/scrooge/img/application_form.png) no-repeat 5px center;
 }
 
 .create {
-    background: transparent url(/scrooge/img/add.png) no-repeat left center;
+    background: transparent url(/scrooge/img/add.png) no-repeat 6px center;
 }
 
 .update {
-    background: transparent url(/scrooge/img/pencil.png) no-repeat left center;
+    background: transparent url(/scrooge/img/pencil.png) no-repeat 5px center;
 }
 
 .delete {
-    background: transparent url(/scrooge/img/delete.png) no-repeat left center;
+    background: transparent url(/scrooge/img/delete.png) no-repeat 6px center;
 }
 
 .archive {
-    background: transparent url(/scrooge/img/package.png) no-repeat left center;
+    background: transparent url(/scrooge/img/package.png) no-repeat 5px center;
+}
+
+.print {
+    background: transparent url(/scrooge/img/printer.png) no-repeat 5px center;
 }
 
 .msg-error {
@@ -125,11 +129,11 @@ select:disabled {
 }
 
 .up {
-    background: transparent url(/scrooge/img/arrow_up.png) no-repeat left center;
+    background: transparent url(/scrooge/img/arrow_up.png) no-repeat 5px center;
 }
 
 .down {
-    background: transparent url(/scrooge/img/arrow_down.png) no-repeat left center;
+    background: transparent url(/scrooge/img/arrow_down.png) no-repeat 5px center;
 }
 
 .attention {
@@ -201,8 +205,7 @@ select:disabled {
     font-weight: bold;
     background-color: #ddd;
     line-height: 26px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0px 10px 0px 15px;
     color: #444;
     border-radius: 5px 5px 0px 0px;
 }
