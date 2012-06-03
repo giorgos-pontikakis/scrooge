@@ -56,86 +56,72 @@
 (defun params->styles (&key (page *page*) (parameters *parameters*))
   (params->values :payload :fn #'sty :page page :parameters parameters))
 
-;; (defun gurl-fn (page-name &rest group-names)
-;;   "Group URL function"
-;;   (let* ((page (find-page page-name))
-;;          (allowed-param-names (mapcar #'parameter-name (parameter-attributes page)))
-;;          (group-param-names (mappend (lambda (group-name)
-;;                                        (getf (parameter-groups page) group-name))
-;;                                      group-names))
-;;          (group-parameters (remove-if-not (lambda (param)
-;;                                             (member (parameter-name (attributes param))
-;;                                                     group-param-names))
-;;                                           *parameters*)))
-;;     (lambda (&rest args)
-;;       (apply page-name
-;;              (append *registers*
-;;                      (params->plist #'val
-;;                                     (remove-if-not (lambda (p)
-;;                                                      (member (parameter-name (attributes p))
-;;                                                              allowed-param-names))
-;;                                                    group-parameters))
-;;                      args)))))
 
-;; (defun gurl (page-name &rest group-names)
-;;   "Group URL"
-;;   (funcall (apply #'gurl-fn page-name group-names)))
+;;; family-params
 
-(defgeneric family-url-fn (page &rest group-names))
+(defgeneric family-params (page-identifier &rest group-names))
+
+(defmethod family-params ((page dynamic-page) &rest group-names)
+  (let* ((allowed-param-names (mapcar #'parameter-name (parameter-attributes page)))
+         (group-param-names (mappend (lambda (group-name)
+                                       (getf (parameter-groups page) group-name))
+                                     group-names))
+         (group-parameters (remove-if-not (lambda (param)
+                                            (member (parameter-name (attributes param))
+                                                    group-param-names))
+                                          *parameters*)))
+    (params->plist #'val
+                   (remove-if-not (lambda (p)
+                                    (member (parameter-name (attributes p))
+                                            allowed-param-names))
+                                  group-parameters))))
+
+(defmethod family-params ((page-name symbol) &rest group-names)
+  (apply #'family-params (find-page page-name) group-names))
+
+(defmethod family-params ((page-name null) &rest group-names)
+  (declare (ignore page-name group-names))
+  (error "FAMILY-PARAMS: Page not found."))
+
+
+;;; family-url-fn
+
+(defgeneric family-url-fn (page-identifier &rest group-names))
 
 (defmethod family-url-fn ((page regex-page) &rest group-names)
-  (let* ((allowed-param-names (mapcar #'parameter-name (parameter-attributes page)))
-         (group-param-names (mappend (lambda (group-name)
-                                       (getf (parameter-groups page) group-name))
-                                     group-names))
-         (group-parameters (remove-if-not (lambda (param)
-                                            (member (parameter-name (attributes param))
-                                                    group-param-names))
-                                          *parameters*)))
-    (lambda (registers &rest args)
-      (apply (page-name page)
-             (append registers
-                     (params->plist #'val
-                                    (remove-if-not (lambda (p)
-                                                     (member (parameter-name (attributes p))
-                                                             allowed-param-names))
-                                                   group-parameters))
-                     args)))))
+  (lambda (&rest args)
+    (apply (page-name page)
+           (append *registers*
+                   (apply #'family-params page group-names)
+                   args))))
 
 (defmethod family-url-fn ((page dynamic-page) &rest group-names)
-  (let* ((allowed-param-names (mapcar #'parameter-name (parameter-attributes page)))
-         (group-param-names (mappend (lambda (group-name)
-                                       (getf (parameter-groups page) group-name))
-                                     group-names))
-         (group-parameters (remove-if-not (lambda (param)
-                                            (member (parameter-name (attributes param))
-                                                    group-param-names))
-                                          *parameters*)))
-    (lambda (&rest args)
-      (apply (page-name page)
-             (append (params->plist #'val
-                                    (remove-if-not (lambda (p)
-                                                     (member (parameter-name (attributes p))
-                                                             allowed-param-names))
-                                                   group-parameters))
-                     args)))))
+  (lambda (&rest args)
+    (apply (page-name page)
+           (append (apply #'family-params page group-names)
+                   args))))
 
 (defmethod family-url-fn ((page-name symbol) &rest group-names)
   (apply #'family-url-fn (find-page page-name) group-names))
 
+(defmethod family-url-fn ((page-name null) &rest group-names)
+  (declare (ignore page-name group-names))
+  (error "FAMILY-URL-FN: Page not found."))
 
-(defgeneric family-url (page &rest group-names))
 
-(defmethod family-url ((page dynamic-page) &rest group-names)
+;;; family-url
+
+(defgeneric family-url (page-identifier &rest group-names))
+
+(defmethod family-url ((page page) &rest group-names)
   (funcall (apply #'family-url-fn page group-names)))
-
-(defmethod family-url ((page regex-page) &rest group-names)
-  (funcall (apply #'family-url-fn page group-names) *registers*))
 
 (defmethod family-url ((page-name symbol) &rest group-names)
   (apply #'family-url (find-page page-name) group-names))
 
-
+(defmethod family-url ((page-name null) &rest group-names)
+  (declare (ignore page-name group-names))
+  (error "FAMILY-URL: Page not found."))
 
 ;;; ------------------------------------------------------------
 ;;; AUTHENTICATION MIXIN

@@ -37,8 +37,8 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-tx-top-actions (op filter)
-  (top-actions (make-instance 'menu
+(defun company-tx-top-actions (op)
+  (top-actions (make-instance 'scrooge-menu
                               :spec (make-menu-spec
                                      `((:catalogue ,(family-url 'company :system :filter))
                                        (:print ,(family-url 'company/tx/print :system :filter))))
@@ -46,7 +46,7 @@
                               :disabled (list op))
                (searchbox (family-url-fn 'actions/company/search)
                           (family-url-fn 'company :system)
-                          filter
+                          (family-params 'company :filter)
                           "ac-company")))
 
 
@@ -333,7 +333,6 @@
      (until      date))
   (with-view-page
     (let ((filter (params->filter))
-          (company-filter (params->company-filter))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -354,9 +353,9 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'company)
-                   (company-top-actions :tx-cheque company-filter)
+                   (company-tx-top-actions :catalogue)
                    (company-tabs
-                    (val company-id) company-filter 'tx
+                    (val company-id) filter 'tx
                     (html ()
                       (filters company-tx-table)
                       (:div :id "company-tx-window" :class "window"
@@ -431,7 +430,6 @@
      (until         date))
   (with-view-page
     (let ((filter (params->filter))
-          (company-filter (params->company-filter))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -451,9 +449,9 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'company)
-                   (company-top-actions :tx-cheque company-filter)
+                   (company-top-actions :update)
                    (company-tabs
-                    (val company-id) company-filter 'tx
+                    (val company-id) filter 'tx
                     (html ()
                       (filters company-tx-table)
                       (:div :id "company-tx-window" :class "window"

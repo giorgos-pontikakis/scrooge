@@ -11,7 +11,7 @@
   (:default-initargs
    :parameter-groups '(:system (company-id contact-id)
                        :payload (tag phone)
-                       :filter (search))))
+                       :filter (search subset))))
 
 (defclass contact-page (auth-dynamic-page contact-family)
   ())
@@ -180,7 +180,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :details (val company-id) filter)
+               (company-top-actions :details)
                (company-tabs (val company-id) filter 'details
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -247,7 +247,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :details (val company-id) filter)
+               (company-top-actions :details)
                (company-tabs (val company-id) filter 'details
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -312,7 +312,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :details (val company-id) filter)
+               (company-top-actions :details)
                (company-tabs (val company-id) filter 'details
                              (html ()
                                (:div :class "grid_6 alpha"

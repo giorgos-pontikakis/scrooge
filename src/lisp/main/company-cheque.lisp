@@ -93,9 +93,8 @@
                                           :id "cheque-kind-navbar")
                            (filter-navbar filter-spec
                                           :active (getf filter :cstate))
-                           (datebox (lambda (&rest args)
-                                      (apply #'company/cheque kind :company-id company-id args))
-                                    filter))))
+                           (datebox (family-url-fn 'company/cheque)
+                                    (family-params 'company/cheque :system :filter)))))
 
 
 ;;; row
@@ -180,7 +179,7 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-cheque-top-actions (op company-filter)
+(defun company-cheque-top-actions (op)
   (top-actions
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
@@ -193,8 +192,8 @@
                   :css-class "hmenu"
                   :disabled (list op))
    (searchbox (family-url-fn 'actions/company/search)
-              (family-url-fn 'company)
-              company-filter
+              (family-url-fn 'company :system)
+              (family-params 'company :filter)
               "ac-company")))
 
 
@@ -216,12 +215,10 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :catalogue
                                         :selected-key (val cheque-id)
-                                        :filter cheque-filter
+                                        :filter filter
                                         :start-index (val start)
                                         :kind kind
                                         :company-id (val company-id)))
@@ -235,8 +232,8 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :catalogue company-filter)
-               (company-tabs (val company-id) company-filter 'cheque
+               (company-cheque-top-actions :catalogue)
+               (company-tabs (val company-id) filter 'cheque
                              (html ()
                                (filters cheque-table)
                                (:div :id "company-tx-window"
@@ -314,13 +311,10 @@
      (cstate     string))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :create)
-           (filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+    (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op op
-                                        :filter cheque-filter
+                                        :op :create
+                                        :filter filter
                                         :start-index (val start)
                                         :kind kind
                                         :company-id (val company-id)))
@@ -335,9 +329,9 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx-cheque company-filter)
+               (company-cheque-top-actions :create)
                (company-tabs
-                (val company-id) company-filter 'cheque
+                (val company-id) filter 'cheque
                 (html ()
                   (filters cheque-table)
                   (:div :id "company-tx-window"
@@ -406,15 +400,12 @@
      (cstate     string))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :update)
-           (filter (params->filter))
-           (cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+    (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op op
+                                        :op :update
                                         :selected-key (val cheque-id)
                                         :kind kind
-                                        :filter cheque-filter
+                                        :filter filter
                                         :start-index (val start)
                                         :company-id (val company-id)))
            (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
@@ -428,9 +419,9 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :tx-cheque company-filter)
+               (company-cheque-top-actions :update)
                (company-tabs
-                (val company-id) company-filter 'cheque
+                (val company-id) filter 'cheque
                 (html ()
                   (filters cheque-table)
                   (:div :id "company-tx-window"
@@ -497,12 +488,11 @@
      (cstate     string))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((cheque-filter (params->cheque-filter))
-           (company-filter (params->company-filter))
+    (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :delete
                                         :selected-key (val cheque-id)
-                                        :filter cheque-filter
+                                        :filter filter
                                         :start-index (val start)
                                         :kind kind
                                         :company-id (val company-id)))
@@ -517,9 +507,9 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-cheque-top-actions :delete company-filter)
+               (company-cheque-top-actions :delete)
                (company-tabs
-                (val company-id) company-filter 'cheque
+                (val company-id) filter 'cheque
                 (html ()
                   (:div :class "secondary-filter-area"
                         (filters cheque-table))

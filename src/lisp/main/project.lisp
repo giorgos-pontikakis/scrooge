@@ -8,7 +8,7 @@
 
 (defclass project-family (family-mixin)
   ()
-  (:default-initargs :parameter-groups '(:system (project-id)
+  (:default-initargs :parameter-groups '(:system (project-id bill-id)
                                          :payload (company description location price vat
                                                    state-id quote-date start-date end-date notes)
                                          :filter (search cstate))))
@@ -152,30 +152,18 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun project-top-actions (op project-id filter)
-  (top-actions (make-instance 'menu
-                              :spec `((catalogue
-                                       ,(html ()
-                                          (:a :href (apply #'project :project-id project-id filter)
-                                              (:img :src "/scrooge/img/application_view_list.png")
-                                              "Κατάλογος")))
-                                      (create
-                                       ,(html ()
-                                          (:a :href (apply #'project/create filter)
-                                              (:img :src "/scrooge/img/add.png")
-                                              "Νέο Έργο"))))
-                              :css-class "hmenu"
-                              :disabled (cond ((member op '(:catalogue :delete))
-                                               '(catalogue))
-                                              ((eql op :create)
-                                               '(create))
-                                              (t
-                                               nil)))
-               (searchbox #'actions/project/search
-                          #'(lambda (&rest args)
-                              (apply #'project :project-id project-id args))
-                          filter
-                          "ac-project")))
+(defun project-top-actions (op)
+  (top-actions
+   (make-instance 'scrooge-menu
+                  :spec (make-menu-spec
+                         `(:catalogue ,(family-url 'project :system :filter)
+                           :create (,(family-url 'project/create :filter) "Νέο Έργο")))
+                  :css-class "hmenu"
+                  :disabled (list op))
+   (searchbox (family-url-fn 'actions/project/search)
+              (family-url-fn 'project :system)
+              (family-params 'project :filter)
+              "ac-project")))
 
 (defun project-tabs (project-id content)
   (with-html
@@ -395,10 +383,10 @@
      (search     string)
      (start      integer))
   (with-view-page
-    (let* ((op :catalogue)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
-                                         :op op
+                                         :op :catalogue
+                                         :selected-key (val project-id)
                                          :filter filter
                                          :start-index (val start))))
       ;; if project-id exists and is not found among records, ignore search term
@@ -413,28 +401,28 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val project-id) filter)
+               (project-top-actions :catalogue)
                (filters project-table)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (actions project-table :key (val project-id))
-                           (display project-table :key (val project-id))))
+                           (actions project-table)
+                           (display project-table)))
                (footer)))))))
 
 (defpage project-page project/details ("project/details")
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id                   t)
-     (bill-id    integer (chk-bill-id project-id bill-id)))
+    ((project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id))
+     (search     string)
+     (cstate     string))
   (with-view-page
-    (let* ((op :details)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op op
+                                        :op :details
                                         :key (val project-id)))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
+                                      :selected-key (val bill-id)
                                       :project-id (val project-id))))
       (with-document ()
         (:head
@@ -444,7 +432,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val project-id) filter)
+               (project-top-actions :details)
                (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -455,8 +443,8 @@
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")
-                                           (actions bill-table :key (val bill-id))
-                                           (display bill-table :key (val bill-id))))))
+                                           (actions bill-table)
+                                           (display bill-table)))))
                (footer)))))))
 
 
@@ -466,9 +454,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/create ("project/create")
-    ((search      string)
-     (cstate      string chk-project-state-id)
-     (company     string chk-company-title)
+    ((company     string chk-company-title)
      (description string (chk-project-description/create description company))
      (location    string)
      (price       float  (chk-price price state-id))
@@ -477,12 +463,13 @@
      (quote-date  date   (chk-quote-date quote-date state-id))
      (start-date  date   (chk-start-date start-date state-id))
      (end-date    date   (chk-end-date end-date state-id))
-     (notes       string))
+     (notes       string)
+     (search      string)
+     (cstate      string chk-project-state-id))
   (with-view-page
-    (let* ((op :create)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op op
+                                        :op :create
                                         :cancel-url (apply #'project filter))))
       (with-document ()
         (:head
@@ -492,7 +479,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op nil filter)
+               (project-top-actions :create)
                (project-tabs nil
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -503,14 +490,12 @@
                                            (with-form (actions/project/create :search (val search)
                                                                               :cstate (val cstate))
                                              (display project-form :payload (params->payload)
-                                                                   :styles (params->styles :payload)))))))
+                                                                   :styles (params->styles)))))))
                (footer)))))))
 
 (defpage project-page actions/project/create ("actions/project/create"
                                               :request-type :post)
-    ((search      string)
-     (cstate      string chk-project-state-id)
-     (company     string chk-company-title)
+    ((company     string chk-company-title)
      (description string (chk-project-description/create description company))
      (location    string)
      (price       float  (chk-price price state-id))
@@ -519,7 +504,9 @@
      (quote-date  date   (chk-quote-date quote-date state-id))
      (start-date  date   (chk-start-date start-date state-id))
      (end-date    date   (chk-end-date end-date state-id))
-     (notes       string))
+     (notes       string)
+     (search      string)
+     (cstate      string chk-project-state-id))
   (with-controller-page (project/create)
     (let* ((company-id (company-id (val company)))
            (new-project (make-instance 'project
@@ -544,9 +531,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/update ("project/update")
-    ((search      string)
-     (cstate      string  chk-project-state-id)
-     (project-id  integer chk-project-id)
+    ((project-id  integer chk-project-id)
      (bill-id     integer (chk-bill-id project-id bill-id))
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company project-id))
@@ -557,17 +542,19 @@
      (quote-date  date    (chk-quote-date quote-date state-id))
      (start-date  date    (chk-start-date start-date state-id))
      (end-date    date    (chk-end-date end-date state-id))
-     (notes       string))
+     (notes       string)
+     (search      string)
+     (cstate      string  chk-project-state-id))
   (with-view-page
-    (let* ((project-op :update)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op project-op
+                                        :op :update
                                         :key (val project-id)
                                         :cancel-url (apply #'project/details
                                                            :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
                                       :op :catalogue
+                                      :selected-key (val bill-id)
                                       :project-id (val project-id))))
       (with-document ()
         (:head
@@ -577,7 +564,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions project-op (val project-id) filter)
+               (project-top-actions :update)
                (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -590,19 +577,17 @@
                                                                        :search (val search)
                                                                        :cstate (val cstate))
                                              (display project-form :payload (params->payload)
-                                                                   :styles (params->styles :payload)))))
+                                                                   :styles (params->styles)))))
                                (:div :class "grid_6 omega"
                                      (:div :id "bill-window" :class "window"
                                            (:div :class "title" "Κοστολόγηση")
-                                           (actions bill-table :key (val bill-id))
-                                           (display bill-table :key (val bill-id))))))
+                                           (actions bill-table)
+                                           (display bill-table)))))
                (footer)))))))
 
 (defpage project-page actions/project/update ("actions/project/update"
                                               :request-type :post)
-    ((search      string)
-     (cstate      string  chk-project-state-id)
-     (project-id  integer chk-project-id)
+    ((project-id  integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company project-id))
      (location    string)
@@ -612,7 +597,9 @@
      (quote-date  date    (chk-quote-date quote-date state-id))
      (start-date  date    (chk-start-date start-date state-id))
      (end-date    date    (chk-end-date end-date state-id))
-     (notes       string))
+     (notes       string)
+     (search      string)
+     (cstate      string  chk-project-state-id))
   (with-controller-page (project/update)
     (let ((company-id (company-id (val company))))
       (execute (:update 'project :set
@@ -641,10 +628,10 @@
      (search     string)
      (cstate     string  chk-project-state-id))
   (with-view-page
-    (let* ((op :delete)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
                                          :op :delete
+                                         :selected-key (val project-id)
                                          :filter filter)))
       (with-document ()
         (:head
@@ -654,17 +641,16 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions op (val project-id) filter)
+               (project-top-actions :delete)
                (filters project-table)
                (:div :class "grid_12"
                      (:div :id "project-window" :class "window"
                            (:div :class "title" "Έργο » Διαγραφή")
-                           (actions project-table :key (val project-id))
+                           (actions project-table)
                            (with-form (actions/project/delete :project-id (val project-id)
                                                               :search (val search)
                                                               :cstate (val cstate))
-                             (display project-table
-                                      :key (val project-id)))))
+                             (display project-table))))
                (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/project/delete"

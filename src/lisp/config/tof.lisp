@@ -19,15 +19,15 @@
     :initform '((title (:tof-title-null "Το όνομα της Δ.Ο.Υ. είναι κενό."
                         :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη."))))))
 
-(defun tof-top-actions (op filter)
+(defun tof-top-actions (op)
   (top-actions
    (make-instance 'scrooge-menu
-                  :spec (make-menu-spec `(:create ("Νέα Δ.Ο.Υ." . ,(family-url 'config/tof/create))))
+                  :spec (make-menu-spec `(:create (,(family-url 'config/tof/create) "Νέα Δ.Ο.Υ.")))
                   :css-class "hmenu"
                   :disabled (list op))
    (searchbox (family-url-fn 'config/tof)
               (family-url-fn 'config/tof :system)
-              filter
+              (family-params 'config/tof :filter)
               "ac-tof")))
 
 
@@ -147,7 +147,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-top-actions :catalogue filter)
+               (tof-top-actions :catalogue)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -177,7 +177,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-top-actions :create filter)
+               (tof-top-actions :create)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -220,7 +220,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-top-actions :update filter)
+               (tof-top-actions :update)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -265,7 +265,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'tof)
-               (tof-top-actions :delete filter)
+               (tof-top-actions :delete)
                (:div :class "grid_12"
                      (:div :id "tof-window" :class "window"
                            (:div :class "title" "Διαγραφή")

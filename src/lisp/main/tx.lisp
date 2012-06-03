@@ -76,19 +76,15 @@
               :where (:= 'tx-id tx-id)))
       nil))
 
-(defun tx-top-actions (tx-id filter)
+(defun tx-top-actions (op)
   (top-actions
-   (make-instance 'menu
-                  :spec `((create ,(html ()
-                                     (:a :href (apply #'tx/create filter)
-                                         (:img :src "/scrooge/img/add.png")
-                                         (str "Νέα Συναλλαγή")))))
+   (make-instance 'scrooge-menu
+                  :spec (make-menu-spec `(:create (,(family-url 'tx/create :filter) "Νέα Συναλλαγή")))
                   :css-class "hmenu"
-                  :disabled nil)
-   (searchbox #'tx
-              #'(lambda (&rest args)
-                  (apply #'tx :tx-id tx-id args))
-              filter
+                  :disabled (list op))
+   (searchbox (family-url-fn 'tx)
+              (family-url-fn 'tx :system)
+              (family-params 'tx :filter)
               "ac-company")))
 
 
@@ -251,10 +247,10 @@
      (until  date)
      (start  integer))
   (with-view-page
-    (let* ((op :catalogue)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
-                                    :op op
+                                    :op :catalogue
+                                    :selected-key (val tx-id)
                                     :filter filter
                                     :start-index (val start))))
       (with-document ()
@@ -265,13 +261,13 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions (val tx-id) filter)
+               (tx-top-actions :catalogue)
                (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (actions tx-table :key (val tx-id))
-                           (display tx-table :key (val tx-id))))
+                           (actions tx-table)
+                           (display tx-table)))
                (footer)))))))
 
 
@@ -291,10 +287,9 @@
      (non-chq-debit-acc  string chk-non-chq-acc-title)
      (non-chq-credit-acc string chk-non-chq-acc-title))
   (with-view-page
-    (let* ((op :create)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
-                                    :op op
+                                    :op :create
                                     :filter filter)))
       (with-document ()
         (:head
@@ -304,7 +299,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions nil filter)
+               (tx-top-actions :create)
                (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
@@ -363,10 +358,10 @@
   (with-db ()
     (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
-    (let* ((op :update)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
-                                    :op op
+                                    :op :update
+                                    :selected-key (val tx-id)
                                     :filter filter)))
       (with-document ()
         (:head
@@ -376,19 +371,18 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions tx-id filter)
+               (tx-top-actions :update)
                (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Επεξεργασία")
-                           (actions tx-table :key (val tx-id))
+                           (actions tx-table)
                            (notifications)
                            (with-form (actions/tx/update :tx-id (val tx-id)
                                                          :search (val search)
                                                          :since (val since)
                                                          :until (val until))
-                             (display tx-table :key (val tx-id)
-                                               :payload (params->payload)))))
+                             (display tx-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
@@ -432,10 +426,10 @@
   (with-db ()
     (validate-parameters #'auto-tx-p tx-id))
   (with-view-page
-    (let* ((op :delete)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
-                                    :op op
+                                    :op :delete
+                                    :selected-key (val tx-id)
                                     :filter filter)))
       (with-document ()
         (:head
@@ -445,17 +439,17 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'tx)
-               (tx-top-actions (val tx-id) filter)
+               (tx-top-actions :delete)
                (filters tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" "Διαγραφή")
-                           (actions tx-table :key (val tx-id))
+                           (actions tx-table)
                            (with-form (actions/tx/delete :tx-id (val tx-id)
                                                          :search (val search)
                                                          :since (val since)
                                                          :until (val until))
-                             (display tx-table :key (val tx-id)))))
+                             (display tx-table))))
                (footer)))))))
 
 (defpage tx-page actions/tx/delete ("actions/tx/delete"

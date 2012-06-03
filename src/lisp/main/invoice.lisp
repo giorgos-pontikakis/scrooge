@@ -261,33 +261,28 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun invoice-top-actions (op issuer kind tx-id filter)
-  (top-actions
-   (make-instance 'menu
-                  :spec `((catalogue ,(html ()
-                                        (:a :href (apply #'invoice issuer kind :tx-id tx-id filter)
-                                            (:img :src "/scrooge/img/application_view_list.png")
-                                            "Κατάλογος")))
-                          (create ,(html ()
-                                     (:a :href (apply #'invoice/create issuer kind filter)
-                                         (:img :src "/scrooge/img/add.png")
-                                         (str (conc "Νέα "
-                                                    (if (invoice-debit-p kind)
-                                                        "Χρέωση"
-                                                        "Πίστωση")))))))
-                  :css-class "hmenu"
-                  :disabled (cond ((member op '(:catalogue :delete))
-                                   '(catalogue))
-                                  ((eql op :create)
-                                   '(create))
-                                  (t
-                                   nil)))
-   (searchbox #'(lambda (&rest args)
-                  (apply #'actions/invoice/search issuer kind args))
-              #'(lambda (&rest args)
-                  (apply #'invoice issuer kind :tx-id tx-id args))
-              filter
-              "ac-company")))
+(defun invoice-top-actions (op)
+  (let* ((kind (second *registers*))
+         (new-invoice-label (conc "Νέα "
+                                  (if (invoice-debit-p kind)
+                                      "Χρέωση"
+                                      "Πίστωση"))))
+    (top-actions
+     (make-instance 'scrooge-menu
+                    :spec (make-menu-spec
+                           `(:catalogue ,(family-url 'invoice :system :filter)
+                             :create (,(family-url 'invoice/create :filter) ,new-invoice-label)))
+                    :css-class "hmenu"
+                    :disabled (cond ((member op '(:catalogue :delete))
+                                     '(catalogue))
+                                    ((eql op :create)
+                                     '(create))
+                                    (t
+                                     nil)))
+     (searchbox (family-url-fn 'actions/invoice/search)
+                (family-url-fn 'invoice :system)
+                (family-params 'invoice :filter)
+                "ac-company"))))
 
 
 
@@ -353,7 +348,9 @@
 (defpage invoice-page actions/invoice/search
     (("actions/invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/search")
      :request-type :get)
-    ((search string))
+    ((search string)
+     (since  string)
+     (until  string))
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'invoice-tx-table
@@ -387,20 +384,20 @@
 (defpage invoice-page invoice (("invoice/"
                                 (issuer "(customer|supplier)") "/"
                                 (kind "(debit|credit)")))
-    ((search string)
+    ((tx-id  integer chk-tx-id)
      (start  integer)
+     (search string)
      (since  date)
-     (until  date)
-     (tx-id  integer chk-tx-id))
+     (until  date))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((op :catalogue)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (page-title (invoice-page-title issuer kind "Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :issuer issuer
-                                            :kind kind
                                             :op :catalogue
+                                            :kind kind
+                                            :selected-key (val tx-id)
                                             :filter filter
                                             :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
@@ -417,31 +414,29 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-top-actions op issuer kind (val tx-id) filter)
+               (invoice-top-actions :catalogue)
                (filters invoice-tx-table)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
-                           (actions invoice-tx-table :key (val tx-id))
-                           (display invoice-tx-table :key (val tx-id))))
+                           (actions invoice-tx-table)
+                           (display invoice-tx-table)))
                (footer)))))))
 
 (defpage invoice-page invoice/details (("invoice/"
                                         (issuer "(customer|supplier)") "/"
                                         (kind "(debit|credit)")
                                         "/details"))
-    ((search string)
-     (cstate string)
+    ((tx-id  integer chk-tx-id t)
+     (search string)
      (since  date)
-     (until  date)
-     (tx-id  integer chk-tx-id t))
+     (until  date))
   (with-view-page
-    (let* ((op :details)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
-                                        :op op
+                                        :op :details
                                         :key (val tx-id)))
            (page-title (invoice-page-title issuer kind "Λεπτομέρειες")))
       (with-document ()
@@ -452,7 +447,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-top-actions op issuer kind (val tx-id) filter)
+               (invoice-top-actions :details)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:p :class "title" "Λεπτομέρειες")
@@ -467,22 +462,21 @@
 
 (defpage invoice-page invoice/create
     (("invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/create"))
-    ((search      string)
-     (since       date)
-     (until       date)
-     (tx-date     date)
-     (company     string  chk-company-title)
+    ((tx-date     date)
      (description string)
+     (company     string  chk-company-title)
      (amount      float   chk-amount)
-     (account-id  integer chk-account-id))
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((op :create)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
-                                        :op op
+                                        :op :create
                                         :cancel-url (apply #'invoice issuer kind filter)))
            (page-title (invoice-page-title issuer kind "Δημιουργία")))
       (with-document ()
@@ -493,7 +487,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-top-actions op issuer kind nil filter)
+               (invoice-top-actions :create)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -504,20 +498,20 @@
                                                               :since (val since)
                                                               :until (val until))
                              (display invoice-form :payload (params->payload)
-                                                   :styles (params->styles :payload)))))
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/create
     (("actions/invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/create")
      :request-type :post)
-    ((search      string)
-     (since       date)
-     (until       date)
-     (tx-date     date)
-     (company     string  chk-company-title t)
+    ((tx-date     date)
      (description string)
+     (company     string  chk-company-title t)
      (amount      float   chk-amount t)
-     (account-id  integer chk-account-id t))
+     (account-id  integer chk-account-id t)
+     (search      string)
+     (since       date)
+     (until       date))
   (with-controller-page (invoice/create issuer kind)
     (check-invoice-accounts)
     (let* ((company-id (company-id (val company)))
@@ -543,24 +537,23 @@
 
 (defpage invoice-page invoice/update
     (("invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/update"))
-    ((search      string)
-     (since       date)
-     (until       date)
-     (tx-id       integer chk-tx-id         t)
+    ((tx-id       integer chk-tx-id         t)
      (tx-date     date)
-     (company     string  chk-company-title)
      (description string)
+     (company     string  chk-company-title)
      (amount      float   chk-amount)
-     (account-id  integer chk-account-id))
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((op :update)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :issuer issuer
                                         :kind kind
-                                        :op op
-                                        :key (val tx-id)
+                                        :op :update
+                                        :selected-key (val tx-id)
                                         :cancel-url (apply #'invoice/details issuer kind
                                                            :tx-id (val tx-id)
                                                            filter)))
@@ -573,7 +566,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-top-actions op issuer kind (val tx-id) filter)
+               (invoice-top-actions :update)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:p :class "title" "Επεξεργασία")
@@ -585,21 +578,21 @@
                                                               :since (val since)
                                                               :until (val until))
                              (display invoice-form :payload (params->payload)
-                                                   :styles (params->styles :payload)))))
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/update
     (("actions/invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/update")
      :request-type :post)
-    ((search      string)
-     (since       date)
-     (until       date)
-     (tx-id       integer chk-tx-id         t)
+    ((tx-id       integer chk-tx-id         t)
      (tx-date     date)
      (description string)
      (company     string  chk-company-title)
      (amount      float   chk-amount)
-     (account-id  integer chk-account-id))
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date))
   (with-controller-page (invoice/update issuer kind)
     (check-invoice-accounts)
     (let ((company-id (company-id (val company)))
@@ -630,13 +623,13 @@
      (until  date))
   (with-view-page
     (check-invoice-accounts)
-    (let* ((op :delete)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (page-title (invoice-page-title issuer kind "Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
                                             :issuer issuer
                                             :kind kind
-                                            :op op
+                                            :op :delete
+                                            :selected-key (val tx-id)
                                             :filter filter)))
       (with-document ()
         (:head
@@ -646,28 +639,27 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'invoice)
-               (invoice-top-actions op issuer kind (val tx-id) filter)
+               (invoice-top-actions :delete)
                (filters invoice-tx-table)
                (:div :class "grid_12"
                      (:div :id "invoice-window" :class "window"
                            (:div :class "title" (str page-title))
-                           (actions invoice-tx-table :key (val tx-id))
+                           (actions invoice-tx-table)
                            (with-form (actions/invoice/delete issuer kind
                                                               :tx-id (val tx-id)
                                                               :search (val search)
                                                               :since (val since)
                                                               :until (val until))
-                             (display invoice-tx-table
-                                      :key (val tx-id)))))
+                             (display invoice-tx-table))))
                (footer)))))))
 
 (defpage invoice-page actions/invoice/delete
     (("actions/invoice/" (issuer "(customer|supplier)") "/" (kind "(debit|credit)") "/delete")
      :request-type :post)
-    ((search string)
+    ((tx-id  integer chk-tx-id t)
+     (search string)
      (since  date)
-     (until  date)
-     (tx-id  integer chk-tx-id t))
+     (until  date))
   (with-controller-page (invoice/delete issuer kind)
     (check-invoice-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))

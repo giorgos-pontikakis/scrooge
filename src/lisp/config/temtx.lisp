@@ -37,7 +37,7 @@
   (top-actions
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
-                         `(:create ("Νέο Πρότυπο Συναλλαγής" . ,(family-url 'config/temtx/create))))
+                         `(:create (,(family-url 'config/temtx/create) "Νέο Πρότυπο Συναλλαγής")))
                   :css-class "hmenu"
                   :disabled (list op))
    nil))

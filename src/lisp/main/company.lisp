@@ -44,8 +44,6 @@
                   :zipcode-invalid
                   "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
 
-(defun params->company-filter ()
-  (params->filter :page (find-page 'company)))
 
 
 ;;; ----------------------------------------------------------------------
@@ -134,20 +132,20 @@
 ;;; UI elements
 ;;; ------------------------------------------------------------
 
-(defun company-top-actions (op filter)
-  (top-actions (make-instance 'menu
+(defun company-top-actions (op)
+  (top-actions (make-instance 'scrooge-menu
                               :spec (make-menu-spec
                                      `(:catalogue ,(family-url 'company :system :filter)
                                        :create ,(family-url 'company/create :filter)))
                               :css-class "hmenu"
-                              :css-disabled "invisible"
                               :disabled (list op))
                (searchbox (family-url-fn 'actions/company/search)
                           (family-url-fn 'company :system)
-                          filter
+                          (family-params 'company :filter)
                           "ac-company")))
 
 (defun company-tabs (company-id filter active content)
+  (declare (ignore filter))
   (with-html
     (:div :class "grid_12"
           (:div :id "company-area"
@@ -159,8 +157,7 @@
                               `((data ,(family-url 'company/details :system :filter) "Στοιχεία")
                                 (tx ,(family-url 'company/tx :system :filter) "Συναλλαγές")
                                 (cheque ,(apply #'company/cheque "receivable"
-                                                :company-id company-id
-                                                filter)
+                                                (family-params 'company/cheque :system :filter))
                                         "Επιταγές"))
                               :css-class "hnavbar grid_5 prefix_7"
                               :active active
@@ -464,7 +461,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :catalogue filter)
+               (company-top-actions :catalogue)
                (filters company-table)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"
@@ -498,7 +495,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :details filter)
+               (company-top-actions :details)
                (company-tabs (val company-id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -544,7 +541,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :create filter)
+               (company-top-actions :create)
                (company-tabs nil filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -627,7 +624,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :update filter)
+               (company-top-actions :update)
                (company-tabs (val company-id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -702,7 +699,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'company)
-               (company-top-actions :delete filter)
+               (company-top-actions :delete)
                (filters company-table)
                (:div :class "grid_12"
                      (:div :id "company-window" :class "window"

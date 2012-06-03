@@ -42,9 +42,6 @@
                   :parse-error
                   "Το ποσό της επιταγής περιέχει άκυρους χαρακτήρες"))))))
 
-(defun params->cheque-filter ()
-  (params->filter :page (find-page 'cheque)))
-
 
 
 ;;; --------------------------------------------------------------------------------
@@ -101,36 +98,23 @@
         (t
          (error "Internal error in get-debit-credit-acc-id"))))
 
-(defun cheque-catalogue-link (kind cheque-id filter)
-  (html ()
-    (:a :href (apply #'cheque kind :cheque-id cheque-id filter)
-        (:img :src "/scrooge/img/application_view_list.png")
-        "Κατάλογος")))
-
-(defun cheque-create-link (url-fn kind filter)
-  (html ()
-    (:a :href (apply url-fn kind filter)
-        (:img :src "/scrooge/img/add.png")
-        (str (conc "Νέα "
-                   (if (string-equal kind "receivable")
-                       "Εισπρακτέα"
-                       "Πληρωτέα")
-                   " Επιταγή ")))))
-
-(defun cheque-top-actions (op filter)
-  (top-actions (make-instance 'menu
-                              :spec (make-menu-spec
-                                     (list :catalogue (family-url 'cheque :system :filter)
-                                           :create (family-url 'cheque/create)))
-                              :css-class "hmenu"
-                              :disabled (cond ((member op '(:catalogue :delete))
-                                               '(:catalogue))
-                                              ((eql op :create)
-                                               '(:create))))
-               (searchbox (family-url-fn 'actions/cheque/search)
-                          (family-url-fn 'cheque)
-                          filter
-                          "ac-company")))
+(defun cheque-top-actions (op)
+  (let ((kind (first *registers*)))
+    (top-actions (make-instance 'scrooge-menu
+                                :spec (make-menu-spec
+                                       (list :catalogue (family-url 'cheque :system :filter)
+                                             :create (list (family-url 'cheque/create :filter)
+                                                           (conc "Νέα "
+                                                                 (if (string-equal kind "receivable")
+                                                                     "Εισπρακτέα"
+                                                                     "Πληρωτέα")
+                                                                 " επιταγή"))))
+                                :css-class "hmenu"
+                                :disabled (list op))
+                 (searchbox (family-url-fn 'actions/cheque/search)
+                            (family-url-fn 'cheque :system)
+                            (family-params 'cheque :filter)
+                            "ac-company"))))
 
 
 
@@ -427,13 +411,12 @@
      (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :catalogue)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
                                         :kind kind
-                                        :op op
+                                        :op :catalogue
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start))))
@@ -452,7 +435,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op filter)
+               (cheque-top-actions :catalogue)
                (filters cheque-table)
                (:div :class "grid_12"
                      (:div :class "window"
@@ -469,12 +452,11 @@
      (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :details)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Λεπτομέρειες"))
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
-                                       :op op
+                                       :op :details
                                        :key (val cheque-id)
                                        :cancel-url (apply #'cheque
                                                           kind
@@ -488,7 +470,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op filter)
+               (cheque-top-actions :details)
                (:div :class "grid_12"
                      (:div :id "cheque-window" :class "window"
                            (:div :class "title" (str page-title))
@@ -514,8 +496,7 @@
      (until    date    chk-date))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :create)
-           (filter (params->filter))
+    (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Δημιουργία"))
            (cheque-table (make-instance 'cheque-table
                                         :kind kind
@@ -529,7 +510,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op filter)
+               (cheque-top-actions :create)
                (:div :class "grid_12"
                      (:div :class "window"
                            (:div :class "title" (str page-title))
@@ -605,7 +586,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions :update filter)
+               (cheque-top-actions :update)
                (:div :class "grid_12"
                      (:div :id "cheque-window" :class "window"
                            (:p :class "title" (str page-title))
@@ -666,8 +647,7 @@
      (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((op :delete)
-           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Διαγραφή"))
+    (let* ((page-title (conc "Επιταγές » " (cheque-page-title kind) " » Διαγραφή"))
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
                                         :kind kind
@@ -682,7 +662,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'cheque)
-               (cheque-top-actions op filter)
+               (cheque-top-actions :delete)
                (filters cheque-table)
                (:div :class "grid_12"
                      (:div :class "window"

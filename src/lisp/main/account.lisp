@@ -12,7 +12,7 @@
                                             :id "tx-paginator"
                                             :css-class "paginator grid_9 alpha"
                                             :urlfn #'account/details))
-   (op :initform :read))
+   (op :accessor op :initform :catalogue))
   (:default-initargs :item-class 'account-tx-row))
 
 (defmethod get-records ((table account-tx-table))

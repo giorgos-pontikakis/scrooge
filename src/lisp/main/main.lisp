@@ -28,7 +28,7 @@
 ;;; account-radio tree
 
 (defclass rev/exp-account-tree (account-tree)
-  ((op :initform :read)
+  ((op       :accessor op       :initform :catalogue)
    (disabled :accessor disabled :initarg :disabled))
   (:default-initargs :item-class 'rev/exp-account-node :disabled nil))
 

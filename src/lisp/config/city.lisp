@@ -19,15 +19,15 @@
     :initform '((title (:city-title-null "Το όνομα πόλης είναι κενό."
                         :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη."))))))
 
-(defun city-top-actions (op filter)
+(defun city-top-actions (op)
   (top-actions
    (make-instance 'scrooge-menu
-                  :spec (make-menu-spec `(:create  ("Νέα πόλη" . ,(family-url 'config/city/create))))
+                  :spec (make-menu-spec `(:create  (,(family-url 'config/city/create) "Νέα πόλη")))
                   :css-class "hmenu"
                   :disabled (list op))
    (searchbox (family-url-fn 'config/city)
               (family-url-fn 'config/city :system)
-              filter
+              (family-params 'config/city :filter)
               "ac-city")))
 
 
@@ -147,7 +147,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions :catalogue filter)
+               (city-top-actions :catalogue)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Κατάλογος")
@@ -178,7 +178,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions :create filter)
+               (city-top-actions :create)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Δημιουργία")
@@ -221,7 +221,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions :update filter)
+               (city-top-actions :update)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Επεξεργασία")
@@ -266,7 +266,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'city)
-               (city-top-actions :delete filter)
+               (city-top-actions :delete)
                (:div :class "grid_12"
                      (:div :id "city-window" :class "window"
                            (:div :class "title" "Διαγραφή")

@@ -149,11 +149,11 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/create ("project/details/bill/create")
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id t)
+    ((project-id integer chk-project-id t)
      (tag        string)
-     (amount     float   chk-amount*))
+     (amount     float   chk-amount*)
+     (search     string)
+     (cstate     string))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -173,7 +173,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions :details (val project-id) filter)
+               (project-top-actions :details)
                (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -193,11 +193,11 @@
                (footer)))))))
 
 (defpage bill-page actions/bill/create ("actions/bill/create" :request-type :post)
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id)
+    ((project-id integer chk-project-id)
      (tag        string)
-     (amount     float   chk-amount*))
+     (amount     float   chk-amount*)
+     (search     string)
+     (cstate     string))
   (with-controller-page (bill/create)
     (let ((new-bill (make-instance 'bill
                                    :project-id (val project-id)
@@ -216,12 +216,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/update ("project/details/bill/update")
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id                   t)
+    ((project-id integer chk-project-id                   t)
      (bill-id    integer (chk-bill-id project-id bill-id) t)
      (tag        string)
-     (amount     float   chk-amount*))
+     (amount     float   chk-amount*)
+     (search     string)
+     (cstate     string))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -242,7 +242,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions :details (val project-id) filter)
+               (project-top-actions :details)
                (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -261,12 +261,12 @@
 
 (defpage bill-page actions/bill/update ("actions/bill/update"
                                         :request-type :post)
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id                   t)
+    ((project-id integer chk-project-id                   t)
      (bill-id    integer (chk-bill-id project-id bill-id) t)
      (tag        string)
-     (amount     float   chk-amount*))
+     (amount     float   chk-amount*)
+     (search     string)
+     (cstate     string))
   (with-controller-page (bill/update)
     (execute (:update 'bill :set
                       'tag (val tag)
@@ -282,10 +282,10 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage bill-page bill/delete ("project/details/bill/delete")
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id                   t)
-     (bill-id    integer (chk-bill-id project-id bill-id) t))
+    ((project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t)
+     (search     string)
+     (cstate     string))
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
@@ -306,7 +306,7 @@
          (:div :id "container" :class "container_12"
                (header)
                (main-navbar 'project)
-               (project-top-actions :details (val project-id) filter)
+               (project-top-actions :details)
                (project-tabs (val project-id)
                              (html ()
                                (:div :class "grid_6 alpha"
@@ -325,10 +325,10 @@
 
 (defpage bill-page actions/bill/delete ("actions/bill/delete"
                                         :request-type :post)
-    ((search     string)
-     (cstate     string)
-     (project-id integer chk-project-id                   t)
-     (bill-id    integer (chk-bill-id project-id bill-id) t))
+    ((project-id integer chk-project-id                   t)
+     (bill-id    integer (chk-bill-id project-id bill-id) t)
+     (search     string)
+     (cstate     string))
   (with-controller-page (bill/delete)
     (with-transaction ()
       (let ((dao  (get-dao 'bill (val bill-id))))

@@ -198,10 +198,9 @@
     ((start integer)
      (project-stran-id    integer chk-project-stran-id))
   (with-view-page
-    (let* ((op :catalogue)
-           (project-stran-table (make-instance 'project-stran-table
-                                               :op op
-                                               :id "project-stran-table")))
+    (let ((project-stran-table (make-instance 'project-stran-table
+                                              :op :catalogue
+                                              :id "project-stran-table")))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Έργων » Κατάλογος")
@@ -213,7 +212,7 @@
                (:div :class "grid_12"
                      (:div :id "project-stran-window" :class "window"
                            (:div :class "title" "Κατάλογος")
-                           (project-stran-actions op (val project-stran-id))
+                           (project-stran-actions :catalogue (val project-stran-id))
                            (display project-stran-table
                                     :key (val project-stran-id))))
                (footer)))))))
