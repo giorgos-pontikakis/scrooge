@@ -9,9 +9,9 @@
 (defclass cheque-family (family-mixin)
   ()
   (:default-initargs
-   :parameter-groups '(:system (cheque-id)
-                       :payload (bank due-date company amount tstamp serial)
-                       :filter (since until cstate search))))
+   :parameter-groups '(:system (cheque-id start)
+                       :payload (bank due-date company amount serial state-id tstamp)
+                       :filter (search cstate since until))))
 
 
 
@@ -120,15 +120,15 @@
 (defun cheque-top-actions (op filter)
   (top-actions (make-instance 'menu
                               :spec (make-menu-spec
-                                     (list :catalogue (gurl 'cheque :system :filter)
-                                           :create (gurl 'cheque/create)))
+                                     (list :catalogue (family-url 'cheque :system :filter)
+                                           :create (family-url 'cheque/create)))
                               :css-class "hmenu"
                               :disabled (cond ((member op '(:catalogue :delete))
                                                '(:catalogue))
                                               ((eql op :create)
                                                '(:create))))
-               (searchbox (gurl-fn 'actions/cheque/search)
-                          (gurl-fn 'cheque)
+               (searchbox (family-url-fn 'actions/cheque/search)
+                          (family-url-fn 'cheque)
                           filter
                           "ac-company")))
 
@@ -420,11 +420,11 @@
 
 (defpage cheque-page cheque (("cheque/" (kind "(receivable|payable)")))
     ((cheque-id integer chk-cheque-id)
+     (start     integer)
      (search    string)
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
-     (until     date    chk-date)
-     (start     integer))
+     (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :catalogue)
@@ -466,8 +466,7 @@
      (search    string)
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
-     (until     date    chk-date)
-     (start     integer))
+     (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :details)
@@ -504,15 +503,15 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-page cheque/create (("cheque/" (kind  "(receivable|payable)") "/create"))
-    ((search   string)
-     (cstate   string  chk-cheque-state-id)
-     (since    date    chk-date)
-     (until    date    chk-date)
-     (serial   string  chk-cheque-serial)
-     (bank     string  chk-bank-title)
+    ((bank     string  chk-bank-title)
      (due-date date    chk-date)
      (company  string  chk-company-title)
-     (amount   float   chk-amount))
+     (amount   float   chk-amount)
+     (serial   string  chk-cheque-serial)
+     (search   string)
+     (cstate   string  chk-cheque-state-id)
+     (since    date    chk-date)
+     (until    date    chk-date))
   (with-view-page
     (check-cheque-accounts)
     (let* ((op :create)
@@ -575,17 +574,17 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-page cheque/update (("cheque/" (kind "(receivable|payable)") "/update"))
-    ((search    string)
-     (cstate    string  chk-cheque-state-id)
-     (since     date    chk-date)
-     (until     date    chk-date)
-     (cheque-id integer chk-cheque-id       t)
-     (serial    string  chk-cheque-serial)
+    ((cheque-id integer chk-cheque-id       t)
      (bank      string  chk-bank-title)
      (company   string  chk-company-title)
      (due-date  date    chk-date)
      (amount    float   chk-amount)
-     (state-id  string  chk-cheque-state-id))
+     (serial    string  chk-cheque-serial)
+     (state-id  string  chk-cheque-state-id)
+     (search    string)
+     (cstate    string  chk-cheque-state-id)
+     (since     date    chk-date)
+     (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
@@ -623,17 +622,17 @@
 
 (defpage cheque-page actions/cheque/update
     (("actions/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
-    ((search    string)
+    ((cheque-id integer chk-cheque-id       t)
+     (bank      string  chk-bank-title)
+     (due-date  date    chk-date            t)
+     (company   string  chk-company-title   t)
+     (amount    float   chk-amount          t)
+     (serial    string  chk-cheque-serial)
+     (state-id  string  chk-cheque-state-id)
+     (search    string)
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
-     (until     date    chk-date)
-     (cheque-id integer chk-cheque-id       t)
-     (serial    string  chk-cheque-serial)
-     (bank      string  chk-bank-title)
-     (company   string  chk-company-title   t)
-     (due-date  date    chk-date            t)
-     (amount    float   chk-amount          t)
-     (state-id  string  chk-cheque-state-id))
+     (until     date    chk-date))
   (with-controller-page (cheque/update kind)
     (check-cheque-accounts)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))

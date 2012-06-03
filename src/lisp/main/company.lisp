@@ -9,7 +9,7 @@
 (defclass company-family (family-mixin)
   ()
   (:default-initargs
-   :parameter-groups '(:system (company-id tx-id start)
+   :parameter-groups '(:system (company-id contact-id start)
                        :payload (title occupation tof tin address city pobox zipcode notes)
                        :filter (search subset))))
 
@@ -137,13 +137,13 @@
 (defun company-top-actions (op filter)
   (top-actions (make-instance 'menu
                               :spec (make-menu-spec
-                                     `(:catalogue ,(gurl 'company :system :filter)
-                                       :create ,(gurl 'company/create :filter)))
+                                     `(:catalogue ,(family-url 'company :system :filter)
+                                       :create ,(family-url 'company/create :filter)))
                               :css-class "hmenu"
                               :css-disabled "invisible"
                               :disabled (list op))
-               (searchbox (gurl-fn 'actions/company/search)
-                          (gurl-fn 'company)
+               (searchbox (family-url-fn 'actions/company/search)
+                          (family-url-fn 'company :system)
                           filter
                           "ac-company")))
 
@@ -156,14 +156,8 @@
                              (:h3 :class "grid_12 alpha"
                                   (str (title (get-dao 'company company-id))))
                              (navbar
-                              `((data ,(apply #'company/details
-                                              :company-id company-id
-                                              filter)
-                                      "Στοιχεία")
-                                (tx ,(apply #'company/tx
-                                            :company-id company-id
-                                            filter)
-                                    "Συναλλαγές")
+                              `((data ,(family-url 'company/details :system :filter) "Στοιχεία")
+                                (tx ,(family-url 'company/tx :system :filter) "Συναλλαγές")
                                 (cheque ,(apply #'company/cheque "receivable"
                                                 :company-id company-id
                                                 filter)
@@ -238,12 +232,14 @@
 (defmethod actions ((form company-form) &key filter)
   (let* ((company-id (key form))
          (spec (if company-id
-                   (list :update (apply #'company/update :company-id company-id filter)
-                         :delete (if (chk-company-id/ref company-id)
-                                     nil
-                                     (apply #'company/delete :company-id company-id filter))
-                         :create (cons "Νέο Έργο"
-                                       (project/create :company (title (get-dao 'company company-id)))))
+                   `(:update ,(apply #'company/update :company-id company-id filter)
+                     :delete ,(if (chk-company-id/ref company-id)
+                                  nil
+                                  (apply #'company/delete :company-id company-id filter))
+                     :create-project (,(project/create
+                                        :company (title (get-dao 'company company-id)))
+                                      "Νέο Έργο"
+                                      "create"))
                    nil)))
     (actions-menu (make-menu-spec spec)
                   (disabled-actions form))))
@@ -355,15 +351,14 @@
   (let* ((company-id (selected-key tbl))
          (filter (filter tbl))
          (hrefs (if company-id
-                    (list :details (apply #'company/details :company-id company-id filter)
-                          :delete (if (chk-company-id/ref company-id)
-                                      nil
-                                      (apply #'company/delete :company-id company-id filter))
-                          :create-project (html ()
-                                            (:a :href (project/create
-                                                       :company (title (get-dao 'company company-id)))
-                                                :class "create"
-                                                "Νέο Έργο")))
+                    `(:details ,(apply #'company/details :company-id company-id filter)
+                      :delete ,(if (chk-company-id/ref company-id)
+                                   nil
+                                   (apply #'company/delete :company-id company-id filter))
+                      :create-project (,(project/create
+                                         :company (title (get-dao 'company company-id)))
+                                       "Νέο Έργο"
+                                       "create"))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
@@ -428,7 +423,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
-    ((search string))
+    ((search string)
+     (subset string))
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'company-table :filter filter))))
@@ -599,9 +595,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-page company/update ("company/update")
-    ((search     string)
-     (subset     string)
-     (company-id integer chk-company-id                              t)
+    ((company-id integer chk-company-id                              t)
      (contact-id integer (chk-contact-id company-id contact-id))
      (title      string  (chk-company-title/update title company-id))
      (occupation string)
@@ -611,7 +605,9 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode)
-     (notes      string))
+     (notes      string)
+     (search     string)
+     (subset     string))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -653,9 +649,7 @@
 
 (defpage company-page actions/company/update ("actions/company/update"
                                               :request-type :post)
-    ((search     string)
-     (subset     string)
-     (company-id integer chk-company-id)
+    ((company-id integer chk-company-id)
      (title      string  (chk-company-title/update title company-id))
      (occupation string)
      (tof        string  chk-tof-title)
@@ -664,7 +658,9 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode)
-     (notes      string))
+     (notes      string)
+     (search     string)
+     (subset     string))
   (with-controller-page (company/update)
     (let ((tof-id (tof-id (val tof)))
           (city-id (city-id (val city))))

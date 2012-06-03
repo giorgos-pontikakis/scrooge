@@ -22,11 +22,11 @@
 (defun tof-top-actions (op filter)
   (top-actions
    (make-instance 'scrooge-menu
-                  :spec (make-menu-spec `(:create ("Νέα Δ.Ο.Υ." . ,(gurl 'config/tof/create))))
+                  :spec (make-menu-spec `(:create ("Νέα Δ.Ο.Υ." . ,(family-url 'config/tof/create))))
                   :css-class "hmenu"
                   :disabled (list op))
-   (searchbox (gurl-fn 'config/tof)
-              (gurl-fn 'config/tof :system)
+   (searchbox (family-url-fn 'config/tof)
+              (family-url-fn 'config/tof :system)
               filter
               "ac-tof")))
 

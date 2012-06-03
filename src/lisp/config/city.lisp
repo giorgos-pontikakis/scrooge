@@ -22,11 +22,11 @@
 (defun city-top-actions (op filter)
   (top-actions
    (make-instance 'scrooge-menu
-                  :spec (make-menu-spec `(:create  ("Νέα πόλη" . ,(gurl 'config/city/create))))
+                  :spec (make-menu-spec `(:create  ("Νέα πόλη" . ,(family-url 'config/city/create))))
                   :css-class "hmenu"
                   :disabled (list op))
-   (searchbox (gurl-fn 'config/city)
-              (gurl-fn 'config/city :system)
+   (searchbox (family-url-fn 'config/city)
+              (family-url-fn 'config/city :system)
               filter
               "ac-city")))
 

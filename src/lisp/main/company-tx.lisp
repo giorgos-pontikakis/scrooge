@@ -11,7 +11,7 @@
                                          :payload (tx-date description debit-amount credit-amount)
                                          :filter (search subset role since until))))
 
-(defclass company-tx-page (auth-dynamic-page tx-family)
+(defclass company-tx-page (auth-dynamic-page company-tx-family)
   ((messages
     :allocation :class
     :reader messages
@@ -40,14 +40,12 @@
 (defun company-tx-top-actions (op filter)
   (top-actions (make-instance 'menu
                               :spec (make-menu-spec
-                                     `((:catalogue ,(gurl 'company :system :filter))
-                                       (:print ,(gurl 'company/tx/print :system :filter))))
+                                     `((:catalogue ,(family-url 'company :system :filter))
+                                       (:print ,(family-url 'company/tx/print :system :filter))))
                               :css-class "hmenu"
                               :disabled (list op))
-               (searchbox (gurl-fn 'actions/company/search)
-                          (gurl-fn 'company)
-                          #'(lambda (&rest args)
-                              (apply #'company :company-id company-id args))
+               (searchbox (family-url-fn 'actions/company/search)
+                          (family-url-fn 'company :system)
                           filter
                           "ac-company")))
 
@@ -225,7 +223,7 @@
          (tx-id (selected-key tbl))
          (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
                     (list :update (apply #'company/tx/update :company-id company-id
-                                                             :tx-id key
+                                                             :tx-id tx-id
                                                              filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
@@ -325,14 +323,14 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-tx-page company/tx ("company/tx")
-    ((search     string)
-     (subset     string)
-     (company-id integer chk-company-id t)
+    ((company-id integer chk-company-id t)
      (tx-id      integer chk-tx-id)
-     (since      date)
-     (until      date)
      (start      integer)
-     (role       string))
+     (search     string)
+     (subset     string)
+     (role       string)
+     (since      date)
+     (until      date))
   (with-view-page
     (let ((filter (params->filter))
           (company-filter (params->company-filter))
@@ -356,7 +354,7 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'company)
-                   (company-top-actions :tx-cheque (val company-id) company-filter)
+                   (company-top-actions :tx-cheque company-filter)
                    (company-tabs
                     (val company-id) company-filter 'tx
                     (html ()
@@ -371,13 +369,13 @@
                    (footer)))))))))
 
 (defpage company-tx-page company/tx/print ("company/tx/print")
-    ((search     string)
-     (subset     string)
-     (company-id integer chk-company-id t)
+    ((company-id integer chk-company-id t)
      (tx-id      integer chk-tx-id)
+     (search     string)
+     (subset     string)
+     (role       string)
      (since      date)
-     (until      date)
-     (role       string))
+     (until      date))
   (with-view-page
     (let ((filter (params->filter))
           (system (params->plist #'val-or-raw (list company-id tx-id)))
@@ -420,17 +418,17 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-tx-page company/tx/update ("company/tx/update")
-    ((search        string)
-     (subset        string)
-     (company-id    integer chk-company-id t)
+    ((company-id    integer chk-company-id t)
      (tx-id         integer chk-tx-id)
-     (since         date)
-     (until         date)
-     (role          string)
      (tx-date       date)
      (description   string)
      (debit-amount  float   chk-amount)
-     (credit-amount float   chk-amount))
+     (credit-amount float   chk-amount)
+     (search        string)
+     (subset        string)
+     (role          string)
+     (since         date)
+     (until         date))
   (with-view-page
     (let ((filter (params->filter))
           (company-filter (params->company-filter))
@@ -453,7 +451,7 @@
              (:div :id "container" :class "container_12"
                    (header)
                    (main-navbar 'company)
-                   (company-top-actions :tx-cheque (val company-id) company-filter)
+                   (company-top-actions :tx-cheque company-filter)
                    (company-tabs
                     (val company-id) company-filter 'tx
                     (html ()
@@ -478,17 +476,17 @@
 
 (defpage company-tx-page actions/company/tx/update
     ("actions/company/tx/update" :request-type :post)
-    ((search        string)
-     (subset        string)
-     (company-id    integer chk-company-id t)
+    ((company-id    integer chk-company-id t)
      (tx-id         integer chk-tx-id)
-     (since         date)
-     (until         date)
-     (role          string)
      (tx-date       date)
      (description   string)
      (debit-amount  float   chk-amount)
-     (credit-amount float   chk-amount))
+     (credit-amount float   chk-amount)
+     (search        string)
+     (subset        string)
+     (role          string)
+     (since         date)
+     (until         date))
   (with-controller-page (company/tx/update)
     (execute (:update 'tx :set
                       'tx-date (val tx-date)

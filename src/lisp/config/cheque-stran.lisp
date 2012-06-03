@@ -37,7 +37,7 @@
   (top-actions
    (make-instance 'menu
                   :spec (make-menu-spec
-                         `(:create ("Νέα μετάπτωση" . ,(gurl 'config/cheque-stran/create))))
+                         `(:create ("Νέα μετάπτωση" . ,(family-url 'config/cheque-stran/create))))
                   :css-class "hmenu"
                   :disabled (list op))
    nil))

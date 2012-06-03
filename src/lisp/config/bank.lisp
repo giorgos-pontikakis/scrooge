@@ -22,11 +22,11 @@
 (defun bank-top-actions (op filter)
   (top-actions
    (make-instance 'scrooge-menu
-                  :spec (make-menu-spec `(:create ("Νέα τράπεζα" . ,(gurl 'config/bank/create))))
+                  :spec (make-menu-spec `(:create ("Νέα τράπεζα" . ,(family-url 'config/bank/create))))
                   :css-class "hmenu"
                   :disabled (list op))
-   (searchbox (gurl-fn 'config/bank)
-              (gurl-fn 'config/bank :system)
+   (searchbox (family-url-fn 'config/bank)
+              (family-url-fn 'config/bank :system)
               filter
               "ac-bank")))
 

@@ -163,11 +163,12 @@
         :class (string-downcase action)
         (str (assoc-value *action-labels* action)))))
 
-(defmethod make-spec-line ((action symbol) (link cons))
-  (html ()
-    (:a :href (cdr link)
-        :class (string-downcase action)
-        (str (car link)))))
+(defmethod make-spec-line ((action symbol) (link list))
+  (destructuring-bind (href label &optional css-class) link
+    (html ()
+      (:a :href href
+          :class (or css-class (string-downcase action))
+          (str label)))))
 
 (defmethod make-spec-line ((action symbol) (link function))
   (declare (ignore action))
