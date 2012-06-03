@@ -300,10 +300,16 @@
          (disabled (eql (op form) :details))
          (record (record form))
          (lit (label-input-text disabled record styles))
+         (root-key (invoice-revenues/expenses-root issuer))
          (tree (make-instance 'rev/exp-account-tree
                               :disabled disabled
-                              :root-key (invoice-revenues/expenses-root issuer)
-                              :debit-p (not (invoice-customer-p issuer)))))
+                              :root-key root-key
+                              :debit-p (not (invoice-customer-p issuer))
+                              :selected-key (or (getf record :account-id)
+                                                (getf record (if (invoice-debit-p kind)
+                                                                 :credit-acc-id
+                                                                 :debit-acc-id))
+                                                root-key))))
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"
@@ -323,11 +329,7 @@
                   (label 'account-id (conc "Λογαριασμός "
                                            (if customer-p "εσόδων" "εξόδων")))
                   ;; Display the tree. If needed, preselect the first account of the tree.
-                  (display tree :key (or (getf record :account-id)
-                                         (getf record (if (invoice-debit-p kind)
-                                                          :credit-acc-id
-                                                          :debit-acc-id))
-                                         (root-key tree))))
+                  (display tree))
             (clear)))))
 
 (defmethod actions ((form invoice-form) &key filter)
@@ -553,7 +555,7 @@
                                         :issuer issuer
                                         :kind kind
                                         :op :update
-                                        :selected-key (val tx-id)
+                                        :key (val tx-id)
                                         :cancel-url (apply #'invoice/details issuer kind
                                                            :tx-id (val tx-id)
                                                            filter)))
