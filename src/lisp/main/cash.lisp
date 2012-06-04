@@ -231,16 +231,17 @@
                                (cond ((string-equal kind "revenue") "Έσοδo")
                                      ((string-equal kind "expense") "Έξοδo")
                                      (t (error "Internal error in cash-top-actions"))))))
-    (top-actions (make-instance 'scrooge-menu
-                                :spec (make-menu-spec
-                                       `(:catalogue ,(family-url 'cash :system :filter)
-                                         :create (,(family-url 'cash/create :filter) ,new-cash-label)))
-                                :css-class "hmenu"
-                                :disabled (list op))
-                 (searchbox (family-url-fn 'actions/cash/search)
-                            (family-url-fn 'cash :system)
-                            (family-params 'cash :filter)
-                            "ac-company"))))
+    (top-actions-area
+     (make-instance 'scrooge-menu
+                    :spec (make-menu-spec
+                           `(:catalogue ,(family-url 'cash :system :filter)
+                             :create (,(family-url 'cash/create :filter) ,new-cash-label)))
+                    :css-class "hmenu"
+                    :disabled (list op))
+     (searchbox (family-url-fn 'actions/cash/search)
+                (family-url-fn 'cash :system)
+                (family-params 'cash :filter)
+                "ac-company"))))
 
 
 

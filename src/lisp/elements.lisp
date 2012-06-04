@@ -139,7 +139,7 @@
     (:div :class "secondary-filter-area"
           (display widgets))))
 
-(defun top-actions (actions search)
+(defun top-actions-area (actions search)
   (with-html ()
     (:div :class "grid_12 top-actions"
           (:div :class "grid_8 alpha"

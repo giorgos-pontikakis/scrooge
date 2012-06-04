@@ -77,7 +77,7 @@
       nil))
 
 (defun tx-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec `(:create (,(family-url 'tx/create :filter) "Νέα Συναλλαγή")))
                   :css-class "hmenu"

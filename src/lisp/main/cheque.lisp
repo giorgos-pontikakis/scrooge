@@ -100,21 +100,22 @@
 
 (defun cheque-top-actions (op)
   (let ((kind (first *registers*)))
-    (top-actions (make-instance 'scrooge-menu
-                                :spec (make-menu-spec
-                                       (list :catalogue (family-url 'cheque :system :filter)
-                                             :create (list (family-url 'cheque/create :filter)
-                                                           (conc "Νέα "
-                                                                 (if (string-equal kind "receivable")
-                                                                     "Εισπρακτέα"
-                                                                     "Πληρωτέα")
-                                                                 " επιταγή"))))
-                                :css-class "hmenu"
-                                :disabled (list op))
-                 (searchbox (family-url-fn 'actions/cheque/search)
-                            (family-url-fn 'cheque :system)
-                            (family-params 'cheque :filter)
-                            "ac-company"))))
+    (top-actions-area
+     (make-instance 'scrooge-menu
+                    :spec (make-menu-spec
+                           (list :catalogue (family-url 'cheque :system :filter)
+                                 :create (list (family-url 'cheque/create :filter)
+                                               (conc "Νέα "
+                                                     (if (string-equal kind "receivable")
+                                                         "Εισπρακτέα"
+                                                         "Πληρωτέα")
+                                                     " επιταγή"))))
+                    :css-class "hmenu"
+                    :disabled (list op))
+     (searchbox (family-url-fn 'actions/cheque/search)
+                (family-url-fn 'cheque :system)
+                (family-params 'cheque :filter)
+                "ac-company"))))
 
 
 

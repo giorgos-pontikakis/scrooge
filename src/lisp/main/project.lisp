@@ -153,7 +153,7 @@
 ;;; ------------------------------------------------------------
 
 (defun project-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
                          `(:catalogue ,(family-url 'project :system :filter)

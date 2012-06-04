@@ -267,7 +267,7 @@
                                   (if (invoice-debit-p kind)
                                       "Χρέωση"
                                       "Πίστωση"))))
-    (top-actions
+    (top-actions-area
      (make-instance 'scrooge-menu
                     :spec (make-menu-spec
                            `(:catalogue ,(family-url 'invoice :system :filter)

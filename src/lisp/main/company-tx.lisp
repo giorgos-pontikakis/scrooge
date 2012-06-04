@@ -38,18 +38,18 @@
 ;;; ------------------------------------------------------------
 
 (defun company-tx-top-actions (op)
-  (top-actions (make-instance 'scrooge-menu
-                              :spec (make-menu-spec
-                                     `(:catalogue ,(family-url 'company :system :filter)
-                                       :print ,(family-url 'company/tx/print :system :filter)))
-                              :css-class "hmenu"
-                              :disabled (case op
-                                          (:create '(:create-company :create-cheque :print))
-                                          (:update '(:print))))
-               (searchbox (family-url-fn 'actions/company/search)
-                          (family-url-fn 'company :system)
-                          (family-params 'company :filter)
-                          "ac-company")))
+  (top-actions-area (make-instance 'scrooge-menu
+                                   :spec (make-menu-spec
+                                          `(:catalogue ,(family-url 'company :system :filter)
+                                            :print ,(family-url 'company/tx/print :system :filter)))
+                                   :css-class "hmenu"
+                                   :disabled (case op
+                                               (:create '(:create-company :create-cheque :print))
+                                               (:update '(:print))))
+                    (searchbox (family-url-fn 'actions/company/search)
+                               (family-url-fn 'company :system)
+                               (family-params 'company :filter)
+                               "ac-company")))
 
 
 

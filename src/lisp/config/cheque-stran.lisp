@@ -33,8 +33,8 @@
         :temtx-title-unknown
         "Δεν έχει οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))))))
 
-(defun cheque-stran-top-actions (&optional op)
-  (top-actions
+(defun cheque-stran-top-actions (op)
+  (top-actions-area
    (make-instance 'menu
                   :spec (make-menu-spec
                          `(:create (,(family-url 'config/cheque-stran/create) "Νέα μετάπτωση")))
@@ -261,7 +261,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions)
+               (cheque-stran-top-actions :catalogue)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
@@ -350,7 +350,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions)
+               (cheque-stran-top-actions :update)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"
@@ -404,7 +404,7 @@
          (:div :id "container" :class "container_12"
                (header 'config)
                (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions)
+               (cheque-stran-top-actions :delete)
                (filters cheque-stran-table)
                (:div :class "grid_12"
                      (:div :id "cheque-stran-window" :class "window"

@@ -20,7 +20,7 @@
                         :tof-title-exists "Αυτό το όνομα Δ.Ο.Υ. υπάρχει ήδη."))))))
 
 (defun tof-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec `(:create (,(family-url 'config/tof/create) "Νέα Δ.Ο.Υ.")))
                   :css-class "hmenu"

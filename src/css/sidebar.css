@@ -96,7 +96,7 @@
 
 .inline-form a.cancel, .section-subnavbar a.cancel:hover {
     background: transparent;
-    padding: 0px;
+    padding: 0px 0px 0px 2px;
     border: none;
 }
 

@@ -180,7 +180,7 @@
 ;;; ------------------------------------------------------------
 
 (defun company-cheque-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
                          `(:catalogue ,(family-url 'company :system :filter)

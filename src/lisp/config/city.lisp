@@ -20,7 +20,7 @@
                         :city-title-exists "Αυτό το όνομα πόλης υπάρχει ήδη."))))))
 
 (defun city-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec `(:create  (,(family-url 'config/city/create) "Νέα πόλη")))
                   :css-class "hmenu"

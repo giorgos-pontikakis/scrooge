@@ -34,7 +34,7 @@
         "Άκυρος λογαριασμός πίστωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))))))
 
 (defun temtx-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
                          `(:create (,(family-url 'config/temtx/create) "Νέο Πρότυπο Συναλλαγής")))

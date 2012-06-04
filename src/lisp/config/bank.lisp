@@ -20,7 +20,7 @@
                         :bank-title-exists "Αυτό το όνομα τράπεζας υπάρχει ήδη."))))))
 
 (defun bank-top-actions (op)
-  (top-actions
+  (top-actions-area
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec `(:create (,(family-url 'config/bank/create) "Νέα τράπεζα")))
                   :css-class "hmenu"

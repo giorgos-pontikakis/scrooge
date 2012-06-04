@@ -133,16 +133,16 @@
 ;;; ------------------------------------------------------------
 
 (defun company-top-actions (op)
-  (top-actions (make-instance 'scrooge-menu
-                              :spec (make-menu-spec
-                                     `(:catalogue ,(family-url 'company :system :filter)
-                                       :create ,(family-url 'company/create :filter)))
-                              :css-class "hmenu"
-                              :disabled (list op))
-               (searchbox (family-url-fn 'actions/company/search)
-                          (family-url-fn 'company :system)
-                          (family-params 'company :filter)
-                          "ac-company")))
+  (top-actions-area (make-instance 'scrooge-menu
+                                   :spec (make-menu-spec
+                                          `(:catalogue ,(family-url 'company :system :filter)
+                                            :create ,(family-url 'company/create :filter)))
+                                   :css-class "hmenu"
+                                   :disabled (list op))
+                    (searchbox (family-url-fn 'actions/company/search)
+                               (family-url-fn 'company :system)
+                               (family-params 'company :filter)
+                               "ac-company")))
 
 (defun company-tabs (company-id filter active content)
   (declare (ignore filter))
