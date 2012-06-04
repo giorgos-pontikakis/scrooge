@@ -205,12 +205,12 @@
   (when (and (eql (op form) :create)
              (key form))
     (error "Contradiction in crud-form initialization. Slot OP is :create and slot KEY is not null"))
-  (setf (slot-value form 'record)
-        (get-record form)))
+  (unless (slot-boundp form 'record)
+    (setf (slot-value form 'record) (get-record form))))
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (eql (op form) :create)
-    (setf (record form) (make-record form payload)))
+    (setf (record form) (create-record form payload)))
   (when (eql (op form) :update)
     (update-record form payload)))
 
