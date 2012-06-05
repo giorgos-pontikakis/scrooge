@@ -257,13 +257,15 @@
      (until      date)
      (cstate     string))
   (flet ((cheque-state-label (cheque-state)
-           (cond ((null cheque-state) "Όλες")
-                 ((string-equal cheque-state "pending") "Σε εκκρεμότητα")
-                 ((string-equal cheque-state "paid") "Πληρωμένες")
-                 ((string-equal cheque-state "bounced") "Ακάλυπτες")
-                 ((string-equal cheque-state "returned") "Επιστραμμένες")
-                 ((string-equal cheque-state "stamped") "Σφραγισμένες")
-                 (t (error "CHEQUE-STATE-LABEL: Unknown cheque-state")))))
+           (with-hashed-identity (:test #'equal)
+             (case cheque-state
+               ((nil) "Όλες")
+               ("pending" "Σε εκκρεμότητα")
+               ("paid" "Πληρωμένες")
+               ("bounced" "Ακάλυπτες")
+               ("returned" "Επιστραμμένες")
+               ("stamped" "Σφραγισμένες")
+               (t (error "CHEQUE-STATE-LABEL: Unknown cheque-state"))))))
     (with-view-page
       (let* ((filter (params->filter))
              (payable-table (make-instance 'company-cheque-table
