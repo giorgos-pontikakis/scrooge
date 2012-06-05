@@ -17,7 +17,6 @@
   ())
 
 
-
 ;;; ------------------------------------------------------------
 ;;; Company cheque table
 ;;; ------------------------------------------------------------
@@ -59,7 +58,7 @@
          (filter (filter tbl))
          (company-id (company-id tbl))
          (filter* (remove-from-plist filter kind :cstate))
-         (filter-spec `((nil      ,(apply #'company/cheque kind filter*)
+         (filter-spec `((nil      ,(apply #'company/cheque kind :company-id company-id filter*)
                                   "Όλες")
                         (pending  ,(apply #'company/cheque kind :cstate "pending"
                                                                 :company-id company-id
@@ -184,13 +183,14 @@
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
                          `(:catalogue ,(family-url 'company :system :filter)
-                           :create-company (,(family-url 'company/create :filter)
+                           :create-company (,(family-url 'company/create :system :filter)
                                             "Νέα εταιρία" "create")
-                           :create-cheque (,(family-url 'company/cheque/create :filter)
+                           :create-cheque (,(family-url 'company/cheque/create :system :filter)
                                            "Νέα επιταγή" "create")
-                           :print ,(family-url 'company/cheque/print :filter)))
+                           :print ,(family-url 'company/cheque/print :system :filter)))
                   :css-class "hmenu"
                   :disabled (case op
+                              (:catalogue '(:catalogue))
                               (:create '(:create-company :create-cheque :print))
                               ((:update :delete) '(:print))))
    (searchbox (family-url-fn 'actions/company/search)
@@ -207,8 +207,8 @@
 (defpage company-cheque-page company/cheque (("company/cheque/"
                                               (kind "(receivable|payable)")))
     ((company-id integer chk-company-id t)
-     (start      integer)
      (cheque-id  integer chk-cheque-id)
+     (start      integer)
      (search     string)
      (subset     string)
      (since      date)
@@ -248,49 +248,71 @@
 (defpage company-cheque-page company/cheque/print (("company/cheque/"
                                                     (kind "(receivable|payable)")
                                                     "/print"))
-    ((search     string)
+    ((company-id integer chk-company-id t)
+     (cheque-id  integer chk-cheque-id)
+     (start      integer)
+     (search     string)
      (subset     string)
-     (company-id integer chk-company-id t)
-     (cheque-id  integer)
      (since      date)
      (until      date)
-     (start      integer)
      (cstate     string))
-  (with-view-page
-    (let* ((filter (params->filter))
-           (payable-table (make-instance 'company-cheque-table
-                                         :op :details
-                                         :selected-key (val cheque-id)
-                                         :filter filter
-                                         :start-index (val start)
-                                         :kind "payable"
-                                         :company-id (val company-id)))
-           (receivable-table (make-instance 'company-cheque-table
-                                            :op :details
-                                            :selected-key (val cheque-id)
-                                            :filter filter
-                                            :start-index (val start)
-                                            :kind "receivable"
-                                            :company-id (val company-id))))
-      (with-document ()
-        (:head
-         (:title "Εταιρία » Λεπτομέρειες » Επιταγές » Εκτύπωση")
-         (print-headers))
-        (:body
-         (:div :id "container" :class "container_12"
-               (:div :class "grid_12"
-                     (:a :id "back"
-                         :href (apply #'company/cheque kind filter)
-                         "« Επιστροφή"))
-               (:div :id "company-tx-window"
-                     (when (records payable-table)
-                       (htm (:div :class "window"
-                                  (:div :class "title" "Προς είσπραξη")
-                                  (display payable-table))))
-                     (when (records receivable-table)
-                       (htm (:div :class "window"
-                                  (:div :class "title" "Προς πληρωμή")
-                                  (display receivable-table)))))))))))
+  (flet ((cheque-state-label (cheque-state)
+           (cond ((null cheque-state) "Όλες")
+                 ((string-equal cheque-state "pending") "Σε εκκρεμότητα")
+                 ((string-equal cheque-state "paid") "Πληρωμένες")
+                 ((string-equal cheque-state "bounced") "Ακάλυπτες")
+                 ((string-equal cheque-state "returned") "Επιστραμμένες")
+                 ((string-equal cheque-state "stamped") "Σφραγισμένες")
+                 (t (error "CHEQUE-STATE-LABEL: Unknown cheque-state")))))
+    (with-view-page
+      (let* ((filter (params->filter))
+             (payable-table (make-instance 'company-cheque-table
+                                           :op :details
+                                           :selected-key (val cheque-id)
+                                           :filter filter
+                                           :start-index (val start)
+                                           :kind "payable"
+                                           :company-id (val company-id)))
+             (receivable-table (make-instance 'company-cheque-table
+                                              :op :details
+                                              :selected-key (val cheque-id)
+                                              :filter filter
+                                              :start-index (val start)
+                                              :kind "receivable"
+                                              :company-id (val company-id))))
+        (with-document ()
+          (:head
+           (:title "Εταιρία » Λεπτομέρειες » Επιταγές » Εκτύπωση")
+           (print-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (:div :class "grid_12"
+                       (:a :id "back"
+                           :href (family-url 'company/cheque :system :filter)
+                           "« Επιστροφή")
+                       (:div :class "window"
+                             (:div :class "title"
+                                   (:h2 (str (string-upcase-gr
+                                              (title (get-dao 'company (val company-id))))))
+                                   (:h3 :class "grid_7 alpha"
+                                        (str (conc "Επιταγές: "
+                                                   (cheque-state-label (val cstate)))))
+                                   (:div :class "grid_4 omega"
+                                         (display (datebox (family-url-fn 'company/cheque/print)
+                                                           (family-params 'company/cheque/print
+                                                                          :system
+                                                                          :filter))))
+                                   (clear)))
+                       (:div :class "window"
+                             (when (records payable-table)
+                               (htm (:div
+                                     (:div :class "title" "Επιταγές προς είσπραξη")
+                                     (display payable-table)))))
+                       (:div :class "window"
+                             (when (records receivable-table)
+                               (htm (:div
+                                     (:div :class "title" "Επιταγές προς πληρωμή")
+                                     (display receivable-table)))))))))))))
 
 
 

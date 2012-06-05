@@ -138,7 +138,9 @@
                                           `(:catalogue ,(family-url 'company :system :filter)
                                             :create ,(family-url 'company/create :filter)))
                                    :css-class "hmenu"
-                                   :disabled (list op))
+                                   :disabled (case op
+                                               (:catalogue '(:catalogue))
+                                               ((:create :update :delete) '(:create))))
                     (searchbox (family-url-fn 'actions/company/search)
                                (family-url-fn 'company :system)
                                (family-params 'company :filter)
@@ -151,7 +153,7 @@
           (:div :id "company-area"
                 (when company-id
                   (htm (:div :id "company-title"
-                             (:h3 :class "grid_12 alpha"
+                             (:h2 :class "grid_12 alpha"
                                   (str (title (get-dao 'company company-id))))
                              (navbar
                               `((data ,(family-url 'company/details :system :filter) "Στοιχεία")

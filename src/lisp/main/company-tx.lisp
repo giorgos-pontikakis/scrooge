@@ -5,7 +5,7 @@
 ;;; Page family
 ;;; ------------------------------------------------------------
 
-(defclass company-tx-family (tx-family)
+(defclass company-tx-family (family-mixin)
   ()
   (:default-initargs :parameter-groups '(:system (company-id tx-id start)
                                          :payload (tx-date description debit-amount credit-amount)
@@ -44,8 +44,8 @@
                                             :print ,(family-url 'company/tx/print :system :filter)))
                                    :css-class "hmenu"
                                    :disabled (case op
-                                               (:create '(:create-company :create-cheque :print))
-                                               (:update '(:print))))
+                                               (:catalogue '())
+                                               ((:create :update :delete) '(:print))))
                     (searchbox (family-url-fn 'actions/company/search)
                                (family-url-fn 'company :system)
                                (family-params 'company :filter)
@@ -379,8 +379,6 @@
      (until      date))
   (with-view-page
     (let ((filter (params->filter))
-          (system (params->plist #'val-or-raw (list company-id tx-id)))
-          (misc  (params->plist #'val-or-raw (list since until)))
           (roles (if (val role)
                      (list (make-keyword (string-upcase (val role))))
                      (list :customer :supplier))))
@@ -394,18 +392,27 @@
            (:div :id "container" :class "container_12"
                  (:div :class "grid_12"
                        (:a :id "back"
-                           :href (apply #'company/tx (append system filter misc))
+                           :href (family-url 'company/tx :system :filter)
                            "« Επιστροφή")
                        (:div :id "company-tx-window" :class "window"
                              (:div :class "title"
-                                   (:h3 (str (title (get-dao 'company (val company-id)))))
-                                   (display (datebox #'company/tx/print
-                                                     (append system filter misc))))
+                                   (:h2 (str (string-upcase-gr
+                                              (title (get-dao 'company (val company-id))))))
+                                   (:h3 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
+                                                                         (if (eql role "customer")
+                                                                             "πελάτης"
+                                                                             "προμηθευτής"))))
+                                   (:div :class "grid_4 omega"
+                                         (display (datebox (family-url-fn 'company/tx/print)
+                                                           (family-params 'company/tx/print
+                                                                          :system
+                                                                          :filter))))
+                                   (clear))
                              (display (make-instance 'company-tx-table
                                                      :records records
                                                      :company-id (val company-id)
                                                      :op :details
-                                                     :filter (append system filter misc)
+                                                     :filter filter ; (append system filter misc)
                                                      :paginator nil))
                              (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
                              (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))

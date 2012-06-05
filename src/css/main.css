@@ -11,21 +11,17 @@
 #company-title, #project-title {
     background-color: #ddd;
     color: #444;
-    /* text-shadow: #024 2px 2px 2px; */
     border-top: 1px solid #999;
     border-bottom: 1px solid #999;
-    /* border-radius: 5px; */
 }
 
-#company-title h3 {
-    margin: 15px 0px 0px 30px;
-    font-size: 21px;
-}
+/* #company-title h2 { */
+/*     margin: 15px 0px 0px 30px; */
+/* } */
 
-#project-title h3 {
-    margin: 15px 0px 15px 30px;
-    font-size: 21px;
-}
+/* #project-title h2 { */
+/*     margin: 15px 0px 15px 30px; */
+/* } */
 
 
 /* ---------------------------------------------------------------------- */

@@ -35,7 +35,7 @@
 
 (defun cheque-stran-top-actions (op)
   (top-actions-area
-   (make-instance 'menu
+   (make-instance 'scrooge-menu
                   :spec (make-menu-spec
                          `(:create (,(family-url 'config/cheque-stran/create) "Νέα μετάπτωση")))
                   :css-class "hmenu"
