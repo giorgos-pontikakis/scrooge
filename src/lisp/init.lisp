@@ -19,7 +19,7 @@
 (defclass scrooge-acceptor (veil-acceptor)
   ())
 
-(define-webapp *scrooge* ()
+(define-webapp *scrooge* (webapp/db)
   :acceptor (make-instance 'scrooge-acceptor
                            :port 3001
                            :access-log-destination nil
