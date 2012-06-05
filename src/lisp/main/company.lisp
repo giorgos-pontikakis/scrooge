@@ -9,7 +9,8 @@
 (defclass company-family (family-mixin)
   ()
   (:default-initargs
-   :parameter-groups '(:system (company-id contact-id start)
+   :parameter-groups '(:system (company-id contact-id start
+                                subset)  ;; checked filter parameter
                        :payload (title occupation tof tin address city pobox zipcode notes)
                        :filter (search subset))))
 
@@ -126,6 +127,11 @@
       nil
       :contact-id-invalid))
 
+(defun chk-subset (subset)
+  (if (or (eql subset :null)
+          (member subset '("project" "debt" "credit") :test #'string-equal))
+      nil
+      :invalid-subset))
 
 
 ;;; ------------------------------------------------------------
@@ -423,7 +429,7 @@
 
 (defpage company-page actions/company/search ("actions/company/search" :request-type :get)
     ((search string)
-     (subset string))
+     (subset string chk-subset))
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'company-table :filter filter))))
@@ -441,9 +447,9 @@
 
 (defpage company-page company ("company")
     ((company-id integer chk-company-id)
+     (start      integer)
      (search     string)
-     (subset     string)
-     (start      integer))
+     (subset     string  chk-subset))
   (with-view-page
     (let* ((filter (params->filter))
            (company-table (make-instance 'company-table
@@ -476,7 +482,7 @@
     ((company-id integer chk-company-id                         t)
      (contact-id integer (chk-contact-id company-id contact-id))
      (search     string)
-     (subset     string))
+     (subset     string  chk-subset))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -519,9 +525,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-page company/create ("company/create")
-    ((search     string)
-     (subset     string)
-     (title      string  chk-company-title/create)
+    ((title      string  chk-company-title/create)
      (occupation string)
      (tof        string  chk-tof-title)
      (tin        string  chk-tin/create)
@@ -529,7 +533,9 @@
      (city       string  chk-city-title)
      (pobox      integer chk-pobox)
      (zipcode    integer chk-zipcode)
-     (notes      string))
+     (notes      string)
+     (search     string)
+     (subset     string  chk-subset))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -560,7 +566,7 @@
 (defpage company-page actions/company/create ("actions/company/create"
                                               :request-type :post)
     ((search     string)
-     (subset     string)
+     (subset     string  chk-subset)
      (title      string  chk-company-title/create)
      (occupation string)
      (tof        string  chk-tof-title)
@@ -606,7 +612,7 @@
      (zipcode    integer chk-zipcode)
      (notes      string)
      (search     string)
-     (subset     string))
+     (subset     string  chk-subset))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -659,7 +665,7 @@
      (zipcode    integer chk-zipcode)
      (notes      string)
      (search     string)
-     (subset     string))
+     (subset     string  chk-subset))
   (with-controller-page (company/update)
     (let ((tof-id (tof-id (val tof)))
           (city-id (city-id (val city))))
@@ -686,7 +692,7 @@
 (defpage company-page company/delete ("company/delete")
     ((company-id integer chk-company-id/ref t)
      (search     string)
-     (subset     string))
+     (subset     string  chk-subset))
   (with-view-page
     (let* ((filter (params->filter))
            (company-table (make-instance 'company-table
@@ -716,7 +722,7 @@
                                               :request-type :post)
     ((company-id integer chk-company-id)
      (search     string)
-     (subset     string))
+     (subset     string  chk-subset))
   (with-controller-page (company/delete)
     (with-transaction ()
       (execute (:delete-from 'contact

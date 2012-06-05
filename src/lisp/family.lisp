@@ -11,12 +11,6 @@
   (:default-initargs :parameter-groups '()))
 
 
-;;; Generics
-
-;; (defgeneric top-level-actions (family op filter)
-;;   (:documentation "top level menu"))
-
-
 ;;; Utilities
 
 (defun collect-params (group-name &optional (page *page*) (parameters *parameters*))
@@ -122,6 +116,8 @@
 (defmethod family-url ((page-name null) &rest group-names)
   (declare (ignore page-name group-names))
   (error "FAMILY-URL: Page not found."))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; AUTHENTICATION MIXIN

@@ -7,9 +7,10 @@
 
 (defclass company-tx-family (family-mixin)
   ()
-  (:default-initargs :parameter-groups '(:system (company-id tx-id start)
+  (:default-initargs :parameter-groups '(:system (company-id tx-id start
+                                                  subset issuer)   ;; checked filter parameters
                                          :payload (tx-date description debit-amount credit-amount)
-                                         :filter (search subset role since until))))
+                                         :filter (search subset issuer since until))))
 
 (defclass company-tx-page (auth-dynamic-page company-tx-family)
   ((messages
@@ -31,7 +32,11 @@
         :parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
-
+(defun chk-issuer (issuer)
+  (if (or (eql issuer :null)
+          (member issuer '("customer" "supplier") :test #'string-equal))
+      nil
+      :invalid-issuer))
 
 ;;; ------------------------------------------------------------
 ;;; UI elements
@@ -112,7 +117,7 @@
                                  (:= tx2.debit-acc-id
                                      ,*cheque-payable-acc-id*)))))))
 
-(defun company-debits (company-id roles &optional since until)
+(defun company-debits (company-id issuers &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
                       (:as tx.amount debit-amount) cheque.due-date cheque.state-id
                       :from tx
@@ -123,9 +128,9 @@
         (where-base `(:= tx.company-id ,company-id))
         (where-tx '())
         (where-dates nil))
-    (when (member :customer roles)
+    (when (member :customer issuers)
       (push (customer-debits) where-tx))
-    (when (member :supplier roles)
+    (when (member :supplier issuers)
       (push (supplier-cash-debits) where-tx)
       (push (supplier-contra-debits) where-tx)
       (push (supplier-cheque-debits) where-tx))
@@ -141,7 +146,7 @@
       (query (sql-compile sql)
              :plists))))
 
-(defun company-credits (company-id roles &optional since until)
+(defun company-credits (company-id issuers &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
                       (:as tx.amount credit-amount) cheque.due-date cheque.state-id
                       :from tx
@@ -152,11 +157,11 @@
         (where-base `(:= tx.company-id ,company-id))
         (where-tx `())
         (where-dates nil))
-    (when (member :customer roles)
+    (when (member :customer issuers)
       (push (customer-cash-credits) where-tx)
       (push (customer-contra-credits) where-tx)
       (push (customer-cheque-credits) where-tx))
-    (when (member :supplier roles)
+    (when (member :supplier issuers)
       (push (supplier-credits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
@@ -170,11 +175,11 @@
       (query (sql-compile sql)
              :plists))))
 
-(defun company-debits/credits (company-id roles since until)
+(defun company-debits/credits (company-id issuers since until)
   (flet ((get-tx-date (row)
            (getf row :tx-date)))
-    (let* ((sorted (stable-sort (nconc (company-debits company-id roles)
-                                       (company-credits company-id roles))
+    (let* ((sorted (stable-sort (nconc (company-debits company-id issuers)
+                                       (company-credits company-id issuers))
                                 #'local-time:timestamp<
                                 :key #'get-tx-date))
            (truncated (remove-if (lambda (row)
@@ -234,17 +239,17 @@
 (defmethod filters ((tbl company-tx-table))
   (let* ((company-id (company-id tbl))
          (filter (filter tbl))
-         (filter* (remove-from-plist filter :role))
+         (filter* (remove-from-plist filter :issuer))
          (filter-spec `((nil      ,(apply #'company/tx :company-id company-id filter*)
                                   "Μικτός ρόλος")
                         (customer  ,(apply #'company/tx :company-id company-id
-                                                        :role "customer" filter*)
+                                                        :issuer "customer" filter*)
                                    "Πελάτης")
                         (supplier ,(apply #'company/tx :company-id company-id
-                                                       :role "supplier" filter*)
+                                                       :issuer "supplier" filter*)
                                   "Προμηθευτής"))))
     (secondary-filter-area (filter-navbar filter-spec
-                                          :active (getf filter :role))
+                                          :active (getf filter :issuer))
                            (datebox #'company/tx
                                     (list* :company-id company-id filter)))))
 
@@ -329,17 +334,17 @@
      (tx-id      integer chk-tx-id)
      (start      integer)
      (search     string)
-     (subset     string)
-     (role       string)
+     (subset     string  chk-subset)
+     (issuer     string  chk-issuer)
      (since      date)
      (until      date))
   (with-view-page
     (let ((filter (params->filter))
-          (roles (if (val role)
-                     (list (make-keyword (string-upcase (val role))))
+          (issuers (if (val issuer)
+                     (list (make-keyword (string-upcase (val issuer))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val company-id) roles (val since) (val until))
+          (company-debits/credits (val company-id) issuers (val since) (val until))
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
@@ -373,17 +378,17 @@
     ((company-id integer chk-company-id t)
      (tx-id      integer chk-tx-id)
      (search     string)
-     (subset     string)
-     (role       string)
+     (subset     string  chk-subset)
+     (issuer     string  chk-issuer)
      (since      date)
      (until      date))
   (with-view-page
     (let ((filter (params->filter))
-          (roles (if (val role)
-                     (list (make-keyword (string-upcase (val role))))
+          (issuers (if (val issuer)
+                     (list (make-keyword (string-upcase (val issuer))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum)
-          (company-debits/credits (val company-id) roles (val since) (val until))
+          (company-debits/credits (val company-id) issuers (val since) (val until))
         (with-document ()
           (:head
            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
@@ -399,7 +404,7 @@
                                    (:h2 (str (string-upcase-gr
                                               (title (get-dao 'company (val company-id))))))
                                    (:h3 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
-                                                                         (if (eql role "customer")
+                                                                         (if (eql issuer "customer")
                                                                              "πελάτης"
                                                                              "προμηθευτής"))))
                                    (:div :class "grid_4 omega"
@@ -433,17 +438,17 @@
      (debit-amount  float   chk-amount)
      (credit-amount float   chk-amount)
      (search        string)
-     (subset        string)
-     (role          string)
+     (subset        string  chk-subset)
+     (issuer        string  chk-issuer)
      (since         date)
      (until         date))
   (with-view-page
     (let ((filter (params->filter))
-          (roles (if (val role)
-                     (list (make-keyword (string-upcase (val role))))
+          (issuers (if (val issuer)
+                     (list (make-keyword (string-upcase (val issuer))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val company-id) roles (val since) (val until))
+          (company-debits/credits (val company-id) issuers (val since) (val until))
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
@@ -474,7 +479,7 @@
                                                            :subset (val subset)
                                                            :since (val since)
                                                            :until (val until)
-                                                           :role (val role))
+                                                           :issuer (val issuer))
                               (display company-tx-table :payload (params->payload)))
                             (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
                             (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
@@ -490,8 +495,8 @@
      (debit-amount  float   chk-amount)
      (credit-amount float   chk-amount)
      (search        string)
-     (subset        string)
-     (role          string)
+     (subset        string  chk-subset)
+     (issuer        string  chk-issuer)
      (since         date)
      (until         date))
   (with-controller-page (company/tx/update)
