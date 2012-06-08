@@ -2,7 +2,14 @@ $(document).ready(function () {
    applyAutocomplete();
    applyDatepicker();
    selectableRows();
+   preventDoubleSubmit();
 });
+
+function preventDoubleSubmit () {
+   $('form').submit(function(){
+      $('[type="submit"]', this).attr("disabled", "disabled");
+   });
+}
 
 function applyDatepicker () {
    $.datepicker.setDefaults({dateFormat: "dd/mm/yy"});
