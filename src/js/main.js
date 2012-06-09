@@ -64,7 +64,19 @@ function selectableRows () {
    $("form .crud-table tr").unbind("click");
 
    // crud-tree
-   $(".crud-tree input").click(function (e) {
+   $(".crud-tree li > div a").click(function(e) {
+      e.stopPropagation();
+      window.location = $(this).attr("href");
+   });
+
+   $(".crud-tree li > div").click(function () {
+      $(this).children(".selector").children("a").trigger("click");
+   });
+
+   $("form .crud-tree li > div").unbind("click");
+
+   // crud-tree radio inputs
+   $(".crud-tree input[type=radio]").click(function (e) {
       e.stopPropagation();
       $(".crud-tree li.selected").removeClass("selected");
       $(this).parent().parent().parent().addClass("selected");
