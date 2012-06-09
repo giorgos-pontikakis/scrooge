@@ -61,6 +61,8 @@ function selectableRows () {
       $(this).children("td.selector").children("a").trigger("click");
    });
 
+   $("form .crud-table tr").unbind("click");
+
    // crud-tree
    $(".crud-tree input").click(function (e) {
       e.stopPropagation();

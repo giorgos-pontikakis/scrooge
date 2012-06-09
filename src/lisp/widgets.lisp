@@ -36,8 +36,7 @@
 
 (defclass scrooge-row/obj (crud-row/obj)
   ()
-  (:default-initargs :css-delete "attention"
-                     :css-selected "selected"
+  (:default-initargs :css-selected "selected"
                      :css-selector "selector"
                      :css-payload "payload"
                      :css-controls "controls"))
@@ -51,8 +50,7 @@
 
 (defclass scrooge-row/plist (crud-row/plist)
   ()
-  (:default-initargs :css-delete "attention"
-                     :css-selected "selected"
+  (:default-initargs :css-selected "selected"
                      :css-selector "selector"
                      :css-payload "payload"
                      :css-controls "controls"))
@@ -116,8 +114,7 @@
 
 (defclass scrooge-node/obj (crud-node/obj)
   ()
-  (:default-initargs :css-delete "attention"
-                     :css-selected "selected"
+  (:default-initargs :css-selected "selected"
                      :css-selector "selector"
                      :css-payload "payload"
                      :css-controls "controls"
@@ -136,12 +133,11 @@
 
 (defclass scrooge-node/plist (crud-node/plist)
   ()
-  (:default-initargs :css-delete "attention"
-    :css-selected "selected"
-    :css-selector "selector"
-    :css-payload "payload"
-    :css-controls "controls"
-    :css-indent "indent"))
+  (:default-initargs :css-selected "selected"
+                     :css-selector "selector"
+                     :css-payload "payload"
+                     :css-controls "controls"
+                     :css-indent "indent"))
 
 (defmethod key ((item scrooge-node/plist))
   (getf (record item) :id))

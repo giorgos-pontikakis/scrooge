@@ -86,9 +86,9 @@ ul.crud-tree {
     padding: 0px;
 }
 
-.crud-tree li.selected > div {
-    background-color: #ffb;
-}
+/* .crud-tree li.selected > div { */
+/*     background-color: #ffb; */
+/* } */
 
 
 
@@ -120,10 +120,17 @@ ul.crud-tree {
     border-bottom: solid 1px #ccc;
 }
 
-.crud-table tr.selected, .crud-table ul.selected {
+.crud-table tr.selected,
+.crud-tree  li.selected > div
+{
     background-color: #ffb;
 }
 
+.crud-table.op-delete tr.selected,
+.crud-tree.op-delete li.selected > div
+{
+    background-color: #fdd;
+}
 .crud-table td, .crud-table th  {
     line-height: 22px;
     text-align: left;
@@ -139,6 +146,28 @@ ul.crud-tree {
 .crud-table td span {
     padding: 0px 5px;
 }
+
+
+/* Hover effects - no form */
+
+.crud-table tbody tr:not(.selected):hover,
+.crud-tree li:not(.selected) > div:hover
+{
+    background-color: #ffd;
+    cursor: pointer;
+}
+
+
+/* Hover effects - within form */
+
+form .crud-table tr:not(.selected):hover,
+form .crud-tree li:not(.selected) > div:hover
+{
+    background-color: inherit;
+    cursor: default;
+}
+
+
 
 
 

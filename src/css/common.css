@@ -136,9 +136,9 @@ select:disabled {
     background: transparent url(/scrooge/img/arrow_down.png) no-repeat 5px center;
 }
 
-.attention {
-    background-color: #fdd;
-}
+/* .attention { */
+/*     background-color: #fdd; */
+/* } */
 
 
 /* ---------------------------------------------------------------------- */

@@ -138,8 +138,9 @@
          (spec (if (and account-id
                         (eql (debit-p tree)
                              (debit-p (get-dao 'account account-id))))
-                   `((:create . "Νέος Λογαριασμός") ,(config/account/create :debitp (debit-p tree)
-                                                                            :parent-id account-id)
+                   `(:create (,(config/account/create :debitp (debit-p tree)
+                                                      :parent-id account-id)
+                              "Νέος Λογαριασμός")
                      :update ,(config/account/update :account-id account-id)
                      :delete ,(if (chk-account-id/ref account-id)
                                   nil
@@ -282,7 +283,7 @@
                            (with-form (actions/config/account/create :parent-id (val parent-id)
                                                                      :debitp (val debitp))
                              (display account-form :payload (params->payload)
-                                                   :styles (params->styles :payload)))))
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage account-page actions/config/account/create ("actions/account/create"
@@ -334,7 +335,7 @@
                            (actions account-form)
                            (with-form (actions/config/account/update :account-id (val account-id))
                              (display account-form :payload (params->payload)
-                                                   :styles (params->styles :payload)))))
+                                                   :styles (params->styles)))))
                (footer)))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
@@ -373,6 +374,7 @@
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-tree
                                                   :op :delete
+                                                  :selected-key (val account-id)
                                                   :debit-p debit-p))
                (htm
                 (:div :class "grid_6"
