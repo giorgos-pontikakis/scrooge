@@ -531,7 +531,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/update ("project/update")
-    ((project-id  integer chk-project-id)
+    ((project-id  integer chk-project-id                                                  t)
      (bill-id     integer (chk-bill-id project-id bill-id))
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company project-id))
