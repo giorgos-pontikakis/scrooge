@@ -160,4 +160,5 @@
                        (:div :class "window"
                              (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
                                                         account-title)
-                                   (str account-tx)))))))))))
+                                   (str account-tx)))
+                       (print-pages-footer)))))))))

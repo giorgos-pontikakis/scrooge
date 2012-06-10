@@ -295,9 +295,9 @@
                            "« Επιστροφή")
                        (:div :class "window"
                              (:div :class "title"
-                                   (:h2 (str (string-upcase-gr
+                                   (:h1 (str (string-upcase-gr
                                               (title (get-dao 'company (val company-id))))))
-                                   (:h3 :class "grid_7 alpha"
+                                   (:h2 :class "grid_7 alpha"
                                         (str (conc "Επιταγές: "
                                                    (cheque-state-label (val cstate)))))
                                    (:div :class "grid_4 omega"
@@ -306,16 +306,16 @@
                                                                           :system
                                                                           :filter))))
                                    (clear)))
-                       (:div :class "window"
-                             (when (records payable-table)
-                               (htm (:div
-                                     (:div :class "title" "Επιταγές προς είσπραξη")
-                                     (display payable-table)))))
-                       (:div :class "window"
-                             (when (records receivable-table)
-                               (htm (:div
-                                     (:div :class "title" "Επιταγές προς πληρωμή")
-                                     (display receivable-table)))))))))))))
+
+                       (when (records payable-table)
+                         (htm (:div :class "window"
+                                    (:div (:div :class "title" "Επιταγές προς είσπραξη")
+                                          (display payable-table)))))
+                       (when (records receivable-table)
+                         (htm (:div :class "window"
+                                    (:div (:div :class "title" "Επιταγές προς πληρωμή")
+                                          (display receivable-table)))))
+                       (print-pages-footer)))))))))
 
 
 

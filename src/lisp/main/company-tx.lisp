@@ -401,9 +401,9 @@
                            "« Επιστροφή")
                        (:div :id "company-tx-window" :class "window"
                              (:div :class "title"
-                                   (:h2 (str (string-upcase-gr
+                                   (:h1 (str (string-upcase-gr
                                               (title (get-dao 'company (val company-id))))))
-                                   (:h3 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
+                                   (:h2 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
                                                                          (if (eql issuer "customer")
                                                                              "πελάτης"
                                                                              "προμηθευτής"))))
@@ -422,7 +422,8 @@
                              (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
                              (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
                              (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
-                                                                    credit-sum))))))))))))
+                                                                    credit-sum))))
+                       (print-pages-footer)))))))))
 
 
 

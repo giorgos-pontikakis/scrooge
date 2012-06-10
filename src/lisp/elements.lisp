@@ -107,6 +107,15 @@
           (:p "Powered by lisp"))
     (:div :class "clear" "")))
 
+(defun print-pages-footer ()
+  (with-html
+    (:div :id "footer" :class "grid_12"
+          (:p (str (format-timestring t (now)
+                                      :format '(:day "/" :month "/" :year
+                                                ", "
+                                                (:hour 2) ":" :min)))))
+    (:div :class "clear" "")))
+
 (defun logout-menu (config-p)
   (with-html
     (:div :id "logout"

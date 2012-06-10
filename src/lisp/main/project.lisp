@@ -172,7 +172,7 @@
                 (when project-id
                   (htm
                    (:div :id "project-title"
-                         (:h3 :class "grid_8 alpha"
+                         (:h2 :class "grid_8 alpha"
                               (str (description (get-dao 'project project-id))))
                          (clear))))
                 (display content)
