@@ -221,6 +221,9 @@
                                :on (:= bank.id cheque.bank-id)
                                :inner-join company
                                :on (:= company.id cheque.company-id)))
+         (sort-order (if (string= cstate "pending")
+                         '(due-date company)
+                         '((:desc 'due-date) company)))
          (where nil))
     (when search
       (push `(:or (:ilike company.title ,(ilike search))
@@ -239,7 +242,7 @@
     (let ((sql `(:order-by (,@base-query :where
                                          (:and
                                           ,@where))
-                           due-date)))
+                           ,@sort-order)))
       (query (sql-compile sql)
              :plists))))
 
