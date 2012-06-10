@@ -67,8 +67,8 @@
 (define-existence-predicate bill-id-exists-p bill id)
 
 (defun project-description-exists-p (description company &optional project-id)
-  (unless  (chk-company-title company)
-    ;; Don't even bother to check without a valid company title
+  ;; Don't even bother to check without a valid company title
+  (unless (chk-company-title company)
     (let ((company-id (company-id company)))
       (with-db ()
         (if project-id

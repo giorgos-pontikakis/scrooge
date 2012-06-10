@@ -44,7 +44,7 @@
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
-  (css (url 'css "sidebar.css"))
+  (css (url 'css "forms.css"))
   (css (url 'css "login.css")))
 
 (defun global-headers ()
@@ -52,8 +52,8 @@
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
-  (css (url 'css "sidebar.css"))
-  (css (url 'css "navbar.css"))
+  (css (url 'css "forms.css"))
+  (css (url 'css "navigation.css"))
   (css (url 'css "crud.css")))
 
 (defun config-headers ()
