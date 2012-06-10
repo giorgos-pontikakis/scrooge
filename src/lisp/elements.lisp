@@ -44,7 +44,7 @@
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
-  (css (url 'css "crud.css"))
+  (css (url 'css "sidebar.css"))
   (css (url 'css "login.css")))
 
 (defun global-headers ()
@@ -52,9 +52,9 @@
   (css (url 'css "reset.css"))
   (960gs)
   (css (url 'css "common.css"))
+  (css (url 'css "sidebar.css"))
   (css (url 'css "navbar.css"))
-  (css (url 'css "crud.css"))
-  (css (url 'css "sidebar.css")))
+  (css (url 'css "crud.css")))
 
 (defun config-headers ()
   (global-headers)
@@ -127,7 +127,7 @@
 (defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)
     (with-html
-      (:div :id "notifications"
+      (:div :class "notifications"
             (messenger (messages page) parameters
                        :css-class "msg-error")))))
 

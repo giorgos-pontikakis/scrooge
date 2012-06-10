@@ -2,61 +2,18 @@
 /* notifications */
 /* ---------------------------------------------------------------------- */
 
-#notifications {
+.notifications {
     background-color: #ffb;
     border: 1px solid red;
     margin: 10px 10px 20px 10px;
     border-radius: 3px;
 }
 
-#notifications li {
+.notifications li {
     padding: 0px 0px 0px 30px;
     line-height: 26px;
 }
 
-
-
-/* ---------------------------------------------------------------------- */
-/* Section navbar */
-/* ---------------------------------------------------------------------- */
-
-.section-navbar {
-    margin: 10px 0px 0px 0px;
-    border-bottom: 1px solid #bbb;
-}
-
-.section-navbar ul li {
-    /* background-color: #eee; */
-    margin: 0px 2px;
-    /* width: 100px; */
-    text-align: center;
-    margin-right: 10px;
-}
-
-.section-navbar ul li a {
-    padding: 12px 15px;
-    color: #555;
-    font-weight: bold;
-    /* border: 1px solid #bbb; */
-    border-radius: 5px;
-}
-
-.section-navbar ul li span {
-    padding: 10px 20px 12px 20px;
-    color: #000;
-    /* text-shadow: #024 1px 1px 1px; */
-    font-weight: bold;
-    /* background-color: #369; */
-    border: 1px solid #bbb;
-    border-radius: 5px 5px 0px 0px;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: -1px;
-    background-color: #ddd;
-}
-
-.section-navbar ul li a:hover {
-    color: black;
-}
 
 
 /* ---------------------------------------------------------------------- */
@@ -103,97 +60,59 @@
 
 
 /* ---------------------------------------------------------------------- */
-/* Filter area */
+/* data form */
 /* ---------------------------------------------------------------------- */
 
-.filter-area {
-    line-height: 30px;
-    padding: 5px 0px;
-    /* border: 1px solid #369; */
-    border-radius: 5px;
-    margin-top: 10px;
+.data-form fieldset {
     border: 1px solid #bbb;
-    background-color: #ddd;
+    padding: 10px 10px;
+    margin: 20px 10px;
 }
 
-.filter-navbar {
-    color: #222;
-    margin: 3px 0px;
-    display: inline-block;
+.data-form legend {
+    padding: 0px 10px;
+    font-size: 11px;
+    font-weight: normal;
 }
 
-.filter-navbar ul {
-    line-height: 28px;
-    /* margin: 0px 0px 0px 10px; */
-    margin: 0px 10px;
+.data-form label {
+    display: block;
+    font-weight: bold;
+    font-size: 12px;
+    margin: 6px 0px 3px 0px;
 }
 
-.filter-navbar ul li a, .filter-navbar ul li span {
-    line-height: 23px;
-    margin: 1px 3px 1px 0px;
-    padding: 2px 8px;
-    border-radius: 3px;
+.data-form input {
+    margin-bottom: 10px;
 }
 
-.filter-navbar ul li a {
-    color: #333;
-    background-color: #eee;
-    border: 1px solid #999;
+.data-form input[type="radio"] {
+    margin: 5px 5px 8px 5px;
+    vertical-align: middle;
 }
 
-.filter-navbar ul li a:hover, .filter-navbar ul li span {
-    color: #222;
-    border: 1px solid #999;
-}
-
-.filter-navbar ul li span {
-    background-color: #bbb;
-}
-
-.filter-navbar ul li a:hover {
-    background-color: #bbb;
-}
-
-.filter-navbar label {
-    margin-left: 10px;
-}
-
-.filter-navbar input.datepicker {
-    width: 70px;
-}
-
-.filter-navbar form {
+.data-form input.inline {
     display: inline;
 }
 
-/* override display propery for kind-navbar  */
-#cheque-kind-navbar {
-    display: block;
+.data-form-first {
+    margin: 20px 0px 0px 20px;
 }
 
-/* ---------------------------------------------------------------------- */
-/* top-actions */
-/* ---------------------------------------------------------------------- */
-
-.top-actions {
-    background-color: #ddd;
-    padding: 12px 0px 10px 0px;
-    min-height: 26px;
+.data-form-buttons {
+    margin: 20px 0px 20px 20px;
 }
 
-.top-actions .hmenu li a {
-    border: solid 1px #bbb;
-    padding: 7px 7px 7px 26px;
-    border-radius: 5px;
-    background-color: #eee;
-    margin-left: 10px;
+.data-form-buttons a {
+    padding: 0px 0px 0px 15px;
+    text-decoration: underline;
 }
 
-.top-actions .hmenu li a:hover {
-    background-color: #fff;
-    color: #000;
+.data-form-title {
+    margin-top: 20px;
+    padding-left: 20px;
 }
 
-#searchbox input {
-    width: 152px;
+.data-form .selector input {
+    display: inline;
 }

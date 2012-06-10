@@ -137,14 +137,15 @@ select:disabled {
     background: transparent url(/scrooge/img/arrow_down.png) no-repeat 5px center;
 }
 
-/* .attention { */
-/*     background-color: #fdd; */
-/* } */
 
 
 /* ---------------------------------------------------------------------- */
 /* miscellaneous */
 /* ---------------------------------------------------------------------- */
+
+.attention {
+    background-color: #fdd;
+}
 
 .indent {
     padding-left: 25px;
@@ -168,6 +169,7 @@ select:disabled {
 }
 
 
+
 /* ---------------------------------------------------------------------- */
 /* layout */
 /* ---------------------------------------------------------------------- */
@@ -176,14 +178,14 @@ select:disabled {
     height: 100%;
 }
 
+#header {
+    color: #222;
+}
+
 #footer {
     margin-top: 40px;
     font-family: 'Courier New','Courier',monospace;
     text-align: center;
-}
-
-#header {
-    color: #222;
 }
 
 

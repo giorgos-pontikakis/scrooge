@@ -67,6 +67,74 @@
 
 
 /* ---------------------------------------------------------------------- */
+/* Section navbar */
+/* ---------------------------------------------------------------------- */
+
+.section-navbar {
+    margin: 10px 0px 0px 0px;
+    border-bottom: 1px solid #bbb;
+}
+
+.section-navbar ul li {
+    margin: 0px 2px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.section-navbar ul li a {
+    padding: 12px 15px;
+    color: #555;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.section-navbar ul li span {
+    padding: 10px 20px 12px 20px;
+    color: #000;
+    font-weight: bold;
+    border: 1px solid #bbb;
+    border-radius: 5px 5px 0px 0px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: -1px;
+    background-color: #ddd;
+}
+
+.section-navbar ul li a:hover {
+    color: black;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* top-actions area */
+/* ---------------------------------------------------------------------- */
+
+.top-actions {
+    background-color: #ddd;
+    padding: 12px 0px 10px 0px;
+    min-height: 26px;
+}
+
+.top-actions .hmenu li a {
+    border: solid 1px #bbb;
+    padding: 7px 7px 7px 26px;
+    border-radius: 5px;
+    background-color: #eee;
+    margin-left: 10px;
+}
+
+.top-actions .hmenu li a:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+#searchbox input {
+    width: 152px;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
 /* actions */
 /* ---------------------------------------------------------------------- */
 
@@ -89,4 +157,85 @@
 
 .actions a:hover {
     text-decoration: underline;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Filter area */
+/* ---------------------------------------------------------------------- */
+
+.filter-area {
+    line-height: 30px;
+    padding: 5px 0px;
+    /* border: 1px solid #369; */
+    border-radius: 5px;
+    margin-top: 10px;
+    border: 1px solid #bbb;
+    background-color: #ddd;
+}
+
+.filter-navbar {
+    color: #222;
+    margin: 3px 0px;
+    display: inline-block;
+}
+
+.filter-navbar ul {
+    line-height: 28px;
+    /* margin: 0px 0px 0px 10px; */
+    margin: 0px 10px;
+}
+
+.filter-navbar ul li a, .filter-navbar ul li span {
+    line-height: 23px;
+    margin: 1px 3px 1px 0px;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.filter-navbar ul li a {
+    color: #333;
+    background-color: #eee;
+    border: 1px solid #999;
+}
+
+.filter-navbar ul li a:hover, .filter-navbar ul li span {
+    color: #222;
+    border: 1px solid #999;
+}
+
+.filter-navbar ul li span {
+    background-color: #bbb;
+}
+
+.filter-navbar ul li a:hover {
+    background-color: #bbb;
+}
+
+.filter-navbar label {
+    margin-left: 10px;
+}
+
+.filter-navbar input.datepicker {
+    width: 70px;
+}
+
+.filter-navbar form {
+    display: inline;
+}
+
+/* override display propery for kind-navbar  */
+#cheque-kind-navbar {
+    display: block;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Secondary filter area */
+/* ---------------------------------------------------------------------- */
+
+.secondary-filter-area {
+    padding: 10px 0px 0px 0px;
 }

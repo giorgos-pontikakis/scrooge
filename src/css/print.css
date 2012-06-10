@@ -1,11 +1,9 @@
-
 @media screen {
     #back {
         display: block;
         padding: 10px;
     }
 }
-
 
 @media print {
     a, button {
@@ -16,6 +14,6 @@
     }
 }
 
-h3 {
-    padding: 5px 15px 10px 15px;
-}
+/* h3 { */
+/*     padding: 5px 15px 10px 15px; */
+/* } */
