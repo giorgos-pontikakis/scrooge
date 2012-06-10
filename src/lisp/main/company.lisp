@@ -129,7 +129,7 @@
 
 (defun chk-subset (subset)
   (if (or (eql subset :null)
-          (member subset '("project" "debt" "credit") :test #'string-equal))
+          (member subset '("projects" "debit" "credit") :test #'string-equal))
       nil
       :invalid-subset))
 
@@ -303,7 +303,7 @@
         ((string= subset "projects")
          (push `(:= project.state-id "ongoing")
                where))
-        ((member subset (list "credit" "debt") :test #'string=)
+        ((member subset (list "credit" "debit") :test #'string=)
          (push `(,(if (string= subset "credit") :< :>)
                  (:select (coalesce (sum tx.amount) 0)
                   :from tx
@@ -379,7 +379,7 @@
                                     "Όλες")
                         ("projects" ,(apply #'company :subset "projects" filter*)
                                     "Με ενεργά έργα")
-                        ("debt"     ,(apply #'company :subset "debt" filter*)
+                        ("debit"    ,(apply #'company :subset "debit" filter*)
                                     "Με χρεωστικό υπόλοιπο")
                         ("credit"   ,(apply #'company :subset "credit" filter*)
                                     "Με πιστωτικό υπόλοιπο"))))
