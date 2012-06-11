@@ -238,13 +238,6 @@
 (defun invoice-receivable/payable-root (issuer)
   (if (invoice-customer-p issuer) *invoice-receivable-acc-id* *invoice-payable-acc-id*))
 
-(defun invoice-page-title (issuer kind op-label)
-  (let ((kind-label
-          (if (invoice-debit-p kind) "Χρεώσεις" "Πιστώσεις"))
-        (issuer-label
-          (if (invoice-customer-p issuer) "Πελάτες" "Προμηθευτές")))
-    (conc issuer-label " » " kind-label " » " op-label)))
-
 (defun invoice-debit-acc-id (issuer kind account-id)
   (if (invoice-debit-p kind)
       (invoice-receivable/payable-root issuer)
@@ -254,6 +247,13 @@
   (if (invoice-debit-p kind)
       account-id
       (invoice-receivable/payable-root issuer)))
+
+(defun invoice-page-title (issuer kind op-label)
+  (let ((kind-label
+          (if (invoice-debit-p kind) "Χρεώσεις" "Πιστώσεις"))
+        (issuer-label
+          (if (invoice-customer-p issuer) "Πελάτες" "Προμηθευτές")))
+    (conc issuer-label " » " kind-label " » " op-label)))
 
 
 

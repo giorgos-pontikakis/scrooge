@@ -214,16 +214,38 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; UI elements
+;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun revenues-p (kind)
+(defun cash-revenues-p (kind)
   (string-equal kind "revenue"))
+
+(defun cash-revenues/expenses-root (kind)
+  (if (cash-revenues-p kind) *revenues-root-acc-id* *expenses-root-acc-id*))
+
+(defun cash-receivable/payable-root (kind)
+  (if (cash-revenues-p kind) *invoice-receivable-acc-id* *invoice-payable-acc-id*))
+
+(defun cash-debit-acc-id (kind account-id)
+  (if (cash-revenues-p kind)
+      *cash-acc-id*
+      account-id))
+
+(defun cash-credit-acc-id (kind account-id)
+  (if (cash-revenues-p kind)
+      account-id
+      *cash-acc-id*))
 
 (defun cash-page-title (kind)
   (cond ((string-equal kind "revenue") "Έσοδα")
         ((string-equal kind "expense") "Έξοδα")
         (t (error "Internal error in cash-page-title"))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; UI elements
+;;; ----------------------------------------------------------------------
 
 (defun cash-top-actions (op)
   (let* ((kind (first *registers*))
@@ -253,21 +275,16 @@
   ())
 
 (defmethod display ((form cash-form) &key styles)
-  (let* ((revenues-p (revenues-p (kind form)))
+  (let* ((cash-revenues-p (cash-revenues-p (kind form)))
          (disabled (eql (op form) :details))
          (record (record form))
          (lit (label-input-text disabled record styles))
-         (rec/pay-acc-id (if revenues-p
-                              *invoice-receivable-acc-id*
-                              *invoice-payable-acc-id*))
-         (rev/exp-acc-id (if revenues-p
-                             *revenues-root-acc-id*
-                             *expenses-root-acc-id*))
-         (tree-key (or (getf record :account-id)
-                       (getf record (if revenues-p
-                                        :credit-acc-id
-                                        :debit-acc-id))
-                       rec/pay-acc-id)))
+         (revenues/expenses-root-key (cash-revenues/expenses-root (kind form)))
+         (receivable/payable-root-key (cash-receivable/payable-root (kind form)))
+         (selected-key (or (getf record :account-id)
+                           (getf record (if cash-revenues-p
+                                            :credit-acc-id
+                                            :debit-acc-id)))))
     (with-html
       (:div :id "cash-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"
@@ -285,21 +302,22 @@
                                               :body "Άκυρο")))))
             (htm (:div :class "grid_5 omega"
                        ;;
-                       (:h3 (str (conc "Λογαριασμός " (if revenues-p "πίστωσης" "χρέωσης"))))
+                       (:h3 (str (conc "Λογαριασμός " (if cash-revenues-p "πίστωσης" "χρέωσης"))))
                        (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
                        (display (make-instance 'rev/exp-account-tree
                                                :disabled disabled
-                                               :root-key rec/pay-acc-id
-                                               :debit-p revenues-p)
-                                :key tree-key)
+                                               :root-key receivable/payable-root-key
+                                               :debit-p cash-revenues-p
+                                               :selected-key (or selected-key
+                                                                 receivable/payable-root-key)))
                        ;;
                        (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                       (if revenues-p "εσόδων" "εξόδων"))))
+                                       (if cash-revenues-p "εσόδων" "εξόδων"))))
                        (display (make-instance 'rev/exp-account-tree
                                                :disabled disabled
-                                               :root-key rev/exp-acc-id
-                                               :debit-p (not revenues-p))
-                                :key tree-key)))
+                                               :root-key revenues/expenses-root-key
+                                               :debit-p (not cash-revenues-p)
+                                               :selected-key selected-key))))
             (clear)))))
 
 (defmethod actions ((form cash-form) &key filter)
@@ -471,12 +489,8 @@
   (with-controller-page (cash/create kind)
     (check-cash-accounts)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (if (string-equal kind "revenue")
-                             *cash-acc-id*
-                             (val account-id)))
-           (credit-acc-id (if (string-equal kind "revenue")
-                              (val account-id)
-                              *cash-acc-id*))
+           (debit-acc-id (cash-debit-acc-id kind (val account-id)))
+           (credit-acc-id (cash-credit-acc-id kind (val account-id)))
            (new-tx (make-instance 'tx
                                   :tx-date (val tx-date)
                                   :description (val description)
@@ -554,12 +568,8 @@
   (with-controller-page (cash/update kind)
     (check-cash-accounts)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (if (string-equal kind "revenue")
-                            *cash-acc-id*
-                            (val account-id)))
-          (credit-acc-id (if (string-equal kind "revenue")
-                             (val account-id)
-                             *cash-acc-id*)))
+          (debit-acc-id (cash-debit-acc-id kind (val account-id)))
+          (credit-acc-id (cash-credit-acc-id kind (val account-id))))
       (execute (:update 'tx :set
                         'tx-date (val tx-date)
                         'description (val description)
@@ -589,7 +599,7 @@
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op :delete
                                          :kind kind
-                                         :key (val tx-id)
+                                         :selected-key (val tx-id)
                                          :filter filter)))
       (with-document ()
         (:head
