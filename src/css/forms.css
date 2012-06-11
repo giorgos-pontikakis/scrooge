@@ -95,24 +95,39 @@
     display: inline;
 }
 
-.data-form-first {
-    margin: 20px 0px 0px 20px;
+.data-form p, .data-form a {
+    display: block;
+    padding: 3px 0px;
+    font-size: 13px;
+    min-height: 16px;
+    margin-bottom: 10px;
 }
+
+.data-form .selector input {
+    display: inline;
+}
+
+.data-form a:hover {
+    text-decoration: underline;
+}
+
+
+/* data-form-buttons */
 
 .data-form-buttons {
     margin: 20px 0px 20px 20px;
 }
 
-.data-form-buttons a {
+.data-form-buttons  a {
+    display: inline;
     padding: 0px 0px 0px 15px;
     text-decoration: underline;
 }
 
+
+/* data-form-title */
+
 .data-form-title {
     margin-top: 20px;
     padding-left: 20px;
-}
-
-.data-form .selector input {
-    display: inline;
 }

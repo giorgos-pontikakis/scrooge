@@ -254,3 +254,39 @@
                 :value (or (getf record (make-keyword name)) default-value)
                 :disabled disabled
                 :css-class (conc (getf styles (make-keyword name)) " " extra-styles))))
+
+(defun label-paragraph (disabled record styles)
+  (html (name label &key default-value enabled-styles disabled-styles)
+    (let ((value (or (getf record (make-keyword name)) default-value))
+          (all-styles (conc (getf styles (make-keyword name)) " " (if disabled
+                                                                      disabled-styles
+                                                                      enabled-styles))))
+      (label name label)
+      (if disabled
+          (with-html
+            (:p :class all-styles (str (lisp->html value))))
+          (input-text name
+                      :value value
+                      :disabled disabled
+                      :css-class (conc (getf styles (make-keyword name)) " " all-styles))))))
+
+(defun label-datum (disabled record styles)
+  (html (name label &key href default-value enabled-styles disabled-styles)
+    (let ((value (or (getf record (make-keyword name)) default-value))
+          (all-styles (conc (getf styles (make-keyword name)) " " (if disabled
+                                                                      disabled-styles
+                                                                      enabled-styles))))
+      (label name label)
+      (if disabled
+          (if href
+              (with-html
+                (:a :href href
+                    :class all-styles
+                    (str (lisp->html value))))
+              (with-html
+                (:p :class all-styles
+                    (str (lisp->html value)))))
+          (input-text name
+                      :value value
+                      :disabled disabled
+                      :css-class (conc (getf styles (make-keyword name)) " " all-styles))))))

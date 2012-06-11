@@ -179,10 +179,10 @@
 
 .project-form-details {
     float: left;
-    margin: 20px 0px 10px 20px;
+    margin: 10px 0px 10px 20px;
 }
 
-.project-form-details input {
+.project-form-details input, .project-form-details p {
     width: 150px;
 }
 

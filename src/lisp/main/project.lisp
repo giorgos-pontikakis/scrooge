@@ -190,12 +190,14 @@
 (defmethod display ((form project-form) &key styles)
   (let* ((disabled (eql (op form) :details))
          (record (record form))
-         (lit (label-input-text disabled record styles)))
+         (lit (label-datum disabled record styles)))
     (with-html
       (:div :class "data-form project-form"
             (:div :class "data-form-title"
                   (display lit 'description "Περιγραφή")
-                  (display lit 'company "Εταιρία" :extra-styles "ac-company"))
+                  (display lit 'company "Εταιρία"
+                           :enabled-styles "ac-company"
+                           :href (company :company-id (getf record :company-id))))
             (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Οικονομικά")
@@ -212,26 +214,26 @@
                    (:legend "Χρονοδιάγραμμα")
                    (:ul
                     (:li (display lit 'quote-date "Ημερομηνία προσφοράς"
-                                  :extra-styles "datepicker"
+                                  :enabled-styles "datepicker"
                                   :default-value (today)))
                     (:li (display lit 'start-date "Ημερομηνία έναρξης"
-                                  :extra-styles "datepicker"))
+                                  :enabled-styles "datepicker"))
                     (:li (display lit 'end-date "Ημερομηνία ολοκλήρωσης"
-                                  :extra-styles "datepicker")))))
+                                  :enabled-styles "datepicker")))))
             (clear)
             (:div :id "project-notes"
                   (label 'notes "Σημειώσεις")
                   (:textarea :name 'notes :disabled disabled
-                             (str (lisp->html (or (getf record :notes) :null)))))
-            (:div :class "data-form-buttons"
-                  (unless disabled
-                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                    (cancel-button (cancel-url form) :body "Άκυρο")))))))
+                             (str (lisp->html (or (getf record :notes) :null))))))
+      (:div :class "data-form-buttons"
+            (unless disabled
+              (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+              (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
 (defmethod get-record ((form project-form))
   (if (key form)
       (let ((project-id (key form)))
-        (query (:select 'project.id (:as 'company.title 'company)
+        (query (:select 'project.id (:as 'company.title 'company) 'company-id
                         'description 'location 'state-id 'quote-date
                         'start-date 'end-date 'price 'vat 'project.notes
                 :from 'project
@@ -392,7 +394,8 @@
       ;; if project-id exists and is not found among records, ignore search term
       (when (and (val project-id)
                  (not (find (val project-id) (rows project-table) :key #'key)))
-        (see-other (project :project-id (val project-id) :cstate (state-id (get-dao 'project (val project-id))))))
+        (see-other (project :project-id (val project-id)
+                            :cstate (state-id (get-dao 'project (val project-id))))))
       (with-document ()
         (:head
          (:title "Έργα » Κατάλογος")

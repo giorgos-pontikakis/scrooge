@@ -196,7 +196,7 @@
                              nil)))
     (with-html
       (:div :id "config-account-data-form" :class "data-form"
-            (:div :class "data-form-first"
+            (:div :class "data-form-title"
                   (label 'title "Τίτλος")
                   (input-text 'title
                               :value (title record)
@@ -205,10 +205,10 @@
                             :css-class "inline"
                             :checked (chequing-p record)
                             :disabled dependent-tx-p
-                            :readonly dependent-tx-p)
-            (:div :class "data-form-buttons"
-                  (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                  (cancel-button (cancel-url form) :body "Άκυρο"))))))
+                            :readonly dependent-tx-p))
+      (:div :class "data-form-buttons"
+            (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+            (cancel-button (cancel-url form) :body "Άκυρο")))))
 
 (defmethod get-record ((form account-form))
   (if (key form)
