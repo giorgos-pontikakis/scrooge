@@ -129,7 +129,7 @@
 (defmethod display ((form cheque-form) &key styles)
   (let* ((record (record form))
          (disabled (eql (op form) :details))
-         (lit (label-input-text disabled record styles))
+         (ldfn (label-datum disabled record styles))
          (events (get-cheque-events (getf record :id)))
          (following (following-cheque-states (getf record :state-id)
                                              (getf record :payable-p)))
@@ -138,11 +138,13 @@
       (with-html
         (:div :id "cheque-data-form" :class "data-form"
               (:div :class "grid_5 prefix_1 alpha"
-                    (display lit 'serial "Σειριακός Αριθμός")
-                    (display lit 'due-date "Ημερομηνία" :extra-styles "datepicker")
-                    (display lit 'company "Εταιρία" :extra-styles "ac-company")
-                    (display lit 'bank "Τράπεζα" :extra-styles "ac-bank")
-                    (display lit 'amount "Ποσό")
+                    (display ldfn 'serial "Σειριακός Αριθμός")
+                    (display ldfn 'due-date "Ημερομηνία" :enabled-styles "datepicker")
+                    (display ldfn 'company "Εταιρία"
+                             :enabled-styles "ac-company"
+                             :href (company/details :company-id (getf record :company-id)))
+                    (display ldfn 'bank "Τράπεζα" :enabled-styles "ac-bank")
+                    (display ldfn 'amount "Ποσό")
                     (:div :class "data-form-buttons"
                           (unless disabled
                             (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
@@ -177,7 +179,7 @@
   (if-let (cheque-id (key form))
     (query (:select 'cheque.id (:as 'bank.title 'bank)
                     'due-date (:as 'company.title 'company)
-                    'amount 'payable-p 'state-id 'serial
+                    'amount 'payable-p 'state-id 'serial 'company-id
                     :from 'cheque
                     :left-join 'bank
                     :on (:= 'bank.id 'cheque.bank-id)

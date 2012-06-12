@@ -187,28 +187,28 @@
 (defmethod display ((form company-form) &key styles)
   (let* ((disabled (eql (op form) :details))
          (record (record form))
-         (lit (label-input-text disabled record styles)))
+         (ldfn (label-datum disabled record styles)))
     (with-html
       (:div :class "data-form company-form"
             (:div :class "data-form-title"
-                  (display lit 'title "Επωνυμία"))
+                  (display ldfn 'title "Επωνυμία"))
             (:fieldset
              (:legend "Φορολογικά στοιχεία")
-             (display lit 'occupation "Επάγγελμα" :extra-styles "ac-occupation")
+             (display ldfn 'occupation "Επάγγελμα" :enabled-styles "ac-occupation")
              (:div :id "tin"
-                   (display lit 'tin "Α.Φ.Μ."))
+                   (display ldfn 'tin "Α.Φ.Μ."))
              (:div :id "tof-div"
-                   (display lit 'tof "Δ.Ο.Υ." :extra-styles "ac-tof")))
+                   (display ldfn 'tof "Δ.Ο.Υ." :enabled-styles "ac-tof")))
             (:fieldset
              (:legend "Διεύθυνση")
              (:div :id "address"
-                   (display lit 'address "Οδός"))
+                   (display ldfn 'address "Οδός"))
              (:div :id "city"
-                   (display lit 'city "Πόλη" :extra-styles "ac-city"))
+                   (display ldfn 'city "Πόλη" :enabled-styles "ac-city"))
              (:div :id "zipcode"
-                   (display lit 'zipcode "Ταχυδρομικός κωδικός"))
+                   (display ldfn 'zipcode "Ταχυδρομικός κωδικός"))
              (:div :id "pobox"
-                   (display lit 'pobox "Ταχυδρομική θυρίδα")))
+                   (display ldfn 'pobox "Ταχυδρομική θυρίδα")))
             (:div :id "company-notes"
                   (label 'notes "Σημειώσεις")
                   (:textarea :name 'notes :disabled disabled

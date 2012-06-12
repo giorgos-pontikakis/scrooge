@@ -105,7 +105,7 @@
                     (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
                     'tx.debit-acc-id
                     'tx.credit-acc-id
-                    'amount
+                    'amount 'company-id
             :from 'tx
             :left-join 'company
             :on (:= 'tx.company-id 'company.id)

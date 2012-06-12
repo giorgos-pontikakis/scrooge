@@ -299,7 +299,7 @@
          (customer-p (invoice-customer-p issuer))
          (disabled (eql (op form) :details))
          (record (record form))
-         (lit (label-input-text disabled record styles))
+         (ldfn (label-datum disabled record styles))
          (root-key (invoice-revenues/expenses-root issuer))
          (tree (make-instance 'rev/exp-account-tree
                               :disabled disabled
@@ -313,11 +313,13 @@
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"
-                  (display lit 'tx-date "Ημερομηνία" :extra-styles "datepicker"
+                  (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
                                                      :default-value (today))
-                  (display lit 'description "Περιγραφή")
-                  (display lit 'company "Εταιρία" :extra-styles "ac-company")
-                  (display lit 'amount "Ποσό")
+                  (display ldfn 'description "Περιγραφή")
+                  (display ldfn 'company "Εταιρία"
+                           :enabled-styles "ac-company"
+                           :href (company/details :company-id (getf record :company-id)))
+                  (display ldfn 'amount "Ποσό")
                   (unless disabled
                     (htm (:div :class "data-form-buttons"
                                (ok-button :body (if (eql (op form) :update)

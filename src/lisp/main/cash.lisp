@@ -278,7 +278,7 @@
   (let* ((cash-revenues-p (cash-revenues-p (kind form)))
          (disabled (eql (op form) :details))
          (record (record form))
-         (lit (label-input-text disabled record styles))
+         (ldfn (label-datum disabled record styles))
          (revenues/expenses-root-key (cash-revenues/expenses-root (kind form)))
          (receivable/payable-root-key (cash-receivable/payable-root (kind form)))
          (selected-key (or (getf record :account-id)
@@ -288,11 +288,13 @@
     (with-html
       (:div :id "cash-data-form" :class "data-form"
             (:div :class "grid_5 prefix_1 alpha"
-                  (display lit 'tx-date "Ημερομηνία":extra-styles "datepicker"
-                                                    :default-value (today))
-                  (display lit 'description "Περιγραφή")
-                  (display lit 'company "Εταιρία" :extra-styles "ac-company")
-                  (display lit 'amount "Ποσό")
+                  (display ldfn 'tx-date "Ημερομηνία":enabled-styles "datepicker"
+                                                     :default-value (today))
+                  (display ldfn 'description "Περιγραφή")
+                  (display ldfn 'company "Εταιρία"
+                           :enabled-styles "ac-company"
+                           :href (company/details :company-id (getf record :company-id)))
+                  (display ldfn 'amount "Ποσό")
                   (unless disabled
                     (htm (:div :class "data-form-buttons"
                                (ok-button :body (if (eql (op form) :update)
