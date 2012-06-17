@@ -72,7 +72,7 @@
 
 .section-navbar {
     margin: 10px 0px 0px 0px;
-    border-bottom: 1px solid hsl(200, 50%, 70%);
+    border-bottom: 1px solid hsl(210, 50%, 65%);
 }
 
 .section-navbar ul li {
@@ -93,10 +93,10 @@
     color: #000;
     font-weight: bold;
     margin-bottom: -1px;
-    background-color: hsl(200, 70%, 90%);
-    border: 1px solid hsl(200, 50%, 70%);
+    background-color: hsl(210, 60%, 85%);
+    border: 1px solid hsl(210, 50%, 65%);
     border-radius: 5px 5px 0px 0px;
-    border-bottom: 1px solid hsl(200, 70%, 90%);
+    border-bottom: 1px solid hsl(210, 60%, 85%);
 }
 
 .section-navbar ul li a:hover {
@@ -110,16 +110,16 @@
 /* ---------------------------------------------------------------------- */
 
 .top-actions {
-    background-color: hsl(200, 70%, 90%);
+    background-color: hsl(210, 60%, 85%);
     padding: 12px 0px 10px 0px;
     min-height: 26px;
 }
 
 .top-actions .hmenu li a {
-    border: solid 1px hsl(200, 50%, 70%);
+    border: solid 1px hsl(210, 50%, 65%);
     padding: 7px 7px 7px 26px;
     border-radius: 5px;
-    background-color: hsl(200, 50%, 95%);
+    background-color: hsl(210, 60%, 93%);
     margin-left: 10px;
 }
 
@@ -130,6 +130,7 @@
 
 #searchbox input {
     width: 152px;
+    border: 1px solid hsl(210, 50%, 65%);
 }
 
 
@@ -139,8 +140,8 @@
 /* ---------------------------------------------------------------------- */
 
 .actions {
-    background-color: hsl(20, 70%, 95%);
-    border-bottom: 1px solid hsl(20, 70%, 70%);
+    background-color: hsl(210, 60%, 93%);
+    border-bottom: 1px solid hsl(210, 50%, 65%);
 }
 .actions p {
     padding: 5px 10px;
@@ -170,8 +171,8 @@
     padding: 5px 0px;
     border-radius: 5px;
     margin-top: 10px;
-    background-color: hsl(200, 70%, 90%);
-    border: 1px solid hsl(200, 50%, 70%);
+    background-color: hsl(210, 60%, 85%);
+    border: 1px solid hsl(210, 50%, 65%);
 }
 
 .filter-navbar {
@@ -194,21 +195,21 @@
 
 .filter-navbar ul li a {
     color: #333;
-    background-color: hsl(200, 70%, 95%);
-    border: 1px solid hsl(200, 50%, 70%);
+    background-color: hsl(210, 60%, 93%);
+    border: 1px solid hsl(210, 50%, 65%);
 }
 
 .filter-navbar ul li a:hover, .filter-navbar ul li span {
     color: #222;
-    border: 1px solid hsl(20, 70%, 70%);
+    border: 1px solid hsl(30, 50%, 65%);
 }
 
 .filter-navbar ul li span {
-    background-color: hsl(20, 70%, 90%);
+    background-color: hsl(30, 60%, 85%);
 }
 
 .filter-navbar ul li a:hover {
-    background-color: hsl(20, 70%, 90%);
+    background-color: hsl(30, 60%, 93%);
 }
 
 .filter-navbar label {

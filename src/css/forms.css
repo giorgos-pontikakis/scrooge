@@ -3,8 +3,8 @@
 /* ---------------------------------------------------------------------- */
 
 .notifications {
-    background-color: #ffb;
-    border: 1px solid red;
+    background-color: hsl(0, 90%, 90%);
+    border: 1px solid hsl(0, 50%, 65%);
     margin: 10px 10px 20px 10px;
     border-radius: 3px;
 }

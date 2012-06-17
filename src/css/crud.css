@@ -59,14 +59,16 @@ ul.crud-tree {
 .crud-table tr.selected,
 .crud-tree  li.selected > div
 {
-    background-color: #ffb;
+    cursor: pointer;
+    background-color: hsl(60, 90%, 90%);
 }
 
 .crud-table.op-delete tr.selected,
 .crud-tree.op-delete li.selected > div
 {
-    background-color: #fdd;
+    background-color: hsl(0, 90%, 90%);
 }
+
 .crud-table td, .crud-table th  {
     line-height: 22px;
     text-align: left;
@@ -89,7 +91,7 @@ ul.crud-tree {
 .crud-table tbody tr:not(.selected):hover,
 .crud-tree li:not(.selected) > div:hover
 {
-    background-color: #ffd;
+    background-color: hsl(60, 90%, 95%);
     cursor: pointer;
 }
 
