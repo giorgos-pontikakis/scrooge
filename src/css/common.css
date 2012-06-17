@@ -38,7 +38,7 @@ h4 {
     font-size: 13px;
     font-weight: bold;
     margin: 10px 0px 5px 0px;
-    color: #633;
+    color: hsl(0, 50%, 85%);
 }
 
 
@@ -219,47 +219,45 @@ select:disabled {
 /* logo */
 /* ---------------------------------------------------------------------- */
 
-#logo {
+#header {
     line-height: 30px;
+    margin-bottom: 5px;
 }
 
-#logo h1 {
-    font-size: 16px;
-    font-weight: normal;
-    font-family: 'Courier New','Courier',monospace;
-}
-
-#logout  {
-    line-height: 30px;
-    float: right;
-    margin-right: 10px;
-}
-
-#logout ul, #logout li {
+#header ul, #header li {
     display: inline;
 }
 
-#logout a {
-    margin: 0px 2px;
+#header a {
     padding: 5px;
     text-decoration: none;
     color: #222;
 }
 
-#logout a:hover, #logout a.active:hover {
-    border-radius: 3px;
-    color: #222;
-    background-color: #fdd;
+#header a:hover, #header a.active:hover {
+    text-decoration: underline;
 }
 
-#logout a.active {
+#header a.active {
     border-radius: 3px;
     color: #222;
-    background-color: #fdd;
+    background-color: hsl(0, 60%, 85%);
+    margin: 0px 2px;
 }
 
-#logout span {
+#header span {
     margin: 0px 2px;
     padding: 5px;
     color: #222;
+}
+
+#header p {
+    font-size: 16px;
+    font-weight: normal;
+    font-family: 'Courier New','Courier',monospace;
+}
+
+#logout {
+    float: right;
+    margin-right: 10px;
 }

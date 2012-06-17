@@ -92,7 +92,7 @@
   (with-html
     (:div :id "logo"
           :class "grid_2"
-          (:h1 "(scrooge)"))))
+          (:p "(scrooge)"))))
 
 (defun header (&optional config-p)
   (with-html

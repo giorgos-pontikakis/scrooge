@@ -133,6 +133,12 @@
     border: 1px solid hsl(210, 50%, 65%);
 }
 
+#datebox input {
+    width: 152px;
+    border: 1px solid hsl(210, 50%, 65%);
+    width: 70px;
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -216,15 +222,11 @@
     margin-left: 10px;
 }
 
-.filter-navbar input.datepicker {
-    width: 70px;
-}
-
 .filter-navbar form {
     display: inline;
 }
 
-/* override display propery for kind-navbar  */
+/* override display property for kind-navbar  */
 #cheque-kind-navbar {
     display: block;
 }
