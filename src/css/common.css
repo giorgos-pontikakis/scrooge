@@ -195,7 +195,7 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 .window {
-    border: 1px solid #999;
+    border: 1px solid hsl(20, 70%, 70%);
     margin: 10px 0px;
     border-radius: 5px;
 }
@@ -206,7 +206,7 @@ select:disabled {
 
 .title {
     font-weight: bold;
-    background-color: #ddd;
+    background-color: hsl(20, 70%, 90%);
     line-height: 26px;
     padding: 0px 10px 0px 15px;
     color: #444;
