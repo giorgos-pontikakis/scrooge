@@ -175,7 +175,7 @@
       (query (sql-compile sql)
              :plists))))
 
-(defun company-debits/credits (company-id issuers since until)
+(defun company-debits/credits (company-id issuers since until &key reverse-p)
   (flet ((get-tx-date (row)
            (getf row :tx-date)))
     (let* ((sorted (stable-sort (nconc (company-debits company-id issuers)
@@ -208,7 +208,10 @@
                                  (lisp->html (getf row :due-date))
                                  ")")))
             (nconc row (list :total total))))
-        (values (nreverse truncated) debit-sum credit-sum total)))))
+        (values (if reverse-p
+                    (nreverse truncated)
+                    truncated)
+                debit-sum credit-sum total)))))
 
 
 ;;; table
@@ -344,7 +347,7 @@
                      (list (make-keyword (string-upcase (val issuer))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val company-id) issuers (val since) (val until))
+          (company-debits/credits (val company-id) issuers (val since) (val until) :reverse-p t)
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
@@ -449,7 +452,7 @@
                      (list (make-keyword (string-upcase (val issuer))))
                      (list :customer :supplier))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val company-id) issuers (val since) (val until))
+          (company-debits/credits (val company-id) issuers (val since) (val until) :reverse-p t)
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)

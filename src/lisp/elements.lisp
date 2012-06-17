@@ -113,7 +113,8 @@
           (:p (str (format-timestring t (now)
                                       :format '(:day "/" :month "/" :year
                                                 ", "
-                                                (:hour 2) ":" :min)))))
+                                                (:hour 2) ":" :min)
+                                      :timezone +greek-zone+))))
     (:div :class "clear" "")))
 
 (defun logout-menu (config-p)
