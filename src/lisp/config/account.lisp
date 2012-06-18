@@ -235,21 +235,18 @@
              (iter
                (for debit-p in (list t nil))
                (for div-id in '("debit-accounts" "credit-accounts"))
-               #|(for id-debit-p = (and (suppliedp account-id)
-               (eql debit-p (debit-p (get-dao 'account (val account-id))))))|#
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-tree
                                                   :op :catalogue
                                                   :selected-key (val account-id)
                                                   :debit-p debit-p))
-               (let ()
-                 (htm
-                  (:div :class "grid_6"
-                        (:div :id div-id :class "window"
-                              (:div :class "title" (str window-title))
-                              (notifications)
-                              (actions account-tree)
-                              (display account-tree :hide-root-p t))))))
+               (htm
+                (:div :class "grid_6"
+                      (:div :id div-id :class "window"
+                            (:div :class "title" (str window-title))
+                            (notifications)
+                            (actions account-tree)
+                            (display account-tree :hide-root-p t)))))
              (footer))))))
 
 

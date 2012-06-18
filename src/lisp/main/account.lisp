@@ -1,6 +1,11 @@
 (in-package :scrooge)
 
 
+(defclass account-tree/ro (account-tree)
+  ()
+  (:default-initargs :item-class 'account-node))
+
+
 
 ;;; ----------------------------------------------------------------------
 ;;; tx-ro (read only) table
@@ -10,8 +15,7 @@
   ((header-labels  :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
    (paginator      :initform (make-instance 'scrooge-paginator
                                             :id "tx-paginator"
-                                            :css-class "paginator grid_9 alpha"
-                                            :urlfn #'account/details))
+                                            :css-class "paginator grid_9 alpha"))
    (op :accessor op :initform :catalogue))
   (:default-initargs :item-class 'account-tx-row))
 
@@ -67,7 +71,9 @@
         :css-class "hnavbar actions grid_6 alpha"
         :disabled disabled))
 
-
+(defmethod actions ((tree account-tree/ro) &key)
+  (actions-menu (make-menu-spec spec)
+                (if account-id)))
 
 
 ;;; ----------------------------------------------------------------------
@@ -76,8 +82,7 @@
 
 (defpage dynamic-page account/overview ("account")
     ((id integer chk-account-id))
-  (with-auth ("configuration")
-    (no-cache)
+  (with-view-page
     (with-document ()
       (:head
        (:title "Λογαριασμοί » Σύνοψη")
@@ -87,11 +92,13 @@
              (header)
              (main-navbar 'account)
              (iter
-               (for flag in (list t nil))
+               (for debit-p in (list t nil))
                (for div-id in '("debit-accounts" "credit-accounts"))
                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                (for account-tree = (make-instance 'account-ro-tree
-                                                  :debit-p flag))
+                                                  :op :catalogue
+                                                  :selected-key (val account-id)
+                                                  :debit-p debit-p))
                (htm
                 (:div :class "grid_6"
                       (:div :id div-id :class "window"
@@ -106,8 +113,7 @@
 (defpage dynamic-page account/details ("account/details")
     ((id    integer chk-account-id)
      (start integer))
-  (with-auth ("configuration")
-    (no-cache)
+  (with-view-page
     (if (validp id)
         (let ((account-title (with-db ()
                                (title (get-dao 'account (val id)))))
@@ -132,33 +138,31 @@
 
 (defpage dynamic-page account/print ("account/print")
     ((id integer chk-account-id))
-  (with-auth ("configuration")
-    (no-cache)
-    (with-db ()
-      (let ((account-title (title (get-dao 'account (val id))))
-            (account-tx (query (:select 'tx.id 'tx-date 'description
-                                        (:as 'debit-account.title 'debit-account-title)
-                                        (:as 'credit-account.title 'credit-account-title)
-                                        'amount
-                                        :from 'tx
-                                        :inner-join (:as 'account 'debit-account)
-                                        :on (:= 'debit-account.id 'debit-acc-id)
-                                        :inner-join (:as 'account 'credit-account)
-                                        :on (:= 'credit-account.id 'credit-acc-id)
-                                        :where (:or (:= id 'debit-account.id)
-                                                    (:= id 'credit-account.id)))
-                               :plists)))
-        (with-document ()
-          (:head
-           (:title "Λογαριασμοί » Λεπτομέρειες")
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header)
-                 (main-navbar 'account)
-                 (:div :class "grid_9"
-                       (:div :class "window"
-                             (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
-                                                        account-title)
-                                   (str account-tx)))
-                       (print-pages-footer)))))))))
+  (with-view-page
+    (let ((account-title (title (get-dao 'account (val id))))
+          (account-tx (query (:select 'tx.id 'tx-date 'description
+                                      (:as 'debit-account.title 'debit-account-title)
+                                      (:as 'credit-account.title 'credit-account-title)
+                                      'amount
+                                      :from 'tx
+                                      :inner-join (:as 'account 'debit-account)
+                                      :on (:= 'debit-account.id 'debit-acc-id)
+                                      :inner-join (:as 'account 'credit-account)
+                                      :on (:= 'credit-account.id 'credit-acc-id)
+                                      :where (:or (:= id 'debit-account.id)
+                                                  (:= id 'credit-account.id)))
+                             :plists)))
+      (with-document ()
+        (:head
+         (:title "Λογαριασμοί » Λεπτομέρειες")
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header)
+               (main-navbar 'account)
+               (:div :class "grid_9"
+                     (:div :class "window"
+                           (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
+                                                      account-title)
+                                 (str account-tx)))
+                     (print-pages-footer))))))))
