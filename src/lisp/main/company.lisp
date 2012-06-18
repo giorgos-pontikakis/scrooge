@@ -349,7 +349,6 @@
                                          (:and t
                                                ,@where))
                            company.title)))
-      (break)
       (query (sql-compile sql)
              :plists))))
 
