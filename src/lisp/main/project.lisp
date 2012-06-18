@@ -259,20 +259,29 @@
 ;;; table
 
 (defclass project-table (scrooge-table)
-  ((header-labels  :initform '("" "Περιγραφή" "Εταιρία" "Τιμή" "" ""))
-   (paginator      :initform (make-instance 'project-paginator
+  ((header-labels :accessor header-labels                                                                                :initarg :header-labels)
+   (paginator     :initform (make-instance 'project-paginator
                                             :id "project-paginator"
                                             :css-class "paginator")))
   (:default-initargs :item-class 'project-row :id "project-table"))
 
+(defmethod initialize-instance :after ((table project-table) &key)
+  (if (getf (filter table) :cstate)
+   (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "" ""))
+   (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "Κατάσταση" "" ""))))
+
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
          (cstate (getf (filter table) :cstate))
-         (base-query `(:select project.id project.description project.notes price
+         (base-query `(:select project.id project.description project.notes
+                               price
+                               (:as project-state.description project-state-description)
                                (:as company.id company-id) (:as company.title company)
-                               :from project
-                               :left-join 'company
-                               :on (:= project.company-id company.id)))
+                       :from project
+                       :left-join company
+                       :on (:= project.company-id company.id)
+                       :left-join project-state
+                       :on (:= project-state.id project.state-id)))
          (where-terms nil))
     (when search
       (push `(:or (:ilike project.description ,(ilike search))
@@ -312,7 +321,7 @@
 (defmethod filters ((tbl project-table))
   (let ((filter* (remove-from-plist (filter tbl) :cstate)))
     (filter-area (filter-navbar
-                  `((nil      ,(project)                                    "Όλα")
+                  `((nil      ,(apply #'project filter*)                    "Όλα")
                     (quoted   ,(apply #'project :cstate "quoted" filter*)   "Προσφορές")
                     (ongoing  ,(apply #'project :cstate "ongoing" filter*)  "Σε εξέλιξη")
                     (finished ,(apply #'project :cstate "finished" filter*) "Ολοκληρωμένα")
@@ -334,17 +343,22 @@
 
 (defmethod payload ((row project-row) enabled-p)
   (let ((record (record row)))
-    (list
-     (html ()
-       (:a :href (apply #'project/details
-                        :project-id (key row)
-                        (filter (collection row)))
-           (str (lisp->html (getf record :description)))))
-     (html ()
-       (:a :href (company/details :company-id (getf record :company-id))
-           (str (getf record :company))))
-     (html ()
-       (str (lisp->html (fmt-amount (getf record :price) 0)))))))
+    (let ((list (list
+                 (html ()
+                   (:a :href (apply #'project/details
+                                    :project-id (key row)
+                                    (filter (collection row)))
+                       (str (lisp->html (getf record :description)))))
+                 (html ()
+                   (:a :href (company/details :company-id (getf record :company-id))
+                       (str (getf record :company))))
+                 (html ()
+                   (str (lisp->html (fmt-amount (getf record :price) 0)))))))
+      (unless (getf (filter (collection row)) :cstate)
+        (nconc list
+               (list (html ()
+                       (str (getf record :project-state-description))))))
+      list)))
 
 
 ;;; paginator

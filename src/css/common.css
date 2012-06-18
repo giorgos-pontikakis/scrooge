@@ -38,7 +38,7 @@ h4 {
     font-size: 13px;
     font-weight: bold;
     margin: 10px 0px 5px 0px;
-    color: hsl(0, 50%, 85%);
+    color: hsl(0, 80%, 30%);
 }
 
 
@@ -69,12 +69,12 @@ input:focus, textarea:focus {
 
 input:disabled, textarea:disabled{
     background-color: transparent;
-    -webkit-text-fill-color: #222;
+    -webkit-text-fill-color: #000;
 }
 
 input:readonly, textarea:readonly {
     background-color: transparent;
-    -webkit-text-fill-color: #222;
+    -webkit-text-fill-color: #000;
 }
 
 button, select {

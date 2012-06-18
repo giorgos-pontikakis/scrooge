@@ -124,8 +124,9 @@
 }
 
 .top-actions .hmenu li a:hover {
-    background-color: #fff;
-    color: #000;
+    background-color: hsl(30, 60%, 93%);
+    border: solid 1px hsl(30, 50%, 65%);
+    color: black;
 }
 
 #searchbox input {
@@ -164,6 +165,7 @@
 
 .actions a:hover {
     text-decoration: underline;
+    color: black;
 }
 
 
@@ -200,13 +202,13 @@
 }
 
 .filter-navbar ul li a {
-    color: #333;
+    color: #222;
     background-color: hsl(210, 60%, 93%);
     border: 1px solid hsl(210, 50%, 65%);
 }
 
 .filter-navbar ul li a:hover, .filter-navbar ul li span {
-    color: #222;
+    color: black;
     border: 1px solid hsl(30, 50%, 65%);
 }
 

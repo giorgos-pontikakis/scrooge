@@ -217,7 +217,8 @@
          (cstate (getf (filter table) :cstate))
          (payable-p (string= (kind table) "payable"))
          (base-query `(:select cheque.id (:as bank.title bank) serial state-id
-                               due-date (:as company.title company) amount payable-p
+                               (:as company.title company) company-id
+                               due-date amount payable-p
                                :from cheque
                                :left-join bank
                                :on (:= bank.id cheque.bank-id)
@@ -342,7 +343,8 @@
                          :name 'company
                          :value (getf record :company)
                          :css-class "ac-company"
-                         :disabled (not enabled-p))
+                         :disabled (not enabled-p)
+                         :href (company/details :company-id (getf record :company-id)))
           (make-instance 'textbox
                          :name 'bank
                          :value (getf record :bank)
