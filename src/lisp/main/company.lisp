@@ -305,44 +305,28 @@
                where))
         ((member subset (list "credit" "debit") :test #'string=)
          (push `(,(if (string= subset "credit") :< :>)
+                 ;; debits
                  (:select (coalesce (sum tx.amount) 0)
                   :from tx
                   :left-join cheque-event
                   :on (:= cheque-event.tx-id tx.id)
                   :where (:and
                           (:= tx.company-id company.id)
-                          (:or (:= tx.credit-acc-id ,*cash-acc-id*)
-                               (:in tx.credit-acc-id
-                                    (:set ,@*revenues-accounts*))
-                               (:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
-                                     (:not (:exists (:select 1
-                                                     :from (:as tx tx2)
-                                                     :inner-join (:as cheque-event cheque-event2)
-                                                     :on (:= cheque-event2.id tx2.id)
-                                                     :where (:and
-                                                             (:= cheque-event2.cheque-id
-                                                                 cheque-event.cheque-id)
-                                                             (:= tx2.debit-acc-id
-                                                                 ,*cheque-payable-acc-id*)))))))))
+                          (:or ,(customer-debits)
+                               ,(supplier-cash-debits)
+                               ,(supplier-contra-debits)
+                               ,(supplier-cheque-debits))))
+                 ;; credits
                  (:select (coalesce (sum tx.amount) 0)
                   :from tx
                   :left-join cheque-event
                   :on (:= cheque-event.tx-id tx.id)
                   :where (:and
                           (:= tx.company-id company.id)
-                          (:or (:= tx.debit-acc-id ,*cash-acc-id*)
-                               (:in tx.debit-acc-id
-                                    (:set ,@*expense-accounts*))
-                               (:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
-                                     (:not (:exists (:select 1
-                                                     :from (:as tx tx2)
-                                                     :inner-join (:as cheque-event cheque-event2)
-                                                     :on (:= cheque-event2.tx-id tx2.id)
-                                                     :where (:and
-                                                             (:= cheque-event2.cheque-id
-                                                                 cheque-event.cheque-id)
-                                                             (:= tx2.credit-acc-id
-                                                                 ,*cheque-receivable-acc-id*))))))))))
+                          (:or ,(customer-cash-credits)
+                               ,(customer-contra-credits)
+                               ,(customer-cheque-credits)
+                               ,(supplier-credits)))))
                where))
         (t nil)))
     (let ((sql `(:order-by (,@base-query :where

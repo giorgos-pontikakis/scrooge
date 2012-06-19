@@ -10,6 +10,7 @@
                (:file "tables")
                (:file "init")
                (:file "globals")
+               (:file "sql")
                (:file "family")
                (:file "widgets")
                (:file "errors")
