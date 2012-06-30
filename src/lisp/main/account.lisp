@@ -122,18 +122,18 @@
                                        :start-index (val start))))
           (with-document ()
             (:head
-             (:title "Λογαριασμοί » Λεπτομέρειες")
-             (main-headers))
+              (:title "Λογαριασμοί » Λεπτομέρειες")
+              (main-headers))
             (:body
-             (:div :id "container" :class "container_12"
-                   (header)
-                   (main-navbar 'account)
-                   (:div :class "grid_9"
-                         (:div :class "window"
-                               (:div :class "title"
-                                     (str (conc "Ανάλυση Λογαριασμού: "
-                                                account-title)))
-                               (display tx-table)))))))
+              (:div :id "container" :class "container_12"
+                (header)
+                (main-navbar 'account)
+                (:div :class "grid_9"
+                  (:div :class "window"
+                    (:div :class "title"
+                      (str (conc "Ανάλυση Λογαριασμού: "
+                                 account-title)))
+                    (display tx-table)))))))
         (see-other (notfound)))))
 
 (defpage dynamic-page account/print ("account/print")
@@ -141,28 +141,28 @@
   (with-view-page
     (let ((account-title (title (get-dao 'account (val id))))
           (account-tx (query (:select 'tx.id 'tx-date 'description
-                                      (:as 'debit-account.title 'debit-account-title)
-                                      (:as 'credit-account.title 'credit-account-title)
-                                      'amount
-                                      :from 'tx
-                                      :inner-join (:as 'account 'debit-account)
-                                      :on (:= 'debit-account.id 'debit-acc-id)
-                                      :inner-join (:as 'account 'credit-account)
-                                      :on (:= 'credit-account.id 'credit-acc-id)
-                                      :where (:or (:= id 'debit-account.id)
-                                                  (:= id 'credit-account.id)))
+                               (:as 'debit-account.title 'debit-account-title)
+                               (:as 'credit-account.title 'credit-account-title)
+                               'amount
+                               :from 'tx
+                               :inner-join (:as 'account 'debit-account)
+                               :on (:= 'debit-account.id 'debit-acc-id)
+                               :inner-join (:as 'account 'credit-account)
+                               :on (:= 'credit-account.id 'credit-acc-id)
+                               :where (:or (:= id 'debit-account.id)
+                                           (:= id 'credit-account.id)))
                              :plists)))
       (with-document ()
         (:head
-         (:title "Λογαριασμοί » Λεπτομέρειες")
-         (main-headers))
+          (:title "Λογαριασμοί » Λεπτομέρειες")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'account)
-               (:div :class "grid_9"
-                     (:div :class "window"
-                           (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
-                                                      account-title)
-                                 (str account-tx)))
-                     (print-pages-footer))))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'account)
+            (:div :class "grid_9"
+              (:div :class "window"
+                (:div :class "title" (conc "Ανάλυση Λογαριασμού: "
+                                           account-title)
+                  (str account-tx)))
+              (print-pages-footer))))))))

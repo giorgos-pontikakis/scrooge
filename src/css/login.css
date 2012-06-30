@@ -5,9 +5,10 @@
 #login-error, #login-form {
     clear: both;
     padding-top: 20px;
+
 }
 
-#login-error p {
+#login-error div {
     padding: 10px;
 }
 
