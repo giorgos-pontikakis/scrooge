@@ -1,7 +1,8 @@
 (in-package :scrooge)
 
 
-;;;  Customer
+
+;;;  CUSTOMER DEBITS - CREDITS
 
 (defun customer-debits ()
   `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
@@ -25,7 +26,9 @@
                                  (:= tx2.credit-acc-id
                                      ,*cheque-receivable-acc-id*)))))))
 
-;;;  Supplier
+
+
+;;;  SUPPLIER CREDITS - DEBITS
 
 (defun supplier-credits ()
   `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
@@ -48,6 +51,10 @@
                                      cheque-event.cheque-id)
                                  (:= tx2.debit-acc-id
                                      ,*cheque-payable-acc-id*)))))))
+
+
+
+;;; COMPANY DEBITS - CREDITS
 
 (defun company-debits (company-id issuers &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
@@ -109,9 +116,20 @@
 
 (defun company-debits/credits (company-id issuers since until &key reverse-p)
   (flet ((get-tx-date (row)
-           (getf row :tx-date)))
-    (let* ((sorted (stable-sort (nconc (company-debits company-id issuers)
-                                       (company-credits company-id issuers))
+           (getf row :tx-date))
+         (get-tx-key (row)
+           (getf row :id)))
+    (let* ((company-debits (company-debits company-id issuers))
+           (company-credits (company-credits company-id issuers))
+           (merged (dolist (d company-debits (nconc company-debits company-credits))
+                     (let ((credit-amount (dolist (c company-credits)
+                                            (when (eql (get-tx-key c) (get-tx-key d))
+                                              (let ((credit-amount (getf c :credit-amount)))
+                                                (setf company-credits (delete c company-credits))
+                                                (return credit-amount))))))
+                       (when credit-amount
+                         (setf d (nconc d (list :credit-amount credit-amount)))))))
+           (sorted (stable-sort merged
                                 #'local-time:timestamp<
                                 :key #'get-tx-date))
            (truncated (remove-if (lambda (row)
@@ -122,6 +140,7 @@
                                             (not (eql until :null))
                                             (timestamp> (get-tx-date row) until))))
                                  sorted)))
+      ;; calculate sums
       (let ((total 0)
             (debit-sum 0)
             (credit-sum 0))
