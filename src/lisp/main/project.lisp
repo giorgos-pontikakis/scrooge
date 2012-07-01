@@ -90,21 +90,17 @@
 
 (defun chk-project-description/create (description company)
   (cond ((eql :null description) :project-description-null)
-        ((project-description-exists-p description company) :project-description-exists)
-        (t nil)))
+        ((project-description-exists-p description company) :project-description-exists)))
 
 (defun chk-project-description/update (description company project-id)
   (cond ((eql :null description) :project-description-null)
-        ((project-description-exists-p description company project-id) :project-description-exists)
-        (t nil)))
+        ((project-description-exists-p description company project-id) :project-description-exists)))
 
 (defun chk-quote-date (date state-id)
   (let ((state-ids (list "quoted" "ongoing" "finished" "archived")))
     (cond ((and (member state-id state-ids :test #'string=)
                 (eql date :null))
-           :quote-date-null)
-          (t
-           nil))))
+           :quote-date-null))))
 
 (defun chk-start-date (date state-id)
   (let ((state-ids (list "ongoing" "finished" "archived")))
@@ -113,9 +109,7 @@
            :start-date-null)
           ((and (not (member state-id state-ids :test #'string=))
                 (not (eql date :null)))
-           :start-date-nonnull)
-          (t
-           nil))))
+           :start-date-nonnull))))
 
 (defun chk-end-date (date state-id)
   (let ((state-ids (list "finished" "archived")))

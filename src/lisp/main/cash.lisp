@@ -339,8 +339,8 @@
 (defpage cash-page actions/cash/search
     (("actions/cash/" (kind "(expense|revenue)") "/search") :request-type :get)
     ((search string)
-     (since string)
-     (until string))
+     (since date)
+     (until date))
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'cash-tx-table

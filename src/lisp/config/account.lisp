@@ -86,8 +86,7 @@
 
 (defun chk-account-title (title)
   (cond ((eql title :null) :account-title-null)
-        ((not (account-title-exists-p title)) :account-title-unknown)
-        (t nil)))
+        ((not (account-title-exists-p title)) :account-title-unknown)))
 
 (defun chk-chq-acc-title (title)
   (cond ((eql title :null) :account-title-null)

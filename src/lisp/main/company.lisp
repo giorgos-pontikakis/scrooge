@@ -80,34 +80,29 @@
 
 (defun chk-company-title/create (title)
   (cond ((eql :null title) :company-title-null)
-        ((company-title-exists-p title) :company-title-exists)
-        (t nil)))
+        ((company-title-exists-p title) :company-title-exists)))
 
 (defun chk-company-title/update (title company-id)
   (cond ((eql :null title) :company-title-null)
-        ((company-title-exists-p title company-id) :company-title-exists)
-        (t nil)))
+        ((company-title-exists-p title company-id) :company-title-exists)))
 
 (defun chk-company-title (title)
   (cond ((eql :null title) :company-title-null)
-        ((not (company-title-exists-p title)) :company-title-unknown)
-        (t nil)))
+        ((not (company-title-exists-p title)) :company-title-unknown)))
 
 (defun chk-tin/create (tin)
   (cond ((eql :null tin) nil)
         ((tin-exists-p tin)
          :tin-exists)
         ((not (valid-tin-p tin))
-         :tin-invalid)
-        (t nil)))
+         :tin-invalid)))
 
 (defun chk-tin/update (tin company-id)
   (cond ((eql :null tin) nil)
         ((tin-exists-p tin company-id)
          :tin-exists)
         ((not (valid-tin-p tin))
-         :tin-invalid)
-        (t nil)))
+         :tin-invalid)))
 
 (defun chk-pobox (pobox)
   (if (or (eql :null pobox)
@@ -274,19 +269,19 @@
          (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin
-                               (:as tof.title tof)
-                               address occupation
-                               (:as city.title city-name)
-                       :distinct
-                       :from company
-                       :left-join city
-                       :on (:= city.id company.city-id)
-                       :left-join tof
-                       :on (:= tof.id company.tof-id)
-                       :left-join contact
-                       :on (:= contact.company-id company.id)
-                       :left-join project
-                       :on (:= project.company-id company.id)))
+                        (:as tof.title tof)
+                        address occupation
+                        (:as city.title city-name)
+                        :distinct
+                        :from company
+                        :left-join city
+                        :on (:= city.id company.city-id)
+                        :left-join tof
+                        :on (:= tof.id company.tof-id)
+                        :left-join contact
+                        :on (:= contact.company-id company.id)
+                        :left-join project
+                        :on (:= project.company-id company.id)))
          (where nil))
     (when search
       (push `(:or (:ilike company.title ,ilike-term)
@@ -304,31 +299,31 @@
          (push `(:= project.state-id "ongoing")
                where))
         ((member subset (list "credit" "debit") :test #'string=)
-         (push `(,(if (string= subset "credit") :< :>)
-                 ;; debits
-                 (:select (coalesce (sum tx.amount) 0)
-                  :from tx
-                  :left-join cheque-event
-                  :on (:= cheque-event.tx-id tx.id)
-                  :where (:and
-                          (:= tx.company-id company.id)
-                          (:or ,(customer-debits)
-                               ,(supplier-cash-debits)
-                               ,(supplier-contra-debits)
-                               ,(supplier-cheque-debits))))
-                 ;; credits
-                 (:select (coalesce (sum tx.amount) 0)
-                  :from tx
-                  :left-join cheque-event
-                  :on (:= cheque-event.tx-id tx.id)
-                  :where (:and
-                          (:= tx.company-id company.id)
-                          (:or ,(customer-cash-credits)
-                               ,(customer-contra-credits)
-                               ,(customer-cheque-credits)
-                               ,(supplier-credits)))))
-               where))
-        (t nil)))
+         (push `(:< ,(if (string= subset "debit") +1.0 -1.0)
+                    (-
+                     ;; debits
+                     (:select (coalesce (sum tx.amount) 0)
+                       :from tx
+                       :left-join cheque-event
+                       :on (:= cheque-event.tx-id tx.id)
+                       :where (:and
+                               (:= tx.company-id company.id)
+                               (:or ,(customer-debits)
+                                    ,(supplier-cash-debits)
+                                    ,(supplier-contra-debits)
+                                    ,(supplier-cheque-debits))))
+                     ;; credits
+                     (:select (coalesce (sum tx.amount) 0)
+                       :from tx
+                       :left-join cheque-event
+                       :on (:= cheque-event.tx-id tx.id)
+                       :where (:and
+                               (:= tx.company-id company.id)
+                               (:or ,(customer-cash-credits)
+                                    ,(customer-contra-credits)
+                                    ,(customer-cheque-credits)
+                                    ,(supplier-credits))))))
+               where))))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and t
                                                ,@where))

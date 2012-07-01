@@ -58,13 +58,11 @@
 
 (defun chk-temtx-title/create (title)
   (cond ((eql :null title) :temtx-title-null)
-        ((temtx-title-exists-p title) :temtx-title-exists)
-        (t nil)))
+        ((temtx-title-exists-p title) :temtx-title-exists)))
 
 (defun chk-temtx-title/update (title temtx-id)
   (cond ((eql :null title) :temtx-title-null)
-        ((temtx-title-exists-p title temtx-id) :temtx-title-exists)
-        (t nil)))
+        ((temtx-title-exists-p title temtx-id) :temtx-title-exists)))
 
 (defun chk-temtx-title (title)
   (cond ((eql title :null)

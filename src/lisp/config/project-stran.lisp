@@ -57,13 +57,11 @@
 
 (defun chk-project-stran-title/create (title)
   (cond ((eql :null title) :project-stran-title-null)
-        ((project-stran-title-exists-p title) :project-stran-title-exists)
-        (t nil)))
+        ((project-stran-title-exists-p title) :project-stran-title-exists)))
 
 (defun chk-project-stran-title/update (title project-stran-id)
   (cond ((eql :null title) :project-stran-title-null)
-        ((project-stran-title-exists-p title project-stran-id) :project-stran-title-exists)
-        (t nil)))
+        ((project-stran-title-exists-p title project-stran-id) :project-stran-title-exists)))
 
 (defun chk-project-state-id (state-id)
   (if (project-state-id-exists-p state-id)

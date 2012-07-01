@@ -64,13 +64,11 @@
 
 (defun chk-cheque-stran-title/create (title)
   (cond ((eql :null title) :cheque-stran-title-null)
-        ((cheque-stran-title-exists-p title) :cheque-stran-title-exists)
-        (t nil)))
+        ((cheque-stran-title-exists-p title) :cheque-stran-title-exists)))
 
 (defun chk-cheque-stran-title/update (title cheque-stran-id)
   (cond ((eql :null title) :cheque-stran-title-null)
-        ((cheque-stran-title-exists-p title cheque-stran-id) :cheque-stran-title-exists)
-        (t nil)))
+        ((cheque-stran-title-exists-p title cheque-stran-id) :cheque-stran-title-exists)))
 
 (defun chk-cheque-state-id (state-id)
   (if (cheque-state-id-exists-p state-id)
