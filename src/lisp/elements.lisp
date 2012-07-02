@@ -261,12 +261,11 @@
       (if disabled
           (if href
               (with-html
-                (:a :href href
-                    :class all-styles
-                    (str (lisp->html value))))
+                (:a :href href :class all-styles
+                  (str (lisp->html value))))
               (with-html
                 (:p :class all-styles
-                    (str (lisp->html value)))))
+                  (str (lisp->html value)))))
           (input-text name
                       :value value
                       :disabled disabled

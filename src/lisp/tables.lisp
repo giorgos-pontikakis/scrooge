@@ -99,22 +99,20 @@
 ;;; ------------------------------------------------------------
 
 (defclass company ()
-  ((id         :col-type integer    :reader   company-id)
-   (title      :col-type string     :accessor title      :initarg :title)
-   (occupation :col-type string     :accessor occupation :initarg :occupation)
-   (tof-id     :col-type integer    :accessor tof-id     :initarg :tof-id)
-   (tin        :col-type (string 9) :accessor tin        :initarg :tin)
-   (address    :col-type string     :accessor address    :initarg :address)
-   (city-id    :col-type integer    :accessor city-id    :initarg :city-id)
-   (pobox      :col-type integer    :accessor pobox      :initarg :pobox)
-   (zipcode    :col-type integer    :accessor zipcode    :initarg :zipcode)
-   (notes      :col-type string     :accessor notes      :initarg :notes)
-   (revenues-root-account-id :col-type integer
-                             :accessor revenues-root-account-id
-                             :initarg  :revenues-root-account-id)
-   (expenses-root-account-id :col-type integer
-                             :accessor expenses-root-account-id
-                             :initarg  :expenses-root-account-id))
+  ((id                  :col-type integer    :reader   company-id)
+   (title               :col-type string     :accessor title                :initarg :title)
+   (occupation          :col-type string     :accessor occupation           :initarg :occupation)
+   (tof-id              :col-type integer    :accessor tof-id               :initarg :tof-id)
+   (tin                 :col-type (string 9) :accessor tin                  :initarg :tin)
+   (address             :col-type string     :accessor address              :initarg :address)
+   (city-id             :col-type integer    :accessor city-id              :initarg :city-id)
+   (pobox               :col-type integer    :accessor pobox                :initarg :pobox)
+   (zipcode             :col-type integer    :accessor zipcode              :initarg :zipcode)
+   (notes               :col-type string     :accessor notes                :initarg :notes)
+   (revenues-account-id :col-type integer    :accessor revenues-account-id
+                        :initarg :revenues-account-id)
+   (expenses-account-id :col-type integer    :accessor expenses-account-id
+                        :initarg :expenses-account-id))
   (:metaclass dao-class)
   (:keys id))
 

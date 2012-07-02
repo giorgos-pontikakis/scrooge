@@ -52,61 +52,68 @@
 }
 
 
+
 /* ---------------------------------------------------------------------- */
 /* Company Form */
 /* ---------------------------------------------------------------------- */
+
+.company-form {
+    padding-left: 30px;
+    display: table;
+}
 
 .company-form input  {
     width: 385px;
 }
 
-#tin {
+.company-form-title {
+    margin: 20px 0px;
+}
+
+.company-form #postoffice {
+    margin-top: 10px;
+}
+
+.company-form #tin {
     width: 100px;
     float: left;
 }
 
-#tin input {
+.company-form #tin input {
     width: 90px;
 }
 
-#tof-div {
+.company-form #tof {
     padding-left: 20px;
-    width: 275;
+    width: 275px;
     float: left;
 }
 
-#tof-div input {
+.company-form #tof input {
     width: 265px;
 }
 
-.company-data fieldset {
-    margin-top: 10px;
-}
-
-#pobox {
-    margin-left: 20px;
-    width: 150px;
+.company-form #pobox, .company-form #zipcode {
+    width: 180px;
     float: left;
 }
 
-#zipcode {
-    width: 150px;
-    float: left;
+.company-form #pobox {
+    margin-left: 37px;
 }
 
-#pobox input, #zipcode input {
-    width: 120px;
+.company-form #pobox input, .company-form #zipcode input {
+    width: 170px;
 }
 
-#company-notes {
-    margin-left: 20px;
-}
-
-#company-notes textarea {
+.company-form textarea {
     width: 390px;
     height: 120px;
 }
 
+.form-group {
+    margin-top: 20px;
+}
 
 
 /* ---------------------------------------------------------------------- */
