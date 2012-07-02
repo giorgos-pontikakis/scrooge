@@ -2,13 +2,16 @@ $(document).ready(function () {
    applyAutocomplete();
    applyDatepicker();
    selectableRows();
-   preventDoubleSubmit();
+   settingsUI();
 });
 
-function preventDoubleSubmit () {
+function settingsUI () {
+   // Prevent double submit: Disable submit buttons when clicked once
    $('form').submit(function(){
       $('[type="submit"]', this).attr("disabled", "disabled");
    });
+   // Disable spellchecking on textareas (firefox only)
+   $('textarea').attr('spellcheck',false);
 }
 
 function applyDatepicker () {
