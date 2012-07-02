@@ -75,6 +75,9 @@
   (:metaclass dao-class)
   (:keys id))
 
+(defmethod account-id ((role symbol))
+  (account-id (get-dao 'account-role (string-downcase role))))
+
 (defclass account ()
   ((id         :col-type string  :reader   account-id)
    (title      :col-type string  :accessor title      :initarg :title)
@@ -105,7 +108,13 @@
    (city-id    :col-type integer    :accessor city-id    :initarg :city-id)
    (pobox      :col-type integer    :accessor pobox      :initarg :pobox)
    (zipcode    :col-type integer    :accessor zipcode    :initarg :zipcode)
-   (notes      :col-type string     :accessor notes      :initarg :notes))
+   (notes      :col-type string     :accessor notes      :initarg :notes)
+   (revenues-root-account-id :col-type integer
+                             :accessor revenues-root-account-id
+                             :initarg  :revenues-root-account-id)
+   (expenses-root-account-id :col-type integer
+                             :accessor expenses-root-account-id
+                             :initarg  :expenses-root-account-id))
   (:metaclass dao-class)
   (:keys id))
 

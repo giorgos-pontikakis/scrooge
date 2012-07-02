@@ -293,8 +293,8 @@
       (let ((new-dao (make-instance 'account
                                     :parent-id (or (val parent-id)
                                                    (and (val debitp)
-                                                        (account-id *debit-accounts-root*))
-                                                   (account-id *credit-accounts-root*))
+                                                        (account-id *debit-accounts-root-id*))
+                                                   (account-id *credit-accounts-root-id*))
                                     :title (val title)
                                     :debit-p (val debitp)
                                     :chequing-p (val chequing-p))))

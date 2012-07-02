@@ -8,14 +8,14 @@
   `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
 
 (defun customer-cash-credits ()
-  `(:= tx.debit-acc-id ,*cash-acc-id*))
+  `(:= tx.debit-acc-id ,(account-id 'cash-account)))
 
 (defun customer-contra-credits ()
   `(:in tx.debit-acc-id (:set ,@*revenues-accounts*)))
 
 (defun customer-cheque-credits ()
   ;; subquery receives cheque-event.cheque-id from main query
-  `(:and (:= tx.debit-acc-id ,*cheque-receivable-acc-id*)
+  `(:and (:= tx.debit-acc-id ,(account-id 'cheque-receivable-account))
          (:not (:exists (:select 1
                          :from (:as tx tx2)
                          :inner-join (:as cheque-event cheque-event2)
@@ -24,7 +24,7 @@
                                  (:= cheque-event2.cheque-id
                                      cheque-event.cheque-id)
                                  (:= tx2.credit-acc-id
-                                     ,*cheque-receivable-acc-id*)))))))
+                                     ,(account-id 'cheque-receivable-account))))))))
 
 
 
@@ -34,14 +34,14 @@
   `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
 
 (defun supplier-cash-debits ()
-  `(:= tx.credit-acc-id ,*cash-acc-id*))
+  `(:= tx.credit-acc-id ,(account-id 'cash-account)))
 
 (defun supplier-contra-debits ()
   `(:in tx.credit-acc-id (:set ,@*expense-accounts*)))
 
 (defun supplier-cheque-debits ()
   ;; subquery receives cheque-event.cheque-id from main query
-  `(:and (:= tx.credit-acc-id ,*cheque-payable-acc-id*)
+  `(:and (:= tx.credit-acc-id ,(account-id 'cheque-payable-account))
          (:not (:exists (:select 1
                          :from (:as tx tx2)
                          :inner-join (:as cheque-event cheque-event2)
@@ -50,7 +50,7 @@
                                  (:= cheque-event2.cheque-id
                                      cheque-event.cheque-id)
                                  (:= tx2.debit-acc-id
-                                     ,*cheque-payable-acc-id*)))))))
+                                     ,(account-id 'cheque-payable-account))))))))
 
 
 

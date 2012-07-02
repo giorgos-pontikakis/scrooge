@@ -44,10 +44,10 @@
 ;;; ----------------------------------------------------------------------
 
 (defun check-invoice-accounts ()
-  (unless (every #'integerp (list *invoice-receivable-acc-id*
-                                  *invoice-payable-acc-id*
-                                  *revenues-root-acc-id*
-                                  *expenses-root-acc-id*))
+  (unless (every #'integerp (list (account-id 'invoice-receivable-account)
+                                  (account-id 'invoice-payable-account)
+                                  (account-id 'revenues-root-account)
+                                  (account-id 'expenses-root-account)))
     (see-other (invoice-accounts-error-page))))
 
 (defpage dynamic-page invoice-accounts-error-page ("invoice/error")
@@ -233,10 +233,10 @@
   (if (invoice-customer-p issuer) *revenues-accounts* *expense-accounts*))
 
 (defun invoice-revenues/expenses-root (issuer)
-  (if (invoice-customer-p issuer) *revenues-root-acc-id* *expenses-root-acc-id*))
+  (if (invoice-customer-p issuer) (account-id 'revenues-root-account) (account-id 'expenses-root-account)))
 
 (defun invoice-receivable/payable-root (issuer)
-  (if (invoice-customer-p issuer) *invoice-receivable-acc-id* *invoice-payable-acc-id*))
+  (if (invoice-customer-p issuer) (account-id 'invoice-receivable-account) (account-id 'invoice-payable-account)))
 
 (defun invoice-debit-acc-id (issuer kind account-id)
   (if (invoice-debit-p kind)

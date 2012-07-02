@@ -44,9 +44,9 @@
 ;;; ----------------------------------------------------------------------
 
 (defun check-cash-accounts ()
-  (unless (and *cash-acc-id*
-               *revenues-root-acc-id*
-               *expenses-root-acc-id*)
+  (unless (and (account-id 'cash-account)
+               (account-id 'revenues-root-account)
+               (account-id 'expenses-root-account))
     (see-other (cash-accounts-error-page))))
 
 (defpage dynamic-page cash-accounts-error-page ("cash/error")
@@ -80,9 +80,9 @@
 (defmethod get-records ((table cash-tx-table))
   (flet ((acc-filter (kind)
            (cond ((string-equal kind "revenue")
-                  `(debit-acc-id ,*cash-acc-id*))
+                  `(debit-acc-id ,(account-id 'cash-account)))
                  ((string-equal kind "expense")
-                  `(credit-acc-id ,*cash-acc-id*))
+                  `(credit-acc-id ,(account-id 'cash-account)))
                  (t
                   (error "internal error in acc-filter"))))
          (acc-join (kind)
@@ -221,20 +221,22 @@
   (string-equal kind "revenue"))
 
 (defun cash-revenues/expenses-root (kind)
-  (if (cash-revenues-p kind) *revenues-root-acc-id* *expenses-root-acc-id*))
+  (if (cash-revenues-p kind) (account-id 'revenues-root-account) (account-id 'expenses-root-account)))
 
 (defun cash-receivable/payable-root (kind)
-  (if (cash-revenues-p kind) *invoice-receivable-acc-id* *invoice-payable-acc-id*))
+  (if (cash-revenues-p kind)
+      (account-id 'invoice-receivable-account)
+      (account-id 'invoice-payable-account)))
 
 (defun cash-debit-acc-id (kind account-id)
   (if (cash-revenues-p kind)
-      *cash-acc-id*
+      (account-id 'cash-account)
       account-id))
 
 (defun cash-credit-acc-id (kind account-id)
   (if (cash-revenues-p kind)
       account-id
-      *cash-acc-id*))
+      (account-id 'cash-account)))
 
 (defun cash-page-title (kind)
   (cond ((string-equal kind "revenue") "Έσοδα")
@@ -378,9 +380,9 @@
       (when (and (val tx-id)
                  (not (find (val tx-id) (rows cash-tx-table) :key #'key)))
         (let ((tx (get-dao 'tx (val tx-id))))
-          (see-other (cash (cond ((eql (debit-acc-id tx) *cash-acc-id*)
+          (see-other (cash (cond ((eql (debit-acc-id tx) (account-id 'cash-account))
                                   "revenue")
-                                 ((eql (credit-acc-id tx) *cash-acc-id*)
+                                 ((eql (credit-acc-id tx) (account-id 'cash-account))
                                   "expense")
                                  (t (error 'bad-request-error)))
                            :tx-id (val tx-id)))))

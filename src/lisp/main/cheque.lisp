@@ -49,10 +49,10 @@
 ;;; --------------------------------------------------------------------------------
 
 (defun check-cheque-accounts ()
-  (unless (and *cheque-receivable-acc-id*
-               *cheque-payable-acc-id*
-               *revenues-root-acc-id*
-               *expenses-root-acc-id*)
+  (unless (and (account-id 'cheque-receivable-account)
+               (account-id 'cheque-payable-account)
+               (account-id 'revenues-root-account)
+               (account-id 'expenses-root-account))
     (see-other (cheque-accounts-error-page))))
 
 (defpage dynamic-page cheque-accounts-error-page ("cheque/error")
@@ -92,9 +92,9 @@
 
 (defun get-debit-credit-acc-id (kind)
   (cond ((string-equal kind "receivable")
-         (values *cash-acc-id* *cheque-receivable-acc-id*))
+         (values (account-id 'cash-account) (account-id 'cheque-receivable-account)))
         ((string-equal kind "payable")
-         (values *cheque-payable-acc-id* *cash-acc-id*))
+         (values (account-id 'cheque-payable-account) (account-id 'cash-account)))
         (t
          (error "Internal error in get-debit-credit-acc-id"))))
 
