@@ -20,7 +20,7 @@ function applyDatepicker () {
 };
 
 function applyAutocomplete () {
-   var id, table, col, source;
+   var id, table, col, root;
    var options = {minLength: 2};
    var autocompleteIDs = ["company",
                           ["occupation", "company", "occupation"],
@@ -41,6 +41,16 @@ function applyAutocomplete () {
       }
       $(".ac-" + id).autocomplete(options);
    }
+
+   var autocompleteAccountIDs = [["revenues", "revenues-root-account"],
+                                 ["expenses", "expenses-root-account"]];
+   for ( var i = 0; i < autocompleteAccountIDs.length; i++) {
+      id = autocompleteAccountIDs[i][0];
+      root = autocompleteAccountIDs[i][1];
+      options.source = "/scrooge/autocomplete-accounts?root=" + root;
+      $(".ac-" + id).autocomplete(options);
+   }
+
 }
 
 

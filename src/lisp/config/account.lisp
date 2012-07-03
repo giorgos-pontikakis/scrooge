@@ -27,11 +27,6 @@
 ;;; Account - Validation
 ;;; ------------------------------------------------------------
 
-(defun ref-subaccounts (account-id)
-  (with-db ()
-    (query (:select 'id :from 'account :where (:= 'parent-id account-id))
-           :single)))
-
 (defun ref-transactions (account-id)
   (with-db ()
     (query (:select 'id
@@ -41,7 +36,7 @@
            :single)))
 
 (defun acc-referenced-p (account-id)
-  (or (ref-subaccounts account-id)
+  (or (children-records account-id)
       (ref-transactions account-id)))
 
 (define-existence-predicate  account-id-exists-p account id)
@@ -101,7 +96,7 @@
          nil)
         ((not (account-title-exists-p title))
          :account-title-unknown)
-        ((not (member (account-id title) (subaccounts (account-id 'revenues-root-account))
+        ((not (member (account-id title) *revenues-accounts*
                       :key #'(lambda (rec) (getf rec :id))))
          :not-revenues-account)))
 
@@ -110,7 +105,7 @@
          nil)
         ((not (account-title-exists-p title))
          :account-title-unknown)
-        ((not (member (account-id title) (subaccounts (account-id 'expenses-root-account))
+        ((not (member (account-id title) *expense-accounts*
                       :key #'(lambda (rec) (getf rec :id))))
          :not-expenses-account)))
 

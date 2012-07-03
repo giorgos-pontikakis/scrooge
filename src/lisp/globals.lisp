@@ -33,34 +33,25 @@
 
 
 (with-db ()
-
   ;; debit/credit account roots
   (defparameter *debit-accounts-root-id*
     (select-dao-unique 'account (:and (:is-null 'parent-id)
                                       (:= 'debit-p t))))
   (defparameter *credit-accounts-root-id*
     (select-dao-unique 'account (:and (:is-null 'parent-id)
-                                      (:= 'debit-p nil))))
+                                      (:= 'debit-p nil)))))
 
-  ;; subaccounts and subaccount-ids
-  (let ((accounts (query (:select '* :from 'account) :plists)))
-    (defun subaccounts (account-id)
-      (flet ((get-children (records id)
-               (remove-if-not (lambda (rec)
-                                (eql (getf rec :parent-id) id))
-                              records)))
-        (dfs (lambda (head)
-               (get-children accounts
-                             (getf head :id)))
-             (find account-id accounts :key (lambda (row)
-                                              (getf row :id))))))
-    (defun subaccount-ids (account-id)
-      (mapcar (lambda (plist)
-                (getf plist :id))
-              (subaccounts account-id)))
 
-    ;; account sets
-    (defparameter *expense-accounts*
-      (subaccount-ids (account-id 'expenses-root-account)))
-    (defparameter *revenues-accounts*
-      (subaccount-ids (account-id 'revenues-root-account)))))
+;; account sets
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defparameter *accounts*
+    (with-db ()
+      (query (:select '* :from 'account) :plists))))
+
+(defparameter *expense-accounts*
+  (subtree-record-ids *accounts*
+                      (account-id 'expenses-root-account)))
+
+(defparameter *revenues-accounts*
+  (subtree-record-ids *accounts*
+                      (account-id 'revenues-root-account)))

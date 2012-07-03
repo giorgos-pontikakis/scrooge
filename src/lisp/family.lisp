@@ -228,7 +228,7 @@
            (unless (authenticated-p (allowed-user-groups *page*))
              (error 'authentication-error))
            (when-let (,system-params (collect-params :system))
-             (unless (every #'validp ,system-params)`
+             (unless (every #'validp ,system-params)
                (error 'bad-request-error)))
            (with-db ()
              ,@body))

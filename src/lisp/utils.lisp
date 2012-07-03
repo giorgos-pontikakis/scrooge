@@ -36,6 +36,24 @@ excluded for the search - useful for updates."
                    :where (:= ',field ,field))
                   :single)))))
 
+(defun children-records (records id &key (parent-key :parent-id))
+  (remove-if-not (lambda (rec)
+                   (eql (getf rec parent-key) id))
+                 records))
+
+(defun subtree-records (records id &key (key :id))
+  (dfs (lambda (head)
+         (children-records records
+                           (getf head key)))
+       (find id records :key (lambda (row)
+                               (getf row :id)))))
+
+(defun subtree-record-ids (records id &key (key :id))
+  (mapcar #'(lambda (rec)
+              (getf rec key))
+          (subtree-records records id :key key)))
+
+
 
 ;;;----------------------------------------------------------------------
 ;;; Miscellaneous
