@@ -76,7 +76,8 @@
   (:keys id))
 
 (defmethod account-id ((role symbol))
-  (account-id (get-dao 'account-role (string-downcase role))))
+  (with-db ()
+    (account-id (get-dao 'account-role (string-downcase role)))))
 
 (defclass account ()
   ((id         :col-type string  :reader   account-id)

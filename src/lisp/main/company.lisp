@@ -11,7 +11,8 @@
   (:default-initargs
    :parameter-groups '(:system (company-id contact-id start
                                 subset)  ;; checked filter parameter
-                       :payload (title occupation tof tin address city pobox zipcode notes)
+                       :payload (title occupation tof tin address city pobox zipcode notes
+                                 revenues-account expenses-account)
                        :filter (search subset))))
 
 (defclass company-page (auth-dynamic-page company-family)
@@ -43,7 +44,21 @@
                  (:parse-error
                   "Άκυροι χαρακτήρες στον ταχυδρομικό κωδικό"
                   :zipcode-invalid
-                  "Μη αποδεκτός ταχυδρομικός κωδικός."))))))
+                  "Μη αποδεκτός ταχυδρομικός κωδικός."))
+                (revenues-account
+                 (:not-revenues-account
+                  "Άγνωστος λογαριασμός εσόδων."
+                  :account-title-null
+                  "Το όνομα λογαριασμού είναι κενό."
+                  :account-title-unknown
+                  "Άγνωστος λογαριασμός."))
+                (expenses-account
+                 (:not-expenses-account
+                  "Άγνωστος λογαριασμός εξόδων."
+                  :account-title-null
+                  "Το όνομα λογαριασμού είναι κενό."
+                  :account-title-unknown
+                  "Άγνωστος λογαριασμός."))))))
 
 
 
@@ -185,7 +200,6 @@
          (ldfn (label-datum disabled record styles)))
     (with-html
       (:div :class "data-form company-form"
-
         (:div :class "company-form-title"
           (display ldfn 'title "Επωνυμία"))
         (:div :class "form-group"
@@ -204,11 +218,11 @@
             (display ldfn 'pobox "Ταχυδρομική θυρίδα"))
           (clear))
         (:div :class "form-group advanced"
-          (:a :href "#" "Επιπλέον επιλογές: »")
           (display ldfn 'revenues-account "Λογαριασμός εσόδων"
+                   :default-value (title (get-dao 'account (account-id 'revenues-root-account)))
                    :enabled-styles "ac-revenues")
           (display ldfn 'expenses-account "Λογαριασμός εξόδων"
-                   :default-value ( )
+                   :default-value (title (get-dao 'account (account-id 'expenses-root-account)))
                    :enabled-styles "ac-expenses"))
         (:div :class "form-group"
           (label 'notes "Σημειώσεις")
@@ -227,11 +241,17 @@
                  'tin (:as 'tof.title 'tof)
                  'address (:as 'city.title 'city)
                  'zipcode 'pobox 'notes
+                 (:as 'revenues-account.title 'revenues-account)
+                 (:as 'expenses-account.title 'expenses-account)
                  :from 'company
                  :left-join 'city
                  :on (:= 'company.city-id 'city.id)
                  :left-join 'tof
-                 :on (:=  'company.tof-id 'tof.id)
+                 :on (:= 'company.tof-id 'tof.id)
+                 :left-join (:as 'account 'revenues-account)
+                 :on (:= 'company.revenues-account-id 'revenues-account.id)
+                 :left-join (:as 'account 'expenses-account)
+                 :on (:= 'company.expenses-account-id 'expenses-account.id)
                  :where (:= 'company.id company-id))
                :plist)
         nil)))
@@ -306,7 +326,10 @@
          (push `(:= project.state-id "ongoing")
                where))
         ((member subset (list "credit" "debit") :test #'string=)
-         (push `(:< ,(if (string= subset "debit") +1.0 -1.0)
+         (push `(:< ,(if (string= subset "debit")
+                         *company-tx-significant-amount*
+                         (* -1.0
+                            *company-tx-significant-amount*))
                     (-
                      ;; debits
                      (:select (coalesce (sum tx.amount) 0)
@@ -553,17 +576,19 @@
 
 (defpage company-page actions/company/create ("actions/company/create"
                                               :request-type :post)
-    ((search     string)
-     (subset     string  chk-subset)
-     (title      string  chk-company-title/create)
-     (occupation string)
-     (tof        string  chk-tof-title)
-     (tin        string  chk-tin/create)
-     (address    string)
-     (city       string  chk-city-title)
-     (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode)
-     (notes      string))
+    ((search           string)
+     (subset           string  chk-subset)
+     (title            string  chk-company-title/create)
+     (occupation       string)
+     (tof              string  chk-tof-title)
+     (tin              string  chk-tin/create)
+     (address          string)
+     (city             string  chk-city-title)
+     (pobox            integer chk-pobox)
+     (zipcode          integer chk-zipcode)
+     (notes            string)
+     (revenues-account string  chk-revenues-account-title)
+     (expenses-account string  chk-expenses-account-title))
   (with-controller-page (company/create)
     (let* ((tof-id (tof-id (val tof)))
            (city-id (city-id (val city)))
@@ -576,7 +601,9 @@
                                        :city-id city-id
                                        :zipcode (val zipcode)
                                        :pobox (val pobox)
-                                       :notes (val notes))))
+                                       :notes (val notes)
+                                       :revenues-account-id (account-id (val revenues-account))
+                                       :expenses-account-id (account-id (val expenses-account)))))
       (insert-dao new-company)
       (see-other (apply #'company/details :company-id (company-id new-company)
                         (params->filter))))))
@@ -588,19 +615,21 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-page company/update ("company/update")
-    ((company-id integer chk-company-id                              t)
-     (contact-id integer (chk-contact-id company-id contact-id))
-     (title      string  (chk-company-title/update title company-id))
-     (occupation string)
-     (tof        string  chk-tof-title)
-     (tin        string  (chk-tin/update tin company-id))
-     (address    string)
-     (city       string  chk-city-title)
-     (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode)
-     (notes      string)
-     (search     string)
-     (subset     string  chk-subset))
+    ((company-id       integer chk-company-id                              t)
+     (contact-id       integer (chk-contact-id company-id contact-id))
+     (title            string  (chk-company-title/update title company-id))
+     (occupation       string)
+     (tof              string  chk-tof-title)
+     (tin              string  (chk-tin/update tin company-id))
+     (address          string)
+     (city             string  chk-city-title)
+     (pobox            integer chk-pobox)
+     (zipcode          integer chk-zipcode)
+     (notes            string)
+     (search           string)
+     (subset           string  chk-subset)
+     (revenues-account string  chk-revenues-account-title)
+     (expenses-account string  chk-expenses-account-title))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -642,18 +671,20 @@
 
 (defpage company-page actions/company/update ("actions/company/update"
                                               :request-type :post)
-    ((company-id integer chk-company-id)
-     (title      string  (chk-company-title/update title company-id))
-     (occupation string)
-     (tof        string  chk-tof-title)
-     (tin        string  (chk-tin/update tin company-id))
-     (address    string)
-     (city       string  chk-city-title)
-     (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode)
-     (notes      string)
-     (search     string)
-     (subset     string  chk-subset))
+    ((company-id       integer chk-company-id)
+     (title            string  (chk-company-title/update title company-id))
+     (occupation       string)
+     (tof              string  chk-tof-title)
+     (tin              string  (chk-tin/update tin company-id))
+     (address          string)
+     (city             string  chk-city-title)
+     (pobox            integer chk-pobox)
+     (zipcode          integer chk-zipcode)
+     (notes            string)
+     (search           string)
+     (subset           string  chk-subset)
+     (revenues-account string  chk-revenues-account-title)
+     (expenses-account string  chk-expenses-account-title))
   (with-controller-page (company/update)
     (let ((tof-id (tof-id (val tof)))
           (city-id (city-id (val city))))
@@ -667,6 +698,8 @@
                         'pobox (val pobox)
                         'zipcode (val zipcode)
                         'notes (val notes)
+                        'revenues-account-id (account-id (val revenues-account))
+                        'expenses-account-id (account-id (val expenses-account))
                         :where (:= 'id (val company-id))))
       (see-other (apply #'company/details :company-id (val company-id)
                         (params->filter))))))

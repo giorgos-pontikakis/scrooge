@@ -97,10 +97,22 @@
         ((not (non-chq-account-title-exists-p title)) :account-title-unknown)))
 
 (defun chk-revenues-account-title (title)
-  (or (chk-account-title title)
-      (if (member (account-id title) (subaccounts (account-id 'revenues-root-account)))
-          nil
-          :not-revenues-account)))
+  (cond ((eql title :null)
+         nil)
+        ((not (account-title-exists-p title))
+         :account-title-unknown)
+        ((not (member (account-id title) (subaccounts (account-id 'revenues-root-account))
+                      :key #'(lambda (rec) (getf rec :id))))
+         :not-revenues-account)))
+
+(defun chk-expenses-account-title (title)
+  (cond ((eql title :null)
+         nil)
+        ((not (account-title-exists-p title))
+         :account-title-unknown)
+        ((not (member (account-id title) (subaccounts (account-id 'expenses-root-account))
+                      :key #'(lambda (rec) (getf rec :id))))
+         :not-expenses-account)))
 
 (defun chk-debitp (debitp account-id)
   (with-db ()

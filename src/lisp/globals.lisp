@@ -27,10 +27,9 @@
      (query (:select 'id 'description
                      :from 'cheque-state)))))
 
-
-
 (defparameter *default-project-state-id* "quoted")
 (defparameter *default-cheque-state* "pending")
+(defparameter *company-tx-significant-amount* 1.0)
 
 
 (with-db ()
