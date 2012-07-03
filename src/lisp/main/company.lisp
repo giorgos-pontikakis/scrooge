@@ -188,7 +188,6 @@
 
         (:div :class "company-form-title"
           (display ldfn 'title "Επωνυμία"))
-
         (:div :class "form-group"
           (display ldfn 'occupation "Επάγγελμα" :enabled-styles "ac-occupation")
           (:div :id "tin"
@@ -196,7 +195,6 @@
           (:div :id "tof"
             (display ldfn 'tof "Δ.Ο.Υ." :enabled-styles "ac-tof"))
           (clear))
-
         (:div :class "form-group"
           (display ldfn 'address "Διεύθυνση")
           (display ldfn 'city "Πόλη" :enabled-styles "ac-city")
@@ -205,11 +203,13 @@
           (:div :id "pobox"
             (display ldfn 'pobox "Ταχυδρομική θυρίδα"))
           (clear))
-
-        (:div :class "form-group"
-          (display ldfn 'revenues-account "Λογαριασμός εσόδων" :enabled-styles "ac-revenues")
-          (display ldfn 'expenses-account "Λογαριασμός εξόδων" :enabled-styles "ac-expenses"))
-
+        (:div :class "form-group advanced"
+          (:a :href "#" "Επιπλέον επιλογές: »")
+          (display ldfn 'revenues-account "Λογαριασμός εσόδων"
+                   :enabled-styles "ac-revenues")
+          (display ldfn 'expenses-account "Λογαριασμός εξόδων"
+                   :default-value ( )
+                   :enabled-styles "ac-expenses"))
         (:div :class "form-group"
           (label 'notes "Σημειώσεις")
           (:textarea :name 'notes :disabled disabled
@@ -511,17 +511,19 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-page company/create ("company/create")
-    ((title      string  chk-company-title/create)
-     (occupation string)
-     (tof        string  chk-tof-title)
-     (tin        string  chk-tin/create)
-     (address    string)
-     (city       string  chk-city-title)
-     (pobox      integer chk-pobox)
-     (zipcode    integer chk-zipcode)
-     (notes      string)
-     (search     string)
-     (subset     string  chk-subset))
+    ((title            string  chk-company-title/create)
+     (occupation       string)
+     (tof              string  chk-tof-title)
+     (tin              string  chk-tin/create)
+     (address          string)
+     (city             string  chk-city-title)
+     (pobox            integer chk-pobox)
+     (zipcode          integer chk-zipcode)
+     (notes            string)
+     (search           string)
+     (subset           string  chk-subset)
+     (revenues-account string  chk-revenues-account-title)
+     (expenses-account string  chk-expenses-account-title))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form

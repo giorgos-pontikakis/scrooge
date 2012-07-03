@@ -96,6 +96,12 @@
   (cond ((eql title :null) :account-title-null)
         ((not (non-chq-account-title-exists-p title)) :account-title-unknown)))
 
+(defun chk-revenues-account-title (title)
+  (or (chk-account-title title)
+      (if (member (account-id title) (subaccounts (account-id 'revenues-root-account)))
+          nil
+          :not-revenues-account)))
+
 (defun chk-debitp (debitp account-id)
   (with-db ()
     (if (or (null account-id)
