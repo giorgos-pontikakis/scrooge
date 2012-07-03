@@ -36,7 +36,7 @@
            :single)))
 
 (defun acc-referenced-p (account-id)
-  (or (children-records account-id)
+  (or (children-records *accounts* account-id)
       (ref-transactions account-id)))
 
 (define-existence-predicate  account-id-exists-p account id)
@@ -238,28 +238,28 @@
   (with-view-page
     (with-document ()
       (:head
-       (:title "Λογαριασμοί")
-       (config-headers))
+        (:title "Λογαριασμοί")
+        (config-headers))
       (:body
-       (:div :id "container" :class "container_12"
-             (header 'config)
-             (config-navbar 'account)
-             (iter
-               (for debit-p in (list t nil))
-               (for div-id in '("debit-accounts" "credit-accounts"))
-               (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-               (for account-tree = (make-instance 'account-tree
-                                                  :op :catalogue
-                                                  :selected-key (val account-id)
-                                                  :debit-p debit-p))
-               (htm
-                (:div :class "grid_6"
-                      (:div :id div-id :class "window"
-                            (:div :class "title" (str window-title))
-                            (notifications)
-                            (actions account-tree)
-                            (display account-tree :hide-root-p t)))))
-             (footer))))))
+        (:div :id "container" :class "container_12"
+          (header 'config)
+          (config-navbar 'account)
+          (iter
+            (for debit-p in (list t nil))
+            (for div-id in '("debit-accounts" "credit-accounts"))
+            (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+            (for account-tree = (make-instance 'account-tree
+                                               :op :catalogue
+                                               :selected-key (val account-id)
+                                               :debit-p debit-p))
+            (htm
+             (:div :class "grid_6"
+               (:div :id div-id :class "window"
+                 (:div :class "title" (str window-title))
+                 (notifications)
+                 (actions account-tree)
+                 (display account-tree :hide-root-p t)))))
+          (footer))))))
 
 
 

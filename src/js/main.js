@@ -10,7 +10,7 @@ function settingsUI () {
    $('form').submit(function(){
       $('[type="submit"]', this).attr("disabled", "disabled");
    });
-   // Disable spellchecking on textareas (firefox only)
+   // Disable spellchecking on textareas
    $('textarea').attr('spellcheck',false);
 }
 
