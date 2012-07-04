@@ -104,7 +104,7 @@ function autoSelectAccount () {
 
 function clickAccount () {
    var title = $(this).val();
-   var url = "/scrooge/company-id-page?title=" + title;
+   var url = "/scrooge/company/accounts?title=" + title;
    $.getJSON(url, function (accountIDs) {
       var roots = accountIDs[0];
       var isRevenue = $(".company-dependent input[value=" + roots[0] + "]").length === 1;
