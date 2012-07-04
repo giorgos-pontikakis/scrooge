@@ -2,6 +2,7 @@ $(document).ready(function () {
    applyAutocomplete();
    applyDatepicker();
    selectableRows();
+   autoSelectAccount();
    settingsUI();
 });
 
@@ -95,4 +96,20 @@ function selectableRows () {
       $(this).parent().parent().parent().addClass("selected");
    });
 
+}
+
+function autoSelectAccount () {
+   $("input.ac-company").bind("autocompleteclose", clickAccount);
+}
+
+function clickAccount () {
+   var title = $(this).val();
+   var url = "/scrooge/company-id-page?title=" + title;
+   $.getJSON(url, function (accountIDs) {
+      var roots = accountIDs[0];
+      var isRevenue = $(".company-dependent input[value=" + roots[0] + "]").length === 1;
+      var accountID = isRevenue ? accountIDs[1][0] : accountIDs[1][1];
+      var jq = ".company-dependent input[type=radio][value=" + accountID +  "]";
+      $(jq).click();
+   });
 }

@@ -318,6 +318,7 @@
                        (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
                                        (if cash-revenues-p "εσόδων" "εξόδων"))))
                        (display (make-instance 'rev/exp-account-tree
+                                               :css-class "crud-tree company-dependent"
                                                :disabled disabled
                                                :root-key revenues/expenses-root-key
                                                :debit-p (not cash-revenues-p)

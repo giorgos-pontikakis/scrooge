@@ -48,3 +48,15 @@
             (write-json (coerce results 'vector)))
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
             "[]")))))
+
+(defpage root-page company-id-page
+    ("company-id-page" :content-type "text/plain"
+                       :parameter-groups '(:system (title)))
+    ((title string chk-company-title t))
+  (with-xhr-page (autocomplete-xhr-auth-error)
+    (with-html-output (*standard-output* nil :indent nil :prologue nil)
+      (let ((company (get-dao 'company (company-id (val title)))))
+        (write-json (vector (vector (account-id 'revenues-root-account)
+                                    (account-id 'expenses-root-account))
+                            (vector (revenues-account-id company)
+                                    (expenses-account-id company))))))))

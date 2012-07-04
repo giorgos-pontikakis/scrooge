@@ -302,6 +302,7 @@
          (ldfn (label-datum disabled record styles))
          (root-key (invoice-revenues/expenses-root issuer))
          (tree (make-instance 'rev/exp-account-tree
+                              :css-class "crud-tree company-dependent"
                               :disabled disabled
                               :root-key root-key
                               :debit-p (not (invoice-customer-p issuer))
