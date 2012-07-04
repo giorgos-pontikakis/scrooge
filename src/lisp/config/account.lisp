@@ -96,8 +96,7 @@
          nil)
         ((not (account-title-exists-p title))
          :account-title-unknown)
-        ((not (member (account-id title) *revenues-accounts*
-                      :key #'(lambda (rec) (getf rec :id))))
+        ((not (member (account-id title) *revenues-accounts*))
          :not-revenues-account)))
 
 (defun chk-expenses-account-title (title)
@@ -105,8 +104,7 @@
          nil)
         ((not (account-title-exists-p title))
          :account-title-unknown)
-        ((not (member (account-id title) *expense-accounts*
-                      :key #'(lambda (rec) (getf rec :id))))
+        ((not (member (account-id title) *expense-accounts*))
          :not-expenses-account)))
 
 (defun chk-debitp (debitp account-id)
