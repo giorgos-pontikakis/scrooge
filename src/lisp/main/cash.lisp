@@ -289,41 +289,42 @@
                                             :debit-acc-id)))))
     (with-html
       (:div :id "cash-data-form" :class "data-form"
-            (:div :class "grid_5 prefix_1 alpha"
-                  (display ldfn 'tx-date "Ημερομηνία":enabled-styles "datepicker"
-                                                     :default-value (today))
-                  (display ldfn 'description "Περιγραφή")
-                  (display ldfn 'company "Εταιρία"
-                           :enabled-styles "ac-company"
-                           :href (company/details :company-id (getf record :company-id)))
-                  (display ldfn 'amount "Ποσό")
-                  (unless disabled
-                    (htm (:div :class "data-form-buttons"
-                               (ok-button :body (if (eql (op form) :update)
-                                                    "Ανανέωση"
-                                                    "Δημιουργία"))
-                               (cancel-button (cancel-url form)
-                                              :body "Άκυρο")))))
-            (htm (:div :class "grid_5 omega"
-                       ;;
-                       (:h3 (str (conc "Λογαριασμός " (if cash-revenues-p "πίστωσης" "χρέωσης"))))
-                       (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
-                       (display (make-instance 'rev/exp-account-tree
-                                               :disabled disabled
-                                               :root-key receivable/payable-root-key
-                                               :debit-p cash-revenues-p
-                                               :selected-key (or selected-key
-                                                                 receivable/payable-root-key)))
-                       ;;
-                       (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                       (if cash-revenues-p "εσόδων" "εξόδων"))))
-                       (display (make-instance 'rev/exp-account-tree
-                                               :css-class "crud-tree company-dependent"
-                                               :disabled disabled
-                                               :root-key revenues/expenses-root-key
-                                               :debit-p (not cash-revenues-p)
-                                               :selected-key selected-key))))
-            (clear)))))
+        (:div :class "grid_5 prefix_1 alpha"
+          (display ldfn 'tx-date "Ημερομηνία":enabled-styles "datepicker"
+                                             :default-value (today))
+          (display ldfn 'description "Περιγραφή")
+          (display ldfn 'company "Εταιρία"
+                   :enabled-styles "ac-company"
+                   :href (company/details :company-id (getf record :company-id)))
+          (display ldfn 'amount "Ποσό")
+          (unless disabled
+            (htm (:div :class "data-form-buttons"
+                   (ok-button :body (if (eql (op form) :update)
+                                        "Ανανέωση"
+                                        "Δημιουργία"))
+                   (cancel-button (cancel-url form)
+                                  :body "Άκυρο")))))
+        (htm (:div :class "grid_5 omega"
+               (:h3 (str (conc "Λογαριασμός " (if cash-revenues-p "πίστωσης" "χρέωσης"))))
+               ;;
+               (:div :class "cash-only-hidden"
+                 (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
+                 (display (make-instance 'rev/exp-account-tree
+                                         :disabled disabled
+                                         :root-key receivable/payable-root-key
+                                         :debit-p cash-revenues-p
+                                         :selected-key (or selected-key
+                                                           receivable/payable-root-key))))
+               ;;
+               (:div :class "company-dependent"
+                 (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
+                                (if cash-revenues-p "εσόδων" "εξόδων"))))
+                 (display (make-instance 'rev/exp-account-tree
+                                         :disabled disabled
+                                         :root-key revenues/expenses-root-key
+                                         :debit-p (not cash-revenues-p)
+                                         :selected-key selected-key)))))
+        (clear)))))
 
 (defmethod actions ((form cash-form) &key filter)
   (let* ((tx-id (key form))

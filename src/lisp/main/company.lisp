@@ -468,10 +468,11 @@
   (with-xhr-page (autocomplete-xhr-auth-error)
     (with-html-output (*standard-output* nil :indent nil :prologue nil)
       (let ((company (get-dao 'company (company-id (val title)))))
-        (write-json (vector (vector (account-id 'revenues-root-account)
-                                    (account-id 'expenses-root-account))
-                            (vector (revenues-account-id company)
-                                    (expenses-account-id company))))))))
+        (write-json (alist-hash-table
+                     `(("cashOnly" . ,(cash-only-p company))
+                       ("accountIDs" . ,(vector (account-id 'revenues-root-account)
+                                                (vector (revenues-account-id company)
+                                                        (expenses-account-id company)))))))))))
 
 
 

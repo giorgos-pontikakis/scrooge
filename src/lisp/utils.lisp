@@ -37,11 +37,15 @@ excluded for the search - useful for updates."
                   :single)))))
 
 (defun children-records (records id &key (parent-key :parent-id))
+  "From a set of records (plists), find the direct children of the record with
+the given id."
   (remove-if-not (lambda (rec)
                    (eql (getf rec parent-key) id))
                  records))
 
 (defun subtree-records (records id &key (key :id))
+  "From a set of records, collect all descendants of the record with the given
+id, i.e. all records of the subtree with root specified by the given id."
   (dfs (lambda (head)
          (children-records records
                            (getf head key)))
