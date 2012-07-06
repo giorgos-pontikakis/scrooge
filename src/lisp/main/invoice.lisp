@@ -22,7 +22,9 @@
        (:company-title-unknown
         "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
         :company-title-null
-        "Η επωνυμία της εταιρίας είναι κενή"))
+        "Η επωνυμία της εταιρίας είναι κενή"
+        :company-cash-only
+        "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"))
       (amount
        (:empty-amount
         "Το ποσό της συναλλαγής είναι κενό"
@@ -545,7 +547,7 @@
     ((tx-id       integer chk-tx-id         t)
      (tx-date     date)
      (description string)
-     (company     string  chk-company-title)
+     (company     string  chk-company-title /cash-mode)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id)
      (search      string)

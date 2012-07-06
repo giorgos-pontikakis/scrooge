@@ -105,6 +105,10 @@
   (cond ((eql :null title) :company-title-null)
         ((not (company-title-exists-p title)) :company-title-unknown)))
 
+(defun chk-company-title/cash-mode (title)
+  (or (chk-company-title title)
+      blah))
+
 (defun chk-tin/create (tin)
   (cond ((eql :null tin) nil)
         ((tin-exists-p tin)
