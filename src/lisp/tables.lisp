@@ -16,9 +16,7 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Configuration
-;;; ------------------------------------------------------------
+;;; CONFIGURATION
 
 (defclass usr ()
   ((username  :col-type string :accessor username  :initarg :username)
@@ -95,9 +93,7 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Companies & Contacts
-;;; ------------------------------------------------------------
+;;; COMPANIES & CONTACTS
 
 (defclass company ()
   ((id                  :col-type integer    :reader   company-id)
@@ -113,7 +109,9 @@
    (revenues-account-id :col-type integer    :accessor revenues-account-id
                         :initarg :revenues-account-id)
    (expenses-account-id :col-type integer    :accessor expenses-account-id
-                        :initarg :expenses-account-id))
+                        :initarg :expenses-account-id)
+   (cash-only-p         :col-type boolean    :accessor cash-only-p
+                        :initarg :cash-only-p))
   (:metaclass dao-class)
   (:keys id))
 
@@ -133,9 +131,7 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Projects & Bills
-;;; ------------------------------------------------------------
+;;; PROJECTS & BILLS
 
 (defclass project-state ()
   ((state-id    :col-type string :reader   state-id)
@@ -186,9 +182,7 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Cheques
-;;; ------------------------------------------------------------
+;;; CHEQUES
 
 (defclass cheque-state ()
   ((state       :col-type string :reader   state)
@@ -300,9 +294,7 @@
 
 
 
-;;; ------------------------------------------------------------
-;;; Transactions & Templates
-;;; ------------------------------------------------------------
+;;; TRANSACTIONS & TEMPLATES
 
 (defclass tx ()
   ((id            :col-type integer       :reader   tx-id)
@@ -329,11 +321,10 @@
   :null)
 
 
-;;; ------------------------------------------------------------
-;;; RANK UTILITIES
-;;; ------------------------------------------------------------
 
-;;; Max Rank
+;;; RANK UTILITIES
+
+;;; Max rank
 
 (defgeneric max-rank (dao)
   (:documentation
@@ -352,7 +343,6 @@
                        :where (:= 'company-id (company-id dao)))
                       :column)))
     (if ranks (reduce #'max ranks) 0)))
-
 
 
 ;;; Shift ranks
@@ -378,7 +368,6 @@
   (select-dao 'contact (:and (:not (:= 'id (contact-id dao)))
                              (:= 'company-id (company-id dao))
                              (:>= 'rank (rank dao)))))
-
 
 
 ;;; Swap ranks

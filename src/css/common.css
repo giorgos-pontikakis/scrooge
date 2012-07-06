@@ -83,7 +83,13 @@ button, select {
 }
 
 select option {
+    padding: 5px 5px 0px 5px;
     height: 18px;
+}
+
+select {
+    padding: 5px 5px 0px 5px;
+    height: 26px;
 }
 
 select:disabled {

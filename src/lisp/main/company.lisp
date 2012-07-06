@@ -12,7 +12,7 @@
    :parameter-groups '(:system (company-id contact-id start
                                 subset)  ;; checked filter parameter
                        :payload (title occupation tof tin address city pobox zipcode notes
-                                 revenues-account expenses-account)
+                                 revenues-account expenses-account cash-only-p)
                        :filter (search subset))))
 
 (defclass company-page (auth-dynamic-page company-family)
@@ -149,18 +149,19 @@
 ;;; ------------------------------------------------------------
 
 (defun company-top-actions (op)
-  (top-actions-area (make-instance 'scrooge-menu
-                                   :spec (make-menu-spec
-                                          `(:catalogue ,(family-url 'company :system :filter)
-                                            :create ,(family-url 'company/create :filter)))
-                                   :css-class "hmenu"
-                                   :disabled (case op
-                                               (:catalogue '(:catalogue))
-                                               ((:create :update :delete) '(:create))))
-                    (searchbox (family-url-fn 'actions/company/search)
-                               (family-url-fn 'company :system)
-                               (family-params 'company :filter)
-                               "ac-company")))
+  (top-actions-area
+   (make-instance 'scrooge-menu
+                  :spec (make-menu-spec
+                         `(:catalogue ,(family-url 'company :system :filter)
+                           :create (,(family-url 'company/create :filter) "Νέα Εταιρία")))
+                  :css-class "hmenu"
+                  :disabled (case op
+                              (:catalogue '(:catalogue))
+                              ((:create :update :delete) '(:create))))
+   (searchbox (family-url-fn 'actions/company/search)
+              (family-url-fn 'company :system)
+              (family-params 'company :filter)
+              "ac-company")))
 
 (defun company-tabs (company-id filter active content)
   (declare (ignore filter))
@@ -223,7 +224,12 @@
                    :enabled-styles "ac-revenues")
           (display ldfn 'expenses-account "Λογαριασμός εξόδων"
                    :default-value (title (get-dao 'account (account-id 'expenses-root-account)))
-                   :enabled-styles "ac-expenses"))
+                   :enabled-styles "ac-expenses")
+          (label 'cash-only-p "Τρόπος πληρωμής")
+          (dropdown 'cash-only-p  '((nil . "Μέσω ανοιχτού λογαριασμού")
+                                    (t . "Απ' ευθείας εξόφληση (μόνο μετρητά)"))
+                    :disabled disabled
+                    :selected (getf record :cash-only-p nil)))
         (:div :class "form-group"
           (label 'notes "Σημειώσεις")
           (:textarea :name 'notes :disabled disabled
@@ -240,7 +246,7 @@
         (query (:select 'company.title 'occupation
                  'tin (:as 'tof.title 'tof)
                  'address (:as 'city.title 'city)
-                 'zipcode 'pobox 'notes
+                 'zipcode 'pobox 'notes 'cash-only-p
                  (:as 'revenues-account.title 'revenues-account)
                  (:as 'expenses-account.title 'expenses-account)
                  :from 'company
@@ -558,7 +564,8 @@
      (search           string)
      (subset           string  chk-subset)
      (revenues-account string  chk-revenues-account-title)
-     (expenses-account string  chk-expenses-account-title))
+     (expenses-account string  chk-expenses-account-title)
+     (cash-only-p      boolean))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -600,7 +607,8 @@
      (zipcode          integer chk-zipcode)
      (notes            string)
      (revenues-account string  chk-revenues-account-title)
-     (expenses-account string  chk-expenses-account-title))
+     (expenses-account string  chk-expenses-account-title)
+     (cash-only-p      boolean))
   (with-controller-page (company/create)
     (let* ((tof-id (tof-id (val tof)))
            (city-id (city-id (val city)))
@@ -615,7 +623,8 @@
                                        :pobox (val pobox)
                                        :notes (val notes)
                                        :revenues-account-id (account-id (val revenues-account))
-                                       :expenses-account-id (account-id (val expenses-account)))))
+                                       :expenses-account-id (account-id (val expenses-account))
+                                       :cash-only-p (val cash-only-p))))
       (insert-dao new-company)
       (see-other (apply #'company/details :company-id (company-id new-company)
                         (params->filter))))))
@@ -641,7 +650,8 @@
      (search           string)
      (subset           string  chk-subset)
      (revenues-account string  chk-revenues-account-title)
-     (expenses-account string  chk-expenses-account-title))
+     (expenses-account string  chk-expenses-account-title)
+     (cash-only-p      boolean))
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
@@ -696,7 +706,8 @@
      (search           string)
      (subset           string  chk-subset)
      (revenues-account string  chk-revenues-account-title)
-     (expenses-account string  chk-expenses-account-title))
+     (expenses-account string  chk-expenses-account-title)
+     (cash-only-p      boolean))
   (with-controller-page (company/update)
     (let ((tof-id (tof-id (val tof)))
           (city-id (city-id (val city))))
@@ -712,6 +723,7 @@
                         'notes (val notes)
                         'revenues-account-id (account-id (val revenues-account))
                         'expenses-account-id (account-id (val expenses-account))
+                        'cash-only-p (val cash-only-p)
                         :where (:= 'id (val company-id))))
       (see-other (apply #'company/details :company-id (val company-id)
                         (params->filter))))))
