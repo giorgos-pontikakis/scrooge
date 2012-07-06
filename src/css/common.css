@@ -82,14 +82,16 @@ button, select {
     font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif;
 }
 
+select {
+    margin: 0px;
+    padding: 3px 3px 0px 3px;
+    line-height: 26px;
+    height: 26px;
+}
+
 select option {
     padding: 5px 5px 0px 5px;
     height: 18px;
-}
-
-select {
-    padding: 5px 5px 0px 5px;
-    height: 26px;
 }
 
 select:disabled {
