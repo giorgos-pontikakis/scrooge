@@ -138,3 +138,19 @@ id, i.e. all records of the subtree with root specified by the given id."
          :amount-overflow)
         (t
          nil)))
+
+(defun chk-tx-constraints-fn (kind)
+  #'(lambda (company-title)
+      (with-db ()
+        (let ((tx-constraints (query (:select 'cash-only-p 'revenues-account-id 'expenses-account-id
+                                       :from 'company
+                                       :where (:= 'title company-title))
+                                     :plist)))
+          (cond ((getf tx-constraints 'cash-only-p)
+                 :company-cash-only)
+                ((and (null (getf tx-constraints 'revenues-account-id))
+                      (member kind '("receivable" "customer") :test #'string-equal))
+                 :company-supplier-only)
+                ((and (null (getf tx-constraints 'expenses-account-id))
+                      (member kind '("payable" "supplier") :test #'string-equal))
+                 :company-customer-only))))))

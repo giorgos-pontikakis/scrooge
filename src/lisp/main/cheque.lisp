@@ -31,7 +31,13 @@
                  (:company-title-unknown
                   "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
                   :company-title-null
-                  "Η επωνυμία της εταιρίας είναι κενή"))
+                  "Η επωνυμία της εταιρίας είναι κενή"
+                  :company-cash-only
+                  "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"
+                  :company-supplier-only
+                  "Επιτρέπονται μόνο πληρωτέες επιταγές για αυτή την εταιρία."
+                  :company-customer-only
+                  "Επιτρέπονται μόνο εισπρακτέες επιταγές για αυτή την εταιρία."))
                 (amount
                  (:empty-amount
                   "Το ποσό της επιταγής είναι κενό"
@@ -79,6 +85,7 @@
   (declare (ignore serial))
   ;; do nothing for the time being
   nil)
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -493,15 +500,16 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-page cheque/create (("cheque/" (kind  "(receivable|payable)") "/create"))
-    ((bank     string  chk-bank-title)
-     (due-date date    chk-date)
-     (company  string  chk-company-title)
-     (amount   float   chk-amount)
-     (serial   string  chk-cheque-serial)
+    ((bank     string chk-bank-title)
+     (due-date date   chk-date)
+     (company  string chk-company-title)
+     (amount   float  chk-amount)
+     (serial   string chk-cheque-serial)
      (search   string)
-     (cstate   string  chk-cheque-state-id)
-     (since    date    chk-date)
-     (until    date    chk-date))
+     (cstate   string chk-cheque-state-id)
+     (since    date   chk-date)
+     (until    date   chk-date))
+  (validate-parameters (chk-tx-constraints-fn kind) company)
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
@@ -512,37 +520,38 @@
                                         :filter filter)))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cheque)
-               (cheque-top-actions :create)
-               (:div :class "grid_12"
-                     (:div :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cheque-table)
-                           (notifications)
-                           (with-form (actions/cheque/create kind
-                                                             :search (val search)
-                                                             :since (val since)
-                                                             :until (val until)
-                                                             :cstate (val cstate))
-                             (display cheque-table :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cheque)
+            (cheque-top-actions :create)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" (str page-title))
+                (actions cheque-table)
+                (notifications)
+                (with-form (actions/cheque/create kind
+                                                  :search (val search)
+                                                  :since (val since)
+                                                  :until (val until)
+                                                  :cstate (val cstate))
+                  (display cheque-table :payload (params->payload)))))
+            (footer)))))))
 
 (defpage cheque-page actions/cheque/create
     (("actions/cheque/" (kind "(receivable|payable)") "/create") :request-type :post)
     ((search   string)
-     (cstate   string  chk-cheque-state-id)
-     (since    date    chk-date)
-     (until    date    chk-date)
-     (bank     string  chk-bank-title)
-     (serial   string  chk-cheque-serial)
-     (company  string  chk-company-title t)
-     (due-date date    chk-date          t)
-     (amount   float   chk-amount        t))
+     (cstate   string chk-cheque-state-id)
+     (since    date   chk-date)
+     (until    date   chk-date)
+     (bank     string chk-bank-title)
+     (serial   string chk-cheque-serial)
+     (company  string chk-company-title   t)
+     (due-date date   chk-date            t)
+     (amount   float  chk-amount          t))
+  (validate-parameters (chk-tx-constraints-fn kind) company)
   (with-controller-page (cheque/create kind)
     (check-cheque-accounts)
     (let ((new-cheque (make-instance 'cheque
@@ -574,6 +583,7 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (validate-parameters (chk-tx-constraints-fn kind) company)
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
@@ -622,13 +632,14 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (validate-parameters (chk-tx-constraints-fn kind) company)
   (with-controller-page (cheque/update kind)
     (check-cheque-accounts)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
            (old-state-id (state-id cheque-dao))
            (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
                                  (null (val state-id)))         ; no following states
-                             old-state-id ;; unchanged
+                             old-state-id                       ;; unchanged
                              (val state-id))))
       ;; Don't touch company-id, state-id and payable-p
       (setf (bank-id cheque-dao) (bank-id (val bank))

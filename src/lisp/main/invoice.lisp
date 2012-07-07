@@ -24,7 +24,11 @@
         :company-title-null
         "Η επωνυμία της εταιρίας είναι κενή"
         :company-cash-only
-        "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"))
+        "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"
+        :company-supplier-only
+        "Επιτρέπονται μόνο χρεωπιστώσεις προμηθευτή για αυτή την εταιρία."
+        :company-customer-only
+        "Επιτρέπονται μόνο χρεωπιστώσεις προμηθευτή για αυτή την εταιρία."))
       (amount
        (:empty-amount
         "Το ποσό της συναλλαγής είναι κενό"
@@ -477,6 +481,7 @@
      (search      string)
      (since       date)
      (until       date))
+  (validate-parameters (chk-tx-constraints-fn issuer) company)
   (with-view-page
     (check-invoice-accounts)
     (let* ((filter (params->filter))
@@ -514,11 +519,12 @@
     ((tx-date     date)
      (description string)
      (company     string  chk-company-title/cash t)
-     (amount      float   chk-amount t)
-     (account-id  integer chk-account-id t)
+     (amount      float   chk-amount             t)
+     (account-id  integer chk-account-id         t)
      (search      string)
      (since       date)
      (until       date))
+  (validate-parameters (chk-tx-constraints-fn issuer) company)
   (with-controller-page (invoice/create issuer kind)
     (check-invoice-accounts)
     (let* ((company-id (company-id (val company)))
@@ -553,6 +559,7 @@
      (search      string)
      (since       date)
      (until       date))
+  (validate-parameters (chk-tx-constraints-fn issuer) company)
   (with-view-page
     (check-invoice-accounts)
     (let* ((filter (params->filter))
@@ -600,6 +607,7 @@
      (search      string)
      (since       date)
      (until       date))
+  (validate-parameters (chk-tx-constraints-fn issuer) company)
   (with-controller-page (invoice/update issuer kind)
     (check-invoice-accounts)
     (let ((company-id (company-id (val company)))

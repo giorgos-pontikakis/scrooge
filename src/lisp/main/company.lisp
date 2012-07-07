@@ -106,6 +106,7 @@
         ((not (company-title-exists-p title)) :company-title-unknown)))
 
 (defun chk-company-title/cash (title)
+  (break)
   (or (chk-company-title title)
       (if (with-db ()
             (query (:select 'cash-only-p :from 'company :where (:= 'title title)) :single!))
