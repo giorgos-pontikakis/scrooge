@@ -84,7 +84,8 @@
    (parent-id  :col-type string  :accessor parent-id  :initarg :parent-id)
    (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p))
   (:metaclass dao-class)
-  (:keys id))
+  (:keys id)
+  (:default-initargs :title nil :chequing-p nil))
 
 (defmethod account-id ((title (eql :null)))
   :null)

@@ -19,11 +19,11 @@
                  :value (title (record row))
                  :disabled (not enabled-p)))
 
+
 ;;; Config utilities
 
 (defun config-data (table-name search)
   (select-dao table-name (:ilike 'title (ilike search)) 'title))
-
 
 
 ;;; UI elements
