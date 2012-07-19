@@ -552,8 +552,8 @@
      (due-date date   chk-date            t)
      (amount   float  chk-amount          t))
   (validate-parameters (chk-tx-constraints-fn kind) company)
+  (check-cheque-accounts)
   (with-controller-page (cheque/create kind)
-    (check-cheque-accounts)
     (let ((new-cheque (make-instance 'cheque
                                      :serial (val serial)
                                      :bank-id (bank-id (val bank))
@@ -633,8 +633,8 @@
      (since     date    chk-date)
      (until     date    chk-date))
   (validate-parameters (chk-tx-constraints-fn kind) company)
+  (check-cheque-accounts)
   (with-controller-page (cheque/update kind)
-    (check-cheque-accounts)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
            (old-state-id (state-id cheque-dao))
            (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
