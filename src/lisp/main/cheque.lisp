@@ -424,8 +424,8 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
@@ -444,20 +444,20 @@
                              :cstate (state-id dao)))))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cheque)
-               (cheque-top-actions :catalogue)
-               (filters cheque-table)
-               (:div :class "grid_12"
-                     (:div :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cheque-table)
-                           (display cheque-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cheque)
+            (cheque-top-actions :catalogue)
+            (filters cheque-table)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" (str page-title))
+                (actions cheque-table)
+                (display cheque-table)))
+            (footer)))))))
 
 (defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))
     ((cheque-id integer chk-cheque-id       t)
@@ -465,8 +465,8 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Λεπτομέρειες"))
            (cheque-form (make-instance 'cheque-form
@@ -479,19 +479,19 @@
                                                           filter))))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cheque)
-               (cheque-top-actions :details)
-               (:div :class "grid_12"
-                     (:div :id "cheque-window" :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cheque-form :filter filter)
-                           (display cheque-form)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cheque)
+            (cheque-top-actions :details)
+            (:div :class "grid_12"
+              (:div :id "cheque-window" :class "window"
+                (:div :class "title" (str page-title))
+                (actions cheque-form :filter filter)
+                (display cheque-form)))
+            (footer)))))))
 
 
 
@@ -510,8 +510,8 @@
      (since    date   chk-date)
      (until    date   chk-date))
   (validate-parameters (chk-tx-constraints-fn kind) company)
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Δημιουργία"))
            (cheque-table (make-instance 'cheque-table
@@ -584,8 +584,8 @@
      (since     date    chk-date)
      (until     date    chk-date))
   (validate-parameters (chk-tx-constraints-fn kind) company)
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (cheque-form (make-instance 'cheque-form
                                        :kind kind
@@ -598,26 +598,26 @@
            (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cheque)
-               (cheque-top-actions :update)
-               (:div :class "grid_12"
-                     (:div :id "cheque-window" :class "window"
-                           (:p :class "title" (str page-title))
-                           (actions cheque-form :filter filter)
-                           (notifications)
-                           (with-form (actions/cheque/update kind
-                                                             :cheque-id (val cheque-id)
-                                                             :search (val search)
-                                                             :since (val since)
-                                                             :until (val until)
-                                                             :cstate (val cstate))
-                             (display cheque-form :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cheque)
+            (cheque-top-actions :update)
+            (:div :class "grid_12"
+              (:div :id "cheque-window" :class "window"
+                (:p :class "title" (str page-title))
+                (actions cheque-form :filter filter)
+                (notifications)
+                (with-form (actions/cheque/update kind
+                                                  :cheque-id (val cheque-id)
+                                                  :search (val search)
+                                                  :since (val since)
+                                                  :until (val until)
+                                                  :cstate (val cstate))
+                  (display cheque-form :payload (params->payload)))))
+            (footer)))))))
 
 (defpage cheque-page actions/cheque/update
     (("actions/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
@@ -664,8 +664,8 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((page-title (conc "Επιταγές » " (cheque-page-title kind) " » Διαγραφή"))
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
@@ -675,26 +675,26 @@
                                         :filter filter)))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cheque)
-               (cheque-top-actions :delete)
-               (filters cheque-table)
-               (:div :class "grid_12"
-                     (:div :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cheque-table)
-                           (with-form (actions/cheque/delete kind
-                                                             :cheque-id (val cheque-id)
-                                                             :search (val search)
-                                                             :since (val since)
-                                                             :until (val until)
-                                                             :cstate (val cstate))
-                             (display cheque-table))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cheque)
+            (cheque-top-actions :delete)
+            (filters cheque-table)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" (str page-title))
+                (actions cheque-table)
+                (with-form (actions/cheque/delete kind
+                                                  :cheque-id (val cheque-id)
+                                                  :search (val search)
+                                                  :since (val since)
+                                                  :until (val until)
+                                                  :cstate (val cstate))
+                  (display cheque-table))))
+            (footer)))))))
 
 (defpage cheque-page actions/cheque/delete
     (("actions/cheque/" (kind "(receivable|payable)") "/delete") :request-type :post)
@@ -703,7 +703,7 @@
      (since     date    chk-date)
      (until     date    chk-date)
      (cheque-id integer chk-cheque-id       t))
+  (check-cheque-accounts)
   (with-controller-page (cheque/delete kind)
-    (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val cheque-id)))
     (see-other (apply #'cheque kind (params->filter)))))

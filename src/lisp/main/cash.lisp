@@ -368,8 +368,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (page-title (conc (cash-page-title kind) " » Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
@@ -391,28 +391,28 @@
       ;; otherwise continue as usually
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cash)
-               (cash-top-actions :catalogue)
-               (filters cash-tx-table)
-               (:div :class "grid_12"
-                     (:div :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cash-tx-table)
-                           (display cash-tx-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cash)
+            (cash-top-actions :catalogue)
+            (filters cash-tx-table)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" (str page-title))
+                (actions cash-tx-table)
+                (display cash-tx-table)))
+            (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (kind "(expense|revenue)") "/details"))
     ((tx-id  integer chk-tx-id t)
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
@@ -422,19 +422,19 @@
            (page-title (conc (cash-page-title kind) " » Λεπτομέρειες")))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cash)
-               (cash-top-actions :details)
-               (:div :class "grid_12"
-                     (:div :id "cash-window" :class "window"
-                           (:div :class "title" "Λεπτομέρειες")
-                           (actions cash-form :filter filter)
-                           (display cash-form)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cash)
+            (cash-top-actions :details)
+            (:div :class "grid_12"
+              (:div :id "cash-window" :class "window"
+                (:div :class "title" "Λεπτομέρειες")
+                (actions cash-form :filter filter)
+                (display cash-form)))
+            (footer)))))))
 
 
 
@@ -452,8 +452,8 @@
      (search      string)
      (since       date)
      (until       date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
@@ -462,25 +462,25 @@
            (page-title (conc (cash-page-title kind) " » Δημιουργία")))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cash)
-               (cash-top-actions :create)
-               (:div :class "grid_12"
-                     (:div :id "cash-window" :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cash-form :filter filter)
-                           (notifications)
-                           (with-form (actions/cash/create kind
-                                                           :search (val search)
-                                                           :since (val since)
-                                                           :until (val until))
-                             (display cash-form :payload (params->payload)
-                                                :styles (params->styles)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cash)
+            (cash-top-actions :create)
+            (:div :class "grid_12"
+              (:div :id "cash-window" :class "window"
+                (:div :class "title" (str page-title))
+                (actions cash-form :filter filter)
+                (notifications)
+                (with-form (actions/cash/create kind
+                                                :search (val search)
+                                                :since (val since)
+                                                :until (val until))
+                  (display cash-form :payload (params->payload)
+                                     :styles (params->styles)))))
+            (footer)))))))
 
 (defpage cash-page actions/cash/create
     (("actions/cash/" (kind "(expense|revenue)") "/create") :request-type :post)
@@ -492,8 +492,8 @@
      (search      string)
      (since       date)
      (until       date))
+  (check-cash-accounts)
   (with-controller-page (cash/create kind)
-    (check-cash-accounts)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (cash-debit-acc-id kind (val account-id)))
            (credit-acc-id (cash-credit-acc-id kind (val account-id)))
@@ -526,8 +526,8 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :kind kind
@@ -539,26 +539,26 @@
            (page-title (conc (cash-page-title kind) " » Επεξεργασία")))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cash)
-               (cash-top-actions :update)
-               (:div :class "grid_12"
-                     (:div :id "cash-window" :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cash-form :filter filter)
-                           (notifications)
-                           (with-form (actions/cash/update kind
-                                                           :tx-id (val tx-id)
-                                                           :search (val search)
-                                                           :since (val since)
-                                                           :until (val until))
-                             (display cash-form :payload (params->payload)
-                                                :styles (params->styles)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cash)
+            (cash-top-actions :update)
+            (:div :class "grid_12"
+              (:div :id "cash-window" :class "window"
+                (:div :class "title" (str page-title))
+                (actions cash-form :filter filter)
+                (notifications)
+                (with-form (actions/cash/update kind
+                                                :tx-id (val tx-id)
+                                                :search (val search)
+                                                :since (val since)
+                                                :until (val until))
+                  (display cash-form :payload (params->payload)
+                                     :styles (params->styles)))))
+            (footer)))))))
 
 (defpage cash-page actions/cash/update
     (("actions/cash/" (kind "(expense|revenue)") "/update") :request-type :post)
@@ -571,8 +571,8 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id))
+  (check-cash-accounts)
   (with-controller-page (cash/update kind)
-    (check-cash-accounts)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (cash-debit-acc-id kind (val account-id)))
           (credit-acc-id (cash-credit-acc-id kind (val account-id))))
@@ -598,8 +598,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (page-title (conc (cash-page-title kind) " » Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
@@ -609,25 +609,25 @@
                                          :filter filter)))
       (with-document ()
         (:head
-         (:title (str page-title))
-         (main-headers))
+          (:title (str page-title))
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'cash)
-               (cash-top-actions :delete)
-               (filters cash-tx-table)
-               (:div :class "grid_12"
-                     (:div :id "cash-window" :class "window"
-                           (:div :class "title" (str page-title))
-                           (actions cash-tx-table)
-                           (with-form (actions/cash/delete kind
-                                                           :tx-id (val tx-id)
-                                                           :search (val search)
-                                                           :since (val since)
-                                                           :until (val until))
-                             (display cash-tx-table))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'cash)
+            (cash-top-actions :delete)
+            (filters cash-tx-table)
+            (:div :class "grid_12"
+              (:div :id "cash-window" :class "window"
+                (:div :class "title" (str page-title))
+                (actions cash-tx-table)
+                (with-form (actions/cash/delete kind
+                                                :tx-id (val tx-id)
+                                                :search (val search)
+                                                :since (val since)
+                                                :until (val until))
+                  (display cash-tx-table))))
+            (footer)))))))
 
 (defpage cash-page actions/cash/delete
     (("actions/cash/" (kind "(expense|revenue)") "/delete") :request-type :post)
@@ -635,7 +635,7 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-controller-page (cash/delete)
-    (check-cash-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'cash kind (params->filter)))))
