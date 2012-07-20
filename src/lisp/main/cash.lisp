@@ -217,30 +217,19 @@
 ;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun cash-revenues-p (kind)
-  (string-equal kind "revenue"))
-
-(defun cash-revenues/expenses-root (kind)
-  (if (cash-revenues-p kind) (account-id 'revenues-root-account) (account-id 'expenses-root-account)))
-
-(defun cash-receivable/payable-root (kind)
-  (if (cash-revenues-p kind)
-      (account-id 'invoice-receivable-account)
-      (account-id 'invoice-payable-account)))
-
-(defun cash-debit-acc-id (kind account-id)
-  (if (cash-revenues-p kind)
+(defun cash-debit-acc-id (direction account-id)
+  (if (incoming-p direction)
       (account-id 'cash-account)
       account-id))
 
-(defun cash-credit-acc-id (kind account-id)
-  (if (cash-revenues-p kind)
+(defun cash-credit-acc-id (direction account-id)
+  (if (incoming-p direction)
       account-id
       (account-id 'cash-account)))
 
-(defun cash-page-title (kind)
-  (cond ((string-equal kind "revenue") "Έσοδα")
-        ((string-equal kind "expense") "Έξοδα")
+(defun cash-page-title (direction)
+  (cond ((string-equal direction "revenue") "Έσοδα")
+        ((string-equal direction "expense") "Έξοδα")
         (t (error "Internal error in cash-page-title"))))
 
 
@@ -250,11 +239,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defun cash-top-actions (op)
-  (let* ((kind (first *registers*))
-         (new-cash-label (conc "Νέο "
-                               (cond ((string-equal kind "revenue") "Έσοδo")
-                                     ((string-equal kind "expense") "Έξοδo")
-                                     (t (error "Internal error in cash-top-actions"))))))
+  (let* ((direction (first *registers*))
+         (new-cash-label (conc "Νέο " (if (incoming-p direction) "Έσοδo" "Έξοδo"))))
     (top-actions-area
      (make-instance 'scrooge-menu
                     :spec (make-menu-spec
@@ -277,14 +263,14 @@
   ())
 
 (defmethod display ((form cash-form) &key styles)
-  (let* ((cash-revenues-p (cash-revenues-p (kind form)))
+  (let* ((incoming-p (incoming-p (kind form)))
          (disabled (eql (op form) :details))
          (record (record form))
          (ldfn (label-datum disabled record styles))
-         (revenues/expenses-root-key (cash-revenues/expenses-root (kind form)))
-         (receivable/payable-root-key (cash-receivable/payable-root (kind form)))
+         (revenues/expenses-root-key (revenues/expenses-root (kind form)))
+         (receivable/payable-root-key (receivable/payable-root (kind form)))
          (selected-key (or (getf record :account-id)
-                           (getf record (if cash-revenues-p
+                           (getf record (if incoming-p
                                             :credit-acc-id
                                             :debit-acc-id)))))
     (with-html
@@ -305,24 +291,24 @@
                    (cancel-button (cancel-url form)
                                   :body "Άκυρο")))))
         (htm (:div :class "grid_5 omega"
-               (:h3 (str (conc "Λογαριασμός " (if cash-revenues-p "πίστωσης" "χρέωσης"))))
+               (:h3 (str (conc "Λογαριασμός " (if incoming-p "πίστωσης" "χρέωσης"))))
                ;;
                (:div :class "cash-only-hidden"
                  (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
                  (display (make-instance 'rev/exp-account-tree
                                          :disabled disabled
                                          :root-key receivable/payable-root-key
-                                         :debit-p cash-revenues-p
+                                         :debit-p incoming-p
                                          :selected-key (or selected-key
                                                            receivable/payable-root-key))))
                ;;
                (:div :class "company-dependent"
                  (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                (if cash-revenues-p "εσόδων" "εξόδων"))))
+                                (if incoming-p "εσόδων" "εξόδων"))))
                  (display (make-instance 'rev/exp-account-tree
                                          :disabled disabled
                                          :root-key revenues/expenses-root-key
-                                         :debit-p (not cash-revenues-p)
+                                         :debit-p (not incoming-p)
                                          :selected-key selected-key)))))
         (clear)))))
 

@@ -154,3 +154,21 @@ id, i.e. all records of the subtree with root specified by the given id."
                 ((and (null (getf tx-constraints :expenses-account-id))
                       (member kind '("payable" "supplier") :test #'string-equal))
                  :company-customer-only))))))
+
+(defun incoming-p (direction)
+  (string-equal direction "incoming"))
+
+(defun revenues/expenses-root (direction)
+  (if (incoming-p direction)
+      (account-id 'revenues-root-account)
+      (account-id 'expenses-root-account)))
+
+(defun receivable/payable-root (direction)
+  (if (incoming-p direction)
+      (account-id 'invoice-receivable-account)
+      (account-id 'invoice-payable-account)))
+
+(defun revenues/expenses-set (direction)
+  (if (incoming-p direction)
+      *revenues-accounts*
+      *expense-accounts*))
