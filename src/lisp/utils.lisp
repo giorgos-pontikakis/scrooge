@@ -139,7 +139,7 @@ id, i.e. all records of the subtree with root specified by the given id."
         (t
          nil)))
 
-(defun chk-tx-constraints-fn (kind)
+(defun chk-tx-constraints-fn (direction)
   #'(lambda (company-title)
       (with-db ()
         (let ((tx-constraints (query (:select 'cash-only-p 'revenues-account-id 'expenses-account-id
@@ -149,8 +149,8 @@ id, i.e. all records of the subtree with root specified by the given id."
           (cond ((getf tx-constraints 'cash-only-p)
                  :company-cash-only)
                 ((and (null (getf tx-constraints :revenues-account-id))
-                      (member kind '("receivable" "customer") :test #'string-equal))
-                 :company-supplier-only)
+                      (string-equal direction "incoming"))
+                 :company-outgoing-only)
                 ((and (null (getf tx-constraints :expenses-account-id))
-                      (member kind '("payable" "supplier") :test #'string-equal))
-                 :company-customer-only))))))
+                      (string-equal direction "outgoing"))
+                 :company-incoming-only))))))

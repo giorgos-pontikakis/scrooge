@@ -81,11 +81,11 @@
                                                                 :company-id company-id
                                                                 filter*)
                                   "Σφραγισμένες"))))
-    (secondary-filter-area (filter-navbar `((receivable ,(apply #'company/cheque "receivable"
+    (secondary-filter-area (filter-navbar `((incoming ,(apply #'company/cheque "incoming"
                                                                 :company-id company-id
                                                                 filter)
                                                         "Προς είσπραξη")
-                                            (payable ,(apply #'company/cheque "payable"
+                                            (outgoing ,(apply #'company/cheque "outgoing"
                                                              :company-id company-id
                                                              filter)
                                                      "Προς πληρωμή"))
@@ -206,7 +206,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque (("company/cheque/"
-                                              (kind "(receivable|payable)")))
+                                              (kind "(incoming|outgoing)")))
     ((company-id integer chk-company-id t)
      (cheque-id  integer chk-cheque-id)
      (start      integer)
@@ -247,7 +247,7 @@
             (footer)))))))
 
 (defpage company-cheque-page company/cheque/print (("company/cheque/"
-                                                    (kind "(receivable|payable)")
+                                                    (kind "(incoming|outgoing)")
                                                     "/print"))
     ((company-id integer chk-company-id t)
      (cheque-id  integer chk-cheque-id)
@@ -269,19 +269,19 @@
                (t (error "CHEQUE-STATE-LABEL: Unknown cheque-state"))))))
     (with-view-page
       (let* ((filter (params->filter))
-             (payable-table (make-instance 'company-cheque-table
+             (outgoing-table (make-instance 'company-cheque-table
                                            :op :details
                                            :selected-key (val cheque-id)
                                            :filter filter
                                            :start-index (val start)
-                                           :kind "payable"
+                                           :kind "outgoing"
                                            :company-id (val company-id)))
-             (receivable-table (make-instance 'company-cheque-table
+             (incoming-table (make-instance 'company-cheque-table
                                               :op :details
                                               :selected-key (val cheque-id)
                                               :filter filter
                                               :start-index (val start)
-                                              :kind "receivable"
+                                              :kind "incoming"
                                               :company-id (val company-id))))
         (with-document ()
           (:head
@@ -307,14 +307,14 @@
                                                                           :filter))))
                                    (clear)))
 
-                       (when (records payable-table)
-                         (htm (:div :class "window"
-                                    (:div (:div :class "title" "Επιταγές προς είσπραξη")
-                                          (display payable-table)))))
-                       (when (records receivable-table)
+                       (when (records outgoing-table)
                          (htm (:div :class "window"
                                     (:div (:div :class "title" "Επιταγές προς πληρωμή")
-                                          (display receivable-table)))))
+                                          (display outgoing-table)))))
+                       (when (records incoming-table)
+                         (htm (:div :class "window"
+                                    (:div (:div :class "title" "Επιταγές προς είσπραξη")
+                                          (display incoming-table)))))
                        (print-pages-footer)))))))))
 
 
@@ -324,7 +324,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/create
-    (("company/cheque/" (kind "(receivable|payable)") "/create"))
+    (("company/cheque/" (kind "(incoming|outgoing)") "/create"))
     ((company-id integer chk-company-id    t)
      (start      integer)
      (bank       string  chk-bank-title)
@@ -378,7 +378,7 @@
             (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/create
-    (("actions/company/cheque/" (kind "(receivable|payable)") "/create") :request-type :post)
+    (("actions/company/cheque/" (kind "(incoming|outgoing)") "/create") :request-type :post)
     ((company-id integer chk-company-id      t)
      (start      integer)
      (bank       string  chk-bank-title)
@@ -398,7 +398,7 @@
                                      :company-id (val company-id)
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :payable-p (string= kind "payable")
+                                     :payable-p (string= kind "outgoing")
                                      :state-id "pending")))
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque kind :company-id (val company-id)
@@ -412,7 +412,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/update
-    (("company/cheque/" (kind "(receivable|payable)") "/update"))
+    (("company/cheque/" (kind "(incoming|outgoing)") "/update"))
     ((company-id integer chk-company-id    t)
      (cheque-id  integer chk-cheque-id     t)
      (start      integer)
@@ -469,7 +469,7 @@
             (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/update
-    (("actions/company/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
+    (("actions/company/cheque/" (kind "(incoming|outgoing)") "/update") :request-type :post)
     ((company-id integer chk-company-id      t)
      (cheque-id  integer chk-cheque-id       t)
      (start      integer)
@@ -504,7 +504,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/delete
-    (("company/cheque/" (kind "(receivable|payable)") "/delete"))
+    (("company/cheque/" (kind "(incoming|outgoing)") "/delete"))
     ((company-id integer chk-company-id    t)
      (cheque-id  integer chk-cheque-id     t)
      (start      integer)
@@ -558,7 +558,7 @@
             (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/delete
-    (("actions/company/cheque/" (kind "(receivable|payable)") "/delete") :request-type :post)
+    (("actions/company/cheque/" (kind "(incoming|outgoing)") "/delete") :request-type :post)
     ((company-id integer chk-company-id      t)
      (cheque-id  integer chk-cheque-id       t)
      (start      integer)

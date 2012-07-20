@@ -34,9 +34,9 @@
                   "Η επωνυμία της εταιρίας είναι κενή"
                   :company-cash-only
                   "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"
-                  :company-supplier-only
+                  :company-outgoing-only
                   "Επιτρέπονται μόνο πληρωτέες επιταγές για αυτή την εταιρία."
-                  :company-customer-only
+                  :company-incoming-only
                   "Επιτρέπονται μόνο εισπρακτέες επιταγές για αυτή την εταιρία."))
                 (amount
                  (:empty-amount
@@ -65,14 +65,14 @@
     ()
   (with-document ()
     (:head
-     (:title "Cheque accounts error")
-     (error-headers))
+      (:title "Cheque accounts error")
+      (error-headers))
     (:body
-     (:div :id "header"
-           (logo))
-     (:div :id "body"
-           (:div :id "content" :class "summary"
-                 (:p "Δεν έχετε ορίσει στις ρυθμίσεις είτε ένα από τους λογαριασμούς επιταγών προς είσπραξη/πληρωμή, ή έναν από τους λογαριασμούς ρίζας εσόδων/εξόδων."))))))
+      (:div :id "header"
+        (logo))
+      (:div :id "body"
+        (:div :id "content" :class "summary"
+          (:p "Δεν έχετε ορίσει στις ρυθμίσεις είτε ένα από τους λογαριασμούς επιταγών προς είσπραξη/πληρωμή, ή έναν από τους λογαριασμούς ρίζας εσόδων/εξόδων."))))))
 
 (define-existence-predicate cheque-id-exists-p cheque id)
 
@@ -92,28 +92,28 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun cheque-page-title (kind)
-  (cond ((string-equal kind "receivable") "Εισπρακτέες")
-        ((string-equal kind "payable") "Πληρωτέες")
+(defun cheque-page-title (direction)
+  (cond ((string-equal direction "incoming") "Εισπρακτέες")
+        ((string-equal direction "outgoing") "Πληρωτέες")
         (t (error "Internal error in cheque-page-title"))))
 
-(defun get-debit-credit-acc-id (kind)
-  (cond ((string-equal kind "receivable")
-         (values (account-id 'cash-account) (account-id 'cheque-receivable-account)))
-        ((string-equal kind "payable")
+(defun get-debit-credit-acc-id (direction)
+  (cond ((string-equal direction "incoming")
+         (values (account-id 'cash-account) (account-id 'cheque-incoming-account)))
+        ((string-equal direction "outgoing")
          (values (account-id 'cheque-payable-account) (account-id 'cash-account)))
         (t
          (error "Internal error in get-debit-credit-acc-id"))))
 
 (defun cheque-top-actions (op)
-  (let ((kind (first *registers*)))
+  (let ((direction (first *registers*)))
     (top-actions-area
      (make-instance 'scrooge-menu
                     :spec (make-menu-spec
                            (list :catalogue (family-url 'cheque :system :filter)
                                  :create (list (family-url 'cheque/create :filter)
                                                (conc "Νέα "
-                                                     (if (string-equal kind "receivable")
+                                                     (if (string-equal direction "incoming")
                                                          "Εισπρακτέα"
                                                          "Πληρωτέα")
                                                      " επιταγή"))))
@@ -131,7 +131,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass cheque-form (crud-form/plist)
-  ((kind :accessor kind :initarg :kind)))
+  ((direction :accessor direction :initarg :direction)))
 
 (defmethod display ((form cheque-form) &key styles)
   (let* ((record (record form))
@@ -144,63 +144,63 @@
     (let ((*default-timezone* +greek-zone+))
       (with-html
         (:div :id "cheque-data-form" :class "data-form"
-              (:div :class "grid_5 prefix_1 alpha"
-                    (display ldfn 'serial "Σειριακός Αριθμός")
-                    (display ldfn 'due-date "Ημερομηνία" :enabled-styles "datepicker")
-                    (display ldfn 'company "Εταιρία"
-                             :enabled-styles "ac-company"
-                             :href (company/details :company-id (getf record :company-id)))
-                    (display ldfn 'bank "Τράπεζα" :enabled-styles "ac-bank")
-                    (display ldfn 'amount "Ποσό")
-                    (:div :class "data-form-buttons"
-                          (unless disabled
-                            (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                            (cancel-button (cancel-url form) :body "Άκυρο"))))
-              (:div :class "prefix_1 grid_4 omega"
-                    (:table :class "crud-table"
-                            (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
-                            (iter
-                              (for ev in events)
-                              (htm (:tr
-                                    (:td (str (assoc-value *cheque-states*
-                                                           (getf ev :to-state-id)
-                                                           :test #'string=)))
-                                    (:td (str (format-timestring nil (getf ev :tstamp)
-                                                                 :format tstamp-format)))))))
+          (:div :class "grid_5 prefix_1 alpha"
+            (display ldfn 'serial "Σειριακός Αριθμός")
+            (display ldfn 'due-date "Ημερομηνία" :enabled-styles "datepicker")
+            (display ldfn 'company "Εταιρία"
+                     :enabled-styles "ac-company"
+                     :href (company/details :company-id (getf record :company-id)))
+            (display ldfn 'bank "Τράπεζα" :enabled-styles "ac-bank")
+            (display ldfn 'amount "Ποσό")
+            (:div :class "data-form-buttons"
+              (unless disabled
+                (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                (cancel-button (cancel-url form) :body "Άκυρο"))))
+          (:div :class "prefix_1 grid_4 omega"
+            (:table :class "crud-table"
+              (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
+              (iter
+                (for ev in events)
+                (htm (:tr
+                       (:td (str (assoc-value *cheque-states*
+                                              (getf ev :to-state-id)
+                                              :test #'string=)))
+                       (:td (str (format-timestring nil (getf ev :tstamp)
+                                                    :format tstamp-format)))))))
 
-                    (when (and following (not disabled))
-                      (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
-                                                               (acons "nil" "" following))))))
-              (clear))))))
+            (when (and following (not disabled))
+              (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
+                                                       (acons "nil" "" following))))))
+          (clear))))))
 
 (defun following-cheque-states (from-state-id payable-p)
   (lists->alist
    (query (:select 'cheque-stran.to-state-id 'cheque-state.description
-                   :from 'cheque-stran
-                   :inner-join 'cheque-state
-                   :on (:= 'cheque-stran.to-state-id 'cheque-state.id)
-                   :where (:and (:= 'from-state-id from-state-id)
-                                (:= 'payable-p payable-p))))))
+            :from 'cheque-stran
+            :inner-join 'cheque-state
+            :on (:= 'cheque-stran.to-state-id 'cheque-state.id)
+            :where (:and (:= 'from-state-id from-state-id)
+                         (:= 'payable-p payable-p))))))
 
 (defmethod get-record ((form cheque-form))
   (if-let (cheque-id (key form))
     (query (:select 'cheque.id (:as 'bank.title 'bank)
-                    'due-date (:as 'company.title 'company)
-                    'amount 'payable-p 'state-id 'serial 'company-id
-                    :from 'cheque
-                    :left-join 'bank
-                    :on (:= 'bank.id 'cheque.bank-id)
-                    :inner-join 'company
-                    :on (:= 'company.id 'cheque.company-id)
-                    :where (:= 'cheque.id cheque-id))
+             'due-date (:as 'company.title 'company)
+             'amount 'payable-p 'state-id 'serial 'company-id
+             :from 'cheque
+             :left-join 'bank
+             :on (:= 'bank.id 'cheque.bank-id)
+             :inner-join 'company
+             :on (:= 'company.id 'cheque.company-id)
+             :where (:= 'cheque.id cheque-id))
            :plist)
     nil))
 
 (defmethod actions ((form cheque-form) &key filter)
   (let* ((cheque-id (key form))
-         (kind (kind form))
-         (hrefs (list :update (apply #'cheque/update kind :cheque-id cheque-id filter)
-                      :delete (apply #'cheque/delete kind :cheque-id cheque-id filter))))
+         (direction (direction form))
+         (hrefs (list :update (apply #'cheque/update direction :cheque-id cheque-id filter)
+                      :delete (apply #'cheque/delete direction :cheque-id cheque-id filter))))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
 
@@ -212,8 +212,8 @@
 
 (defun get-cheque-events (cheque-id)
   (query (:order-by (:select 'to-state-id 'tstamp
-                             :from 'cheque-event
-                             :where (:= 'cheque-id cheque-id))
+                      :from 'cheque-event
+                      :where (:= 'cheque-id cheque-id))
                     'tstamp)
          :plists))
 
@@ -222,15 +222,15 @@
          (since (getf (filter table) :since))
          (until (getf (filter table) :until))
          (cstate (getf (filter table) :cstate))
-         (payable-p (string= (kind table) "payable"))
+         (payable-p (string= (direction table) "payable"))
          (base-query `(:select cheque.id (:as bank.title bank) serial state-id
-                               (:as company.title company) company-id
-                               due-date amount payable-p
-                               :from cheque
-                               :left-join bank
-                               :on (:= bank.id cheque.bank-id)
-                               :inner-join company
-                               :on (:= company.id cheque.company-id)))
+                        (:as company.title company) company-id
+                        due-date amount payable-p
+                        :from cheque
+                        :left-join bank
+                        :on (:= bank.id cheque.bank-id)
+                        :inner-join company
+                        :on (:= company.id cheque.company-id)))
          (sort-order (if (string= cstate "pending")
                          '(due-date company)
                          '((:desc 'due-date) company)))
@@ -247,7 +247,7 @@
       (push `(:<= due-date ,until) where))
     (when company-id
       (push `(:= company.id ,company-id) where))
-    (when (kind table)
+    (when (direction table)
       (push `(:= cheque.payable-p ,payable-p) where))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and
@@ -265,58 +265,58 @@
 ;;; table
 
 (defclass cheque-table (scrooge-table)
-  ((kind      :accessor kind      :initarg :kind)
+  ((direction      :accessor direction      :initarg :direction)
    (paginator :accessor paginator :initarg :paginator)
    (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
-                               "Ημερομηνία<br />λήξης" "<br />Ποσό")))
+                              "Ημερομηνία<br />λήξης" "<br />Ποσό")))
   (:default-initargs :item-class 'cheque-row
                      :id "cheque-table"
-                     :kind nil
+                     :direction nil
                      :paginator (make-instance 'cheque-paginator
-                                              :id "cheque-paginator"
-                                              :css-class "paginator")))
+                                               :id "cheque-paginator"
+                                               :css-class "paginator")))
 
 (defmethod get-records ((table cheque-table))
   (get-cheque-records table))
 
 (defmethod actions ((tbl cheque-table) &key)
   (let* ((cheque-id (selected-key tbl))
-         (kind (kind tbl))
+         (direction (direction tbl))
          (filter (filter tbl))
          (hrefs (if cheque-id
-                    (list :details (apply #'cheque/details kind :cheque-id cheque-id filter)
-                          :update (apply #'cheque/update kind :cheque-id cheque-id filter)
-                          :delete (apply #'cheque/delete kind :cheque-id cheque-id filter))
+                    (list :details (apply #'cheque/details direction :cheque-id cheque-id filter)
+                          :update (apply #'cheque/update direction :cheque-id cheque-id filter)
+                          :delete (apply #'cheque/delete direction :cheque-id cheque-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 (defmethod filters ((tbl cheque-table))
-  (let* ((kind (kind tbl))
+  (let* ((direction (direction tbl))
          (filter (filter tbl))
-         (filter* (remove-from-plist filter kind :cstate))
-         (filter-spec `((nil      ,(apply #'cheque kind filter*)
+         (filter* (remove-from-plist filter direction :cstate))
+         (filter-spec `((nil      ,(apply #'cheque direction filter*)
                                   "Όλες")
-                        (pending  ,(apply #'cheque kind :cstate "pending" filter*)
+                        (pending  ,(apply #'cheque direction :cstate "pending" filter*)
                                   "Σε εκκρεμότητα")
-                        (paid     ,(apply #'cheque kind :cstate "paid" filter*)
+                        (paid     ,(apply #'cheque direction :cstate "paid" filter*)
                                   "Πληρωμένες")
-                        (bounced  ,(apply #'cheque kind :cstate "bounced" filter*)
+                        (bounced  ,(apply #'cheque direction :cstate "bounced" filter*)
                                   "Ακάλυπτες")
-                        (returned ,(apply #'cheque kind :cstate "returned" filter*)
+                        (returned ,(apply #'cheque direction :cstate "returned" filter*)
                                   "Επιστραμμένες")
-                        (stamped  ,(apply #'cheque kind :cstate "stamped" filter*)
+                        (stamped  ,(apply #'cheque direction :cstate "stamped" filter*)
                                   "Σφραγισμένες"))))
-    (filter-area (filter-navbar `((receivable ,(apply #'cheque "receivable" filter)
-                                              "Προς είσπραξη")
-                                  (payable ,(apply #'cheque "payable" filter)
-                                           "Προς πληρωμή"))
-                                :active kind
-                                :id "cheque-kind-navbar")
+    (filter-area (filter-navbar `((incoming ,(apply #'cheque "incoming" filter)
+                                            "Προς είσπραξη")
+                                  (outgoing ,(apply #'cheque "outgoing" filter)
+                                            "Προς πληρωμή"))
+                                :active direction
+                                :id "cheque-direction-navbar")
                  (filter-navbar filter-spec
                                 :active (getf filter :cstate))
                  (datebox (lambda (&rest args)
-                            (apply #'cheque kind args))
+                            (apply #'cheque direction args))
                           filter))))
 
 
@@ -330,15 +330,15 @@
          (table (collection row))
          (pg (paginator table))
          (filter (filter table))
-         (kind (kind table))
+         (direction (direction table))
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
-                    (apply #'cheque kind
+                    (apply #'cheque direction
                            :start (page-start pg (index row) start)
                            filter)
-                    (apply #'cheque kind :cheque-id cheque-id filter))
-          (selector-img selected-p)))))
+                    (apply #'cheque direction :cheque-id cheque-id filter))
+        (selector-img selected-p)))))
 
 (defmethod payload ((row cheque-row) enabled-p)
   (let ((record (record row)))
@@ -371,11 +371,11 @@
   (let* ((cheque-id (key row))
          (table (collection row))
          (filter (filter table))
-         (kind (kind table)))
+         (direction (direction table)))
     (if controls-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply #'cheque kind :cheque-id cheque-id filter)))
+                             :href (apply #'cheque direction :cheque-id cheque-id filter)))
         (list nil nil))))
 
 
@@ -386,7 +386,7 @@
 
 (defmethod target-url ((pg cheque-paginator) start)
   (let ((table (table pg)))
-   (apply #'cheque (kind table) :start start (filter table))))
+    (apply #'cheque (direction table) :start start (filter table))))
 
 
 
@@ -395,7 +395,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-page actions/cheque/search
-    (("actions/cheque/" (kind "(receivable|payable)") "/search") :request-type :get)
+    (("actions/cheque/" (direction "(incoming|outgoing)") "/search") :request-type :get)
     ((search string)
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
@@ -403,13 +403,13 @@
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'cheque-table
-                                      :kind kind
+                                      :direction direction
                                       :filter filter))))
       (if (single-item-list-p rows)
-          (see-other (apply #'cheque/details kind
+          (see-other (apply #'cheque/details direction
                             :cheque-id (key (first rows))
                             filter))
-          (see-other (apply #'cheque kind filter))))))
+          (see-other (apply #'cheque direction filter))))))
 
 
 
@@ -417,7 +417,7 @@
 ;;; VIEW
 ;;; ------------------------------------------------------------
 
-(defpage cheque-page cheque (("cheque/" (kind "(receivable|payable)")))
+(defpage cheque-page cheque (("cheque/" (direction "(incoming|outgoing)")))
     ((cheque-id integer chk-cheque-id)
      (start     integer)
      (search    string)
@@ -427,10 +427,10 @@
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Κατάλογος"))
+           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
-                                        :kind kind
+                                        :direction direction
                                         :op :catalogue
                                         :selected-key (val cheque-id)
                                         :filter filter
@@ -439,7 +439,7 @@
       (when (and (val cheque-id)
                  (not (find (val cheque-id) (rows cheque-table) :key #'key)))
         (let ((dao (get-dao 'cheque (val cheque-id))))
-          (see-other (cheque (if (payable-p dao) "payable" "receivable")
+          (see-other (cheque (if (payable-p dao) "outgoing" "incoming")
                              :cheque-id (val cheque-id)
                              :cstate (state-id dao)))))
       (with-document ()
@@ -459,7 +459,7 @@
                 (display cheque-table)))
             (footer)))))))
 
-(defpage cheque-page cheque/details (("cheque/" (kind "(receivable|payable)") "/details"))
+(defpage cheque-page cheque/details (("cheque/" (direction "(incoming|outgoing)") "/details"))
     ((cheque-id integer chk-cheque-id       t)
      (search    string)
      (cstate    string  chk-cheque-state-id)
@@ -468,13 +468,13 @@
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Λεπτομέρειες"))
+           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Λεπτομέρειες"))
            (cheque-form (make-instance 'cheque-form
-                                       :kind kind
+                                       :direction direction
                                        :op :details
                                        :key (val cheque-id)
                                        :cancel-url (apply #'cheque
-                                                          kind
+                                                          direction
                                                           :cheque-id (val cheque-id)
                                                           filter))))
       (with-document ()
@@ -499,7 +499,7 @@
 ;;; CREATE
 ;;; ------------------------------------------------------------
 
-(defpage cheque-page cheque/create (("cheque/" (kind  "(receivable|payable)") "/create"))
+(defpage cheque-page cheque/create (("cheque/" (direction  "(incoming|outgoing)") "/create"))
     ((bank     string chk-bank-title)
      (due-date date   chk-date)
      (company  string chk-company-title)
@@ -509,13 +509,13 @@
      (cstate   string chk-cheque-state-id)
      (since    date   chk-date)
      (until    date   chk-date))
-  (validate-parameters (chk-tx-constraints-fn kind) company)
+  (validate-parameters (chk-tx-constraints-fn direction) company)
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Δημιουργία"))
+           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Δημιουργία"))
            (cheque-table (make-instance 'cheque-table
-                                        :kind kind
+                                        :direction direction
                                         :op :create
                                         :filter filter)))
       (with-document ()
@@ -532,7 +532,7 @@
                 (:div :class "title" (str page-title))
                 (actions cheque-table)
                 (notifications)
-                (with-form (actions/cheque/create kind
+                (with-form (actions/cheque/create direction
                                                   :search (val search)
                                                   :since (val since)
                                                   :until (val until)
@@ -541,7 +541,7 @@
             (footer)))))))
 
 (defpage cheque-page actions/cheque/create
-    (("actions/cheque/" (kind "(receivable|payable)") "/create") :request-type :post)
+    (("actions/cheque/" (direction "(incoming|outgoing)") "/create") :request-type :post)
     ((search   string)
      (cstate   string chk-cheque-state-id)
      (since    date   chk-date)
@@ -551,19 +551,19 @@
      (company  string chk-company-title   t)
      (due-date date   chk-date            t)
      (amount   float  chk-amount          t))
-  (validate-parameters (chk-tx-constraints-fn kind) company)
+  (validate-parameters (chk-tx-constraints-fn direction) company)
   (check-cheque-accounts)
-  (with-controller-page (cheque/create kind)
+  (with-controller-page (cheque/create direction)
     (let ((new-cheque (make-instance 'cheque
                                      :serial (val serial)
                                      :bank-id (bank-id (val bank))
                                      :company-id (company-id (val company))
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :payable-p (string= kind "payable")
+                                     :payable-p (string= direction "outgoing")
                                      :state-id "pending")))
       (insert-dao new-cheque)
-      (see-other (apply #'cheque kind :cheque-id (cheque-id new-cheque) (params->filter))))))
+      (see-other (apply #'cheque direction :cheque-id (cheque-id new-cheque) (params->filter))))))
 
 
 
@@ -571,7 +571,7 @@
 ;;; UPDATE
 ;;; ------------------------------------------------------------
 
-(defpage cheque-page cheque/update (("cheque/" (kind "(receivable|payable)") "/update"))
+(defpage cheque-page cheque/update (("cheque/" (direction "(incoming|outgoing)") "/update"))
     ((cheque-id integer chk-cheque-id       t)
      (bank      string  chk-bank-title)
      (company   string  chk-company-title)
@@ -583,19 +583,19 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
-  (validate-parameters (chk-tx-constraints-fn kind) company)
+  (validate-parameters (chk-tx-constraints-fn direction) company)
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
            (cheque-form (make-instance 'cheque-form
-                                       :kind kind
+                                       :direction direction
                                        :op :update
                                        :key (val cheque-id)
                                        :cancel-url (apply #'cheque/details
-                                                          kind
+                                                          direction
                                                           :cheque-id (val cheque-id)
                                                           filter)))
-           (page-title (conc "Επιταγές » " (cheque-page-title kind) " » Επεξεργασία")))
+           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -610,7 +610,7 @@
                 (:p :class "title" (str page-title))
                 (actions cheque-form :filter filter)
                 (notifications)
-                (with-form (actions/cheque/update kind
+                (with-form (actions/cheque/update direction
                                                   :cheque-id (val cheque-id)
                                                   :search (val search)
                                                   :since (val since)
@@ -620,7 +620,7 @@
             (footer)))))))
 
 (defpage cheque-page actions/cheque/update
-    (("actions/cheque/" (kind "(receivable|payable)") "/update") :request-type :post)
+    (("actions/cheque/" (direction "(incoming|outgoing)") "/update") :request-type :post)
     ((cheque-id integer chk-cheque-id       t)
      (bank      string  chk-bank-title)
      (due-date  date    chk-date            t)
@@ -632,9 +632,9 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
-  (validate-parameters (chk-tx-constraints-fn kind) company)
+  (validate-parameters (chk-tx-constraints-fn direction) company)
   (check-cheque-accounts)
-  (with-controller-page (cheque/update kind)
+  (with-controller-page (cheque/update direction)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
            (old-state-id (state-id cheque-dao))
            (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
@@ -650,7 +650,7 @@
             (state-id cheque-dao) new-state-id
             (serial cheque-dao) (val serial))
       (update-dao cheque-dao)
-      (see-other (apply #'cheque/details kind :cheque-id (val cheque-id) (params->filter))))))
+      (see-other (apply #'cheque/details direction :cheque-id (val cheque-id) (params->filter))))))
 
 
 
@@ -658,7 +658,7 @@
 ;;; DELETE
 ;;; ------------------------------------------------------------
 
-(defpage cheque-page cheque/delete (("cheque/" (kind "(receivable|payable)") "/delete"))
+(defpage cheque-page cheque/delete (("cheque/" (direction "(incoming|outgoing)") "/delete"))
     ((cheque-id integer chk-cheque-id       t)
      (search    string)
      (cstate    string  chk-cheque-state-id)
@@ -666,10 +666,10 @@
      (until     date    chk-date))
   (check-cheque-accounts)
   (with-view-page
-    (let* ((page-title (conc "Επιταγές » " (cheque-page-title kind) " » Διαγραφή"))
+    (let* ((page-title (conc "Επιταγές » " (cheque-page-title direction) " » Διαγραφή"))
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
-                                        :kind kind
+                                        :direction direction
                                         :op :delete
                                         :selected-key (val cheque-id)
                                         :filter filter)))
@@ -687,7 +687,7 @@
               (:div :class "window"
                 (:div :class "title" (str page-title))
                 (actions cheque-table)
-                (with-form (actions/cheque/delete kind
+                (with-form (actions/cheque/delete direction
                                                   :cheque-id (val cheque-id)
                                                   :search (val search)
                                                   :since (val since)
@@ -697,13 +697,13 @@
             (footer)))))))
 
 (defpage cheque-page actions/cheque/delete
-    (("actions/cheque/" (kind "(receivable|payable)") "/delete") :request-type :post)
+    (("actions/cheque/" (direction "(incoming|outgoing)") "/delete") :request-type :post)
     ((search    string)
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date)
      (cheque-id integer chk-cheque-id       t))
   (check-cheque-accounts)
-  (with-controller-page (cheque/delete kind)
+  (with-controller-page (cheque/delete direction)
     (delete-dao (get-dao 'cheque (val cheque-id)))
-    (see-other (apply #'cheque kind (params->filter)))))
+    (see-other (apply #'cheque direction (params->filter)))))
