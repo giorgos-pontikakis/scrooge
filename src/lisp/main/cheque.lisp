@@ -227,7 +227,7 @@
                         :on (:= bank.id cheque.bank-id)
                         :inner-join company
                         :on (:= company.id cheque.company-id)))
-         (sort-order (if (string= cstate "pending")
+         (sort-order (if (string= cstate *default-cheque-state*)
                          '(due-date company)
                          '((:desc 'due-date) company)))
          (where nil))
@@ -555,7 +555,7 @@
                                      :due-date (val due-date)
                                      :amount (val amount)
                                      :receivable-p (incoming-p direction)
-                                     :state-id "pending")))
+                                     :state-id *default-cheque-state*)))
       (insert-dao new-cheque)
       (see-other (apply #'cheque direction :cheque-id (cheque-id new-cheque) (params->filter))))))
 

@@ -44,11 +44,13 @@
 ;;; Utilities
 ;;; ------------------------------------------------------------
 
-(defun tx-roles (role)
+(defun tx-roles (&optional role)
   (if role
       (list (make-keyword (string-upcase role)))
       (list :customer :supplier)))
 
+(defun customer-p (role)
+  (string-equal role "customer"))
 
 
 ;;; ------------------------------------------------------------

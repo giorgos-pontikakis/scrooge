@@ -159,7 +159,7 @@
                              :from 'cheque-stran
                              :inner-join 'temtx
                              :on (:= 'temtx-id 'temtx.id)
-                             :where (:= 'receivable-p (incoming-p direction)))
+                             :where (:= 'receivable-p (incoming-p (direction table))))
                     'cheque-stran.title)
          :plists))
 

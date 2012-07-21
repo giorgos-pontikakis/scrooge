@@ -87,11 +87,11 @@
 
 (defmethod get-records ((table invoice-tx-table))
   (labels ((invoice-receivable/payable-account (kind)
-             (if (invoice-debit-p kind)
+             (if (debit-invoice-p kind)
                  'tx.debit-acc-id
                  'tx.credit-acc-id))
            (invoice-revenues/expenses-account (kind)
-             (if (invoice-debit-p kind)
+             (if (debit-invoice-p kind)
                  'tx.credit-acc-id
                  'tx.debit-acc-id))
            (invoice-base-where (direction kind)
@@ -229,22 +229,22 @@
 ;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun invoice-debit-p (kind)
+(defun debit-invoice-p (kind)
   (string-equal kind "debit"))
 
 (defun invoice-debit-acc-id (direction kind account-id)
-  (if (invoice-debit-p kind)
+  (if (debit-invoice-p kind)
       (receivable/payable-root direction)
       account-id))
 
 (defun invoice-credit-acc-id (direction kind account-id)
-  (if (invoice-debit-p kind)
+  (if (debit-invoice-p kind)
       account-id
       (receivable/payable-root direction)))
 
 (defun invoice-page-title (direction kind op-label)
   (let ((kind-label
-          (if (invoice-debit-p kind) "Χρεώσεις" "Πιστώσεις"))
+          (if (debit-invoice-p kind) "Χρεώσεις" "Πιστώσεις"))
         (direction-label
           (if (incoming-p direction) "Πελάτες" "Προμηθευτές")))
     (conc direction-label " » " kind-label " » " op-label)))
@@ -257,7 +257,7 @@
 
 (defun invoice-top-actions (op)
   (let* ((kind (second *registers*))
-         (new-invoice-label (conc "Νέα " (if (invoice-debit-p kind) "Χρέωση" "Πίστωση"))))
+         (new-invoice-label (conc "Νέα " (if (debit-invoice-p kind) "Χρέωση" "Πίστωση"))))
     (top-actions-area
      (make-instance 'scrooge-menu
                     :spec (make-menu-spec
@@ -298,7 +298,7 @@
                               :root-key root-key
                               :debit-p (not incoming-p)
                               :selected-key (or (getf record :account-id)
-                                                (getf record (if (invoice-debit-p kind)
+                                                (getf record (if (debit-invoice-p kind)
                                                                  :credit-acc-id
                                                                  :debit-acc-id))
                                                 root-key))))

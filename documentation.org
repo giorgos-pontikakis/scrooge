@@ -1,27 +1,45 @@
-|----------------------------------+---------------------------+------------------------|
-| ΣΥΝΑΛΛΑΓH                        | INCOMING                  | OUTGOING               |
-|----------------------------------+---------------------------+------------------------|
-| Έκδοση χρεωστικού τιμολογίου     | debit expenses            | debit receivable-root  |
-|                                  | credit payable-root       | credit revenues        |
-|                                  |                           |                        |
-| Έκδοση πιστωτικού τιμολογίου     | debit payable-root        | debit revenues         |
-|                                  | credit expenses           | credit receivable-root |
-|----------------------------------+---------------------------+------------------------|
-| Πληρωμή μετρητοίς (έναντι)       | debit cash                | debit payable-root     |
-|                                  | credit receivable-root    | credit cash            |
-|                                  |                           |                        |
-| Πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                | debit expenses         |
-|                                  | credit revenues           | credit cash            |
-|----------------------------------+---------------------------+------------------------|
-| Πληρωμή με επιταγή (έναντι)      | debit cheques-receivable  | debit payable-root     |
-|                                  | credit receivable-root    | credit cheques-payable |
-|                                  |                           |                        |
-| Πληρωμή με επιταγή (απ' ευθείας) | <not supported>           | <not supported>        |
-|                                  |                           |                        |
-|----------------------------------+---------------------------+------------------------|
-| Είσπραξη επιταγής                | debit cash                | debit cheques-payable  |
-|                                  | credit cheques-receivable | credit cash            |
-|                                  |                           |                        |
-| Σφράγισμα/ακύρωση επιταγής       | debit receivable-root     | debit cheques-payable  |
-|                                  | credit cheques-receivable | credit payable-root    |
-|----------------------------------+---------------------------+------------------------|
+
+#+TITLE: SCROOGE DOCUMENTATION
+
+
+* ΔΙΑΧΩΡΙΣΜΟΣ ΣΥΝΑΛΛΑΓΩΝ ΠΕΛΑΤΗ - ΠΡΟΜΗΘΕΥΤΗ
+
+Οι πιθανές συναλλαγές που μπορούν να γίνουν με τις εταιρίες είναι οι παρακάτω:
+
+|---+--------------------------------------+---------------------------+------------------------|
+|   | ΣΥΝΑΛΛΑΓH                            | ΕΙΣΕΡΧΟΜΕΝΗ (INCOMING)    | ΕΞΕΡΧΟΜΕΝΗ (OUTGOING)  |
+|---+--------------------------------------+---------------------------+------------------------|
+| 1 | Έκδοση χρεωστικού τιμολογίου         | debit expenses            | debit receivable-root  |
+|   |                                      | credit payable-root       | credit revenues        |
+|   |                                      |                           |                        |
+| 2 | Έκδοση πιστωτικού τιμολογίου         | debit payable-root        | debit revenues         |
+|   |                                      | credit expenses           | credit receivable-root |
+|---+--------------------------------------+---------------------------+------------------------|
+| 3 | Πληρωμή μετρητοίς (έναντι)           | debit cash                | debit payable-root     |
+|   |                                      | credit receivable-root    | credit cash            |
+|   |                                      |                           |                        |
+| 4 | Πληρωμή μετρητοίς (απ' ευθείας)      | debit cash                | debit expenses         |
+|   |                                      | credit revenues           | credit cash            |
+|---+--------------------------------------+---------------------------+------------------------|
+| 5 | Πληρωμή με επιταγή (έναντι)          | debit cheques-receivable  | debit payable-root     |
+|   |                                      | credit receivable-root    | credit cheques-payable |
+|   |                                      |                           |                        |
+| 6 | Πληρωμή με επιταγή (απ' ευθείας)     | <not supported>           | <not supported>        |
+|   |                                      |                           |                        |
+|---+--------------------------------------+---------------------------+------------------------|
+| 7 | Είσπραξη επιταγής                    | debit cash                | debit cheques-payable  |
+|   |                                      | credit cheques-receivable | credit cash            |
+|   |                                      |                           |                        |
+| 8 | Σφράγισμα/ακύρωση/επιστροφή επιταγής | debit receivable-root     | debit cheques-payable  |
+|   |                                      | credit cheques-receivable | credit payable-root    |
+|---+--------------------------------------+---------------------------+------------------------|
+
+Όταν μια επιχείριση έχει ρόλο προμηθευτή, οι συναλλαγές που την
+αφορούν είναι:
+- Εισερχόμενες 1-2
+- Εξερχόμενες  3-8
+
+Αντιστρόφως, όταν μια επιχείριση έχει ρόλο πελάτη, οι συναλλαγές που
+την αφορούν είναι:
+- Εξερχόμενες  1-2
+- Εισερχόμενες 3-8

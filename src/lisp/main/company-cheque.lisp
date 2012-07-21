@@ -391,7 +391,7 @@
                                      :due-date (val due-date)
                                      :amount (val amount)
                                      :receivable-p (incoming-p direction)
-                                     :state-id "pending")))
+                                     :state-id *default-cheque-state*)))
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque direction :company-id (val company-id)
                                                    :cheque-id (cheque-id new-cheque)
