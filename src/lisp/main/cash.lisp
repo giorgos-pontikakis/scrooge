@@ -221,8 +221,8 @@
       account-id
       (account-id 'cash-account)))
 
-(defun cash-page-title (direction)
-  (if (incoming-p direction) "Έσοδα" "Έξοδα"))
+(defun cash-page-title (direction op-label)
+  (conc "Μετρητά »" (if (incoming-p direction) "Έσοδα" "Έξοδα") " » " op-label))
 
 
 
@@ -349,7 +349,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc (cash-page-title direction) " » Κατάλογος"))
+           (page-title (cash-page-title direction "Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :direction direction
                                          :op :catalogue
@@ -397,7 +397,7 @@
                                      :op :details
                                      :key (val tx-id)
                                      :cancel-url (apply #'cash direction :tx-id (val tx-id) filter)))
-           (page-title (conc (cash-page-title direction) " » Λεπτομέρειες")))
+           (page-title (cash-page-title direction "Λεπτομέρειες")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -437,7 +437,7 @@
                                      :direction direction
                                      :op :create
                                      :cancel-url (apply #'cash direction filter)))
-           (page-title (conc (cash-page-title direction) " » Δημιουργία")))
+           (page-title (cash-page-title direction "Δημιουργία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -514,7 +514,7 @@
                                      :cancel-url (apply #'cash/details direction
                                                         :tx-id (val tx-id)
                                                         filter)))
-           (page-title (conc (cash-page-title direction) " » Επεξεργασία")))
+           (page-title (cash-page-title direction "Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -579,7 +579,7 @@
   (with-view-page
     (check-cash-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc (cash-page-title direction) " » Διαγραφή"))
+           (page-title (cash-page-title direction "Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op :delete
                                          :direction direction

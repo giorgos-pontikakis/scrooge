@@ -92,8 +92,8 @@
 ;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun cheque-page-title (direction)
-  (if (incoming-p direction) "Εισπρακτέες" "Πληρωτέες"))
+(defun cheque-page-title (direction op-label)
+  (conc "Επιταγές » " (if (incoming-p direction) "Εισπρακτέες" "Πληρωτέες") " » " op-label))
 
 
 
@@ -421,7 +421,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Κατάλογος"))
+           (page-title (cheque-page-title direction "Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
                                         :direction direction
@@ -462,7 +462,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Λεπτομέρειες"))
+           (page-title (cheque-page-title direction "Λεπτομέρειες"))
            (cheque-form (make-instance 'cheque-form
                                        :direction direction
                                        :op :details
@@ -507,7 +507,7 @@
   (with-view-page
     (check-cheque-accounts)
     (let* ((filter (params->filter))
-           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Δημιουργία"))
+           (page-title (cheque-page-title direction "Δημιουργία"))
            (cheque-table (make-instance 'cheque-table
                                         :direction direction
                                         :op :create
@@ -589,7 +589,7 @@
                                                           direction
                                                           :cheque-id (val cheque-id)
                                                           filter)))
-           (page-title (conc "Επιταγές » " (cheque-page-title direction) " » Επεξεργασία")))
+           (page-title (cheque-page-title direction "Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -659,7 +659,7 @@
      (until     date    chk-date))
   (with-view-page
     (check-cheque-accounts)
-    (let* ((page-title (conc "Επιταγές » " (cheque-page-title direction) " » Διαγραφή"))
+    (let* ((page-title (cheque-page-title direction "Διαγραφή"))
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
                                         :direction direction
