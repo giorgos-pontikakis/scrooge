@@ -22,7 +22,11 @@
        (:company-title-unknown
         "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
         :company-title-null
-        "Η επωνυμία της εταιρίας είναι κενή"))
+        "Η επωνυμία της εταιρίας είναι κενή"
+        :company-outgoing-only
+        "Αυτή η εταιρία δεν μπορεί να εμφανίζει έσοδα."
+        :company-incoming-only
+        "Αυτή η εταιρία δεν μπορεί να εμφανίζει έξοδα."))
       (amount
        (:empty-amount
         "Το ποσό της συναλλαγής είναι κενό"
@@ -222,7 +226,7 @@
       (account-id 'cash-account)))
 
 (defun cash-page-title (direction op-label)
-  (conc "Μετρητά »" (if (incoming-p direction) "Έσοδα" "Έξοδα") " » " op-label))
+  (conc "Μετρητά » " (if (incoming-p direction) "Έσοδα" "Έξοδα") " » " op-label))
 
 
 
@@ -252,7 +256,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass cash-form (tx-form)
-  ())
+  ((direction :accessor direction :initarg :direction)))
 
 (defmethod display ((form cash-form) &key styles)
   (let* ((incoming-p (incoming-p (direction form)))
@@ -264,7 +268,8 @@
          (selected-key (or (getf record :account-id)
                            (getf record (if incoming-p
                                             :credit-acc-id
-                                            :debit-acc-id)))))
+                                            :debit-acc-id))
+                           revenues/expenses-root-key)))
     (with-html
       (:div :id "cash-data-form" :class "data-form"
         (:div :class "grid_5 prefix_1 alpha"
@@ -285,14 +290,13 @@
         (htm (:div :class "grid_5 omega"
                (:h3 (str (conc "Λογαριασμός " (if incoming-p "πίστωσης" "χρέωσης"))))
                ;;
-               (:div :class "cash-only-hidden"
+               (:div :class "hidden-when-immediate-tx-only"
                  (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
                  (display (make-instance 'rev/exp-account-tree
                                          :disabled disabled
                                          :root-key receivable/payable-root-key
                                          :debit-p incoming-p
-                                         :selected-key (or selected-key
-                                                           receivable/payable-root-key))))
+                                         :selected-key selected-key)))
                ;;
                (:div :class "company-dependent"
                  (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
@@ -346,8 +350,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (page-title (cash-page-title direction "Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
@@ -389,8 +393,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :direction direction
@@ -430,8 +434,9 @@
      (search      string)
      (since       date)
      (until       date))
+  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :direction direction
@@ -470,8 +475,9 @@
      (search      string)
      (since       date)
      (until       date))
+  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (check-cash-accounts)
   (with-controller-page (cash/create direction)
-    (check-cash-accounts)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (cash-debit-acc-id direction (val account-id)))
            (credit-acc-id (cash-credit-acc-id direction (val account-id)))
@@ -504,8 +510,9 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id))
+  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :direction direction
@@ -549,8 +556,9 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id))
+  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (check-cash-accounts)
   (with-controller-page (cash/update direction)
-    (check-cash-accounts)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (cash-debit-acc-id direction (val account-id)))
           (credit-acc-id (cash-credit-acc-id direction (val account-id))))
@@ -576,8 +584,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-view-page
-    (check-cash-accounts)
     (let* ((filter (params->filter))
            (page-title (cash-page-title direction "Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
@@ -613,7 +621,7 @@
      (search string)
      (since  date)
      (until  date))
+  (check-cash-accounts)
   (with-controller-page (cash/delete)
-    (check-cash-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'cash direction (params->filter)))))

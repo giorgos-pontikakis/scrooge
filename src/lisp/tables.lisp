@@ -111,8 +111,8 @@
                         :initarg :revenues-account-id)
    (expenses-account-id :col-type integer    :accessor expenses-account-id
                         :initarg :expenses-account-id)
-   (cash-only-p         :col-type boolean    :accessor cash-only-p
-                        :initarg :cash-only-p))
+   (immediate-tx-only-p :col-type boolean    :accessor immediate-tx-only-p
+                        :initarg :immediate-tx-only-p))
   (:metaclass dao-class)
   (:keys id))
 

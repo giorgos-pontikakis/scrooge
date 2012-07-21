@@ -99,25 +99,28 @@ function selectableRows () {
 }
 
 function autoSelectAccount () {
-   $("input.ac-company").bind("autocompleteclose", clickAccount);
-   $("input.ac-company").bind("blur", clickAccount);
+   var companyInp = $(".data-form input.ac-company");
+   companyInp.bind("autocompleteclose", clickAccount);
+   companyInp.bind("blur", clickAccount);
+   // Also apply clickAccount using companyInp as the value of this.
+   // Useful when the input field contains a default value
+   // clickAccount.apply(companyInp);
 }
 
 function clickAccount () {
    var title = $(this).val();
    var url = "/scrooge/company/accounts?title=" + title;
    $.getJSON(url, function (data) {
-      if (data.cashOnly) {
-         // only accepting cash, hide accounts payable/receivable
-         $(".cash-only-hidden").hide();
-         var isRevenue = $(".company-dependent input[value=" + data.accountIDs[0] + "]").length === 1;
-         var accountID = isRevenue ? data.accountIDs[1][0] : data.accountIDs[1][1];
-         var jq = ".company-dependent input[type=radio][value=" + accountID +  "]";
-         $(jq).click();
+      if (data.immediateTxOnly) {
+         // only accepting cash; hide accounts payable/receivable
+         $(".hidden-when-immediate-tx-only").hide();
       } else {
          // accepts debits/credits; show accounts payable/receivable
-         $(".cash-only-hidden").show();
-         $(".cash-only-hidden input:first").click();
+         $(".hidden-when-immediate-tx-only").show();
       }
+      var isRevenue = $(".company-dependent input[value=" + data.accountIDs[0] + "]").length === 1;
+      var accountID = isRevenue ? data.accountIDs[1][0] : data.accountIDs[1][1];
+      var jq = ".company-dependent input[type=radio][value=" + accountID +  "]";
+      $(jq).click();
    });
 }

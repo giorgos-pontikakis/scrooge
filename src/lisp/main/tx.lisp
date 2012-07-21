@@ -94,26 +94,26 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass tx-form (crud-form/plist)
-  ((kind :accessor kind :initarg :kind)))
+  ())
 
 (defmethod get-record ((form tx-form))
   (if-let (tx-id (key form))
     (query (:select 'tx.id 'tx-date
-                    (:as 'company.title 'company)
-                    'description
-                    (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
-                    (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
-                    'tx.debit-acc-id
-                    'tx.credit-acc-id
-                    'amount 'company-id
-            :from 'tx
-            :left-join 'company
-            :on (:= 'tx.company-id 'company.id)
-            :left-join (:as 'account 'non-chq-debit-acc)
-            :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
-            :left-join (:as 'account 'non-chq-credit-acc)
-            :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
-            :where (:= 'tx.id tx-id))
+             (:as 'company.title 'company)
+             'description
+             (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
+             (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
+             'tx.debit-acc-id
+             'tx.credit-acc-id
+             'amount 'company-id
+             :from 'tx
+             :left-join 'company
+             :on (:= 'tx.company-id 'company.id)
+             :left-join (:as 'account 'non-chq-debit-acc)
+             :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
+             :left-join (:as 'account 'non-chq-credit-acc)
+             :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
+             :where (:= 'tx.id tx-id))
            :plist)
     nil))
 

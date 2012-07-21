@@ -23,12 +23,12 @@
         "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
         :company-title-null
         "Η επωνυμία της εταιρίας είναι κενή"
-        :company-cash-only
-        "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"
+        :company-immediate-tx-only
+        "Επιτρέπονται μόνο συναλλαγές απ' ευθείας εξόφλησης (όχι έναντι ανοιχτού λογαριασμού) με αυτή την εταιρία"
         :company-outgoing-only
-        "Επιτρέπονται μόνο χρεωπιστώσεις προμηθευτή για αυτή την εταιρία."
+        "Αυτή η εταιρία δεν μπορεί να εμφανίζει έσοδα."
         :company-incoming-only
-        "Επιτρέπονται μόνο χρεωπιστώσεις προμηθευτή για αυτή την εταιρία."))
+        "Αυτή η εταιρία δεν μπορεί να εμφανίζει έξοδα."))
       (amount
        (:empty-amount
         "Το ποσό της συναλλαγής είναι κενό"
@@ -282,7 +282,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass invoice-form (tx-form)
-  ((direction :accessor direction :initarg :direction)))
+  ((direction :accessor direction :initarg :direction)
+   (kind      :accessor kind      :initarg :kind)))
 
 (defmethod display ((form invoice-form) &key styles)
   (let* ((direction (direction form))
@@ -385,8 +386,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-invoice-accounts)
   (with-view-page
-    (check-invoice-accounts)
     (let* ((filter (params->filter))
            (page-title (invoice-page-title direction kind "Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
@@ -467,8 +468,8 @@
      (since       date)
      (until       date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-invoice-accounts)
   (with-view-page
-    (check-invoice-accounts)
     (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :direction direction
@@ -510,8 +511,8 @@
      (since       date)
      (until       date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-invoice-accounts)
   (with-controller-page (invoice/create direction kind)
-    (check-invoice-accounts)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (invoice-debit-acc-id direction kind (val account-id)))
            (credit-acc-id (invoice-credit-acc-id direction kind (val account-id)))
@@ -545,8 +546,8 @@
      (since       date)
      (until       date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-invoice-accounts)
   (with-view-page
-    (check-invoice-accounts)
     (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
                                         :direction direction
@@ -593,8 +594,8 @@
      (since       date)
      (until       date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-invoice-accounts)
   (with-controller-page (invoice/update direction kind)
-    (check-invoice-accounts)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (invoice-debit-acc-id direction kind (val account-id)))
           (credit-acc-id (invoice-credit-acc-id direction kind (val account-id))))
@@ -621,8 +622,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-invoice-accounts)
   (with-view-page
-    (check-invoice-accounts)
     (let* ((filter (params->filter))
            (page-title (invoice-page-title direction kind "Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
@@ -660,8 +661,8 @@
      (search string)
      (since  date)
      (until  date))
+  (check-invoice-accounts)
   (with-controller-page (invoice/delete direction kind)
-    (check-invoice-accounts)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'invoice direction kind
                       (params->filter)))))

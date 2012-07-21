@@ -32,12 +32,12 @@
                   "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
                   :company-title-null
                   "Η επωνυμία της εταιρίας είναι κενή"
-                  :company-cash-only
-                  "Επιτρέπονται μόνο συναλλαγές μετρητών με αυτή την εταιρία"
-                  :company-supplier-only
-                  "Επιτρέπονται μόνο πληρωτέες επιταγές για αυτή την εταιρία."
-                  :company-customer-only
-                  "Επιτρέπονται μόνο εισπρακτέες επιταγές για αυτή την εταιρία."))
+                  :company-immediate-tx-only
+                  "Επιτρέπονται μόνο συναλλαγές απ' ευθείας εξόφλησης (όχι έναντι ανοιχτού λογαριασμού) με αυτή την εταιρία"
+                  :company-outgoing-only
+                  "Αυτή η εταιρία δεν μπορεί να εμφανίζει έσοδα."
+                  :company-incoming-only
+                  "Αυτή η εταιρία δεν μπορεί να εμφανίζει έξοδα."))
                 (amount
                  (:empty-amount
                   "Το ποσό της επιταγής είναι κενό"
@@ -418,8 +418,8 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (page-title (cheque-page-title direction "Κατάλογος"))
            (cheque-table (make-instance 'cheque-table
@@ -459,8 +459,8 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (page-title (cheque-page-title direction "Λεπτομέρειες"))
            (cheque-form (make-instance 'cheque-form
@@ -504,8 +504,8 @@
      (since    date   chk-date)
      (until    date   chk-date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (page-title (cheque-page-title direction "Δημιουργία"))
            (cheque-table (make-instance 'cheque-table
@@ -546,8 +546,8 @@
      (due-date date   chk-date            t)
      (amount   float  chk-amount          t))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-cheque-accounts)
   (with-controller-page (cheque/create direction)
-    (check-cheque-accounts)
     (let ((new-cheque (make-instance 'cheque
                                      :serial (val serial)
                                      :bank-id (bank-id (val bank))
@@ -578,8 +578,8 @@
      (since     date    chk-date)
      (until     date    chk-date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (cheque-form (make-instance 'cheque-form
                                        :direction direction
@@ -627,8 +627,8 @@
      (since     date    chk-date)
      (until     date    chk-date))
   (validate-parameters (chk-tx-constraints-fn direction) company)
+  (check-cheque-accounts)
   (with-controller-page (cheque/update direction)
-    (check-cheque-accounts)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
            (old-state-id (state-id cheque-dao))
            (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
@@ -657,8 +657,8 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((page-title (cheque-page-title direction "Διαγραφή"))
            (filter (params->filter))
            (cheque-table (make-instance 'cheque-table
@@ -696,7 +696,7 @@
      (since     date    chk-date)
      (until     date    chk-date)
      (cheque-id integer chk-cheque-id       t))
+  (check-cheque-accounts)
   (with-controller-page (cheque/delete direction)
-    (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val cheque-id)))
     (see-other (apply #'cheque direction (params->filter)))))

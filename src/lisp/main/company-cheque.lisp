@@ -18,6 +18,15 @@
   ())
 
 
+;;; ------------------------------------------------------------
+;;; Utilities
+;;; ------------------------------------------------------------
+
+(defun company-cheque-page-title (direction op-label)
+  (conc "Εταιρία » Λεπτομέρειες » "
+        (cheque-page-title direction op-label)))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; Company cheque table
@@ -207,8 +216,8 @@
      (since      date)
      (until      date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :catalogue
@@ -217,8 +226,7 @@
                                         :start-index (val start)
                                         :direction direction
                                         :company-id (val company-id)))
-           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
-                             (cheque-page-title direction))))
+           (page-title (company-cheque-page-title direction "Κατάλογος")))
       (with-document ()
         (:head
           (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
@@ -328,8 +336,8 @@
      (since      date    chk-date)
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :create
@@ -337,9 +345,7 @@
                                         :start-index (val start)
                                         :direction direction
                                         :company-id (val company-id)))
-           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
-                             (cheque-page-title direction)
-                             " » Δημιουργία")))
+           (page-title (company-cheque-page-title direction "Δημιουργία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -382,8 +388,8 @@
      (since      date    chk-date)
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-controller-page (company/cheque/create direction)
-    (check-cheque-accounts)
     (let ((new-cheque (make-instance 'cheque
                                      :serial (val serial)
                                      :bank-id (bank-id (val bank))
@@ -417,8 +423,8 @@
      (since      date    chk-date)
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :update
@@ -427,9 +433,7 @@
                                         :filter filter
                                         :start-index (val start)
                                         :company-id (val company-id)))
-           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
-                             (cheque-page-title direction)
-                             " » Επεξεργασία")))
+           (page-title (company-cheque-page-title direction "Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -474,8 +478,8 @@
      (since      date    chk-date)
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-controller-page (company/cheque/update direction)
-    (check-cheque-accounts)
     (let ((cheque-dao (get-dao 'cheque (val cheque-id))))
       ;; Don't touch company-id, state-id and receivable-p
       (setf (bank-id cheque-dao) (bank-id (val bank))
@@ -504,8 +508,8 @@
      (since      date    chk-date)
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-view-page
-    (check-cheque-accounts)
     (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
                                         :op :delete
@@ -514,9 +518,7 @@
                                         :start-index (val start)
                                         :direction direction
                                         :company-id (val company-id)))
-           (page-title (conc "Εταιρία » Λεπτομέρειες » Επιταγές "
-                             (cheque-page-title direction)
-                             " » Διαγραφή")))
+           (page-title (company-cheque-page-title direction "Διαγραφή")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -558,7 +560,7 @@
      (since      date    chk-date)
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
+  (check-cheque-accounts)
   (with-controller-page (company/cheque/delete direction)
-    (check-cheque-accounts)
     (delete-dao (get-dao 'cheque (val cheque-id)))
     (see-other (apply #'company/cheque direction :company-id (val company-id) (params->filter)))))
