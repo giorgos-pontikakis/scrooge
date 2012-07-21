@@ -56,7 +56,7 @@
 
 ;;; COMPANY DEBITS - CREDITS
 
-(defun company-debits (company-id issuers &optional since until)
+(defun company-debits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
                       (:as tx.amount debit-amount) cheque.due-date cheque.state-id
                       :from tx
@@ -67,9 +67,9 @@
         (where-base `(:= tx.company-id ,company-id))
         (where-tx '())
         (where-dates nil))
-    (when (member :customer issuers)
+    (when (member :customer roles)
       (push (customer-debits) where-tx))
-    (when (member :supplier issuers)
+    (when (member :supplier roles)
       (push (supplier-cash-debits) where-tx)
       (push (supplier-contra-debits) where-tx)
       (push (supplier-cheque-debits) where-tx))
@@ -85,7 +85,7 @@
       (query (sql-compile sql)
              :plists))))
 
-(defun company-credits (company-id issuers &optional since until)
+(defun company-credits (company-id roles &optional since until)
   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
                       (:as tx.amount credit-amount) cheque.due-date cheque.state-id
                       :from tx
@@ -96,11 +96,11 @@
         (where-base `(:= tx.company-id ,company-id))
         (where-tx `())
         (where-dates nil))
-    (when (member :customer issuers)
+    (when (member :customer roles)
       (push (customer-cash-credits) where-tx)
       (push (customer-contra-credits) where-tx)
       (push (customer-cheque-credits) where-tx))
-    (when (member :supplier issuers)
+    (when (member :supplier roles)
       (push (supplier-credits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
@@ -114,13 +114,13 @@
       (query (sql-compile sql)
              :plists))))
 
-(defun company-debits/credits (company-id issuers since until &key reverse-p)
+(defun company-debits/credits (company-id roles since until &key reverse-p)
   (flet ((get-tx-date (row)
            (getf row :tx-date))
          (get-tx-key (row)
            (getf row :id)))
-    (let* ((company-debits (company-debits company-id issuers))
-           (company-credits (company-credits company-id issuers))
+    (let* ((company-debits (company-debits company-id roles))
+           (company-credits (company-credits company-id roles))
            (merged (dolist (d company-debits (nconc company-debits company-credits))
                      (let ((credit-amount (dolist (c company-credits)
                                             (when (eql (get-tx-key c) (get-tx-key d))
@@ -172,7 +172,7 @@
 
 
 
-;;; ACCOUNTS
+;;; ACCOUNTS PER DIRECTION
 
 (defun incoming-p (direction)
   (string-equal direction "incoming"))

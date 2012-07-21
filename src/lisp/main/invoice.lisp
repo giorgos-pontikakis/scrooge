@@ -150,9 +150,9 @@
         (kind (kind tbl))
         (filter (filter tbl)))
     (filter-area (filter-navbar `((incoming ,(apply #'invoice "incoming" "debit" filter)
-                                            "Πελάτες")
+                                            "Πελάτες (Εισερχόμενα)")
                                   (outgoing ,(apply #'invoice "outgoing" "credit" filter)
-                                            "Προμηθευτές"))
+                                            "Προμηθευτές (Εξερχόμενα)"))
                                 :active direction
                                 :id "direction-navbar")
                  (filter-navbar `((debit ,(apply #'invoice direction "debit" filter)

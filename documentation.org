@@ -1,0 +1,27 @@
+|----------------------------------+---------------------------+------------------------|
+| ΣΥΝΑΛΛΑΓH                        | INCOMING                  | OUTGOING               |
+|----------------------------------+---------------------------+------------------------|
+| Έκδοση χρεωστικού τιμολογίου     | debit expenses            | debit receivable-root  |
+|                                  | credit payable-root       | credit revenues        |
+|                                  |                           |                        |
+| Έκδοση πιστωτικού τιμολογίου     | debit payable-root        | debit revenues         |
+|                                  | credit expenses           | credit receivable-root |
+|----------------------------------+---------------------------+------------------------|
+| Πληρωμή μετρητοίς (έναντι)       | debit cash                | debit payable-root     |
+|                                  | credit receivable-root    | credit cash            |
+|                                  |                           |                        |
+| Πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                | debit expenses         |
+|                                  | credit revenues           | credit cash            |
+|----------------------------------+---------------------------+------------------------|
+| Πληρωμή με επιταγή (έναντι)      | debit cheques-receivable  | debit payable-root     |
+|                                  | credit receivable-root    | credit cheques-payable |
+|                                  |                           |                        |
+| Πληρωμή με επιταγή (απ' ευθείας) | <not supported>           | <not supported>        |
+|                                  |                           |                        |
+|----------------------------------+---------------------------+------------------------|
+| Είσπραξη επιταγής                | debit cash                | debit cheques-payable  |
+|                                  | credit cheques-receivable | credit cash            |
+|                                  |                           |                        |
+| Σφράγισμα/ακύρωση επιταγής       | debit receivable-root     | debit cheques-payable  |
+|                                  | credit cheques-receivable | credit payable-root    |
+|----------------------------------+---------------------------+------------------------|

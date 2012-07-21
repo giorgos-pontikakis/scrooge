@@ -8,9 +8,9 @@
 (defclass company-tx-family (family-mixin)
   ()
   (:default-initargs :parameter-groups '(:system (company-id tx-id start
-                                                  subset issuer)   ;; checked filter parameters
+                                                  subset role)   ;; checked filter parameters
                                          :payload (tx-date description debit-amount credit-amount)
-                                         :filter (search subset issuer since until))))
+                                         :filter (search subset role since until))))
 
 (defclass company-tx-page (auth-dynamic-page company-tx-family)
   ((messages
@@ -32,11 +32,22 @@
         :parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
 
-(defun chk-issuer (issuer)
-  (if (or (eql issuer :null)
-          (member issuer '("customer" "supplier") :test #'string-equal))
+(defun chk-role (role)
+  (if (or (eql role :null)
+          (member role '("customer" "supplier") :test #'string-equal))
       nil
-      :invalid-issuer))
+      :invalid-role))
+
+
+
+;;; ------------------------------------------------------------
+;;; Utilities
+;;; ------------------------------------------------------------
+
+(defun tx-roles (role)
+  (if role
+      (list (make-keyword (string-upcase role)))
+      (list :customer :supplier)))
 
 
 
@@ -92,17 +103,17 @@
 (defmethod filters ((tbl company-tx-table))
   (let* ((company-id (company-id tbl))
          (filter (filter tbl))
-         (filter* (remove-from-plist filter :issuer))
+         (filter* (remove-from-plist filter :role))
          (filter-spec `((nil      ,(apply #'company/tx :company-id company-id filter*)
                                   "Μικτός ρόλος")
                         (customer  ,(apply #'company/tx :company-id company-id
-                                                        :issuer "customer" filter*)
-                                   "Πελάτης")
+                                                        :role "customer" filter*)
+                                   "Προμηθευτής")
                         (supplier ,(apply #'company/tx :company-id company-id
-                                                       :issuer "supplier" filter*)
-                                  "Προμηθευτής"))))
+                                                       :role "supplier" filter*)
+                                  "Πελάτης"))))
     (secondary-filter-area (filter-navbar filter-spec
-                                          :active (getf filter :issuer))
+                                          :active (getf filter :role))
                            (datebox #'company/tx
                                     (list* :company-id company-id filter)))))
 
@@ -124,7 +135,7 @@
                                         :start start filter)
                     (apply #'company/tx :company-id company-id
                                         :tx-id tx-id filter))
-          (selector-img selected-p)))))
+        (selector-img selected-p)))))
 
 (defmethod controls ((row company-tx-row) controls-p)
   (let ((tx-id (key row))
@@ -188,16 +199,14 @@
      (start      integer)
      (search     string)
      (subset     string  chk-subset)
-     (issuer     string  chk-issuer)
+     (role       string  chk-role)
      (since      date)
      (until      date))
   (with-view-page
     (let ((filter (params->filter))
-          (issuers (if (val issuer)
-                     (list (make-keyword (string-upcase (val issuer))))
-                     (list :customer :supplier))))
+          (roles (tx-roles (val role))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val company-id) issuers (val since) (val until) :reverse-p t)
+          (company-debits/credits (val company-id) roles (val since) (val until) :reverse-p t)
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
@@ -207,76 +216,74 @@
                                                :start-index (val start))))
           (with-document ()
             (:head
-             (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
-             (main-headers))
+              (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
+              (main-headers))
             (:body
-             (:div :id "container" :class "container_12"
-                   (header)
-                   (main-navbar 'company)
-                   (company-tx-top-actions :catalogue)
-                   (company-tabs
-                    (val company-id) filter 'tx
-                    (html ()
-                      (filters company-tx-table)
-                      (:div :id "company-tx-window" :class "window"
-                            (:div :class "title" "Συναλλαγές")
-                            (actions company-tx-table)
-                            (display company-tx-table)
-                            (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                            (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                            (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
-                   (footer)))))))))
+              (:div :id "container" :class "container_12"
+                (header)
+                (main-navbar 'company)
+                (company-tx-top-actions :catalogue)
+                (company-tabs
+                 (val company-id) filter 'tx
+                 (html ()
+                   (filters company-tx-table)
+                   (:div :id "company-tx-window" :class "window"
+                     (:div :class "title" "Συναλλαγές")
+                     (actions company-tx-table)
+                     (display company-tx-table)
+                     (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                     (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                     (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                (footer)))))))))
 
 (defpage company-tx-page company/tx/print ("company/tx/print")
     ((company-id integer chk-company-id t)
      (tx-id      integer chk-tx-id)
      (search     string)
      (subset     string  chk-subset)
-     (issuer     string  chk-issuer)
+     (role       string  chk-role)
      (since      date)
      (until      date))
   (with-view-page
     (let ((filter (params->filter))
-          (issuers (if (val issuer)
-                     (list (make-keyword (string-upcase (val issuer))))
-                     (list :customer :supplier))))
+          (roles (tx-roles (val role))))
       (multiple-value-bind (records debit-sum credit-sum)
-          (company-debits/credits (val company-id) issuers (val since) (val until))
+          (company-debits/credits (val company-id) roles (val since) (val until))
         (with-document ()
           (:head
-           (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
-           (print-headers))
+            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
+            (print-headers))
           (:body
-           (:div :id "container" :class "container_12"
-                 (:div :class "grid_12"
-                       (:a :id "back"
-                           :href (family-url 'company/tx :system :filter)
-                           "« Επιστροφή")
-                       (:div :id "company-tx-window" :class "window"
-                             (:div :class "title"
-                                   (:h1 (str (string-upcase-gr
-                                              (title (get-dao 'company (val company-id))))))
-                                   (:h2 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
-                                                                         (if (eql issuer "customer")
-                                                                             "πελάτης"
-                                                                             "προμηθευτής"))))
-                                   (:div :class "grid_4 omega"
-                                         (display (datebox (family-url-fn 'company/tx/print)
-                                                           (family-params 'company/tx/print
-                                                                          :system
-                                                                          :filter))))
-                                   (clear))
-                             (display (make-instance 'company-tx-table
-                                                     :records records
-                                                     :company-id (val company-id)
-                                                     :op :details
-                                                     :filter filter ; (append system filter misc)
-                                                     :paginator nil))
-                             (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
-                             (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
-                             (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
-                                                                    credit-sum))))
-                       (print-pages-footer)))))))))
+            (:div :id "container" :class "container_12"
+              (:div :class "grid_12"
+                (:a :id "back"
+                  :href (family-url 'company/tx :system :filter)
+                  "« Επιστροφή")
+                (:div :id "company-tx-window" :class "window"
+                  (:div :class "title"
+                    (:h1 (str (string-upcase-gr
+                               (title (get-dao 'company (val company-id))))))
+                    (:h2 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
+                                                          (if (customer-p role)
+                                                              "προμηθευτής"
+                                                              "πελάτης"))))
+                    (:div :class "grid_4 omega"
+                      (display (datebox (family-url-fn 'company/tx/print)
+                                        (family-params 'company/tx/print
+                                                       :system
+                                                       :filter))))
+                    (clear))
+                  (display (make-instance 'company-tx-table
+                                          :records records
+                                          :company-id (val company-id)
+                                          :op :details
+                                          :filter filter ; (append system filter misc)
+                                          :paginator nil))
+                  (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
+                  (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
+                  (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
+                                                         credit-sum))))
+                (print-pages-footer)))))))))
 
 
 
@@ -293,16 +300,14 @@
      (credit-amount float   chk-amount)
      (search        string)
      (subset        string  chk-subset)
-     (issuer        string  chk-issuer)
+     (role          string  chk-role)
      (since         date)
      (until         date))
   (with-view-page
     (let ((filter (params->filter))
-          (issuers (if (val issuer)
-                     (list (make-keyword (string-upcase (val issuer))))
-                     (list :customer :supplier))))
+          (roles (tx-roles (val role))))
       (multiple-value-bind (records debit-sum credit-sum total)
-          (company-debits/credits (val company-id) issuers (val since) (val until) :reverse-p t)
+          (company-debits/credits (val company-id) roles (val since) (val until) :reverse-p t)
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
@@ -311,34 +316,34 @@
                                                :filter filter)))
           (with-document ()
             (:head
-             (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Επεξεργασία")
-             (main-headers))
+              (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Επεξεργασία")
+              (main-headers))
             (:body
-             (:div :id "container" :class "container_12"
-                   (header)
-                   (main-navbar 'company)
-                   (company-tx-top-actions :update)
-                   (company-tabs
-                    (val company-id) filter 'tx
-                    (html ()
-                      (filters company-tx-table)
-                      (:div :id "company-tx-window" :class "window"
-                            (:div :class "title" "Συναλλαγές")
-                            (actions company-tx-table)
-                            (notifications)
-                            (with-form
-                                (actions/company/tx/update :company-id (val company-id)
-                                                           :tx-id (val tx-id)
-                                                           :search (val search)
-                                                           :subset (val subset)
-                                                           :since (val since)
-                                                           :until (val until)
-                                                           :issuer (val issuer))
-                              (display company-tx-table :payload (params->payload)))
-                            (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                            (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                            (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
-                   (footer)))))))))
+              (:div :id "container" :class "container_12"
+                (header)
+                (main-navbar 'company)
+                (company-tx-top-actions :update)
+                (company-tabs
+                 (val company-id) filter 'tx
+                 (html ()
+                   (filters company-tx-table)
+                   (:div :id "company-tx-window" :class "window"
+                     (:div :class "title" "Συναλλαγές")
+                     (actions company-tx-table)
+                     (notifications)
+                     (with-form
+                         (actions/company/tx/update :company-id (val company-id)
+                                                    :tx-id (val tx-id)
+                                                    :search (val search)
+                                                    :subset (val subset)
+                                                    :since (val since)
+                                                    :until (val until)
+                                                    :role (val role))
+                       (display company-tx-table :payload (params->payload)))
+                     (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                     (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                     (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                (footer)))))))))
 
 (defpage company-tx-page actions/company/tx/update
     ("actions/company/tx/update" :request-type :post)
@@ -350,7 +355,7 @@
      (credit-amount float   chk-amount)
      (search        string)
      (subset        string  chk-subset)
-     (issuer        string  chk-issuer)
+     (role          string  chk-role)
      (since         date)
      (until         date))
   (with-controller-page (company/tx/update)

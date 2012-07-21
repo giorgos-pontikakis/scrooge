@@ -228,8 +228,8 @@
     display: inline;
 }
 
-/* override display property for kind-navbar  */
-#cheque-kind-navbar {
+/* override display property for direction-navbar  */
+#cheque-direction-navbar {
     display: block;
 }
 

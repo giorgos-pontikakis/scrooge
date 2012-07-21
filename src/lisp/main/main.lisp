@@ -19,7 +19,7 @@
                                    "Μετρητά")
                           (cheque  ,(cheque "receivable" :cstate "pending")
                                    "Επιταγές")
-                          (invoice ,(invoice "customer" "debit")
+                          (invoice ,(invoice "incoming" "debit")
                                    "Χρεωπιστώσεις")
                           (tx      ,(tx)
                                    "Ημερολόγιο"))
