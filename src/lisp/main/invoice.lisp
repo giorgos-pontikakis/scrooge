@@ -50,8 +50,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defun check-invoice-accounts ()
-  (unless (every #'integerp (list (account-id 'invoice-receivable-account)
-                                  (account-id 'invoice-payable-account)
+  (unless (every #'integerp (list (account-id 'receivable-root-account)
+                                  (account-id 'payable-root-account)
                                   (account-id 'revenues-root-account)
                                   (account-id 'expenses-root-account)))
     (see-other (invoice-accounts-error-page))))

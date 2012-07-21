@@ -1,9 +1,7 @@
 (in-package :scrooge)
 
 
-;;;----------------------------------------------------------------------
-;;; SQL utilities
-;;;----------------------------------------------------------------------
+;;; SQL UTILITIES
 
 (defun ilike (filter)
   (if (or (null filter)
@@ -17,7 +15,7 @@ if it already exists in the database."
   `(defun ,name (,primary-key)
      (with-db ()
        (query (:select 1 :from ',table
-               :where (:= ',primary-key ,primary-key))
+                :where (:= ',primary-key ,primary-key))
               :single))))
 
 (defmacro define-existence-predicate* (name table field primary-key)
@@ -29,11 +27,11 @@ excluded for the search - useful for updates."
      (with-db ()
        (if ,primary-key
            (query (:select 1 :from ',table
-                   :where (:and (:= ',field ,field)
-                                (:not (:= ',primary-key ,primary-key))))
+                    :where (:and (:= ',field ,field)
+                                 (:not (:= ',primary-key ,primary-key))))
                   :single)
            (query (:select 1 :from ',table
-                   :where (:= ',field ,field))
+                    :where (:= ',field ,field))
                   :single)))))
 
 (defun children-records (records id &key (parent-key :parent-id))
@@ -59,37 +57,7 @@ id, i.e. all records of the subtree with root specified by the given id."
 
 
 
-;;;----------------------------------------------------------------------
-;;; Miscellaneous
-;;;----------------------------------------------------------------------
-
-(defun single-item-list-p (list)
-           (and list (null (cdr list))))
-
-(defun fmt-amount (amount &optional (decimal-digits 2))
-  (let ((format-control (concatenate 'string
-                                     "~," (write-to-string decimal-digits) "F")))
-    (if (not (numberp amount))
-        amount
-        (format nil format-control amount))))
-
-(defun dfs (expander-fn root)
-  "Depth first search"
-  (labels ((dfs-aux (expanded fringe)
-             (if (null fringe)
-                 expanded
-                 (let ((head (first fringe))
-                       (tail (rest fringe)))
-                   (dfs-aux (list* head expanded)
-                            (append (funcall expander-fn head)
-                                    tail))))))
-    (dfs-aux nil (list root))))
-
-(defun lists->alist (lists)
-  (mapcar (lambda (list)
-            (cons (car list)
-                  (cadr list)))
-          lists))
+;;; CHECKS
 
 (defun int-5digits-p (num)
   (and (integerp num)
@@ -105,9 +73,9 @@ id, i.e. all records of the subtree with root specified by the given id."
                         (nreverse (subseq tin 0 (1- len)))))
            (control-digit (char-parse-integer (elt tin (1- len)))))
       (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
-                       (for i from 1)
-                       (reducing (* d (expt 2 i))
-                                 by #'+))))
+                   (for i from 1)
+                   (reducing (* d (expt 2 i))
+                             by #'+))))
         (and (= len 9)
              (= (mod (mod sum 11)
                      10)
@@ -155,20 +123,34 @@ id, i.e. all records of the subtree with root specified by the given id."
                       (member kind '("payable" "supplier") :test #'string-equal))
                  :company-customer-only))))))
 
-(defun incoming-p (direction)
-  (string-equal direction "incoming"))
 
-(defun revenues/expenses-root (direction)
-  (if (incoming-p direction)
-      (account-id 'revenues-root-account)
-      (account-id 'expenses-root-account)))
 
-(defun receivable/payable-root (direction)
-  (if (incoming-p direction)
-      (account-id 'invoice-receivable-account)
-      (account-id 'invoice-payable-account)))
+;;; MISCELLANEOUS
 
-(defun revenues/expenses-set (direction)
-  (if (incoming-p direction)
-      *revenues-accounts*
-      *expense-accounts*))
+(defun single-item-list-p (list)
+  (and list (null (cdr list))))
+
+(defun fmt-amount (amount &optional (decimal-digits 2))
+  (let ((format-control (concatenate 'string
+                                     "~," (write-to-string decimal-digits) "F")))
+    (if (not (numberp amount))
+        amount
+        (format nil format-control amount))))
+
+(defun dfs (expander-fn root)
+  "Depth first search"
+  (labels ((dfs-aux (expanded fringe)
+             (if (null fringe)
+                 expanded
+                 (let ((head (first fringe))
+                       (tail (rest fringe)))
+                   (dfs-aux (list* head expanded)
+                            (append (funcall expander-fn head)
+                                    tail))))))
+    (dfs-aux nil (list root))))
+
+(defun lists->alist (lists)
+  (mapcar (lambda (list)
+            (cons (car list)
+                  (cadr list)))
+          lists))

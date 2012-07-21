@@ -169,3 +169,25 @@
     (if (eql due-date :null)
         nil
         due-date)))
+
+
+
+;;; ACCOUNTS
+
+(defun incoming-p (direction)
+  (string-equal direction "incoming"))
+
+(defun revenues/expenses-root (direction)
+  (if (incoming-p direction)
+      (account-id 'revenues-root-account)
+      (account-id 'expenses-root-account)))
+
+(defun receivable/payable-root (direction)
+  (if (incoming-p direction)
+      (account-id 'receivable-root-account)
+      (account-id 'payable-root-account)))
+
+(defun revenues/expenses-set (direction)
+  (if (incoming-p direction)
+      *revenues-accounts*
+      *expense-accounts*))
