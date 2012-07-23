@@ -110,10 +110,10 @@
                                   "Μικτός ρόλος")
                         (customer  ,(apply #'company/tx :company-id company-id
                                                         :role "customer" filter*)
-                                   "Προμηθευτής")
+                                   "Πελάτης")
                         (supplier ,(apply #'company/tx :company-id company-id
                                                        :role "supplier" filter*)
-                                  "Πελάτης"))))
+                                  "Προμηθευτής"))))
     (secondary-filter-area (filter-navbar filter-spec
                                           :active (getf filter :role))
                            (datebox #'company/tx
