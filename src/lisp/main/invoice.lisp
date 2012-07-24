@@ -367,14 +367,14 @@
 ;;; ----------------------------------------------------------------------
 
 (defun invoice-kind (dao)
-  (if (or (member (debit-acc-id dao) *revenues-accounts*)
+  (if (or (member (debit-acc-id dao) *revenue-accounts*)
           (member (debit-acc-id dao) *expense-accounts*))
       "debit"
       "credit"))
 
 (defun invoice-direction (dao)
-  (if (or (member (debit-acc-id dao) *revenues-accounts*)
-          (member (credit-acc-id dao) *revenues-accounts*))
+  (if (or (member (debit-acc-id dao) *revenue-accounts*)
+          (member (credit-acc-id dao) *revenue-accounts*))
       "incoming"
       "outgoing"))
 

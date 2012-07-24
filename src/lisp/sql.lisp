@@ -5,13 +5,13 @@
 ;;;  CUSTOMER DEBITS - CREDITS
 
 (defun customer-debits ()
-  `(:in tx.credit-acc-id (:set ,@*revenues-accounts*)))
+  `(:in tx.credit-acc-id (:set ,@*revenue-accounts*)))
 
 (defun customer-cash-credits ()
   `(:= tx.debit-acc-id ,(account-id 'cash-account)))
 
 (defun customer-contra-credits ()
-  `(:in tx.debit-acc-id (:set ,@*revenues-accounts*)))
+  `(:in tx.debit-acc-id (:set ,@*revenue-accounts*)))
 
 (defun customer-cheque-credits ()
   ;; subquery receives cheque-event.cheque-id from main query
@@ -189,5 +189,5 @@
 
 (defun revenues/expenses-set (direction)
   (if (incoming-p direction)
-      *revenues-accounts*
+      *revenue-accounts*
       *expense-accounts*))

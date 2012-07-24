@@ -96,7 +96,7 @@
          nil)
         ((not (account-title-exists-p title))
          :account-title-unknown)
-        ((not (member (account-id title) *revenues-accounts*))
+        ((not (member (account-id title) *revenue-accounts*))
          :not-revenues-account)))
 
 (defun chk-expenses-account-title (title)
@@ -170,10 +170,10 @@
 (defmethod selector ((node account-node) selected-p)
   (let ((account-id (key node)))
     (html ()
-          (:a :href (if selected-p
-                        (config/account)
-                        (config/account :account-id account-id))
-            (selector-img selected-p)))))
+      (:a :href (if selected-p
+                    (config/account)
+                    (config/account :account-id account-id))
+        (selector-img selected-p)))))
 
 (defmethod payload ((node account-node) enabled-p)
   (make-instance 'textbox
@@ -185,9 +185,9 @@
   (let ((account-id (key node)))
     (if controls-p
         (html ()
-              (:div (display (make-instance 'ok-button))
-                (display (make-instance 'cancel-button
-                                        :href (config/account :account-id account-id)))))
+          (:div (display (make-instance 'ok-button))
+            (display (make-instance 'cancel-button
+                                    :href (config/account :account-id account-id)))))
         (list nil nil))))
 
 
@@ -205,17 +205,17 @@
                              (ref-transactions (account-id record))
                              nil)))
     (with-html
-        (:div :id "config-account-data-form" :class "data-form"
-          (:div :class "data-form-title"
-            (label 'title "Τίτλος")
-            (input-text 'title
-                        :value (title record)
-                        :css-class (getf styles :title)))
-          (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
-                          :css-class "inline"
-                          :checked (chequing-p record)
-                          :disabled dependent-tx-p
-                          :readonly dependent-tx-p))
+      (:div :id "config-account-data-form" :class "data-form"
+        (:div :class "data-form-title"
+          (label 'title "Τίτλος")
+          (input-text 'title
+                      :value (title record)
+                      :css-class (getf styles :title)))
+        (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
+                        :css-class "inline"
+                        :checked (chequing-p record)
+                        :disabled dependent-tx-p
+                        :readonly dependent-tx-p))
       (:div :class "data-form-buttons"
         (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
         (cancel-button (cancel-url form) :body "Άκυρο")))))
@@ -232,32 +232,32 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account ("config/account")
-  ((account-id integer chk-account-id))
+    ((account-id integer chk-account-id))
   (with-view-page
-      (with-document ()
-        (:head
-          (:title "Λογαριασμοί")
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (config-navbar 'account)
-            (iter
-             (for debit-p in (list t nil))
-             (for div-id in '("debit-accounts" "credit-accounts"))
-             (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-             (for account-tree = (make-instance 'account-tree
-                                                :op :catalogue
-                                                :selected-key (val account-id)
-                                                :debit-p debit-p))
-             (htm
-              (:div :class "grid_6"
-                (:div :id div-id :class "window"
-                  (:div :class "title" (str window-title))
-                  (notifications)
-                  (actions account-tree)
-                  (display account-tree :hide-root-p t)))))
-            (footer))))))
+    (with-document ()
+      (:head
+        (:title "Λογαριασμοί")
+        (config-headers))
+      (:body
+        (:div :id "container" :class "container_12"
+          (header 'config)
+          (config-navbar 'account)
+          (iter
+            (for debit-p in (list t nil))
+            (for div-id in '("debit-accounts" "credit-accounts"))
+            (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+            (for account-tree = (make-instance 'account-tree
+                                               :op :catalogue
+                                               :selected-key (val account-id)
+                                               :debit-p debit-p))
+            (htm
+             (:div :class "grid_6"
+               (:div :id div-id :class "window"
+                 (:div :class "title" (str window-title))
+                 (notifications)
+                 (actions account-tree)
+                 (display account-tree :hide-root-p t)))))
+          (footer))))))
 
 
 
@@ -266,39 +266,39 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/create ("config/account/create")
-  ((parent-id  integer chk-parent-acc-id)
-   (debitp     boolean (chk-debitp debitp parent-id))
-   (title      string  chk-account-title/create)
-   (chequing-p boolean))
+    ((parent-id  integer chk-parent-acc-id)
+     (debitp     boolean (chk-debitp debitp parent-id))
+     (title      string  chk-account-title/create)
+     (chequing-p boolean))
   (with-view-page
-      (let ((account-form (make-instance 'account-form
-                                         :op :create
-                                         :cancel-url (config/account))))
-        (with-document ()
-          (:head
-            (:title "Λογαριασμός » Δημιουργία")
-            (config-headers))
-          (:body
-            (:div :id "container" :class "container_12"
-              (header 'config)
-              (config-navbar 'account)
-              (:div :class "grid_12"
-                (:div :class "window"
-                  (:div :class "title" "Λογαριασμός » Δημιουργία")
-                  (notifications)
-                  (actions account-form)
-                  (with-form (actions/config/account/create :parent-id (val parent-id)
-                                                            :debitp (val debitp))
-                    (display account-form :payload (params->payload)
-                                          :styles (params->styles)))))
-              (footer)))))))
+    (let ((account-form (make-instance 'account-form
+                                       :op :create
+                                       :cancel-url (config/account))))
+      (with-document ()
+        (:head
+          (:title "Λογαριασμός » Δημιουργία")
+          (config-headers))
+        (:body
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'account)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" "Λογαριασμός » Δημιουργία")
+                (notifications)
+                (actions account-form)
+                (with-form (actions/config/account/create :parent-id (val parent-id)
+                                                          :debitp (val debitp))
+                  (display account-form :payload (params->payload)
+                                        :styles (params->styles)))))
+            (footer)))))))
 
 (defpage account-page actions/config/account/create ("actions/account/create"
                                                      :request-type :post)
-  ((parent-id  integer chk-parent-acc-id)
-   (title      string  chk-account-title/create      t)
-   (debitp     boolean (chk-debitp debitp parent-id))
-   (chequing-p boolean))
+    ((parent-id  integer chk-parent-acc-id)
+     (title      string  chk-account-title/create      t)
+     (debitp     boolean (chk-debitp debitp parent-id))
+     (chequing-p boolean))
   (with-controller-page (config/account/create)
     (with-db ()
       (let ((new-dao (make-instance 'account
@@ -309,7 +309,9 @@
                                     :title (val title)
                                     :debit-p (val debitp)
                                     :chequing-p (val chequing-p))))
-        (insert-dao new-dao)
+        (with-transaction ()
+          (insert-dao new-dao)
+          (update-account-globals))
         (see-other (config/account :account-id (account-id new-dao)))))))
 
 
@@ -319,42 +321,44 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/update ("config/account/update")
-  ((account-id integer chk-account-id                              t)
-   (title      string  (chk-account-title/update title account-id))
-   (chequing-p boolean (chk-chequing-p chequing-p account-id)))
+    ((account-id integer chk-account-id                              t)
+     (title      string  (chk-account-title/update title account-id))
+     (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-view-page
-      (let ((account-form (make-instance 'account-form
-                                         :op :update
-                                         :key (val account-id)
-                                         :cancel-url (config/account :account-id (val account-id)))))
-        (with-document ()
-          (:head
-            (:title "Λογαριασμός » Επεξεργασία")
-            (config-headers))
-          (:body
-            (:div :id "container" :class "container_12"
-              (header 'config)
-              (config-navbar 'account)
-              (:div :class "grid_12"
-                (:div :class "window"
-                  (:div :class "title" "Λογαριασμός » Επεξεργασία")
-                  (notifications)
-                  (actions account-form)
-                  (with-form (actions/config/account/update :account-id (val account-id))
-                    (display account-form :payload (params->payload)
-                                          :styles (params->styles)))))
-              (footer)))))))
+    (let ((account-form (make-instance 'account-form
+                                       :op :update
+                                       :key (val account-id)
+                                       :cancel-url (config/account :account-id (val account-id)))))
+      (with-document ()
+        (:head
+          (:title "Λογαριασμός » Επεξεργασία")
+          (config-headers))
+        (:body
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'account)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" "Λογαριασμός » Επεξεργασία")
+                (notifications)
+                (actions account-form)
+                (with-form (actions/config/account/update :account-id (val account-id))
+                  (display account-form :payload (params->payload)
+                                        :styles (params->styles)))))
+            (footer)))))))
 
 (defpage account-page actions/config/account/update ("actions/config/account/update"
                                                      :request-type :post)
-  ((account-id integer chk-account-id                              t)
-   (title      string  (chk-account-title/update title account-id) t)
-   (chequing-p boolean (chk-chequing-p chequing-p account-id)))
+    ((account-id integer chk-account-id                              t)
+     (title      string  (chk-account-title/update title account-id) t)
+     (chequing-p boolean (chk-chequing-p chequing-p account-id)))
   (with-controller-page (config/account/update)
-    (execute (:update 'account :set
-                      :title (val title)
-                      :chequing-p (val chequing-p)
-                      :where (:= 'id (val account-id))))
+    (with-transaction ()
+      (execute (:update 'account :set
+                        :title (val title)
+                        :chequing-p (val chequing-p)
+                        :where (:= 'id (val account-id))))
+      (update-account-globals))
     (see-other (config/account :account-id (val account-id)))))
 
 
@@ -364,38 +368,41 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/delete ("config/account/delete")
-  ((account-id integer chk-account-id/ref t))
+    ((account-id integer chk-account-id/ref t))
   (with-view-page
-      (with-document ()
-        (:head
-          (:title "Λογαριασμός » Διαγραφή")
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (config-navbar 'account)
-            (iter
-             (for debit-p in (list t nil))
-             (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val account-id)))))
-             (for div-id in '("debit-accounts" "credit-accounts"))
-             (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-             (for account-tree = (make-instance 'account-tree
-                                                :op :delete
-                                                :selected-key (val account-id)
-                                                :debit-p debit-p))
-             (htm
-              (:div :class "grid_6"
-                (:div :id div-id :class "window"
-                  (:div :class "title" (str window-title))
-                  (notifications)
-                  (actions account-tree)
-                  (with-form (actions/config/account/delete :account-id (val account-id))
-                    (display account-tree :hide-root-p t))))))
-            (footer))))))
+    (with-document ()
+      (:head
+        (:title "Λογαριασμός » Διαγραφή")
+        (config-headers))
+      (:body
+        (:div :id "container" :class "container_12"
+          (header 'config)
+          (config-navbar 'account)
+          (iter
+            (for debit-p in (list t nil))
+            (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val account-id)))))
+            (for div-id in '("debit-accounts" "credit-accounts"))
+            (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+            (for account-tree = (make-instance 'account-tree
+                                               :op :delete
+                                               :selected-key (val account-id)
+                                               :debit-p debit-p))
+            (htm
+             (:div :class "grid_6"
+               (:div :id div-id :class "window"
+                 (:div :class "title" (str window-title))
+                 (notifications)
+                 (actions account-tree)
+                 (with-form (actions/config/account/delete :account-id (val account-id))
+                   (display account-tree :hide-root-p t))))))
+          (footer))))))
 
 (defpage account-page actions/config/account/delete ("actions/config/account/delete"
                                                      :request-type :post)
-  ((account-id integer chk-account-id/ref t))
+    ((account-id integer chk-account-id/ref t))
   (with-controller-page (config/account/delete)
-    (delete-dao (get-dao 'account (val account-id)))
+    (with-transaction ()
+      (delete-dao (get-dao 'account (val account-id)))
+      (update-account-globals))
+
     (see-other (config/account))))

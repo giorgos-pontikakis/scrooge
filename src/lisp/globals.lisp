@@ -1,13 +1,14 @@
 (in-package :scrooge)
 
 
-;;; ------------------------------------------------------------
-;;; Globals
-;;; ------------------------------------------------------------
+;;; HTML
 
 (eval-when (:compile-toplevel :load-toplevel)
   (setf (doctype) :xhtml)
   (setf (indent-mode) nil))
+
+
+;;; VARIOUS LABELS
 
 (defparameter *action-labels* '((:catalogue . "Κατάλογος")
                                 (:create    . "Δημιουργία")
@@ -32,8 +33,8 @@
 (defparameter *company-tx-significant-amount* 1.0)
 
 
+;;; debit/credit account roots
 (with-db ()
-  ;; debit/credit account roots
   (defparameter *debit-accounts-root-id*
     (select-dao-unique 'account (:and (:is-null 'parent-id)
                                       (:= 'debit-p t))))
@@ -42,16 +43,28 @@
                                       (:= 'debit-p nil)))))
 
 
-;; account sets
+
+;;; ACCOUNT SETS
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defparameter *accounts*
-    (with-db ()
-      (query (:select '* :from 'account) :plists))))
+  (defparameter *accounts* nil)
+  (defparameter *expense-accounts* nil)
+  (defparameter *revenue-accounts* nil))
 
-(defparameter *expense-accounts*
-  (subtree-record-ids *accounts*
-                      (account-id 'expenses-root-account)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (flet ((set-accounts ()
+           (with-db ()
+             (query (:select '* :from 'account) :plists)))
+         (set-expense-accounts ()
+           (subtree-record-ids *accounts*
+                               (account-id 'expenses-root-account)))
+         (set-revenue-accounts ()
+           (subtree-record-ids *accounts*
+                               (account-id 'revenues-root-account))))
+    (defun update-account-globals ()
+      (setf *accounts* (set-accounts))
+      (setf *expense-accounts* (set-expense-accounts))
+      (setf *revenue-accounts* (set-revenue-accounts)))))
 
-(defparameter *revenues-accounts*
-  (subtree-record-ids *accounts*
-                      (account-id 'revenues-root-account)))
+;;; initialization of account sets
+(update-account-globals)
