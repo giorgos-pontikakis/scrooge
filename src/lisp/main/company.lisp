@@ -340,33 +340,31 @@
          (push `(:= project.state-id "ongoing")
                where))
         ((member subset (list "credit" "debit") :test #'string=)
-         (push `(:< ,(if (string= subset "debit")
-                         *company-tx-significant-amount*
-                         (* -1.0
-                            *company-tx-significant-amount*))
-                    (-
-                     ;; debits
-                     (:select (coalesce (sum tx.amount) 0)
-                       :from tx
-                       :left-join cheque-event
-                       :on (:= cheque-event.tx-id tx.id)
-                       :where (:and
-                               (:= tx.company-id company.id)
-                               (:or ,(customer-debits)
-                                    ,(supplier-cash-debits)
-                                    ,(supplier-contra-debits)
-                                    ,(supplier-cheque-debits))))
-                     ;; credits
-                     (:select (coalesce (sum tx.amount) 0)
-                       :from tx
-                       :left-join cheque-event
-                       :on (:= cheque-event.tx-id tx.id)
-                       :where (:and
-                               (:= tx.company-id company.id)
-                               (:or ,(customer-cash-credits)
-                                    ,(customer-contra-credits)
-                                    ,(customer-cheque-credits)
-                                    ,(supplier-credits))))))
+         (push `(:< ,*company-tx-significant-amount*
+                    (* ,(if (string= subset "debit") +1 -1)
+                       (-
+                        ;; debits
+                        (:select (coalesce (sum tx.amount) 0)
+                          :from tx
+                          :left-join cheque-event
+                          :on (:= cheque-event.tx-id tx.id)
+                          :where (:and
+                                  (:= tx.company-id company.id)
+                                  (:or ,(customer-debits)
+                                       ,(supplier-cash-debits)
+                                       ,(supplier-contra-debits)
+                                       ,(supplier-cheque-debits))))
+                        ;; credits
+                        (:select (coalesce (sum tx.amount) 0)
+                          :from tx
+                          :left-join cheque-event
+                          :on (:= cheque-event.tx-id tx.id)
+                          :where (:and
+                                  (:= tx.company-id company.id)
+                                  (:or ,(customer-cash-credits)
+                                       ,(customer-contra-credits)
+                                       ,(customer-cheque-credits)
+                                       ,(supplier-credits)))))))
                where))))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and t
