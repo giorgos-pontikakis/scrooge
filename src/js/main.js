@@ -109,7 +109,7 @@ function autoSelectAccount () {
 
 function clickAccount () {
    var title = $(this).val();
-   var url = "/scrooge/company/accounts?title=" + title;
+   var url = "/scrooge/company/accounts?title=" + encodeURIComponent(title);
    $.getJSON(url, function (data) {
       if (data.immediateTxOnly) {
          // only accepting cash; hide accounts payable/receivable
