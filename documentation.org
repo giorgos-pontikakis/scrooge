@@ -6,36 +6,36 @@
 
 Οι πιθανές συναλλαγές που μπορούν να γίνουν με τις εταιρίες είναι οι παρακάτω:
 
-|---+----------------------------------+----------------------------+-------------------------|
-|   | ΣΥΝΑΛΛΑΓH                        | ΠΕΛΑΤΗΣ (CUSTOMER)         | ΠΡΟΜΗΘΕΥΤΗΣ (SUPPLIER)  |
-|---+----------------------------------+----------------------------+-------------------------|
-| 1 | Έκδοση χρεωστικού τιμολογίου     | debit receivable-accounts  | debit expense-accounts  |
-|   | (invoice-debits)                 | credit revenue-accounts    | credit payable-accounts |
-|   |                                  |                            |                         |
-| 2 | Έκδοση πιστωτικού τιμολογίου     | debit revenue-accounts     | debit payable-accounts  |
-|   | (invoice-credits)                | credit receivable-accounts | credit expense-accounts |
-|   |                                  |                            |                         |
-| 3 | Διαγραφή χρέους                  | debit expenses:bad-debts   |                         |
-|   |                                  | credit receivable-accounts |                         |
-|---+----------------------------------+----------------------------+-------------------------|
-| 4 | Πληρωμή μετρητοίς (έναντι)       | debit cash                 | debit payable-accounts  |
-|   | (cash-against)                   | credit receivable-accounts | credit cash             |
-|   |                                  |                            |                         |
-| 5 | Πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                 | debit expense-accounts  |
-|   | (cash-direct)                    | credit revenue-accounts    | credit cash             |
-|   |                                  |                            |                         |
-| 6 | Επιστροφή μετρητών (απ' ευθείας) | debit cash                 | debit revenue-accounts  |
-|   |                                  | credit expense-accounts    | credit cash             |
-|---+----------------------------------+----------------------------+-------------------------|
-| 7 | Έκδοση επιταγής (έναντι)         | debit cheques-receivable   | debit payble-accounts   |
-|   | (cheques)                        | credit receivable-accounts | credit cheques-payable  |
-|   |                                  |                            |                         |
-| 8 | Είσπραξη επιταγής                | debit cash                 | debit cheques-payable   |
-|   |                                  | credit cheques-receivable  | credit cash             |
-|   |                                  |                            |                         |
-| 9 | Σφράγισμα/ακύρωση/επιστροφή      | debit receivable-accounts  | debit cheques-payable   |
-|   | επιταγής                         | credit cheques-receivable  | credit payble-accounts  |
-|---+----------------------------------+----------------------------+-------------------------|
+|---+--------------------------------------+----------------------------+-------------------------|
+|   | ΣΥΝΑΛΛΑΓH                            | ΠΕΛΑΤΗΣ (CUSTOMER)         | ΠΡΟΜΗΘΕΥΤΗΣ (SUPPLIER)  |
+|---+--------------------------------------+----------------------------+-------------------------|
+| 1 | Έκδοση χρεωστικού τιμολογίου         | debit receivable-accounts  | debit expense-accounts  |
+|   | (invoice-debits)                     | credit revenue-accounts    | credit payable-accounts |
+|   |                                      |                            |                         |
+| 2 | Έκδοση πιστωτικού τιμολογίου         | debit revenue-accounts     | debit payable-accounts  |
+|   | (invoice-credits)                    | credit receivable-accounts | credit expense-accounts |
+|   |                                      |                            |                         |
+| 3 | Διαγραφή χρέους                      | debit expenses:bad-debts   |                         |
+|   | (bad-debt)                           | credit receivable-accounts |                         |
+|---+--------------------------------------+----------------------------+-------------------------|
+| 4 | Πληρωμή μετρητοίς (έναντι)           | debit cash                 | debit payable-accounts  |
+|   | (cash-against)                       | credit receivable-accounts | credit cash             |
+|   |                                      |                            |                         |
+| 5 | Πληρωμή μετρητοίς (απ' ευθείας)      | debit cash                 | debit expense-accounts  |
+|   | (cash-direct)                        | credit revenue-accounts    | credit cash             |
+|   |                                      |                            |                         |
+| 6 | Επιστροφή μετρητών (απ' ευθείας)     | debit revenue-accounts     | debit cash              |
+|   | (cash-return)                        | credit cash                | credit expense-accounts |
+|---+--------------------------------------+----------------------------+-------------------------|
+| 7 | Έκδοση επιταγής (έναντι)             | debit cheques-receivable   | debit payble-accounts   |
+|   | (cheque-issue)                       | credit receivable-accounts | credit cheques-payable  |
+|   |                                      |                            |                         |
+| 8 | Είσπραξη επιταγής                    | debit cash                 | debit cheques-payable   |
+|   | (cheque-redemption)                  | credit cheques-receivable  | credit cash             |
+|   |                                      |                            |                         |
+| 9 | Σφράγισμα/ακύρωση/επιστροφή επιταγής | debit receivable-accounts  | debit cheques-payable   |
+|   | (cheque-bounce)                      | credit cheques-receivable  | credit payble-accounts  |
+|---+--------------------------------------+----------------------------+-------------------------|
 
 Όταν η επιταγή φαίνεται να έχει πληρωθεί, δεν συμπεριλαμβάνεται στα
 αποτελέσματα των συναρτήσεων customer-cheque-credits και
