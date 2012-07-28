@@ -350,9 +350,9 @@
                           :on (:= cheque-event.tx-id tx.id)
                           :where (:and
                                   (:= tx.company-id company.id)
-                                  (:or ,(customer-debits)
+                                  (:or ,(customer-invoice-debits)
+                                       ,(supplier-invoice-debits)
                                        ,(supplier-cash-debits)
-                                       ,(supplier-contra-debits)
                                        ,(supplier-cheque-debits))))
                         ;; credits
                         (:select (coalesce (sum tx.amount) 0)
@@ -361,10 +361,10 @@
                           :on (:= cheque-event.tx-id tx.id)
                           :where (:and
                                   (:= tx.company-id company.id)
-                                  (:or ,(customer-cash-credits)
-                                       ,(customer-contra-credits)
+                                  (:or ,(customer-invoice-credits)
+                                       ,(customer-cash-credits)
                                        ,(customer-cheque-credits)
-                                       ,(supplier-credits)))))))
+                                       ,(supplier-invoice-credits)))))))
                where))))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and t

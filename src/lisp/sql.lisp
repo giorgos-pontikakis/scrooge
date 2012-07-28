@@ -4,11 +4,11 @@
 
 ;;;  CUSTOMER DEBITS - CREDITS
 
-(defun customer-debits ()
+(defun customer-invoice-debits ()
   `(:and (:in tx.credit-acc-id (:set ,@*revenue-accounts*))
          (:in tx.debit-acc-id  (:set ,@*receivable-accounts*))))
 
-(defun customer-contra-credits ()
+(defun customer-invoice-credits ()
   `(:in tx.debit-acc-id (:set ,@*revenue-accounts*)))
 
 (defun customer-cash-credits ()
@@ -31,15 +31,15 @@
 
 ;;;  SUPPLIER CREDITS - DEBITS
 
-(defun supplier-credits ()
+(defun supplier-invoice-credits ()
   `(:and (:in tx.debit-acc-id (:set ,@*expense-accounts*))
          (:in tx.credit-acc-id (:set ,@*payable-accounts*))))
 
+(defun supplier-invoice-debits ()
+  `(:in tx.credit-acc-id (:set ,@*expense-accounts*)))
+
 (defun supplier-cash-debits ()
   `(:= tx.credit-acc-id ,(account-id 'cash-account)))
-
-(defun supplier-contra-debits ()
-  `(:in tx.credit-acc-id (:set ,@*expense-accounts*)))
 
 (defun supplier-cheque-debits ()
   ;; subquery receives cheque-event.cheque-id from main query
@@ -70,10 +70,10 @@
         (where-tx '())
         (where-dates nil))
     (when (member :customer roles)
-      (push (customer-debits) where-tx))
+      (push (customer-invoice-debits) where-tx))
     (when (member :supplier roles)
       (push (supplier-cash-debits) where-tx)
-      (push (supplier-contra-debits) where-tx)
+      (push (supplier-invoice-debits) where-tx)
       (push (supplier-cheque-debits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
@@ -100,10 +100,10 @@
         (where-dates nil))
     (when (member :customer roles)
       (push (customer-cash-credits) where-tx)
-      (push (customer-contra-credits) where-tx)
+      (push (customer-invoice-credits) where-tx)
       (push (customer-cheque-credits) where-tx))
     (when (member :supplier roles)
-      (push (supplier-credits) where-tx))
+      (push (supplier-invoice-credits) where-tx))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where-dates))
     (when (and until (not (eql until :null)))
