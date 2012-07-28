@@ -25,9 +25,9 @@
         "Η επωνυμία της εταιρίας είναι κενή"
         :company-immediate-tx-only
         "Επιτρέπονται μόνο συναλλαγές απ' ευθείας εξόφλησης (όχι έναντι ανοιχτού λογαριασμού) με αυτή την εταιρία"
-        :company-outgoing-only
+        :company-supplier-only
         "Αυτή η εταιρία δεν μπορεί να εμφανίζει έσοδα."
-        :company-incoming-only
+        :company-customer-only
         "Αυτή η εταιρία δεν μπορεί να εμφανίζει έξοδα."))
       (amount
        (:empty-amount
@@ -80,7 +80,7 @@
 (defclass invoice-tx-table (tx-table)
   ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" ""))
    (kind :accessor kind :initarg :kind)
-   (direction :accessor direction :initarg :direction)
+   (role :accessor role :initarg :role)
    (paginator :initform (make-instance 'invoice-paginator
                                        :css-class "paginator")))
   (:default-initargs :item-class 'invoice-tx-row :id "invoice-tx-table"))
@@ -94,16 +94,16 @@
              (if (debit-invoice-p kind)
                  'tx.credit-acc-id
                  'tx.debit-acc-id))
-           (invoice-base-where (direction kind)
+           (invoice-base-where (role kind)
              `((:= ,(invoice-receivable/payable-account kind)
-                   ,(receivable/payable-root direction))
+                   ,(receivable/payable-root role))
                (:in ,(invoice-revenues/expenses-account kind)
-                    (:set ,@(revenues/expenses-set direction))))))
+                    (:set ,@(revenues/expenses-set role))))))
     (let* ((search (getf (filter table) :search))
            (since (getf (filter table) :since))
            (until (getf (filter table) :until))
            (kind (kind table))
-           (direction (direction table))
+           (role (role table))
            (base-query `(:select tx.id tx-date
                           (:as company.title company)
                           (:as company.id 'company-id)
@@ -128,7 +128,7 @@
               where))
       (let ((sql `(:order-by
                    (,@base-query :where
-                                 (:and ,@(invoice-base-where direction kind)
+                                 (:and ,@(invoice-base-where role kind)
                                        ,@where))
                    (:desc tx-date) account company description)))
         (query (sql-compile sql)
@@ -137,33 +137,33 @@
 (defmethod actions ((tbl invoice-tx-table) &key)
   (let* ((tx-id (selected-key tbl))
          (kind (kind tbl))
-         (direction (direction tbl))
+         (role (role tbl))
          (filter (filter tbl))
          (hrefs (if tx-id
-                    (list :details (apply #'invoice/details direction kind :tx-id tx-id filter)
-                          :delete (apply #'invoice/delete direction kind :tx-id tx-id filter))
+                    (list :details (apply #'invoice/details role kind :tx-id tx-id filter)
+                          :delete (apply #'invoice/delete role kind :tx-id tx-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 (defmethod filters ((tbl invoice-tx-table))
-  (let ((direction (direction tbl))
+  (let ((role (role tbl))
         (kind (kind tbl))
         (filter (filter tbl)))
-    (filter-area (filter-navbar `((incoming ,(apply #'invoice "incoming" "debit" filter)
+    (filter-area (filter-navbar `((customer ,(apply #'invoice "customer" "debit" filter)
                                             "Πελάτες")
-                                  (outgoing ,(apply #'invoice "outgoing" "credit" filter)
+                                  (supplier ,(apply #'invoice "supplier" "credit" filter)
                                             "Προμηθευτές"))
-                                :active direction
-                                :id "direction-navbar")
-                 (filter-navbar `((debit ,(apply #'invoice direction "debit" filter)
+                                :active role
+                                :id "role-navbar")
+                 (filter-navbar `((debit ,(apply #'invoice role "debit" filter)
                                          "Χρεώσεις")
-                                  (credit ,(apply #'invoice direction "credit" filter)
+                                  (credit ,(apply #'invoice role "credit" filter)
                                           "Πιστώσεις"))
                                 :active kind
                                 :id "kind-navbar")
                  (datebox (lambda (&rest args)
-                            (apply #'invoice direction kind args))
+                            (apply #'invoice role kind args))
                           filter))))
 
 ;;; rows
@@ -177,12 +177,12 @@
          (pg (paginator table))
          (filter (filter table))
          (kind (kind table))
-         (direction (direction table))
+         (role (role table))
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
-                    (apply #'invoice direction kind :start (page-start pg (index row) start) filter)
-                    (apply #'invoice direction kind :tx-id tx-id filter))
+                    (apply #'invoice role kind :start (page-start pg (index row) start) filter)
+                    (apply #'invoice role kind :tx-id tx-id filter))
         (selector-img selected-p)))))
 
 (defmethod payload ((row invoice-tx-row) enabled-p)
@@ -208,10 +208,10 @@
          (table (collection row))
          (filter (filter table))
          (kind (kind table))
-         (direction (direction table)))
+         (role (role table)))
     (if controls-p
         (list (make-instance 'ok-button)
-              (make-instance 'cancel-button :href (apply #'invoice direction kind :tx-id tx-id filter)))
+              (make-instance 'cancel-button :href (apply #'invoice role kind :tx-id tx-id filter)))
         (list nil nil))))
 
 
@@ -222,7 +222,7 @@
 
 (defmethod target-url ((pg invoice-paginator) start)
   (let ((table (table pg)))
-    (apply #'invoice (direction table) (kind table) :start start (filter table))))
+    (apply #'invoice (role table) (kind table) :start start (filter table))))
 
 
 
@@ -233,22 +233,22 @@
 (defun debit-invoice-p (kind)
   (string-equal kind "debit"))
 
-(defun invoice-debit-acc-id (direction kind account-id)
+(defun invoice-debit-acc-id (role kind account-id)
   (if (debit-invoice-p kind)
-      (receivable/payable-root direction)
+      (receivable/payable-root role)
       account-id))
 
-(defun invoice-credit-acc-id (direction kind account-id)
+(defun invoice-credit-acc-id (role kind account-id)
   (if (debit-invoice-p kind)
       account-id
-      (receivable/payable-root direction)))
+      (receivable/payable-root role)))
 
-(defun invoice-page-title (direction kind op-label)
+(defun invoice-page-title (role kind op-label)
   (let ((kind-label
           (if (debit-invoice-p kind) "Χρεώσεις" "Πιστώσεις"))
-        (direction-label
-          (if (incoming-p direction) "Πελάτες" "Προμηθευτές")))
-    (conc direction-label " » " kind-label " » " op-label)))
+        (role-label
+          (if (customer-p role) "Πελάτες" "Προμηθευτές")))
+    (conc role-label " » " kind-label " » " op-label)))
 
 
 
@@ -283,22 +283,22 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass invoice-form (tx-form)
-  ((direction :accessor direction :initarg :direction)
+  ((role :accessor role :initarg :role)
    (kind      :accessor kind      :initarg :kind)))
 
 (defmethod display ((form invoice-form) &key styles)
-  (let* ((direction (direction form))
+  (let* ((role (role form))
          (kind (kind form))
-         (incoming-p (incoming-p direction))
+         (customer-p (customer-p role))
          (disabled (eql (op form) :details))
          (record (record form))
          (ldfn (label-datum disabled record styles))
-         (root-key (revenues/expenses-root direction))
+         (root-key (revenues/expenses-root role))
          (tree (make-instance 'rev/exp-account-tree
                               :css-class "crud-tree company-dependent"
                               :disabled disabled
                               :root-key root-key
-                              :debit-p (not incoming-p)
+                              :debit-p (not customer-p)
                               :selected-key (or (getf record :account-id)
                                                 (getf record (if (debit-invoice-p kind)
                                                                  :credit-acc-id
@@ -323,17 +323,17 @@
                                   :body "Άκυρο")))))
         (:div :class "grid_5 omega"
           (label 'account-id (conc "Λογαριασμός "
-                                   (if incoming-p "εσόδων" "εξόδων")))
+                                   (if customer-p "εσόδων" "εξόδων")))
           ;; Display the tree. If needed, preselect the first account of the tree.
           (display tree))
         (clear)))))
 
 (defmethod actions ((form invoice-form) &key filter)
   (let* ((tx-id (key form))
-         (direction (direction form))
+         (role (role form))
          (kind (kind form))
-         (hrefs (list :update (apply #'invoice/update direction kind :tx-id tx-id filter)
-                      :delete (apply #'invoice/delete direction kind :tx-id tx-id filter))))
+         (hrefs (list :update (apply #'invoice/update role kind :tx-id tx-id filter)
+                      :delete (apply #'invoice/delete role kind :tx-id tx-id filter))))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
 
@@ -344,7 +344,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page actions/invoice/search
-    (("actions/invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/search")
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/search")
      :request-type :get)
     ((search string)
      (since  string)
@@ -352,14 +352,14 @@
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'invoice-tx-table
-                                      :direction direction
+                                      :role role
                                       :kind kind
                                       :filter filter))))
       (if (single-item-list-p rows)
-          (see-other (apply #'invoice/details direction kind
+          (see-other (apply #'invoice/details role kind
                             :tx-id (key (first rows))
                             filter))
-          (see-other (apply #'invoice direction kind filter))))))
+          (see-other (apply #'invoice role kind filter))))))
 
 
 
@@ -368,19 +368,19 @@
 ;;; ----------------------------------------------------------------------
 
 (defun invoice-kind (dao)
-  (if (or (member (debit-acc-id dao) *revenue-accounts*)
-          (member (debit-acc-id dao) *expense-accounts*))
+  (if (or (member (debit-acc-id dao) *expense-accounts*)
+          (member (credit-acc-id dao) *revenue-accounts*))
       "debit"
       "credit"))
 
-(defun invoice-direction (dao)
-  (if (or (member (debit-acc-id dao) *revenue-accounts*)
-          (member (credit-acc-id dao) *revenue-accounts*))
-      "incoming"
-      "outgoing"))
+(defun invoice-role (dao)
+  (if (or (member (debit-acc-id dao) *expense-accounts*)
+          (member (credit-acc-id dao) *expense-accounts*))
+      "customer"
+      "supplier"))
 
 (defpage invoice-page invoice (("invoice/"
-                                (direction "(incoming|outgoing)") "/"
+                                (role "(customer|supplier)") "/"
                                 (kind "(debit|credit)")))
     ((tx-id  integer chk-tx-id)
      (start  integer)
@@ -390,9 +390,9 @@
   (check-invoice-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (invoice-page-title direction kind "Κατάλογος"))
+           (page-title (invoice-page-title role kind "Κατάλογος"))
            (invoice-tx-table (make-instance 'invoice-tx-table
-                                            :direction direction
+                                            :role role
                                             :op :catalogue
                                             :kind kind
                                             :selected-key (val tx-id)
@@ -402,7 +402,7 @@
       (when (and (val tx-id)
                  (not (find (val tx-id) (rows invoice-tx-table) :key #'key)))
         (let ((tx (get-dao 'tx (val tx-id))))
-          (see-other (invoice (invoice-direction tx) (invoice-kind tx)
+          (see-other (invoice (invoice-role tx) (invoice-kind tx)
                               :tx-id (val tx-id)))))
       (with-document ()
         (:head
@@ -422,7 +422,7 @@
             (footer)))))))
 
 (defpage invoice-page invoice/details (("invoice/"
-                                        (direction "(incoming|outgoing)") "/"
+                                        (role "(customer|supplier)") "/"
                                         (kind "(debit|credit)")
                                         "/details"))
     ((tx-id  integer chk-tx-id t)
@@ -432,11 +432,11 @@
   (with-view-page
     (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
-                                        :direction direction
+                                        :role role
                                         :kind kind
                                         :op :details
                                         :key (val tx-id)))
-           (page-title (invoice-page-title direction kind "Λεπτομέρειες")))
+           (page-title (invoice-page-title role kind "Λεπτομέρειες")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -459,7 +459,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/create
-    (("invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/create"))
+    (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/create"))
     ((tx-date     date)
      (description string)
      (company     string  chk-company-title/cash)
@@ -468,16 +468,16 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn direction) company)
+  (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
   (with-view-page
     (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
-                                        :direction direction
+                                        :role role
                                         :kind kind
                                         :op :create
-                                        :cancel-url (apply #'invoice direction kind filter)))
-           (page-title (invoice-page-title direction kind "Δημιουργία")))
+                                        :cancel-url (apply #'invoice role kind filter)))
+           (page-title (invoice-page-title role kind "Δημιουργία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -492,7 +492,7 @@
                 (:div :class "title" (str page-title))
                 (actions invoice-form :filter filter)
                 (notifications)
-                (with-form (actions/invoice/create direction kind
+                (with-form (actions/invoice/create role kind
                                                    :search (val search)
                                                    :since (val since)
                                                    :until (val until))
@@ -501,7 +501,7 @@
             (footer)))))))
 
 (defpage invoice-page actions/invoice/create
-    (("actions/invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/create")
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/create")
      :request-type :post)
     ((tx-date     date)
      (description string)
@@ -511,12 +511,12 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn direction) company)
+  (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
-  (with-controller-page (invoice/create direction kind)
+  (with-controller-page (invoice/create role kind)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (invoice-debit-acc-id direction kind (val account-id)))
-           (credit-acc-id (invoice-credit-acc-id direction kind (val account-id)))
+           (debit-acc-id (invoice-debit-acc-id role kind (val account-id)))
+           (credit-acc-id (invoice-credit-acc-id role kind (val account-id)))
            (new-tx (make-instance 'tx
                                   :tx-date (val tx-date)
                                   :description (val description)
@@ -526,7 +526,7 @@
                                   :debit-acc-id debit-acc-id
                                   :auto t)))
       (insert-dao new-tx)
-      (see-other (apply #'invoice/details direction kind :tx-id (tx-id new-tx)
+      (see-other (apply #'invoice/details role kind :tx-id (tx-id new-tx)
                         (params->filter))))))
 
 
@@ -536,7 +536,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/update
-    (("invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/update"))
+    (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/update"))
     ((tx-id       integer chk-tx-id         t)
      (tx-date     date)
      (description string)
@@ -546,19 +546,19 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn direction) company)
+  (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
   (with-view-page
     (let* ((filter (params->filter))
            (invoice-form (make-instance 'invoice-form
-                                        :direction direction
+                                        :role role
                                         :kind kind
                                         :op :update
                                         :key (val tx-id)
-                                        :cancel-url (apply #'invoice/details direction kind
+                                        :cancel-url (apply #'invoice/details role kind
                                                            :tx-id (val tx-id)
                                                            filter)))
-           (page-title (invoice-page-title direction kind "Επεξεργασία")))
+           (page-title (invoice-page-title role kind "Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -573,7 +573,7 @@
                 (:p :class "title" "Επεξεργασία")
                 (actions invoice-form :filter filter)
                 (notifications)
-                (with-form (actions/invoice/update direction kind
+                (with-form (actions/invoice/update role kind
                                                    :tx-id (val tx-id)
                                                    :search (val search)
                                                    :since (val since)
@@ -583,7 +583,7 @@
             (footer)))))))
 
 (defpage invoice-page actions/invoice/update
-    (("actions/invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/update")
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/update")
      :request-type :post)
     ((tx-id       integer chk-tx-id         t)
      (tx-date     date)
@@ -594,12 +594,12 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn direction) company)
+  (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
-  (with-controller-page (invoice/update direction kind)
+  (with-controller-page (invoice/update role kind)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (invoice-debit-acc-id direction kind (val account-id)))
-          (credit-acc-id (invoice-credit-acc-id direction kind (val account-id))))
+          (debit-acc-id (invoice-debit-acc-id role kind (val account-id)))
+          (credit-acc-id (invoice-credit-acc-id role kind (val account-id))))
       (execute (:update 'tx :set
                         'tx-date (val tx-date)
                         'description (val description)
@@ -608,7 +608,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'invoice/details direction kind :tx-id (val tx-id)
+      (see-other (apply #'invoice/details role kind :tx-id (val tx-id)
                         (params->filter))))))
 
 
@@ -618,7 +618,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/delete
-    (("invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/delete"))
+    (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete"))
     ((tx-id  integer chk-tx-id t)
      (search string)
      (since  date)
@@ -626,9 +626,9 @@
   (check-invoice-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (invoice-page-title direction kind "Διαγραφή"))
+           (page-title (invoice-page-title role kind "Διαγραφή"))
            (invoice-tx-table (make-instance 'invoice-tx-table
-                                            :direction direction
+                                            :role role
                                             :kind kind
                                             :op :delete
                                             :selected-key (val tx-id)
@@ -647,7 +647,7 @@
               (:div :id "invoice-window" :class "window"
                 (:div :class "title" (str page-title))
                 (actions invoice-tx-table)
-                (with-form (actions/invoice/delete direction kind
+                (with-form (actions/invoice/delete role kind
                                                    :tx-id (val tx-id)
                                                    :search (val search)
                                                    :since (val since)
@@ -656,14 +656,14 @@
             (footer)))))))
 
 (defpage invoice-page actions/invoice/delete
-    (("actions/invoice/" (direction "(incoming|outgoing)") "/" (kind "(debit|credit)") "/delete")
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete")
      :request-type :post)
     ((tx-id  integer chk-tx-id t)
      (search string)
      (since  date)
      (until  date))
   (check-invoice-accounts)
-  (with-controller-page (invoice/delete direction kind)
+  (with-controller-page (invoice/delete role kind)
     (delete-dao (get-dao 'tx (val tx-id)))
-    (see-other (apply #'invoice direction kind
+    (see-other (apply #'invoice role kind
                       (params->filter)))))

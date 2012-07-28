@@ -6,59 +6,36 @@
 
 Οι πιθανές συναλλαγές που μπορούν να γίνουν με τις εταιρίες είναι οι παρακάτω:
 
-|----+----------------------------------+----------------------------+----------------------------|
-|    | ΣΥΝΑΛΛΑΓH                        | ΕΙΣΕΡΧΟΜΕΝΗ (INCOMING)     | ΕΞΕΡΧΟΜΕΝΗ (OUTGOING)      |
-|----+----------------------------------+----------------------------+----------------------------|
-|  1 | Έκδοση χρεωστικού τιμολογίου     | debit expense-accounts     | debit receivable-accounts  |
-|    | (invoice-debits)                 | credit payble-accounts     | credit revenue-accounts    |
-|    |                                  |                            |                            |
-|  2 | Έκδοση πιστωτικού τιμολογίου     | debit payble-accounts      | debit revenue-accounts     |
-|    | (invoice-credits)                | credit expense-accounts    | credit receivable-accounts |
-|    |                                  |                            |                            |
-|  3 | Διαγραφή χρέους                  |                            | debit expenses:bad-debts   |
-|    |                                  |                            | credit receivable-accounts |
-|----+----------------------------------+----------------------------+----------------------------|
-|  4 | Πληρωμή μετρητοίς (έναντι)       | debit cash                 | debit payble-accounts      |
-|    | (cash-against)                   | credit receivable-accounts | credit cash                |
-|    |                                  |                            |                            |
-|  5 | Πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                 | debit expense-accounts     |
-|    | (cash-direct)                    | credit revenue-accounts    | credit cash                |
-|----+----------------------------------+----------------------------+----------------------------|
-|  6 | Πληρωμή με επιταγή (έναντι)      | debit cheques-receivable   | debit payble-accounts      |
-|    | (cheques)                        | credit receivable-accounts | credit cheques-payable     |
-|    |                                  |                            |                            |
-|  7 | Πληρωμή με επιταγή (απ' ευθείας) |                            |                            |
-|    |                                  |                            |                            |
-|----+----------------------------------+----------------------------+----------------------------|
-|  8 | Είσπραξη επιταγής                | debit cash                 | debit cheques-payable      |
-|    |                                  | credit cheques-receivable  | credit cash                |
-|    |                                  |                            |                            |
-|  9 | Σφράγισμα/ακύρωση/επιστροφή      | debit receivable-accounts  | debit cheques-payable      |
-|    | επιταγής                         | credit cheques-receivable  | credit payble-accounts     |
-|----+----------------------------------+----------------------------+----------------------------|
-| 10 | Επιστροφή μετρητών (απ' ευθείας) | debit cash                 | debit revenue-accounts     |
-|    |                                  | credit expense-accounts    | credit cash                |
-|----+----------------------------------+----------------------------+----------------------------|
-
-
-Όταν μια επιχείριση έχει ρόλο πελάτη, οι συναλλαγές που
-την αφορούν είναι:
-- Εξερχόμενες  1-3
-  1: customer-invoice-debits
-  2: customer-invoice-credits
-  3: customer-bad-debts
-- Εισερχόμενες 4-8
-  4,5,8: customer-cash-credits
-  6: customer-cheque-credits
-
-Αντιστρόφως, όταν μια επιχείριση έχει ρόλο προμηθευτή, οι συναλλαγές που την
-αφορούν είναι:
-- Εισερχόμενες (1-2)
-  1: supplier-invoice-credits
-  2: supplier-invoice-debits
-- Εξερχόμενες  (3-8)
-  4,5,8: supplier-cash-debits
-  6: supplier-cheque-debits
+|---+----------------------------------+----------------------------+-------------------------|
+|   | ΣΥΝΑΛΛΑΓH                        | ΠΕΛΑΤΗΣ (CUSTOMER)         | ΠΡΟΜΗΘΕΥΤΗΣ (SUPPLIER)  |
+|---+----------------------------------+----------------------------+-------------------------|
+| 1 | Έκδοση χρεωστικού τιμολογίου     | debit receivable-accounts  | debit expense-accounts  |
+|   | (invoice-debits)                 | credit revenue-accounts    | credit payable-accounts |
+|   |                                  |                            |                         |
+| 2 | Έκδοση πιστωτικού τιμολογίου     | debit revenue-accounts     | debit payable-accounts  |
+|   | (invoice-credits)                | credit receivable-accounts | credit expense-accounts |
+|   |                                  |                            |                         |
+| 3 | Διαγραφή χρέους                  | debit expenses:bad-debts   |                         |
+|   |                                  | credit receivable-accounts |                         |
+|---+----------------------------------+----------------------------+-------------------------|
+| 4 | Πληρωμή μετρητοίς (έναντι)       | debit cash                 | debit payable-accounts  |
+|   | (cash-against)                   | credit receivable-accounts | credit cash             |
+|   |                                  |                            |                         |
+| 5 | Πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                 | debit expense-accounts  |
+|   | (cash-direct)                    | credit revenue-accounts    | credit cash             |
+|   |                                  |                            |                         |
+| 6 | Επιστροφή μετρητών (απ' ευθείας) | debit cash                 | debit revenue-accounts  |
+|   |                                  | credit expense-accounts    | credit cash             |
+|---+----------------------------------+----------------------------+-------------------------|
+| 7 | Έκδοση επιταγής (έναντι)         | debit cheques-receivable   | debit payble-accounts   |
+|   | (cheques)                        | credit receivable-accounts | credit cheques-payable  |
+|   |                                  |                            |                         |
+| 8 | Είσπραξη επιταγής                | debit cash                 | debit cheques-payable   |
+|   |                                  | credit cheques-receivable  | credit cash             |
+|   |                                  |                            |                         |
+| 9 | Σφράγισμα/ακύρωση/επιστροφή      | debit receivable-accounts  | debit cheques-payable   |
+|   | επιταγής                         | credit cheques-receivable  | credit payble-accounts  |
+|---+----------------------------------+----------------------------+-------------------------|
 
 Όταν η επιταγή φαίνεται να έχει πληρωθεί, δεν συμπεριλαμβάνεται στα
 αποτελέσματα των συναρτήσεων customer-cheque-credits και

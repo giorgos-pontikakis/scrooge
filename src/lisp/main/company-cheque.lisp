@@ -22,9 +22,9 @@
 ;;; Utilities
 ;;; ------------------------------------------------------------
 
-(defun company-cheque-page-title (direction op-label)
+(defun company-cheque-page-title (role op-label)
   (conc "Εταιρία » Λεπτομέρειες » "
-        (cheque-page-title direction op-label)))
+        (cheque-page-title role op-label)))
 
 
 
@@ -50,14 +50,14 @@
 
 (defmethod actions ((table company-cheque-table) &key)
   (let* ((cheque-id (selected-key table))
-         (direction (direction table))
+         (role (role table))
          (filter (filter table))
          (company-id (company-id table))
          (hrefs (if cheque-id
-                    (list :update (apply #'company/cheque/update direction :company-id company-id
+                    (list :update (apply #'company/cheque/update role :company-id company-id
                                                                            :cheque-id cheque-id
                                                                            filter)
-                          :delete (apply #'company/cheque/delete direction :company-id company-id
+                          :delete (apply #'company/cheque/delete role :company-id company-id
                                                                            :cheque-id cheque-id
                                                                            filter))
                     nil)))
@@ -65,39 +65,39 @@
                   (disabled-actions table))))
 
 (defmethod filters ((tbl company-cheque-table))
-  (let* ((direction (direction tbl))
+  (let* ((role (role tbl))
          (filter (filter tbl))
          (company-id (company-id tbl))
-         (filter* (remove-from-plist filter direction :cstate))
-         (filter-spec `((nil      ,(apply #'company/cheque direction :company-id company-id filter*)
+         (filter* (remove-from-plist filter role :cstate))
+         (filter-spec `((nil      ,(apply #'company/cheque role :company-id company-id filter*)
                                   "Όλες")
-                        (pending  ,(apply #'company/cheque direction :cstate "pending"
+                        (pending  ,(apply #'company/cheque role :cstate "pending"
                                                                      :company-id company-id
                                                                      filter*)
                                   "Σε εκκρεμότητα")
-                        (paid     ,(apply #'company/cheque direction :cstate "paid"
+                        (paid     ,(apply #'company/cheque role :cstate "paid"
                                                                      :company-id company-id
                                                                      filter*)
                                   "Πληρωμένες")
-                        (bounced  ,(apply #'company/cheque direction :cstate "bounced"
+                        (bounced  ,(apply #'company/cheque role :cstate "bounced"
                                                                      :company-id company-id
                                                                      filter*)
                                   "Ακάλυπτες")
-                        (returned ,(apply #'company/cheque direction :cstate "returned"
+                        (returned ,(apply #'company/cheque role :cstate "returned"
                                                                      :company-id company-id
                                                                      filter*)
                                   "Επιστραμμένες")
-                        (stamped  ,(apply #'company/cheque direction :cstate "stamped"
+                        (stamped  ,(apply #'company/cheque role :cstate "stamped"
                                                                      :company-id company-id
                                                                      filter*)
                                   "Σφραγισμένες"))))
     (secondary-filter-area
-     (filter-navbar `((incoming ,(apply #'company/cheque "incoming" :company-id company-id filter)
+     (filter-navbar `((customer ,(apply #'company/cheque "customer" :company-id company-id filter)
                                 "Προς είσπραξη")
-                      (outgoing ,(apply #'company/cheque "outgoing" :company-id company-id filter)
+                      (supplier ,(apply #'company/cheque "supplier" :company-id company-id filter)
                                 "Προς πληρωμή"))
-                    :active direction
-                    :id "cheque-direction-navbar")
+                    :active role
+                    :id "cheque-role-navbar")
      (filter-navbar filter-spec
                     :active (getf filter :cstate))
      (datebox (family-url-fn 'company/cheque)
@@ -115,14 +115,14 @@
          (company-id (company-id table))
          (filter (filter table))
          (pg (paginator table))
-         (direction (direction table))
+         (role (role table))
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
-                    (apply #'company/cheque direction :start (page-start pg (index row) start)
+                    (apply #'company/cheque role :start (page-start pg (index row) start)
                                                       :company-id company-id
                                                       filter)
-                    (apply #'company/cheque direction :cheque-id cheque-id
+                    (apply #'company/cheque role :cheque-id cheque-id
                                                       :company-id company-id
                                                       filter))
         (selector-img selected-p)))))
@@ -153,11 +153,11 @@
          (table (collection row))
          (company-id (company-id table))
          (filter (filter table))
-         (direction (direction table)))
+         (role (role table)))
     (if controls-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply #'company/cheque direction :cheque-id cheque-id
+                             :href (apply #'company/cheque role :cheque-id cheque-id
                                                                      :company-id company-id
                                                                      filter)))
         (list nil nil))))
@@ -170,7 +170,7 @@
 
 (defmethod target-url ((pg company-cheque-paginator) start)
   (let ((table (table pg)))
-    (apply #'company/cheque (direction table) :company-id (company-id table)
+    (apply #'company/cheque (role table) :company-id (company-id table)
                                               :start start
                                               (filter table))))
 
@@ -207,7 +207,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque (("company/cheque/"
-                                              (direction "(incoming|outgoing)")))
+                                              (role "(customer|supplier)")))
     ((company-id integer chk-company-id t)
      (cheque-id  integer chk-cheque-id)
      (start      integer)
@@ -224,9 +224,9 @@
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start)
-                                        :direction direction
+                                        :role role
                                         :company-id (val company-id)))
-           (page-title (company-cheque-page-title direction "Κατάλογος")))
+           (page-title (company-cheque-page-title role "Κατάλογος")))
       (with-document ()
         (:head
           (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
@@ -247,7 +247,7 @@
             (footer)))))))
 
 (defpage company-cheque-page company/cheque/print (("company/cheque/"
-                                                    (direction "(incoming|outgoing)")
+                                                    (role "(customer|supplier)")
                                                     "/print"))
     ((company-id integer chk-company-id t)
      (cheque-id  integer chk-cheque-id)
@@ -274,14 +274,14 @@
                                               :selected-key (val cheque-id)
                                               :filter filter
                                               :start-index (val start)
-                                              :direction "incoming"
+                                              :role "customer"
                                               :company-id (val company-id)))
              (payable-table (make-instance 'company-cheque-table
                                            :op :details
                                            :selected-key (val cheque-id)
                                            :filter filter
                                            :start-index (val start)
-                                           :direction "outgoing"
+                                           :role "supplier"
                                            :company-id (val company-id))))
         (with-document ()
           (:head
@@ -324,7 +324,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/create
-    (("company/cheque/" (direction "(incoming|outgoing)") "/create"))
+    (("company/cheque/" (role "(customer|supplier)") "/create"))
     ((company-id integer chk-company-id    t)
      (start      integer)
      (bank       string  chk-bank-title)
@@ -343,9 +343,9 @@
                                         :op :create
                                         :filter filter
                                         :start-index (val start)
-                                        :direction direction
+                                        :role role
                                         :company-id (val company-id)))
-           (page-title (company-cheque-page-title direction "Δημιουργία")))
+           (page-title (company-cheque-page-title role "Δημιουργία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -364,7 +364,7 @@
                    (:div :class "title" (str page-title))
                    (actions cheque-table)
                    (notifications)
-                   (with-form (actions/company/cheque/create direction
+                   (with-form (actions/company/cheque/create role
                                                              :company-id (val company-id)
                                                              :search (val search)
                                                              :cstate (val cstate)
@@ -376,7 +376,7 @@
             (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/create
-    (("actions/company/cheque/" (direction "(incoming|outgoing)") "/create") :request-type :post)
+    (("actions/company/cheque/" (role "(customer|supplier)") "/create") :request-type :post)
     ((company-id integer chk-company-id      t)
      (start      integer)
      (bank       string  chk-bank-title)
@@ -389,17 +389,17 @@
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
-  (with-controller-page (company/cheque/create direction)
+  (with-controller-page (company/cheque/create role)
     (let ((new-cheque (make-instance 'cheque
                                      :serial (val serial)
                                      :bank-id (bank-id (val bank))
                                      :company-id (val company-id)
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :receivable-p (incoming-p direction)
+                                     :receivable-p (customer-p role)
                                      :state-id *default-cheque-state*)))
       (insert-dao new-cheque)
-      (see-other (apply #'company/cheque direction :company-id (val company-id)
+      (see-other (apply #'company/cheque role :company-id (val company-id)
                                                    :cheque-id (cheque-id new-cheque)
                                                    (params->filter))))))
 
@@ -410,7 +410,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/update
-    (("company/cheque/" (direction "(incoming|outgoing)") "/update"))
+    (("company/cheque/" (role "(customer|supplier)") "/update"))
     ((company-id integer chk-company-id    t)
      (cheque-id  integer chk-cheque-id     t)
      (start      integer)
@@ -429,11 +429,11 @@
            (cheque-table (make-instance 'company-cheque-table
                                         :op :update
                                         :selected-key (val cheque-id)
-                                        :direction direction
+                                        :role role
                                         :filter filter
                                         :start-index (val start)
                                         :company-id (val company-id)))
-           (page-title (company-cheque-page-title direction "Επεξεργασία")))
+           (page-title (company-cheque-page-title role "Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -452,7 +452,7 @@
                    (:div :class "title" (str page-title))
                    (actions cheque-table)
                    (notifications)
-                   (with-form (actions/company/cheque/update direction
+                   (with-form (actions/company/cheque/update role
                                                              :company-id (val company-id)
                                                              :cheque-id (val cheque-id)
                                                              :search (val search)
@@ -465,7 +465,7 @@
             (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/update
-    (("actions/company/cheque/" (direction "(incoming|outgoing)") "/update") :request-type :post)
+    (("actions/company/cheque/" (role "(customer|supplier)") "/update") :request-type :post)
     ((company-id integer chk-company-id      t)
      (cheque-id  integer chk-cheque-id       t)
      (start      integer)
@@ -479,7 +479,7 @@
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
-  (with-controller-page (company/cheque/update direction)
+  (with-controller-page (company/cheque/update role)
     (let ((cheque-dao (get-dao 'cheque (val cheque-id))))
       ;; Don't touch company-id, state-id and receivable-p
       (setf (bank-id cheque-dao) (bank-id (val bank))
@@ -488,7 +488,7 @@
             (serial cheque-dao) (val serial)
             (old-state-id cheque-dao) (state-id cheque-dao))
       (update-dao cheque-dao)
-      (see-other (apply #'company/cheque direction :company-id (val company-id)
+      (see-other (apply #'company/cheque role :company-id (val company-id)
                                                    :cheque-id (val cheque-id)
                                                    (params->filter))))))
 
@@ -499,7 +499,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/delete
-    (("company/cheque/" (direction "(incoming|outgoing)") "/delete"))
+    (("company/cheque/" (role "(customer|supplier)") "/delete"))
     ((company-id integer chk-company-id    t)
      (cheque-id  integer chk-cheque-id     t)
      (start      integer)
@@ -516,9 +516,9 @@
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start)
-                                        :direction direction
+                                        :role role
                                         :company-id (val company-id)))
-           (page-title (company-cheque-page-title direction "Διαγραφή")))
+           (page-title (company-cheque-page-title role "Διαγραφή")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -538,7 +538,7 @@
                    (:div :class "title" (str page-title))
                    (actions cheque-table)
                    (notifications)
-                   (with-form (actions/company/cheque/delete direction
+                   (with-form (actions/company/cheque/delete role
                                                              :company-id (val company-id)
                                                              :cheque-id (val cheque-id)
                                                              :search (val search)
@@ -551,7 +551,7 @@
             (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/delete
-    (("actions/company/cheque/" (direction "(incoming|outgoing)") "/delete") :request-type :post)
+    (("actions/company/cheque/" (role "(customer|supplier)") "/delete") :request-type :post)
     ((company-id integer chk-company-id      t)
      (cheque-id  integer chk-cheque-id       t)
      (start      integer)
@@ -561,6 +561,6 @@
      (until      date    chk-date)
      (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
-  (with-controller-page (company/cheque/delete direction)
+  (with-controller-page (company/cheque/delete role)
     (delete-dao (get-dao 'cheque (val cheque-id)))
-    (see-other (apply #'company/cheque direction :company-id (val company-id) (params->filter)))))
+    (see-other (apply #'company/cheque role :company-id (val company-id) (params->filter)))))

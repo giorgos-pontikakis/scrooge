@@ -85,49 +85,49 @@
 
 ;;; post checks
 
-(defun cheque-stran-from/to/payable-exists-p/create (from-state-id to-state-id direction)
+(defun cheque-stran-from/to/payable-exists-p/create (from-state-id to-state-id role)
   (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
                 :where (:and (:= 'from-state-id from-state-id)
                              (:= 'to-state-id to-state-id)
-                             (:= 'receivable-p (incoming-p direction))))
+                             (:= 'receivable-p (customer-p role))))
                :plists))))
 
-(defun cheque-stran-from/to/payable-exists-p/update (from-state-id to-state-id direction cheque-stran-id)
+(defun cheque-stran-from/to/payable-exists-p/update (from-state-id to-state-id role cheque-stran-id)
   (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
                 :where (:and (:= 'from-state-id from-state-id)
                              (:= 'to-state-id to-state-id)
-                             (:= 'receivable-p (incoming-p direction))
+                             (:= 'receivable-p (customer-p role))
                              (:not (:= 'id cheque-stran-id))))
                :plists))))
 
-(defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id direction)
-  (if (cheque-stran-from/to/payable-exists-p/create from-state-id to-state-id direction)
+(defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id role)
+  (if (cheque-stran-from/to/payable-exists-p/create from-state-id to-state-id role)
       :cheque-stran-from/to/payable-exists
       nil))
 
-(defun chk-cheque-stran-from/to/payable-exists/update (from-state-id to-state-id direction cheque-stran-id)
-  (if (cheque-stran-from/to/payable-exists-p/update from-state-id to-state-id direction cheque-stran-id)
+(defun chk-cheque-stran-from/to/payable-exists/update (from-state-id to-state-id role cheque-stran-id)
+  (if (cheque-stran-from/to/payable-exists-p/update from-state-id to-state-id role cheque-stran-id)
       :cheque-stran-from/to/payable-exists
       nil))
 
-(defun check-cheque-stran-parameters (from-state-id to-state-id direction &optional cheque-stran-id)
+(defun check-cheque-stran-parameters (from-state-id to-state-id role &optional cheque-stran-id)
   (if cheque-stran-id
       (validate-parameters (lambda (from to)
                              (chk-cheque-stran-from/to/payable-exists/update from
                                                                              to
-                                                                             direction
+                                                                             role
                                                                              (val cheque-stran-id)))
                            from-state-id to-state-id)
       (validate-parameters (lambda (from to)
                              (chk-cheque-stran-from/to/payable-exists/create from
                                                                              to
-                                                                             direction))
+                                                                             role))
                            from-state-id to-state-id))
   (validate-parameters (lambda (from to)
                          (if (string= from to)
@@ -145,7 +145,7 @@
 ;;; table
 
 (defclass cheque-stran-table (scrooge-table)
-  ((direction :accessor direction :initarg :direction)
+  ((role :accessor role :initarg :role)
    (header-labels :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
                                "Πρότυπη<br />Συναλλαγή" "" ""))
@@ -159,25 +159,25 @@
                              :from 'cheque-stran
                              :inner-join 'temtx
                              :on (:= 'temtx-id 'temtx.id)
-                             :where (:= 'receivable-p (incoming-p (direction table))))
+                             :where (:= 'receivable-p (customer-p (role table))))
                     'cheque-stran.title)
          :plists))
 
 (defmethod actions ((table cheque-stran-table) &key)
   (let* ((cheque-stran-id (selected-key table))
          (hrefs (if cheque-stran-id
-                    (list :update (config/cheque-stran/update (direction table)
+                    (list :update (config/cheque-stran/update (role table)
                                                               :cheque-stran-id cheque-stran-id)
-                          :delete (config/cheque-stran/delete (direction table)
+                          :delete (config/cheque-stran/delete (role table)
                                                               :cheque-stran-id cheque-stran-id))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions table))))
 
 (defmethod filters ((tbl cheque-stran-table))
-  (filter-area (filter-navbar `((incoming ,(config/cheque-stran "incoming") "Προς είσπραξη")
-                                (outgoing ,(config/cheque-stran "outgoing") "Προς πληρωμή"))
-                              :active (intern (string-upcase (direction tbl))))))
+  (filter-area (filter-navbar `((customer ,(config/cheque-stran "customer") "Προς είσπραξη")
+                                (supplier ,(config/cheque-stran "supplier") "Προς πληρωμή"))
+                              :active (intern (string-upcase (role tbl))))))
 
 
 ;;; rows
@@ -188,11 +188,11 @@
 (defmethod selector ((row cheque-stran-row) enabled-p)
   (let* ((cheque-stran-id (key row))
          (table (collection row))
-         (direction (direction table)))
+         (role (role table)))
     (html ()
       (:a :href (if enabled-p
-                    (config/cheque-stran direction)
-                    (config/cheque-stran direction :cheque-stran-id cheque-stran-id))
+                    (config/cheque-stran role)
+                    (config/cheque-stran role :cheque-stran-id cheque-stran-id))
           (selector-img enabled-p)))))
 
 (defmethod payload ((row cheque-stran-row) enabled-p)
@@ -220,11 +220,11 @@
 
 (defmethod controls ((row cheque-stran-row) enabled-p)
   (let ((cheque-stran-id (key row))
-        (direction (direction (collection row))))
+        (role (role (collection row))))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (config/cheque-stran direction :cheque-stran-id cheque-stran-id)))
+                             :href (config/cheque-stran role :cheque-stran-id cheque-stran-id)))
         (list nil nil))))
 
 
@@ -234,7 +234,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran
-    (("config/cheque-stran/" (direction "(incoming|outgoing)")))
+    (("config/cheque-stran/" (role "(customer|supplier)")))
     ((start           integer)
      (cheque-stran-id integer chk-cheque-stran-id))
   (with-view-page
@@ -242,7 +242,7 @@
                                              :op :catalogue
                                              :selected-key (val cheque-stran-id)
                                              :id "cheque-stran-table"
-                                             :direction direction)))
+                                             :role role)))
       (with-document ()
         (:head
          (:title "Μεταπτώσεις Επιταγών » Κατάλογος")
@@ -267,15 +267,15 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/create
-    (("config/cheque-stran/" (direction "(incoming|outgoing)") "/create"))
+    (("config/cheque-stran/" (role "(customer|supplier)") "/create"))
     ((title         string chk-cheque-stran-title/create)
      (from-state-id string chk-cheque-state-id*)
      (to-state-id   string chk-cheque-state-id)
      (temtx         string chk-temtx-title))
-  (check-cheque-stran-parameters from-state-id to-state-id direction)
+  (check-cheque-stran-parameters from-state-id to-state-id role)
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :direction direction
+                                             :role role
                                              :op :create)))
       (with-document ()
         (:head
@@ -292,26 +292,26 @@
                            (:div :class "title" "Δημιουργία")
                            (actions cheque-stran-table)
                            (notifications)
-                           (with-form (actions/config/cheque-stran/create direction)
+                           (with-form (actions/config/cheque-stran/create role)
                              (display cheque-stran-table :payload (params->payload)))))))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/create
-    (("actions/config/cheque-stran/" (direction "(incoming|outgoing)") "/create") :request-type :post)
+    (("actions/config/cheque-stran/" (role "(customer|supplier)") "/create") :request-type :post)
     ((title         string chk-cheque-stran-title/create)
      (from-state-id string chk-cheque-state-id*)
      (to-state-id   string chk-cheque-state-id)
      (temtx         string chk-temtx-title))
-  (check-cheque-stran-parameters from-state-id to-state-id direction)
-  (with-controller-page (config/cheque-stran/create direction)
+  (check-cheque-stran-parameters from-state-id to-state-id role)
+  (with-controller-page (config/cheque-stran/create role)
     (let* ((temtx-id (temtx-id (val temtx)))
            (new-cheque-stran (make-instance 'cheque-stran
                                             :title (val title)
-                                            :receivable-p (incoming-p direction)
+                                            :receivable-p (customer-p role)
                                             :from-state-id (val from-state-id)
                                             :to-state-id (val to-state-id)
                                             :temtx-id temtx-id)))
       (insert-dao new-cheque-stran)
-      (see-other (config/cheque-stran direction :cheque-stran-id (cheque-stran-id new-cheque-stran))))))
+      (see-other (config/cheque-stran role :cheque-stran-id (cheque-stran-id new-cheque-stran))))))
 
 
 
@@ -320,16 +320,16 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/update
-    (("config/cheque-stran/" (direction "(incoming|outgoing)") "/update"))
+    (("config/cheque-stran/" (role "(customer|supplier)") "/update"))
     ((cheque-stran-id integer chk-cheque-stran-id                                   t)
      (title           string  (chk-cheque-stran-title/update title cheque-stran-id))
      (from-state-id   string  chk-cheque-state-id*)
      (to-state-id     string  chk-cheque-state-id)
      (temtx           string  chk-temtx-title))
-  (check-cheque-stran-parameters from-state-id to-state-id direction cheque-stran-id)
+  (check-cheque-stran-parameters from-state-id to-state-id role cheque-stran-id)
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :direction direction
+                                             :role role
                                              :selected-key (val cheque-stran-id)
                                              :op :update)))
       (with-document ()
@@ -348,21 +348,21 @@
                            (actions cheque-stran-table)
                            (notifications)
                            (with-form
-                               (actions/config/cheque-stran/update direction
+                               (actions/config/cheque-stran/update role
                                                                    :cheque-stran-id (val cheque-stran-id))
                              (display cheque-stran-table :payload (params->payload)))))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/update
-    (("actions/config/cheque-stran/" (direction "(incoming|outgoing)") "/update")
+    (("actions/config/cheque-stran/" (role "(customer|supplier)") "/update")
      :request-type :post)
     ((cheque-stran-id            integer chk-cheque-stran-id                      t)
      (title         string  (chk-cheque-stran-title/update title cheque-stran-id))
      (from-state-id string  chk-cheque-state-id*)
      (to-state-id   string  chk-cheque-state-id)
      (temtx         string  chk-temtx-title))
-  (check-cheque-stran-parameters from-state-id to-state-id direction cheque-stran-id)
-  (with-controller-page (config/cheque-stran/update direction)
+  (check-cheque-stran-parameters from-state-id to-state-id role cheque-stran-id)
+  (with-controller-page (config/cheque-stran/update role)
     (let ((temtx-id (temtx-id (val temtx))))
       (execute (:update 'cheque-stran :set
                         'title (val title)
@@ -370,7 +370,7 @@
                         'to-state-id (val to-state-id)
                         'temtx-id temtx-id
                         :where (:= 'id (val cheque-stran-id)))))
-    (see-other (config/cheque-stran direction :cheque-stran-id (val cheque-stran-id)))))
+    (see-other (config/cheque-stran role :cheque-stran-id (val cheque-stran-id)))))
 
 
 
@@ -379,11 +379,11 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/delete
-    (("config/cheque-stran/" (direction "(incoming|outgoing)") "/delete"))
+    (("config/cheque-stran/" (role "(customer|supplier)") "/delete"))
     ((cheque-stran-id integer chk-cheque-stran-id t))
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :direction direction
+                                             :role role
                                              :selected-key (val cheque-stran-id)
                                              :op :delete)))
       (with-document ()
@@ -401,15 +401,15 @@
                            (:div :class "title" "Διαγραφή")
                            (actions cheque-stran-table)
                            (with-form
-                               (actions/config/cheque-stran/delete direction
+                               (actions/config/cheque-stran/delete role
                                                                    :cheque-stran-id (val cheque-stran-id))
                              (display cheque-stran-table))))
                (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/delete
-    (("actions/config/cheque-stran/" (direction "(incoming|outgoing)") "/delete")
+    (("actions/config/cheque-stran/" (role "(customer|supplier)") "/delete")
      :request-type :post)
     ((cheque-stran-id integer chk-cheque-stran-id t))
-  (with-controller-page (config/cheque-stran/delete direction)
+  (with-controller-page (config/cheque-stran/delete role)
     (delete-dao (get-dao 'cheque-stran (val cheque-stran-id)))
-    (see-other (config/cheque-stran direction))))
+    (see-other (config/cheque-stran role))))

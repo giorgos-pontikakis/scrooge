@@ -183,7 +183,7 @@
                  (navbar
                   `((data ,(family-url 'company/details :system :filter) "Στοιχεία")
                     (tx ,(family-url 'company/tx :system :filter) "Συναλλαγές")
-                    (cheque ,(apply #'company/cheque "incoming"
+                    (cheque ,(apply #'company/cheque "customer"
                                     (family-params 'company/cheque :system :filter))
                             "Επιταγές"))
                   :css-class "hnavbar grid_5 prefix_7"

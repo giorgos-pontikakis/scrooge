@@ -107,7 +107,7 @@ id, i.e. all records of the subtree with root specified by the given id."
         (t
          nil)))
 
-(defun chk-tx-constraints-fn (direction &optional cash-tx-p)
+(defun chk-tx-constraints-fn (role &optional cash-tx-p)
   #'(lambda (company-title)
       (with-db ()
         (let ((tx-constraints
@@ -119,11 +119,11 @@ id, i.e. all records of the subtree with root specified by the given id."
                       (getf tx-constraints :immediate-tx-only-p))
                  :company-immediate-tx-only)
                 ((and (eql (getf tx-constraints :revenues-account-id) :null)
-                      (incoming-p direction))
-                 :company-outgoing-only)
+                      (customer-p role))
+                 :company-supplier-only)
                 ((and (eql (getf tx-constraints :expenses-account-id) :null)
-                      (not (incoming-p direction)))
-                 :company-incoming-only))))))
+                      (not (customer-p role)))
+                 :company-customer-only))))))
 
 
 

@@ -174,22 +174,22 @@
 
 
 
-;;; ACCOUNTS PER DIRECTION
+;;; ACCOUNTS PER ROLE
 
-(defun incoming-p (direction)
-  (string-equal direction "incoming"))
+(defun customer-p (role)
+  (string-equal role "customer"))
 
-(defun revenues/expenses-root (direction)
-  (if (incoming-p direction)
+(defun revenues/expenses-root (role)
+  (if (customer-p role)
       (account-id 'revenues-root-account)
       (account-id 'expenses-root-account)))
 
-(defun receivable/payable-root (direction)
-  (if (incoming-p direction)
+(defun receivable/payable-root (role)
+  (if (customer-p role)
       (account-id 'receivable-root-account)
       (account-id 'payable-root-account)))
 
-(defun revenues/expenses-set (direction)
-  (if (incoming-p direction)
+(defun revenues/expenses-set (role)
+  (if (customer-p role)
       *revenue-accounts*
       *expense-accounts*))

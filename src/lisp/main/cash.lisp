@@ -23,9 +23,9 @@
         "Δεν έχει καταχωρηθεί εταιρία με αυτή την επωνυμία"
         :company-title-null
         "Η επωνυμία της εταιρίας είναι κενή"
-        :company-outgoing-only
+        :company-supplier-only
         "Αυτή η εταιρία δεν μπορεί να εμφανίζει έσοδα."
-        :company-incoming-only
+        :company-customer-only
         "Αυτή η εταιρία δεν μπορεί να εμφανίζει έξοδα."))
       (amount
        (:empty-amount
@@ -75,25 +75,26 @@
 ;;; table
 
 (defclass cash-tx-table (tx-table)
-  ((direction     :accessor direction                                                                                     :initarg :direction)
+  ((role :accessor role
+              :initarg :role)
    (paginator     :initform (make-instance 'cash-paginator
                                            :css-class "paginator"))
    (header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" "")))
   (:default-initargs :item-class 'cash-tx-row :id "cash-tx-table"))
 
 (defmethod get-records ((table cash-tx-table))
-  (flet ((acc-filter (direction)
-           (if (incoming-p direction)
+  (flet ((acc-filter (role)
+           (if (customer-p role)
                `(debit-acc-id ,(account-id 'cash-account))    ; revenue
                `(credit-acc-id ,(account-id 'cash-account)))) ; expense
-         (acc-join (direction)
-           (if (incoming-p direction)
+         (acc-join (role)
+           (if (customer-p role)
                'tx.credit-acc-id   ; revenue
                'tx.debit-acc-id))) ; expense
     (let* ((search (getf (filter table) :search))
            (since (getf (filter table) :since))
            (until (getf (filter table) :until))
-           (direction (direction table))
+           (role (role table))
            (base-query `(:select tx.id tx-date
                           (:as company.title company)
                           (:as company.id 'company-id)
@@ -103,7 +104,7 @@
                           :left-join company
                           :on (:= tx.company-id company.id)
                           :left-join account
-                          :on (:= ,(acc-join direction) account.id)
+                          :on (:= ,(acc-join role) account.id)
                           :left-join 'cheque-event
                           :on (:= 'cheque-event.tx-id 'tx.id)))
            (where nil))
@@ -119,7 +120,7 @@
         (push `(:<= tx-date ,until)
               where))
       (let ((sql `(:order-by (,@base-query :where
-                                           (:and (:= ,@(acc-filter direction))
+                                           (:and (:= ,@(acc-filter role))
                                                  (:is-null 'cheque-event.cheque-id)
                                                  ,@where))
                              (:desc tx-date) account company description)))
@@ -128,24 +129,24 @@
 
 (defmethod actions ((tbl cash-tx-table) &key)
   (let* ((tx-id (selected-key tbl))
-         (direction (direction tbl))
+         (role (role tbl))
          (filter (filter tbl))
          (hrefs (if tx-id
-                    (list :details (apply #'cash/details direction :tx-id tx-id filter)
-                          :delete (apply #'cash/delete direction :tx-id tx-id filter))
+                    (list :details (apply #'cash/details role :tx-id tx-id filter)
+                          :delete (apply #'cash/delete role :tx-id tx-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
 
 (defmethod filters ((tbl cash-tx-table))
-  (let ((direction (direction tbl))
+  (let ((role (role tbl))
         (filter (filter tbl)))
-    (filter-area (filter-navbar `((incoming ,(apply #'cash "incoming" filter) "Έσοδα")
-                                  (outgoing ,(apply #'cash "outgoing" filter) "Έξοδα"))
-                                :active direction
-                                :id "direction-navbar")
+    (filter-area (filter-navbar `((customer ,(apply #'cash "customer" filter) "Έσοδα")
+                                  (supplier ,(apply #'cash "supplier" filter) "Έξοδα"))
+                                :active role
+                                :id "role-navbar")
                  (datebox (lambda (&rest args)
-                            (apply #'cash direction args))
+                            (apply #'cash role args))
                           filter))))
 
 
@@ -160,12 +161,12 @@
          (table (collection row))
          (pg (paginator table))
          (filter (filter table))
-         (direction (direction table))
+         (role (role table))
          (start (start-index table)))
     (html ()
       (:a :href (if selected-p
-                    (apply #'cash direction :start (page-start pg (index row) start) filter)
-                    (apply #'cash direction :tx-id tx-id filter))
+                    (apply #'cash role :start (page-start pg (index row) start) filter)
+                    (apply #'cash role :tx-id tx-id filter))
         (selector-img selected-p)))))
 
 (defmethod payload ((row cash-tx-row) enabled-p)
@@ -194,10 +195,10 @@
   (let* ((tx-id (key row))
          (table (collection row))
          (filter (filter table))
-         (direction (direction table)))
+         (role (role table)))
     (if controls-p
         (list (make-instance 'ok-button)
-              (make-instance 'cancel-button :href (apply #'cash direction :tx-id tx-id filter)))
+              (make-instance 'cancel-button :href (apply #'cash role :tx-id tx-id filter)))
         (list nil nil))))
 
 
@@ -208,7 +209,7 @@
 
 (defmethod target-url ((pg cash-paginator) start)
   (let ((table (table pg)))
-    (apply #'cash (direction table) :start start (filter table))))
+    (apply #'cash (role table) :start start (filter table))))
 
 
 
@@ -216,18 +217,18 @@
 ;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun cash-debit-acc-id (direction account-id)
-  (if (incoming-p direction)
+(defun cash-debit-acc-id (role account-id)
+  (if (customer-p role)
       (account-id 'cash-account)
       account-id))
 
-(defun cash-credit-acc-id (direction account-id)
-  (if (incoming-p direction)
+(defun cash-credit-acc-id (role account-id)
+  (if (customer-p role)
       account-id
       (account-id 'cash-account)))
 
-(defun cash-page-title (direction op-label)
-  (conc "Μετρητά » " (if (incoming-p direction) "Έσοδα" "Έξοδα") " » " op-label))
+(defun cash-page-title (role op-label)
+  (conc "Μετρητά » " (if (customer-p role) "Έσοδα" "Έξοδα") " » " op-label))
 
 
 
@@ -236,8 +237,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defun cash-top-actions (op)
-  (let* ((direction (first *registers*))
-         (new-cash-label (conc "Νέο " (if (incoming-p direction) "Έσοδo" "Έξοδo"))))
+  (let* ((role (first *registers*))
+         (new-cash-label (conc "Νέο " (if (customer-p role) "Έσοδo" "Έξοδo"))))
     (top-actions-area
      (make-instance 'scrooge-menu
                     :spec (make-menu-spec
@@ -257,17 +258,17 @@
 ;;; ------------------------------------------------------------
 
 (defclass cash-form (tx-form)
-  ((direction :accessor direction :initarg :direction)))
+  ((role :accessor role :initarg :role)))
 
 (defmethod display ((form cash-form) &key styles)
-  (let* ((incoming-p (incoming-p (direction form)))
+  (let* ((customer-p (customer-p (role form)))
          (disabled (eql (op form) :details))
          (record (record form))
          (ldfn (label-datum disabled record styles))
-         (revenues/expenses-root-key (revenues/expenses-root (direction form)))
-         (receivable/payable-root-key (receivable/payable-root (direction form)))
+         (revenues/expenses-root-key (revenues/expenses-root (role form)))
+         (receivable/payable-root-key (receivable/payable-root (role form)))
          (selected-key (or (getf record :account-id)
-                           (getf record (if incoming-p
+                           (getf record (if customer-p
                                             :credit-acc-id
                                             :debit-acc-id))
                            revenues/expenses-root-key)))
@@ -289,31 +290,31 @@
                    (cancel-button (cancel-url form)
                                   :body "Άκυρο")))))
         (htm (:div :class "grid_5 omega"
-               (:h3 (str (conc "Λογαριασμός " (if incoming-p "πίστωσης" "χρέωσης"))))
+               (:h3 (str (conc "Λογαριασμός " (if customer-p "πίστωσης" "χρέωσης"))))
                ;;
                (:div :class "hidden-when-immediate-tx-only"
                  (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
                  (display (make-instance 'rev/exp-account-tree
                                          :disabled disabled
                                          :root-key receivable/payable-root-key
-                                         :debit-p incoming-p
+                                         :debit-p customer-p
                                          :selected-key selected-key)))
                ;;
                (:div :class "company-dependent"
                  (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                 (if incoming-p "εσόδων" "εξόδων"))))
+                                 (if customer-p "εσόδων" "εξόδων"))))
                  (display (make-instance 'rev/exp-account-tree
                                          :disabled disabled
                                          :root-key revenues/expenses-root-key
-                                         :debit-p (not incoming-p)
+                                         :debit-p (not customer-p)
                                          :selected-key selected-key)))))
         (clear)))))
 
 (defmethod actions ((form cash-form) &key filter)
   (let* ((tx-id (key form))
-         (direction (direction form))
-         (hrefs (list :update (apply #'cash/update direction :tx-id tx-id filter)
-                      :delete (apply #'cash/delete direction :tx-id tx-id filter))))
+         (role (role form))
+         (hrefs (list :update (apply #'cash/update role :tx-id tx-id filter)
+                      :delete (apply #'cash/delete role :tx-id tx-id filter))))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
 
@@ -324,20 +325,20 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page actions/cash/search
-    (("actions/cash/" (direction "(incoming|outgoing)") "/search") :request-type :get)
+    (("actions/cash/" (role "(customer|supplier)") "/search") :request-type :get)
     ((search string)
      (since date)
      (until date))
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'cash-tx-table
-                                      :direction direction
+                                      :role role
                                       :filter filter))))
       (if (single-item-list-p rows)
-          (see-other (apply #'cash/details direction
+          (see-other (apply #'cash/details role
                             :tx-id (key (first rows))
                             filter))
-          (see-other (apply #'cash direction filter))))))
+          (see-other (apply #'cash role filter))))))
 
 
 
@@ -345,7 +346,7 @@
 ;;; VIEW
 ;;; ----------------------------------------------------------------------
 
-(defpage cash-page cash (("cash/" (direction "(incoming|outgoing)")))
+(defpage cash-page cash (("cash/" (role "(customer|supplier)")))
     ((tx-id  integer chk-tx-id)
      (start  integer)
      (search string)
@@ -354,9 +355,9 @@
   (check-cash-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (cash-page-title direction "Κατάλογος"))
+           (page-title (cash-page-title role "Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
-                                         :direction direction
+                                         :role role
                                          :op :catalogue
                                          :selected-key (val tx-id)
                                          :filter filter
@@ -366,9 +367,9 @@
                  (not (find (val tx-id) (rows cash-tx-table) :key #'key)))
         (let ((tx (get-dao 'tx (val tx-id))))
           (see-other (cash (cond ((eql (debit-acc-id tx) (account-id 'cash-account))
-                                  "incoming")
+                                  "customer")
                                  ((eql (credit-acc-id tx) (account-id 'cash-account))
-                                  "outgoing")
+                                  "supplier")
                                  (t (error 'bad-request-error)))
                            :tx-id (val tx-id)))))
       ;; otherwise continue as usually
@@ -389,7 +390,7 @@
                 (display cash-tx-table)))
             (footer)))))))
 
-(defpage cash-page cash/details (("cash/" (direction "(incoming|outgoing)") "/details"))
+(defpage cash-page cash/details (("cash/" (role "(customer|supplier)") "/details"))
     ((tx-id  integer chk-tx-id t)
      (search string)
      (since  date)
@@ -398,11 +399,11 @@
   (with-view-page
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
-                                     :direction direction
+                                     :role role
                                      :op :details
                                      :key (val tx-id)
-                                     :cancel-url (apply #'cash direction :tx-id (val tx-id) filter)))
-           (page-title (cash-page-title direction "Λεπτομέρειες")))
+                                     :cancel-url (apply #'cash role :tx-id (val tx-id) filter)))
+           (page-title (cash-page-title role "Λεπτομέρειες")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -426,7 +427,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash/create
-    (("cash/" (direction "(incoming|outgoing)") "/create"))
+    (("cash/" (role "(customer|supplier)") "/create"))
     ((tx-date     date)
      (description string)
      (company     string  chk-company-title)
@@ -435,15 +436,15 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (validate-parameters (chk-tx-constraints-fn role t) company)
   (check-cash-accounts)
   (with-view-page
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
-                                     :direction direction
+                                     :role role
                                      :op :create
-                                     :cancel-url (apply #'cash direction filter)))
-           (page-title (cash-page-title direction "Δημιουργία")))
+                                     :cancel-url (apply #'cash role filter)))
+           (page-title (cash-page-title role "Δημιουργία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -458,7 +459,7 @@
                 (:div :class "title" (str page-title))
                 (actions cash-form :filter filter)
                 (notifications)
-                (with-form (actions/cash/create direction
+                (with-form (actions/cash/create role
                                                 :search (val search)
                                                 :since (val since)
                                                 :until (val until))
@@ -467,7 +468,7 @@
             (footer)))))))
 
 (defpage cash-page actions/cash/create
-    (("actions/cash/" (direction "(incoming|outgoing)") "/create") :request-type :post)
+    (("actions/cash/" (role "(customer|supplier)") "/create") :request-type :post)
     ((tx-date     date)
      (description string)
      (company     string  chk-company-title t)
@@ -476,12 +477,12 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (validate-parameters (chk-tx-constraints-fn role t) company)
   (check-cash-accounts)
-  (with-controller-page (cash/create direction)
+  (with-controller-page (cash/create role)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (cash-debit-acc-id direction (val account-id)))
-           (credit-acc-id (cash-credit-acc-id direction (val account-id)))
+           (debit-acc-id (cash-debit-acc-id role (val account-id)))
+           (credit-acc-id (cash-credit-acc-id role (val account-id)))
            (new-tx (make-instance 'tx
                                   :tx-date (val tx-date)
                                   :description (val description)
@@ -491,7 +492,7 @@
                                   :debit-acc-id debit-acc-id
                                   :auto t)))
       (insert-dao new-tx)
-      (see-other (apply #'cash/details direction :tx-id (tx-id new-tx)
+      (see-other (apply #'cash/details role :tx-id (tx-id new-tx)
                         (params->filter))))))
 
 
@@ -501,7 +502,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash/update
-    (("cash/" (direction "(incoming|outgoing)") "/update"))
+    (("cash/" (role "(customer|supplier)") "/update"))
     ((search      string)
      (since       date)
      (until       date)
@@ -511,18 +512,18 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id))
-  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (validate-parameters (chk-tx-constraints-fn role t) company)
   (check-cash-accounts)
   (with-view-page
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
-                                     :direction direction
+                                     :role role
                                      :op :update
                                      :key (val tx-id)
-                                     :cancel-url (apply #'cash/details direction
+                                     :cancel-url (apply #'cash/details role
                                                         :tx-id (val tx-id)
                                                         filter)))
-           (page-title (cash-page-title direction "Επεξεργασία")))
+           (page-title (cash-page-title role "Επεξεργασία")))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -537,7 +538,7 @@
                 (:div :class "title" (str page-title))
                 (actions cash-form :filter filter)
                 (notifications)
-                (with-form (actions/cash/update direction
+                (with-form (actions/cash/update role
                                                 :tx-id (val tx-id)
                                                 :search (val search)
                                                 :since (val since)
@@ -547,7 +548,7 @@
             (footer)))))))
 
 (defpage cash-page actions/cash/update
-    (("actions/cash/" (direction "(incoming|outgoing)") "/update") :request-type :post)
+    (("actions/cash/" (role "(customer|supplier)") "/update") :request-type :post)
     ((search      string)
      (since       date)
      (until       date)
@@ -557,12 +558,12 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (account-id  integer chk-account-id))
-  (validate-parameters (chk-tx-constraints-fn direction t) company)
+  (validate-parameters (chk-tx-constraints-fn role t) company)
   (check-cash-accounts)
-  (with-controller-page (cash/update direction)
+  (with-controller-page (cash/update role)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (cash-debit-acc-id direction (val account-id)))
-          (credit-acc-id (cash-credit-acc-id direction (val account-id))))
+          (debit-acc-id (cash-debit-acc-id role (val account-id)))
+          (credit-acc-id (cash-credit-acc-id role (val account-id))))
       (execute (:update 'tx :set
                         'tx-date (val tx-date)
                         'description (val description)
@@ -571,7 +572,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         :where (:= 'id (val tx-id))))
-      (see-other (apply #'cash/details direction :tx-id (val tx-id) (params->filter))))))
+      (see-other (apply #'cash/details role :tx-id (val tx-id) (params->filter))))))
 
 
 
@@ -580,7 +581,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash/delete
-    (("cash/" (direction "(incoming|outgoing)") "/delete"))
+    (("cash/" (role "(customer|supplier)") "/delete"))
     ((tx-id  integer chk-tx-id t)
      (search string)
      (since  date)
@@ -588,10 +589,10 @@
   (check-cash-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (page-title (cash-page-title direction "Διαγραφή"))
+           (page-title (cash-page-title role "Διαγραφή"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :op :delete
-                                         :direction direction
+                                         :role role
                                          :selected-key (val tx-id)
                                          :filter filter)))
       (with-document ()
@@ -608,7 +609,7 @@
               (:div :id "cash-window" :class "window"
                 (:div :class "title" (str page-title))
                 (actions cash-tx-table)
-                (with-form (actions/cash/delete direction
+                (with-form (actions/cash/delete role
                                                 :tx-id (val tx-id)
                                                 :search (val search)
                                                 :since (val since)
@@ -617,7 +618,7 @@
             (footer)))))))
 
 (defpage cash-page actions/cash/delete
-    (("actions/cash/" (direction "(incoming|outgoing)") "/delete") :request-type :post)
+    (("actions/cash/" (role "(customer|supplier)") "/delete") :request-type :post)
     ((tx-id  integer chk-tx-id t)
      (search string)
      (since  date)
@@ -625,4 +626,4 @@
   (check-cash-accounts)
   (with-controller-page (cash/delete)
     (delete-dao (get-dao 'tx (val tx-id)))
-    (see-other (apply #'cash direction (params->filter)))))
+    (see-other (apply #'cash role (params->filter)))))
