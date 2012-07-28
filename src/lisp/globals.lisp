@@ -49,22 +49,23 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *accounts* nil)
   (defparameter *expense-accounts* nil)
-  (defparameter *revenue-accounts* nil))
+  (defparameter *revenue-accounts* nil)
+  (defparameter *receivable-accounts* nil)
+  (defparameter *payable-accounts* nil))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (flet ((set-accounts ()
            (with-db ()
              (query (:select '* :from 'account) :plists)))
-         (set-expense-accounts ()
+         (set-accounts-subtree (root-id)
            (subtree-record-ids *accounts*
-                               (account-id 'expenses-root-account)))
-         (set-revenue-accounts ()
-           (subtree-record-ids *accounts*
-                               (account-id 'revenues-root-account))))
+                               (account-id root-id))))
     (defun update-account-globals ()
       (setf *accounts* (set-accounts))
-      (setf *expense-accounts* (set-expense-accounts))
-      (setf *revenue-accounts* (set-revenue-accounts)))))
+      (setf *expense-accounts* (set-accounts-subtree 'expenses-root-account))
+      (setf *revenue-accounts* (set-accounts-subtree 'revenues-root-account))
+      (setf *receivable-accounts* (set-accounts-subtree 'receivable-root-account))
+      (setf *payable-accounts* (set-accounts-subtree 'payable-root-account)))))
 
 ;;; initialization of account sets
 (update-account-globals)

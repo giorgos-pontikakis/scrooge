@@ -5,13 +5,14 @@
 ;;;  CUSTOMER DEBITS - CREDITS
 
 (defun customer-debits ()
-  `(:in tx.credit-acc-id (:set ,@*revenue-accounts*)))
-
-(defun customer-cash-credits ()
-  `(:= tx.debit-acc-id ,(account-id 'cash-account)))
+  `(:and (:in tx.credit-acc-id (:set ,@*revenue-accounts*))
+         (:in tx.debit-acc-id  (:set ,@*receivable-accounts*))))
 
 (defun customer-contra-credits ()
   `(:in tx.debit-acc-id (:set ,@*revenue-accounts*)))
+
+(defun customer-cash-credits ()
+  `(:= tx.debit-acc-id ,(account-id 'cash-account)))
 
 (defun customer-cheque-credits ()
   ;; subquery receives cheque-event.cheque-id from main query
@@ -31,7 +32,8 @@
 ;;;  SUPPLIER CREDITS - DEBITS
 
 (defun supplier-credits ()
-  `(:in tx.debit-acc-id (:set ,@*expense-accounts*)))
+  `(:and (:in tx.debit-acc-id (:set ,@*expense-accounts*))
+         (:in tx.credit-acc-id (:set ,@*payable-accounts*))))
 
 (defun supplier-cash-debits ()
   `(:= tx.credit-acc-id ,(account-id 'cash-account)))
