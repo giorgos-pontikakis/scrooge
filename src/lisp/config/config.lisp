@@ -38,6 +38,6 @@
                           (account       ,(config/account)                   "Λογαριασμοί")
                           (account-role  ,(config/account-role)              "Ρόλοι Λογαριασμών")
                           (temtx         ,(config/temtx)                     "Πρότυπα Συναλλαγών")
-                          (cheque-stran  ,(config/cheque-stran "receivable") "Επιταγές"))
+                          (cheque-stran  ,(config/cheque-stran "incoming") "Επιταγές"))
                         :css-class "hnavbar"
                         :active active)))))
