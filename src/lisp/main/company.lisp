@@ -306,6 +306,7 @@
   (:default-initargs :item-class 'company-row :id "company-table"))
 
 (defmethod get-records ((table company-table))
+  ;; Uses SQL function: company-tx-sum
   (let* ((search (getf (filter table) :search))
          (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
@@ -342,25 +343,8 @@
         ((member subset (list "credit" "debit") :test #'string=)
          (push `(:< ,*company-tx-significant-amount*
                     (* ,(if (string= subset "debit") +1 -1)
-                       (-
-                        ;; debits
-                        (:select (coalesce (sum tx.amount) 0)
-                          :from tx
-                          :left-join cheque-event
-                          :on (:= cheque-event.tx-id tx.id)
-                          :where (:and
-                                  (:= tx.company-id company.id)
-                                  (:or ,(customer-debits)
-                                       ,(supplier-debits))))
-                        ;; credits
-                        (:select (coalesce (sum tx.amount) 0)
-                          :from tx
-                          :left-join cheque-event
-                          :on (:= cheque-event.tx-id tx.id)
-                          :where (:and
-                                  (:= tx.company-id company.id)
-                                  (:or ,(customer-credits)
-                                       ,(supplier-credits)))))))
+                       (- (:select * :from (company-tx-sum company.id "debit"))
+                          (:select * :from (company-tx-sum company.id "credit")))))
                where))))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and t
@@ -368,6 +352,44 @@
                            company.title)))
       (query (sql-compile sql)
              :plists))))
+
+#|(let* ((sql `(:order-by (,@base-query :where
+    (:and t
+    ,@where))
+    company.title))
+    (all-tx-rows (query (sql-compile sql)
+    :plists)))
+    (flet ((company-balance (row)
+    (nth-value 3 (company-debits/credits-all (getf row :id)
+    (list :customer :supplier)))))
+    (with-hashed-identity (:test #'equal)
+    (ecase subset
+    ((nil) all-tx-rows)
+    ("projects" (remove-if-not (lambda (i)
+    (string= i "ongoing"))
+    all-tx-rows :key (getf-fn :state-id)))
+    ("debit" (remove-if #'minusp all-tx-rows :key #'company-balance))
+    ("credit" (remove-if #'plusp all-tx-rows :key #'company-balance))))))|#
+
+#|(-
+ ;; debits
+ (:select (coalesce (sum tx.amount) 0)
+   :from tx
+   :left-join cheque-event
+   :on (:= cheque-event.tx-id tx.id)
+   :where (:and
+           (:= tx.company-id company.id)
+           (:or ,(customer-debits)
+                ,(supplier-debits))))
+ ;; credits
+ (:select (coalesce (sum tx.amount) 0)
+   :from tx
+   :left-join cheque-event
+   :on (:= cheque-event.tx-id tx.id)
+   :where (:and
+           (:= tx.company-id company.id)
+           (:or ,(customer-credits)
+                ,(supplier-credits)))))|#
 
 (defmethod actions ((tbl company-table) &key)
   (let* ((company-id (selected-key tbl))

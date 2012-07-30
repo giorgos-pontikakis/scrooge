@@ -1,239 +1,163 @@
 (in-package :scrooge)
 
 
-
-;;;  CUSTOMER DEBITS - CREDITS
-
-;; (defun customer-invoice-debits ()
-;;   `(:and (:in tx.credit-acc-id (:set ,@*revenue-accounts*))
-;;          (:in tx.debit-acc-id  (:set ,@*receivable-accounts*))))
-
-;; (defun customer-invoice-credits ()
-;;   `(:in tx.debit-acc-id (:set ,@*revenue-accounts*)))
-
-;; (defun customer-cash-credits ()
-;;   `(:= tx.debit-acc-id ,(account-id 'cash-account)))
-
-;; (defun customer-cheque-credits ()
-;;   ;; subquery receives cheque-event.cheque-id from main query
-;;   `(:and (:= tx.debit-acc-id ,(account-id 'cheque-receivable-account))
-;;          (:not (:exists (:select 1
-;;                          :from (:as tx tx2)
-;;                          :inner-join (:as cheque-event cheque-event2)
-;;                          :on (:= cheque-event2.tx-id tx2.id)
-;;                          :where (:and
-;;                                  (:= cheque-event2.cheque-id
-;;                                      cheque-event.cheque-id)
-;;                                  (:= tx2.credit-acc-id
-;;                                      ,(account-id 'cheque-receivable-account))))))))
-
-
-
-;;;  SUPPLIER CREDITS - DEBITS
-
-;; (defun supplier-invoice-credits ()
-;;   `(:and (:in tx.debit-acc-id (:set ,@*expense-accounts*))
-;;          (:in tx.credit-acc-id (:set ,@*payable-accounts*))))
-
-;; (defun supplier-invoice-debits ()
-;;   `(:in tx.credit-acc-id (:set ,@*expense-accounts*)))
-
-;; (defun supplier-cash-debits ()
-;;   `(:= tx.credit-acc-id ,(account-id 'cash-account)))
-
-;; (defun supplier-cheque-debits ()
-;;   ;; subquery receives cheque-event.cheque-id from main query
-;;   `(:and (:= tx.credit-acc-id ,(account-id 'cheque-payable-account))
-;;          (:not (:exists (:select 1
-;;                          :from (:as tx tx2)
-;;                          :inner-join (:as cheque-event cheque-event2)
-;;                          :on (:= cheque-event2.tx-id tx2.id)
-;;                          :where (:and
-;;                                  (:= cheque-event2.cheque-id
-;;                                      cheque-event.cheque-id)
-;;                                  (:= tx2.debit-acc-id
-;;                                      ,(account-id 'cheque-payable-account))))))))
-
-(defun subquery (target)
-  (concatenate 'string
-               "(with recursive child (id, parent_id) as (
-     select id, parent_id from account where account.id = " target)
-  "union
-     select account.id, account.parent_id
-     from account, child
-     where account.id = child.parent_id
-)
-select parent_id from child)")
-
-(defun customer/supplier-debits/credits (company-id roles debit-p &optional since until)
+(defun unknown-txs ()
   (with-db ()
-    (let (date-conditions temtx-conditions)
-      ;; roles
-      (when (member :customer roles)
-        (push '(:= temtx.customer-p t) temtx-conditions))
-      (when (member :supplier roles)
-        (push '(:= temtx.customer-p nil) temtx-conditions))
-      ;; dates
-      (when (and since (not (eql since :null)))
-        (push `(:<= ,since tx-date) date-conditions))
-      (when (and until (not (eql until :null)))
-        (push `(:<= tx-date ,until) date-conditions))
-
-      (let ((sql `(:order-by (:select tx-date tx.id tx.description temtx.debit-p
-                               (:as tx.amount ,(if debit-p 'debit-amount 'credit-amount))
-                               cheque.due-date cheque.state-id
-                               :from tx
-                               :left-join cheque-event
-                               :on (:= cheque-event.tx-id tx.id)
-                               :left-join cheque
-                               :on (:= cheque.id cheque-event.cheque-id)
-                               :left-join (:as account debit-account)
-                               :on (:= debit-account.id tx.debit-acc-id)
-                               :left-join (:as account credit-account)
-                               :on (:= credit-account.id tx.credit-acc-id)
-                               :inner-join temtx
-                               :on (:and #|(:= temtx.debit-acc-id tx.debit-acc-id)|#
-                                    #|(:= temtx.credit-acc-id tx.credit-acc-id)|#
-                                    (:in temtx.debit-acc-id
-                                         (select 'lineage :from (:as (:lineage lineage) z)
-                                                 :where (:= z.lineage tx.debit-acc-id)))
-                                    (:in temtx.credit-acc-id
-                                         (select 'lineage :from (:lineage tx.credit-acc-id))))
-                               :where (:and (:= tx.company-id ,company-id)
-                                            (:= temtx.debit-p ,debit-p)
-                                            (:or ,@temtx-conditions)
-                                            (:or (:= cheque-event.to-state-id cheque.state-id)
-                                                 (:is-null cheque-event.to-state-id))
-                                            ,@date-conditions))
-                             tx-date)))
-        ((query (sql-compile sql) :plists))))))
-
-;; (defun customer-debits ()
-;;   `(:in 'tx.debit-acc-id (:set ,@*receivable-accounts*  ,@*revenue-accounts*)))
-
-;; (defun customer-credits ()
-;;   `(:in 'tx.credit-acc-id (:set ,@*receivable-accounts*  ,@*revenue-accounts*)))
-
-;; (defun supplier-debits ()
-;;   `(:in 'tx.debit-acc-id (:set ,@*payable-accounts* ,@*expense-accounts*)))
-
-;; (defun supplier-credits ()
-;;   `(:in 'tx.credit-acc-id (:set ,@*payable-accounts* ,@*expense-accounts*)))
+    (query (sql-compile
+            '(:select tx.id debit-account.title credit-account.title :from tx
+              :left-join (:as account debit-account)
+              :on (:= debit-account.id tx.debit-acc-id)
+              :left-join (:as account credit-account)
+              :on (:= credit-account.id tx.credit-acc-id)
+              :where
+              (:not (:in tx.id
+                     (:select tx.id :from tx
+                       :inner-join temtx
+                       :on (:and
+                            (:in tx.debit-acc-id
+                                 (:select * :from (descendants temtx.debit-acc-id)))
+                            (:in tx.credit-acc-id
+                                 (:select * :from (descendants temtx.credit-acc-id)))))))))
+           :plists)))
 
 
-;;; COMPANY DEBITS - CREDITS
+;;; COMPANY BALANCE
 
+(defun company-debits/credits-sql (company-id roles)
+  (let (temtx-conditions)
+    ;; roles
+    (when (member :customer roles)
+      (push '(:= temtx.customer-p t) temtx-conditions))
+    (when (member :supplier roles)
+      (push '(:= temtx.customer-p nil) temtx-conditions))
+    ;; query
+    ;; Uses SQL function: descendants
+    `(:order-by (:select tx-date tx.id tx.description tx.amount
+                  temtx.balance cheque.due-date cheque.state-id
+                  :from tx
+                  :left-join cheque-event
+                  :on (:= cheque-event.tx-id tx.id)
+                  :left-join cheque
+                  :on (:= cheque.id cheque-event.cheque-id)
+                  :left-join (:as account debit-account)
+                  :on (:= debit-account.id tx.debit-acc-id)
+                  :left-join (:as account credit-account)
+                  :on (:= credit-account.id tx.credit-acc-id)
+                  :inner-join temtx
+                  :on (:and (:in tx.debit-acc-id
+                                 (:select * :from (descendants temtx.debit-acc-id)))
+                            (:in tx.credit-acc-id
+                                 (:select * :from (descendants temtx.credit-acc-id))))
+                  :where (:and (:= tx.company-id ,company-id)
+                               (:or ,@temtx-conditions)
+                               (:or (:= cheque-event.to-state-id cheque.state-id)
+                                    (:is-null cheque-event.to-state-id))))
+                tx-date tx.description)))
 
-
-;; (defun company-debits (company-id roles &optional since until)
-;;   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
-;;                       (:as tx.amount debit-amount) cheque.due-date cheque.state-id
-;;                       :from tx
-;;                       :left-join cheque-event
-;;                       :on (:= cheque-event.tx-id tx.id)
-;;                       :left-join cheque
-;;                       :on (:= cheque.id cheque-event.cheque-id)))
-;;         (where-base `(:= tx.company-id ,company-id))
-;;         (where-tx '())
-;;         (where-dates nil))
-;;     (when (member :customer roles)
-;;       (push (customer-debits) where-tx))
-;;     (when (member :supplier roles)
-;;       (push (supplier-debits) where-tx))
-;;     (when (and since (not (eql since :null)))
-;;       (push `(:<= ,since tx-date) where-dates))
-;;     (when (and until (not (eql until :null)))
-;;       (push `(:<= tx-date ,until) where-dates))
-;;     (let ((sql `(:order-by (,@base-query
-;;                             :where (:and ,where-base
-;;                                          (:or ,@where-tx)
-;;                                          ,@where-dates))
-;;                            'tx-date)))
-;;       (query (sql-compile sql)
-;;              :plists))))
-
-;; (defun company-credits (company-id roles &optional since until)
-;;   (let ((base-query '(:select tx-date (:as tx.id id) tx.description
-;;                       (:as tx.amount credit-amount) cheque.due-date cheque.state-id
-;;                       :from tx
-;;                       :left-join cheque-event
-;;                       :on (:= cheque-event.tx-id tx.id)
-;;                       :left-join cheque
-;;                       :on (:= cheque.id cheque-event.cheque-id)))
-;;         (where-base `(:= tx.company-id ,company-id))
-;;         (where-tx `())
-;;         (where-dates nil))
-;;     (when (member :customer roles)
-;;       (push (customer-credits) where-tx))
-;;     (when (member :supplier roles)
-;;       (push (supplier-credits) where-tx))
-;;     (when (and since (not (eql since :null)))
-;;       (push `(:<= ,since tx-date) where-dates))
-;;     (when (and until (not (eql until :null)))
-;;       (push `(:<= tx-date ,until) where-dates))
-;;     (let ((sql `(:order-by (,@base-query
-;;                             :where (:and ,where-base
-;;                                          (:or ,@where-tx)
-;;                                          ,@where-dates))
-;;                            'tx-date)))
-;;       (query (sql-compile sql)
-;;              :plists))))
-
-(defun company-debits/credits (company-id roles since until &key reverse-p)
-  (flet ((get-tx-date (row)
-           (getf row :tx-date))
-         (get-tx-key (row)
-           (getf row :id)))
-    (let* ((company-debits (customer/supplier-debits/credits company-id roles t))
-           (company-credits (customer/supplier-debits/credits company-id roles nil))
-           (merged (dolist (d company-debits (nconc company-debits company-credits))
-                     (let ((credit-amount (dolist (c company-credits)
-                                            (when (eql (get-tx-key c) (get-tx-key d))
-                                              (let ((credit-amount (getf c :credit-amount)))
-                                                (setf company-credits (delete c company-credits))
-                                                (return credit-amount))))))
-                       (when credit-amount
-                         (setf d (nconc d (list :credit-amount credit-amount)))))))
-           (sorted (stable-sort merged
-                                #'local-time:timestamp<
-                                :key #'get-tx-date))
-           (truncated (remove-if (lambda (row)
-                                   (or (and since
-                                            (not (eql since :null))
-                                            (timestamp< (get-tx-date row) since))
-                                       (and until
-                                            (not (eql until :null))
-                                            (timestamp> (get-tx-date row) until))))
-                                 sorted)))
-      ;; calculate sums
-      (let ((total 0)
+(defun company-debits/credits-all (company-id roles)
+  (flet ((amounts (row)
+           (let ((balance (getf row :balance))
+                 (amount (getf row :amount)))
+             (cond ((string= balance "debit")  (values amount nil amount))
+                   ((string= balance "credit") (values nil amount (- amount)))
+                   ((string= balance "both")   (values amount amount 0)))))
+         (cheque-row-p (row)
+           (not (eql (getf row :due-date) :null))))
+    (with-db ()
+      (let ((all-tx-rows (query (sql-compile (company-debits/credits-sql company-id roles)) :plists))
+            (total 0)
             (debit-sum 0)
             (credit-sum 0))
-        (dolist (row sorted)
-          (let* ((debit (getf row :debit-amount 0))
-                 (credit (getf row :credit-amount 0))
-                 (delta (- debit credit)))
-            (setf total (+ total delta))
-            (setf debit-sum (+ debit-sum debit))
-            (setf credit-sum (+ credit-sum credit))
+        ;; Modify rows
+        (dolist (row all-tx-rows)
+          (multiple-value-bind (debit credit delta) (amounts row)
+            ;; amounts
+            (when delta
+              (incf total delta))
+            (when debit
+              (incf debit-sum debit))
+            (when credit
+              (incf credit-sum credit))
+            (nconc row (list :debit-amount debit
+                             :credit-amount credit
+                             :total total))
+            ;; cheque descriptions
             (when (cheque-row-p row)
               (setf (getf row :description)
                     (concatenate 'string
                                  (getf row :description)
                                  " (Λήξη: "
                                  (lisp->html (getf row :due-date))
-                                 ")")))
-            (nconc row (list :total total))))
+                                 ")")))))
+        ;; Return results
+        (values all-tx-rows debit-sum credit-sum total)))))
+
+
+(defun company-debits/credits (company-id roles since until &key reverse-p)
+  (flet ((get-tx-date (row)
+           (getf row :tx-date)))
+    ;; Truncate rows and maybe revers result
+    (multiple-value-bind (all-tx-rows debit-sum credit-sum total)
+        (company-debits/credits-all company-id roles)
+      (let ((truncated (remove-if (lambda (row)
+                                    (or (and since
+                                             (not (eql since :null))
+                                             (timestamp< (get-tx-date row) since))
+                                        (and until
+                                             (not (eql until :null))
+                                             (timestamp> (get-tx-date row) until))))
+                                  all-tx-rows)))
         (values (if reverse-p
                     (nreverse truncated)
                     truncated)
-                debit-sum credit-sum total)))))
+                debit-sum
+                credit-sum
+                total)))))
 
-(defun cheque-row-p (row)
-  (let ((due-date (getf row :due-date)))
-    (if (eql due-date :null)
-        nil
-        due-date)))
+;; (defun company-debits/credits (company-id roles since until &key reverse-p)
+;;   (let ((all-tx-rows (company-debits/credits-raw company-id roles))
+;;         (total 0)
+;;         (debit-sum 0)
+;;         (credit-sum 0))
+;;     ;; Modify rows
+;;     (dolist (row all-tx-rows)
+;;       (multiple-value-bind (debit credit delta) (amounts row)
+;;         ;; amounts
+;;         (when delta
+;;           (incf total delta))
+;;         (when debit
+;;           (incf debit-sum debit))
+;;         (when credit
+;;           (incf credit-sum credit))
+;;         (nconc row (list :debit-amount debit
+;;                          :credit-amount credit
+;;                          :total total))
+;;         ;; cheque descriptions
+;;         (when (cheque-row-p row)
+;;           (setf (getf row :description)
+;;                 (concatenate 'string
+;;                              (getf row :description)
+;;                              " (Λήξη: "
+;;                              (lisp->html (getf row :due-date))
+;;                              ")")))))
+;;     ;; Truncate rows
+;;     (let ((truncated (remove-if (lambda (row)
+;;                                   (or (and since
+;;                                            (not (eql since :null))
+;;                                            (timestamp< (get-tx-date row) since))
+;;                                       (and until
+;;                                            (not (eql until :null))
+;;                                            (timestamp> (get-tx-date row) until))))
+;;                                 all-tx-rows)))
+;;       (values (if reverse-p
+;;                   (nreverse truncated)
+;;                   truncated)
+;;               debit-sum
+;;               credit-sum
+;;               total))))
+
+
+
 
 
 

@@ -9,38 +9,47 @@
 |---+--------------------------------------+----------------------------+-------------------------|
 |   | ΣΥΝΑΛΛΑΓH                            | ΠΕΛΑΤΗΣ (CUSTOMER)         | ΠΡΟΜΗΘΕΥΤΗΣ (SUPPLIER)  |
 |---+--------------------------------------+----------------------------+-------------------------|
-| 1 | Έκδοση χρεωστικού τιμολογίου         | debit receivable-accounts  | debit expense-accounts  |
-|   | (invoice-debits)                     | credit revenue-accounts    | credit payable-accounts |
+| 1 | Έκδοση χρεωστικού τιμολογίου         | Debit receivable-accounts  | Debit expense-accounts  |
+|   | (invoice-debits)                     | Credit revenue-accounts    | Credit payable-accounts |
+|   |                                      | (company debit)            | (company credit)        |
 |   |                                      |                            |                         |
-| 2 | Έκδοση πιστωτικού τιμολογίου         | debit revenue-accounts     | debit payable-accounts  |
-|   | (invoice-credits)                    | credit receivable-accounts | credit expense-accounts |
+| 2 | Έκδοση πιστωτικού τιμολογίου         | Debit revenue-accounts     | Debit payable-accounts  |
+|   | (invoice-credits)                    | Credit receivable-accounts | Credit expense-accounts |
+|   |                                      | (company credit)           | (company debit)         |
 |   |                                      |                            |                         |
-| 3 | Διαγραφή χρέους                      | debit expenses:bad-debts   |                         |
-|   | (bad-debt)                           | credit receivable-accounts |                         |
+| 3 | Διαγραφή χρέους                      | Debit expenses:bad-debts   |                         |
+|   | (bad-debt)                           | Credit receivable-accounts |                         |
+|   |                                      | (company credit)           |                         |
 |---+--------------------------------------+----------------------------+-------------------------|
-| 4 | Πληρωμή μετρητοίς (έναντι)           | debit cash                 | debit payable-accounts  |
-|   | (cash-against)                       | credit receivable-accounts | credit cash             |
+| 4 | Πληρωμή μετρητοίς (έναντι)           | Debit cash                 | Debit payable-accounts  |
+|   | (cash-against)                       | Credit receivable-accounts | Credit cash             |
+|   |                                      | (company credit)           | (company debit)         |
 |   |                                      |                            |                         |
-| 5 | Πληρωμή μετρητοίς (απ' ευθείας)      | debit cash                 | debit expense-accounts  |
-|   | (cash-direct)                        | credit revenue-accounts    | credit cash             |
+| 5 | Πληρωμή μετρητοίς (απ' ευθείας)      | Debit cash                 | Debit expense-accounts  |
+|   | (cash-direct)                        | Credit revenue-accounts    | Credit cash             |
+|   |                                      | (company debit+credit)     | (company debit+credit)  |
 |   |                                      |                            |                         |
-| 6 | Επιστροφή μετρητών (απ' ευθείας)     | debit revenue-accounts     | debit cash              |
-|   | (cash-return)                        | credit cash                | credit expense-accounts |
+| 6 | Επιστροφή μετρητών (απ' ευθείας)     | Debit revenue-accounts     | Debit cash              |
+|   | (cash-return)                        | Credit cash                | Credit expense-accounts |
+|   |                                      | (company debit+credit)     | (company debit+credit)  |
 |---+--------------------------------------+----------------------------+-------------------------|
-| 7 | Έκδοση επιταγής (έναντι)             | debit cheques-receivable   | debit payable-accounts  |
-|   | (cheque-issue)                       | credit receivable-accounts | credit cheques-payable  |
+| 7 | Έκδοση επιταγής (έναντι)             | Debit cheques-receivable   | Debit payable-accounts  |
+|   | (cheque-issue)                       | Credit receivable-accounts | Credit cheques-payable  |
+|   |                                      | (company credit)           | (company debit)         |
 |   |                                      |                            |                         |
-| 8 | Είσπραξη επιταγής                    | debit cash                 | debit cheques-payable   |
-|   | (cheque-redemption)                  | credit cheques-receivable  | credit cash             |
+| 8 | Είσπραξη επιταγής                    | Debit cash                 | Debit cheques-payable   |
+|   | (cheque-redemption)                  | Credit cheques-receivable  | Credit cash             |
+|   |                                      | (company credit)           | (company debit)         |
 |   |                                      |                            |                         |
-| 9 | Σφράγισμα/ακύρωση/επιστροφή επιταγής | debit receivable-accounts  | debit cheques-payable   |
-|   | (cheque-bounce)                      | credit cheques-receivable  | credit payable-accounts |
+| 9 | Σφράγισμα/ακύρωση/επιστροφή επιταγής | Debit receivable-accounts  | Debit cheques-payable   |
+|   | (cheque-bounce)                      | Credit cheques-receivable  | Credit payable-accounts |
+|   |                                      | (company debit)            | (company credit)        |
 |---+--------------------------------------+----------------------------+-------------------------|
 
-Όταν η επιταγή φαίνεται να έχει πληρωθεί, δεν συμπεριλαμβάνεται στα
-αποτελέσματα των συναρτήσεων customer-cheque-credits και
-supplier-cheque-debits επειδή έχει ήδη συμπεριληφθεί από την
-customer-cash-credits και sypplier-cash-debits αντιστοίχως.
+Τα ξεχωριστά ισοζύγια των ΠΕΛΑΤΩΝ μπορούν να εννοηθούν ως
+υποκατηγορίες του receivable-account-root δηλαδή των Τρεχουσών
+Απαιτήσεων και γι' αυτό είναι συνήθως ΧΡΕΩΣΤΙΚΑ
 
-Όταν η επιταγή φαίνεται να έχει επιστραφεί, δεν συμπεριλαμβάνεται στα
-αποτελέσματα καθόλου.
+Τα ξεχωριστά ισοζύγια των ΠΡΟΜΗΘΕΥΤΩΝ μπορούν να εννοηθούν ως
+υποκατηγορίες του payable-account-root δηλαδή των Τρεχουσών
+Υποχρεώσεων και γι' αυτό είναι συνήθως ΠΙΣΤΩΤΙΚΑ.

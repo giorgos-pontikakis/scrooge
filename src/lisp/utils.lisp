@@ -96,6 +96,11 @@ id, i.e. all records of the subtree with root specified by the given id."
         (t
          nil)))
 
+(defun chk-balance (string)
+  (if (member string '("debit" "credit" "both") :test #'string=)
+      nil
+      :unknown-temtx-balance))
+
 (defun chk-amount* (float)
   "Same as chk-amount but allow null values or zeros"
   (cond ((eql float :null)
@@ -156,3 +161,7 @@ id, i.e. all records of the subtree with root specified by the given id."
             (cons (car list)
                   (cadr list)))
           lists))
+
+(defun getf-fn (key &optional default)
+  (lambda (item)
+    (getf item key default)))
