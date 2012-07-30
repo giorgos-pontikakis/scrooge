@@ -27,14 +27,14 @@
 | 6 | Επιστροφή μετρητών (απ' ευθείας)     | debit revenue-accounts     | debit cash              |
 |   | (cash-return)                        | credit cash                | credit expense-accounts |
 |---+--------------------------------------+----------------------------+-------------------------|
-| 7 | Έκδοση επιταγής (έναντι)             | debit cheques-receivable   | debit payble-accounts   |
+| 7 | Έκδοση επιταγής (έναντι)             | debit cheques-receivable   | debit payable-accounts  |
 |   | (cheque-issue)                       | credit receivable-accounts | credit cheques-payable  |
 |   |                                      |                            |                         |
 | 8 | Είσπραξη επιταγής                    | debit cash                 | debit cheques-payable   |
 |   | (cheque-redemption)                  | credit cheques-receivable  | credit cash             |
 |   |                                      |                            |                         |
 | 9 | Σφράγισμα/ακύρωση/επιστροφή επιταγής | debit receivable-accounts  | debit cheques-payable   |
-|   | (cheque-bounce)                      | credit cheques-receivable  | credit payble-accounts  |
+|   | (cheque-bounce)                      | credit cheques-receivable  | credit payable-accounts |
 |---+--------------------------------------+----------------------------+-------------------------|
 
 Όταν η επιταγή φαίνεται να έχει πληρωθεί, δεν συμπεριλαμβάνεται στα

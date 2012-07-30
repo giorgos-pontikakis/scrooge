@@ -9,7 +9,8 @@
 (defclass temtx-family (family-mixin)
   ()
   (:default-initargs :parameter-groups '(:system (temtx-id)
-                                         :payload (title debit-account credit-account)
+                                         :payload (title debit-account credit-account
+                                                   customer-p debit-p)
                                          :filter ())))
 
 (defclass temtx-page (auth-dynamic-page temtx-family)
@@ -56,14 +57,6 @@
       nil
       :temtx-id-unknown))
 
-(defun chk-temtx-title/create (title)
-  (cond ((eql :null title) :temtx-title-null)
-        ((temtx-title-exists-p title) :temtx-title-exists)))
-
-(defun chk-temtx-title/update (title temtx-id)
-  (cond ((eql :null title) :temtx-title-null)
-        ((temtx-title-exists-p title temtx-id) :temtx-title-exists)))
-
 (defun chk-temtx-title (title)
   (cond ((eql title :null)
          :temtx-title-null)
@@ -82,12 +75,13 @@
 
 (defclass temtx-table (scrooge-table)
   ((header-labels :initform '("" "<br />Περιγραφή"
-                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"))
-   (paginator     :initform (make-instance 'temtx-paginator)))
+                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
+                              "Πελάτης;" "Εταιρική χρέωση;"))
+   (paginator     :initform nil))
   (:default-initargs :item-class 'temtx-row))
 
 (defmethod get-records ((table temtx-table))
-  (query (:order-by (:select 'temtx.id 'temtx.title
+  (query (:order-by (:select 'temtx.id 'temtx.title 'customer-p 'temtx.debit-p
                              (:as 'debit-account.title 'debit-account)
                              (:as 'credit-account.title 'credit-account)
                              :from 'temtx
@@ -95,7 +89,7 @@
                              :on (:= 'debit-acc-id 'debit-account.id)
                              :inner-join (:as 'account 'credit-account)
                              :on (:= 'credit-acc-id 'credit-account.id))
-                    'temtx.title)
+                    (:desc 'customer-p) (:desc 'temtx.debit-p) 'temtx.title)
          :plists))
 
 (defmethod actions ((tbl temtx-table) &key)
@@ -132,6 +126,18 @@
                          :name 'credit-account
                          :value (getf record :credit-account)
                          :css-class "ac-account"
+                         :disabled disabled)
+          (make-instance 'dropdown
+                         :name 'customer-p
+                         :value-label-alist '((t . "Πελάτης")
+                                              (nil . "Προμηθευτής"))
+                         :selected (getf record :customer-p)
+                         :disabled disabled)
+          (make-instance 'dropdown
+                         :name 'debit-p
+                         :value-label-alist '((t . "Χρέωση")
+                                              (nil . "Πίστωση"))
+                         :selected (getf record :debit-p)
                          :disabled disabled))))
 
 (defmethod controls ((row temtx-row) controls-p)
@@ -183,9 +189,11 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/create ("config/temtx/create")
-    ((title          string chk-temtx-title/create)
-     (debit-account  string chk-account-title)
-     (credit-account string chk-account-title))
+    ((title          string)
+     (debit-account  string  chk-account-title)
+     (credit-account string  chk-account-title)
+     (customer-p     boolean)
+     (debit-p        boolean))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :op :create)))
@@ -207,16 +215,20 @@
                              (display temtx-table :payload (params->payload)))))))))))
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
-    ((title          string chk-temtx-title/create)
-     (debit-account  string chk-account-title)
-     (credit-account string chk-account-title))
+    ((title          string)
+     (debit-account  string  chk-account-title)
+     (credit-account string  chk-account-title)
+     (customer-p     boolean)
+     (debit-p        boolean))
   (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
            (new-temtx (make-instance 'temtx
                                      :title (val title)
                                      :debit-acc-id debit-acc-id
-                                     :credit-acc-id credit-acc-id)))
+                                     :credit-acc-id credit-acc-id
+                                     :customer-p (val customer-p)
+                                     :debit-p (val debit-p))))
       (insert-dao new-temtx)
       (see-other (config/temtx :temtx-id (temtx-id new-temtx))))))
 
@@ -228,9 +240,11 @@
 
 (defpage temtx-page config/temtx/update ("config/temtx/update")
     ((temtx-id       integer chk-temtx-id                            t)
-     (title          string  (chk-temtx-title/update title temtx-id))
+     (title          string)
      (debit-account  string  chk-account-title)
-     (credit-account string  chk-account-title))
+     (credit-account string  chk-account-title)
+     (customer-p     boolean)
+     (debit-p        boolean))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :selected-key (val temtx-id)
@@ -255,9 +269,11 @@
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
     ((temtx-id       integer chk-temtx-id                            t)
-     (title          string  (chk-temtx-title/update title temtx-id))
+     (title          string)
      (debit-account  string  chk-account-title)
-     (credit-account string  chk-account-title))
+     (credit-account string  chk-account-title)
+     (customer-p     boolean)
+     (debit-p        boolean))
   (with-controller-page (config/temtx/update)
     (let ((debit-acc-id (account-id (val debit-account)))
           (credit-acc-id (account-id (val credit-account))))
@@ -265,6 +281,8 @@
                         'title (val title)
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
+                        'customer-p (val customer-p)
+                        'debit-p (val debit-p)
                         :where (:= 'id (val temtx-id)))))
     (see-other (config/temtx :temtx-id (val temtx-id)))))
 

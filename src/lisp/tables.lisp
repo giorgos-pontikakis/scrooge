@@ -312,7 +312,9 @@
   ((id            :col-type integer :reader   temtx-id)
    (title         :col-type string  :accessor title         :initarg :title)
    (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
-   (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id))
+   (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
+   (customer-p    :col-type boolean :accessor customer-p    :initarg :customer-p)
+   (debit-p       :col-type boolean :accessor debit-p       :initarg :debit-p))
   (:metaclass dao-class)
   (:keys id))
 
