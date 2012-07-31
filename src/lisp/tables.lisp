@@ -314,7 +314,7 @@
    (debit-acc-id  :col-type integer :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type integer :accessor credit-acc-id :initarg :credit-acc-id)
    (customer-p    :col-type boolean :accessor customer-p    :initarg :customer-p)
-   (balance       :col-type string  :accessor balance       :initarg :balance))
+   (sign          :col-type integer :accessor sign          :initarg :sign))
   (:metaclass dao-class)
   (:keys id))
 

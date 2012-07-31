@@ -30,10 +30,9 @@
       (push '(:= temtx.customer-p t) temtx-conditions))
     (when (member :supplier roles)
       (push '(:= temtx.customer-p nil) temtx-conditions))
-    ;; query
-    ;; Uses SQL function: descendants
+    ;; query -- uses SQL function: descendants
     `(:order-by (:select tx-date tx.id tx.description tx.amount
-                  temtx.balance cheque.due-date cheque.state-id
+                  temtx.sign cheque.due-date cheque.state-id
                   :from tx
                   :left-join cheque-event
                   :on (:= cheque-event.tx-id tx.id)
@@ -56,11 +55,11 @@
 
 (defun company-debits/credits-all (company-id roles)
   (flet ((amounts (row)
-           (let ((balance (getf row :balance))
+           (let ((sign (getf row :sign))
                  (amount (getf row :amount)))
-             (cond ((string= balance "debit")  (values amount nil amount))
-                   ((string= balance "credit") (values nil amount (- amount)))
-                   ((string= balance "both")   (values amount amount 0)))))
+             (cond ((= sign +1) (values amount nil amount))
+                   ((= sign -1) (values nil amount (- amount)))
+                   ((= sign 0) (values amount amount 0)))))
          (cheque-row-p (row)
            (not (eql (getf row :due-date) :null))))
     (with-db ()

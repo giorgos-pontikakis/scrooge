@@ -96,10 +96,10 @@ id, i.e. all records of the subtree with root specified by the given id."
         (t
          nil)))
 
-(defun chk-balance (string)
-  (if (member string '("debit" "credit" "both") :test #'string=)
+(defun chk-sign (integer)
+  (if (member integer '(-1 0 1))
       nil
-      :unknown-temtx-balance))
+      :unknown-temtx-sign))
 
 (defun chk-amount* (float)
   "Same as chk-amount but allow null values or zeros"
