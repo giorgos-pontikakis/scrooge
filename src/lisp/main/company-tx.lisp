@@ -53,6 +53,7 @@
   (string-equal role "customer"))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; UI elements
 ;;; ------------------------------------------------------------
@@ -279,7 +280,7 @@
                                           :records records
                                           :company-id (val company-id)
                                           :op :details
-                                          :filter filter ; (append system filter misc)
+                                          :filter filter
                                           :paginator nil))
                   (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
                   (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))

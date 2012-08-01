@@ -24,7 +24,7 @@ SELECT id FROM parent;
 $$ LANGUAGE SQL;
 
 
-CREATE FUNCTION company_tx_sum (IN id integer, IN balance text, OUT company_tx_sum numeric)
+CREATE FUNCTION company_tx_sum (IN id integer, IN sign integer, OUT company_tx_sum numeric)
 RETURNS numeric AS
 $$ SELECT coalesce(sum(tx.amount), 0)
 FROM tx
@@ -36,7 +36,7 @@ INNER JOIN temtx
 ON ((tx.debit_acc_id IN (SELECT * FROM descendants(temtx.debit_acc_id))) AND
     (tx.credit_acc_id IN (SELECT * FROM descendants(temtx.credit_acc_id))))
 WHERE ((tx.company_id = $1) AND
-       (temtx.balance = $2) AND
+       (temtx.sign = $2) AND
        ((cheque_event.to_state_id = cheque.state_id) or (cheque_event.to_state_id IS NULL)))
 $$ LANGUAGE SQL;
 
@@ -128,9 +128,6 @@ on ((temtx.debit_acc_id IN (SELECT account_lineage(tx.debit_acc_id))) AND
 --     (tx.credit_acc_id IN (SELECT descendants(temtx.credit_acc_id))))
 WHERE tx.company_id = company.id and
       ((cheque_event.to_state_id = cheque.state_id) or (cheque_event.to_state_id IS NULL))) > 1;
-
-
-
 
 
 -- COMPANY DEBITS

@@ -10,7 +10,7 @@
   ()
   (:default-initargs :parameter-groups '(:system (temtx-id)
                                          :payload (title debit-account credit-account
-                                                   customer-p balance)
+                                                   customer-p sign)
                                          :filter ())))
 
 (defclass temtx-page (auth-dynamic-page temtx-family)
@@ -81,7 +81,7 @@
   (:default-initargs :item-class 'temtx-row))
 
 (defmethod get-records ((table temtx-table))
-  (query (:order-by (:select 'temtx.id 'temtx.title 'customer-p 'temtx.balance
+  (query (:order-by (:select 'temtx.id 'temtx.title 'customer-p 'temtx.sign
                              (:as 'debit-account.title 'debit-account)
                              (:as 'credit-account.title 'credit-account)
                              :from 'temtx
@@ -89,7 +89,7 @@
                              :on (:= 'debit-acc-id 'debit-account.id)
                              :inner-join (:as 'account 'credit-account)
                              :on (:= 'credit-acc-id 'credit-account.id))
-                    (:desc 'customer-p) (:desc 'temtx.balance) 'temtx.title)
+                    (:desc 'customer-p) (:desc 'temtx.sign) 'temtx.title)
          :plists))
 
 (defmethod actions ((tbl temtx-table) &key)
@@ -134,11 +134,11 @@
                          :selected (getf record :customer-p)
                          :disabled disabled)
           (make-instance 'dropdown
-                         :name 'balance
-                         :value-label-alist '(("debit"  . "Χρέωση μόνο")
-                                              ("credit" . "Πίστωση μόνο")
-                                              ("both"   . "Πίστωση και Χρέωση"))
-                         :selected (getf record :balance)
+                         :name 'sign
+                         :value-label-alist '((+1 . "Χρέωση μόνο")
+                                              (-1 . "Πίστωση μόνο")
+                                              (0 . "Πίστωση και Χρέωση"))
+                         :selected (getf record :sign)
                          :disabled disabled))))
 
 (defmethod controls ((row temtx-row) controls-p)
@@ -194,7 +194,7 @@
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (balance        string  chk-balance))
+     (sign           string  chk-sign))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :op :create)))
@@ -220,7 +220,7 @@
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (balance        string  chk-balance))
+     (sign           string  chk-sign))
   (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
@@ -229,7 +229,7 @@
                                      :debit-acc-id debit-acc-id
                                      :credit-acc-id credit-acc-id
                                      :customer-p (val customer-p)
-                                     :balance (val balance))))
+                                     :sign (val sign))))
       (insert-dao new-temtx)
       (see-other (config/temtx :temtx-id (temtx-id new-temtx))))))
 
@@ -245,7 +245,7 @@
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (balance        string  chk-balance))
+     (sign           string  chk-sign))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :selected-key (val temtx-id)
@@ -274,7 +274,7 @@
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (balance        string  chk-balance))
+     (sign           string  chk-sign))
   (with-controller-page (config/temtx/update)
     (let ((debit-acc-id (account-id (val debit-account)))
           (credit-acc-id (account-id (val credit-account))))
@@ -283,7 +283,7 @@
                         'debit-acc-id debit-acc-id
                         'credit-acc-id credit-acc-id
                         'customer-p (val customer-p)
-                        'balance (val balance)
+                        'sign (val sign)
                         :where (:= 'id (val temtx-id)))))
     (see-other (config/temtx :temtx-id (val temtx-id)))))
 

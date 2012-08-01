@@ -30,25 +30,18 @@
       (push '(:= temtx.customer-p t) temtx-conditions))
     (when (member :supplier roles)
       (push '(:= temtx.customer-p nil) temtx-conditions))
-    ;; query
-    ;; Uses SQL function: descendants
-    `(:order-by (:select
-                  tx-date company-tx.id description amount
-                  temtx.balance company-tx.due-date company-tx.state-id
-                  :from (:as (:select tx.id tx.tx-date tx.description tx.amount
-                               tx.debit-acc-id tx.credit-acc-id cheque.due-date cheque.state-id
-                               :from tx
-                               :left-join cheque-event
-                               :on (:= cheque-event.tx-id tx.id)
-                               :left-join cheque
-                               :on (:= cheque.id cheque-event.cheque-id)
-                               :left-join (:as account debit-account)
-                               :on (:= debit-account.id tx.debit-acc-id)
-                               :left-join (:as account credit-account)
-                               :on (:= credit-account.id tx.credit-acc-id)
-                               :where (:and (:= tx.company-id ,company-id)
-                                            (:or (:= cheque-event.to-state-id cheque.state-id)
-                                                 (:is-null cheque-event.to-state-id)))) company-tx)
+    ;; query -- uses SQL function: descendants
+    `(:order-by (:select tx-date tx.id tx.description tx.amount
+                  temtx.sign cheque.due-date cheque.state-id
+                  :from tx
+                  :left-join cheque-event
+                  :on (:= cheque-event.tx-id tx.id)
+                  :left-join cheque
+                  :on (:= cheque.id cheque-event.cheque-id)
+                  :left-join (:as account debit-account)
+                  :on (:= debit-account.id tx.debit-acc-id)
+                  :left-join (:as account credit-account)
+                  :on (:= credit-account.id tx.credit-acc-id)
                   :inner-join temtx
                   :on (:and (:in company-tx.debit-acc-id
                                  (:select * :from (descendants temtx.debit-acc-id)))
@@ -59,11 +52,11 @@
 
 (defun company-debits/credits-all (company-id roles)
   (flet ((amounts (row)
-           (let ((balance (getf row :balance))
+           (let ((sign (getf row :sign))
                  (amount (getf row :amount)))
-             (cond ((string= balance "debit")  (values amount nil amount))
-                   ((string= balance "credit") (values nil amount (- amount)))
-                   ((string= balance "both")   (values amount amount 0)))))
+             (cond ((= sign +1) (values amount nil amount))
+                   ((= sign -1) (values nil amount (- amount)))
+                   ((= sign 0) (values amount amount 0)))))
          (cheque-row-p (row)
            (not (eql (getf row :due-date) :null))))
     (with-db ()
