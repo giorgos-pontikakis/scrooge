@@ -32,27 +32,30 @@
       (push '(:= temtx.customer-p nil) temtx-conditions))
     ;; query
     ;; Uses SQL function: descendants
-    `(:order-by (:select tx-date tx.id tx.description tx.amount
-                  temtx.balance cheque.due-date cheque.state-id
-                  :from tx
-                  :left-join cheque-event
-                  :on (:= cheque-event.tx-id tx.id)
-                  :left-join cheque
-                  :on (:= cheque.id cheque-event.cheque-id)
-                  :left-join (:as account debit-account)
-                  :on (:= debit-account.id tx.debit-acc-id)
-                  :left-join (:as account credit-account)
-                  :on (:= credit-account.id tx.credit-acc-id)
+    `(:order-by (:select
+                  tx-date company-tx.id description amount
+                  temtx.balance company-tx.due-date company-tx.state-id
+                  :from (:as (:select tx.id tx.tx-date tx.description tx.amount
+                               tx.debit-acc-id tx.credit-acc-id cheque.due-date cheque.state-id
+                               :from tx
+                               :left-join cheque-event
+                               :on (:= cheque-event.tx-id tx.id)
+                               :left-join cheque
+                               :on (:= cheque.id cheque-event.cheque-id)
+                               :left-join (:as account debit-account)
+                               :on (:= debit-account.id tx.debit-acc-id)
+                               :left-join (:as account credit-account)
+                               :on (:= credit-account.id tx.credit-acc-id)
+                               :where (:and (:= tx.company-id ,company-id)
+                                            (:or (:= cheque-event.to-state-id cheque.state-id)
+                                                 (:is-null cheque-event.to-state-id)))) company-tx)
                   :inner-join temtx
-                  :on (:and (:in tx.debit-acc-id
+                  :on (:and (:in company-tx.debit-acc-id
                                  (:select * :from (descendants temtx.debit-acc-id)))
-                            (:in tx.credit-acc-id
-                                 (:select * :from (descendants temtx.credit-acc-id))))
-                  :where (:and (:= tx.company-id ,company-id)
-                               (:or ,@temtx-conditions)
-                               (:or (:= cheque-event.to-state-id cheque.state-id)
-                                    (:is-null cheque-event.to-state-id))))
-                tx-date tx.description)))
+                            (:in company-tx.credit-acc-id
+                                 (:select * :from (descendants temtx.credit-acc-id)))
+                            (:or ,@temtx-conditions)))
+                tx-date company-tx.description)))
 
 (defun company-debits/credits-all (company-id roles)
   (flet ((amounts (row)

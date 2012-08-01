@@ -343,12 +343,9 @@
         ((member subset (list "credit" "debit") :test #'string=)
          (push `(:< ,*company-tx-significant-amount*
                     (* ,(if (string= subset "debit") +1 -1)
-                       (- (:select * :from (company-tx-sum company.id "debit"))
-                          (:select * :from (company-tx-sum company.id "credit")))))
+                       (:select (company-balance-4 company.id))))
                where))))
-    (let ((sql `(:order-by (,@base-query :where
-                                         (:and t
-                                               ,@where))
+    (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
                            company.title)))
       (query (sql-compile sql)
              :plists))))
