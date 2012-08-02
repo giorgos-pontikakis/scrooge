@@ -14,10 +14,8 @@
                      (:select tx.id :from tx
                        :inner-join temtx
                        :on (:and
-                            (:in tx.debit-acc-id
-                                 (:select * :from (descendants temtx.debit-acc-id)))
-                            (:in tx.credit-acc-id
-                                 (:select * :from (descendants temtx.credit-acc-id)))))))))
+                            (:in temtx.debit-acc-id = :any (:select debit-account.lineage))
+                            (:in temtx.credit-acc-id = :any (:select credit-account.lineage))))))))
            :plists)))
 
 
@@ -43,12 +41,10 @@
                   :left-join (:as account credit-account)
                   :on (:= credit-account.id tx.credit-acc-id)
                   :inner-join temtx
-                  :on (:and (:in company-tx.debit-acc-id
-                                 (:select * :from (descendants temtx.debit-acc-id)))
-                            (:in company-tx.credit-acc-id
-                                 (:select * :from (descendants temtx.credit-acc-id)))
-                            (:or ,@temtx-conditions)))
-                tx-date company-tx.description)))
+                  :on (:and (:in temtx.debit-acc-id (:set (:[] debit-account.lineage 0)))
+                            (:in temtx.credit-acc-id (:set (:[] credit-account.lineage 0)))
+                            (:= tx.company-id ,company-id)))
+                tx-date tx.description)))
 
 (defun company-debits/credits-all (company-id roles)
   (flet ((amounts (row)
@@ -109,51 +105,6 @@
                 debit-sum
                 credit-sum
                 total)))))
-
-;; (defun company-debits/credits (company-id roles since until &key reverse-p)
-;;   (let ((all-tx-rows (company-debits/credits-raw company-id roles))
-;;         (total 0)
-;;         (debit-sum 0)
-;;         (credit-sum 0))
-;;     ;; Modify rows
-;;     (dolist (row all-tx-rows)
-;;       (multiple-value-bind (debit credit delta) (amounts row)
-;;         ;; amounts
-;;         (when delta
-;;           (incf total delta))
-;;         (when debit
-;;           (incf debit-sum debit))
-;;         (when credit
-;;           (incf credit-sum credit))
-;;         (nconc row (list :debit-amount debit
-;;                          :credit-amount credit
-;;                          :total total))
-;;         ;; cheque descriptions
-;;         (when (cheque-row-p row)
-;;           (setf (getf row :description)
-;;                 (concatenate 'string
-;;                              (getf row :description)
-;;                              " (Λήξη: "
-;;                              (lisp->html (getf row :due-date))
-;;                              ")")))))
-;;     ;; Truncate rows
-;;     (let ((truncated (remove-if (lambda (row)
-;;                                   (or (and since
-;;                                            (not (eql since :null))
-;;                                            (timestamp< (get-tx-date row) since))
-;;                                       (and until
-;;                                            (not (eql until :null))
-;;                                            (timestamp> (get-tx-date row) until))))
-;;                                 all-tx-rows)))
-;;       (values (if reverse-p
-;;                   (nreverse truncated)
-;;                   truncated)
-;;               debit-sum
-;;               credit-sum
-;;               total))))
-
-
-
 
 
 

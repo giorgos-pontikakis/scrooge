@@ -1,14 +1,18 @@
-CREATE OR REPLACE FUNCTION account_lineage (IN id integer, OUT parent_ids integer)
-RETURNS setof integer AS
-$$ WITH RECURSIVE node (id, parent_id) AS (
-SELECT id, parent_id FROM account WHERE account.id = $1
-UNION
-SELECT account.id, account.parent_id
-FROM account, node
-WHERE node.parent_id = account.id
+create or replace function account_lineage (in id integer, out parent_ids integer)
+returns setof integer as
+$$ with recursive node (id, parent_id) as (
+select id, parent_id from account where account.id = $1
+union
+select account.id, account.parent_id
+from account, node
+where node.parent_id = account.id
 )
-SELECT id FROM node;
-$$ LANGUAGE SQL;
+select id from node;
+$$ language sql;
+
+create or replace function update_account_lineage () returns void as
+$$ update account set lineage = array(select account_lineage(id));
+$$ language sql;
 
 
 CREATE FUNCTION descendants (IN id integer, OUT children_ids integer)
@@ -108,7 +112,6 @@ WHERE tx.company_id = $1 and
       ((cheque_event.to_state_id = cheque.state_id) or (cheque_event.to_state_id IS NULL))
 $$ LANGUAGE SQL;
 
-update account set lineage = array(select account_lineage(id));
 
 -- subset company filtering
 explain analyze select id, title from company where company_balance_2(id) > 1;
