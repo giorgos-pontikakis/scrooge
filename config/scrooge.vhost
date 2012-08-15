@@ -13,8 +13,8 @@
         ServerName nebula.minorhack.com
     </IfDefine>
 
-    <IfDefine pulsar>
-        ServerName pulsar.minorhack.com
+    <IfDefine roadrunner>
+        ServerName roadrunner.minorhack.com
     </IfDefine>
 
     <IfDefine www>
@@ -40,9 +40,9 @@
         SSLCertificateKeyFile /home/gnp/www/minorhack/ssl/nebula.minorhack.com.key
     </IfDefine>
 
-    <IfDefine pulsar>
-        SSLCertificateFile /home/gnp/www/minorhack/ssl/pulsar.minorhack.com.crt
-        SSLCertificateKeyFile /home/gnp/www/minorhack/ssl/pulsar.minorhack.com.key
+    <IfDefine roadrunner>
+        SSLCertificateFile /home/gnp/www/minorhack/ssl/roadrunner.minorhack.com.crt
+        SSLCertificateKeyFile /home/gnp/www/minorhack/ssl/roadrunner.minorhack.com.key
     </IfDefine>
 
     <IfDefine www>
