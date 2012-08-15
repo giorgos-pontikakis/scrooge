@@ -1,23 +1,13 @@
 (in-package :scrooge)
 
 
-(defun unknown-txs ()
-  (with-db ()
-    (query (sql-compile
-            '(:select tx.id debit-account.title credit-account.title :from tx
-              :left-join (:as account debit-account)
-              :on (:= debit-account.id tx.debit-acc-id)
-              :left-join (:as account credit-account)
-              :on (:= credit-account.id tx.credit-acc-id)
-              :where
-              (:not (:in tx.id
-                     (:select tx.id :from tx
-                       :inner-join temtx
-                       :on (:and
-                            (:in temtx.debit-acc-id = :any (:select debit-account.lineage))
-                            (:in temtx.credit-acc-id = :any (:select credit-account.lineage))))))))
-           :plists)))
 
+(defun unknown-txs ()
+  "Returns the number of transactions that have no corresponding temtx"
+  (with-db ()
+    (query (sql-compile `(:select (count *) :from (:as (:select * (find-temtx id) :from tx) tx-augmented)
+                           :where (:is-null tx-augmented.find-temtx)))
+           :single!)))
 
 ;;; COMPANY BALANCE
 
@@ -110,7 +100,7 @@
 
 ;;; ACCOUNTS PER ROLE
 
-(defun customer-p (role)
+(defmethod customer-p ((role string))
   (string-equal role "customer"))
 
 (defun revenues/expenses-root (role)

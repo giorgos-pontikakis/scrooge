@@ -10,7 +10,7 @@
   ()
   (:default-initargs :parameter-groups '(:system (temtx-id)
                                          :payload (title debit-account credit-account
-                                                   customer-p sign)
+                                                   customer-p sign propagated-p)
                                          :filter ())))
 
 (defclass temtx-page (auth-dynamic-page temtx-family)
@@ -76,19 +76,20 @@
 (defclass temtx-table (scrooge-table)
   ((header-labels :initform '("" "<br />Περιγραφή"
                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
-                              "Πελάτης;" "Εταιρική χρέωση;"))
+                              "Κατεύθυνση" "Πρόσημο" "Διάδοση"))
    (paginator     :initform nil))
   (:default-initargs :item-class 'temtx-row))
 
 (defmethod get-records ((table temtx-table))
-  (query (:order-by (:select 'temtx.id 'temtx.title 'customer-p 'temtx.sign
-                             (:as 'debit-account.title 'debit-account)
-                             (:as 'credit-account.title 'credit-account)
-                             :from 'temtx
-                             :inner-join (:as 'account 'debit-account)
-                             :on (:= 'debit-acc-id 'debit-account.id)
-                             :inner-join (:as 'account 'credit-account)
-                             :on (:= 'credit-acc-id 'credit-account.id))
+  (query (:order-by (:select 'temtx.id 'temtx.title 'temtx.customer-p
+                      'temtx.sign 'temtx.propagated-p
+                      (:as 'debit-account.title 'debit-account)
+                      (:as 'credit-account.title 'credit-account)
+                      :from 'temtx
+                      :inner-join (:as 'account 'debit-account)
+                      :on (:= 'debit-acc-id 'debit-account.id)
+                      :inner-join (:as 'account 'credit-account)
+                      :on (:= 'credit-acc-id 'credit-account.id))
                     (:desc 'customer-p) (:desc 'temtx.sign) 'temtx.title)
          :plists))
 
@@ -139,7 +140,13 @@
                                               (-1 . "Πίστωση μόνο")
                                               (0 . "Πίστωση και Χρέωση"))
                          :selected (getf record :sign)
-                         :disabled disabled))))
+                         :disabled disabled)
+          (make-instance 'input-checkbox
+                         :name 'propagated-p
+                         :value t
+                         :checked (getf record :propagated-p)
+                         :disabled disabled
+                         :body nil))))
 
 (defmethod controls ((row temtx-row) controls-p)
   (simple-controls row controls-p #'config/temtx :temtx-id))
@@ -194,7 +201,8 @@
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (sign           string  chk-sign))
+     (sign           integer chk-sign)
+     (propagated-p   boolean))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :op :create)))
@@ -220,7 +228,8 @@
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (sign           string  chk-sign))
+     (sign           integer chk-sign)
+     (propagated-p   boolean))
   (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
@@ -229,7 +238,8 @@
                                      :debit-acc-id debit-acc-id
                                      :credit-acc-id credit-acc-id
                                      :customer-p (val customer-p)
-                                     :sign (val sign))))
+                                     :sign (val sign)
+                                     :propagated-p (val propagated-p))))
       (insert-dao new-temtx)
       (see-other (config/temtx :temtx-id (temtx-id new-temtx))))))
 
@@ -240,12 +250,13 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/update ("config/temtx/update")
-    ((temtx-id       integer chk-temtx-id                            t)
+    ((temtx-id       integer chk-temtx-id      t)
      (title          string)
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (sign           string  chk-sign))
+     (sign           integer chk-sign)
+     (propagated-p   boolean))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :selected-key (val temtx-id)
@@ -269,12 +280,13 @@
                (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
-    ((temtx-id       integer chk-temtx-id                            t)
+    ((temtx-id       integer chk-temtx-id      t)
      (title          string)
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
-     (sign           string  chk-sign))
+     (sign           integer chk-sign)
+     (propagated-p   boolean))
   (with-controller-page (config/temtx/update)
     (let ((debit-acc-id (account-id (val debit-account)))
           (credit-acc-id (account-id (val credit-account))))
@@ -284,6 +296,7 @@
                         'credit-acc-id credit-acc-id
                         'customer-p (val customer-p)
                         'sign (val sign)
+                        'propagated-p (val propagated-p)
                         :where (:= 'id (val temtx-id)))))
     (see-other (config/temtx :temtx-id (val temtx-id)))))
 

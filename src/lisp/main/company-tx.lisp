@@ -49,9 +49,6 @@
       (list (make-keyword (string-upcase role)))
       (list :customer :supplier)))
 
-(defun customer-p (role)
-  (string-equal role "customer"))
-
 
 
 ;;; ------------------------------------------------------------

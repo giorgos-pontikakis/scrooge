@@ -1,3 +1,15 @@
+create or replace function account_level (in id integer, out level bigint)
+returns bigint as
+$$ with recursive node (id, parent_id) as (
+select id, parent_id from account where account.id = $1
+union
+select account.id, account.parent_id
+from account, node
+where node.parent_id = account.id
+)
+select (count(id)-1) from node;
+$$ language sql;
+
 create or replace function account_lineage (in id integer, out parent_ids integer)
 returns setof integer as
 $$ with recursive node (id, parent_id) as (
@@ -10,12 +22,105 @@ where node.parent_id = account.id
 select id from node;
 $$ language sql;
 
+
+alter table account add column level bigint;
+alter table account add column lineage integer[];
+
+update account set level = account_level (id);
+update account set lineage = array(select account_lineage (id));
+
+-- temtx candidates
+SELECT temtx.id, temtx.title,
+(temtx_debit_account.level + temtx_credit_account.level) as combined_level
+FROM tx
+INNER JOIN account AS debit_account
+ON (debit_account.id = tx.debit_acc_id)
+INNER JOIN account AS credit_account
+ON (credit_account.id = tx.credit_acc_id)
+INNER JOIN temtx
+ON ((temtx.debit_acc_id = any (debit_account.lineage)) AND
+    (temtx.credit_acc_id = any (credit_account.lineage)))
+INNER JOIN account AS temtx_debit_account
+ON temtx.debit_acc_id = temtx_debit_account.id
+INNER JOIN account AS temtx_credit_account
+ON temtx.credit_acc_id = temtx_credit_account.id
+WHERE tx.id = 2033
+ORDER BY combined_level DESC;
+
+
+-- temtx candidates 2
+SELECT temtx.id, temtx.title, temtx.customer_p, temtx.balance,
+(temtx_debit_account.level + temtx_credit_account.level) as combined_level
+FROM tx
+INNER JOIN account AS debit_account
+ON (debit_account.id = tx.debit_acc_id)
+INNER JOIN account AS credit_account
+ON (credit_account.id = tx.credit_acc_id)
+INNER JOIN temtx
+ON ((temtx.debit_acc_id = any (debit_account.lineage)) AND
+    (temtx.credit_acc_id = any (credit_account.lineage)))
+INNER JOIN account AS temtx_debit_account
+ON temtx.debit_acc_id = temtx_debit_account.id
+INNER JOIN account AS temtx_credit_account
+ON temtx.credit_acc_id = temtx_credit_account.id
+WHERE tx.id = 2033
+ORDER BY combined_level DESC;
+
+
+
+
+
+---------
+SELECT tx.id, temtx.title,
+max(temtx_debit_account.level + temtx_credit_account.level)
+FROM tx
+INNER JOIN account AS debit_account
+ON (debit_account.id = tx.debit_acc_id)
+INNER JOIN account AS credit_account
+ON (credit_account.id = tx.credit_acc_id)
+INNER JOIN temtx
+ON ((temtx.debit_acc_id = any (debit_account.lineage)) AND
+    (temtx.credit_acc_id = any (credit_account.lineage)))
+INNER JOIN account AS temtx_debit_account
+ON temtx.debit_acc_id = temtx_debit_account.id
+INNER JOIN account AS temtx_credit_account
+ON temtx.credit_acc_id = temtx_credit_account.id
+WHERE tx.id = 2033;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SELECT tx.id, description,
+debit_account.lineage AS debit_lin, credit_account.lineage AS credit_lin,
+debit_account.title AS tx_debit_acc_title, credit_account.title AS tx_credit_acc_title
+FROM tx
+INNER JOIN account AS debit_account
+ON (debit_account.id = tx.debit_acc_id)
+INNER JOIN account AS credit_account
+ON (credit_account.id = tx.credit_acc_id)
+WHERE tx.id = 2033;
+
+
+
+
+
 create or replace function update_account_lineage () returns void as
 $$ update account set lineage = array(select account_lineage(id));
 $$ language sql;
 
 
-CREATE FUNCTION descendants (IN id integer, OUT children_ids integer)
+CREATE OR REPLACE FUNCTION descendants (IN id integer, OUT children_ids integer)
 RETURNS setof integer AS
 $$ WITH RECURSIVE parent (id, parent_id) AS (
 SELECT id, parent_id FROM account WHERE account.id = $1
@@ -24,7 +129,7 @@ SELECT account.id, account.parent_id
 FROM account, parent
 WHERE account.parent_id = parent.id
 )
-SELECT id FROM parent;
+SELECT parent.id  FROM parent;
 $$ LANGUAGE SQL;
 
 
