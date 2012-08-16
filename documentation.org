@@ -193,14 +193,14 @@ Propagated Temtx.
 
 
 * RANDOM
-** Table/tree header labels
+** TODO Table/tree header labels
 Κανονικά δεν πρέπει να παίρνουν απλό string αλλά να χρησιμοποιείται
 εσωτερικά το display method ώστε να μπορώ να δώσω είτε string είτε
 κάποιο html() snippet.
 (<2012-08-14 Τρι> - collection.lisp)
-** Γιατί πρέπει να κάνω initialize body και value για simple checkboxes (όχι set);
+** TODO Γιατί πρέπει να κάνω initialize body και value για simple checkboxes (όχι set);
 (<2012-08-15 Τετ> - temtx.lisp)
-** Γιατί δεν γίνεται σωστή επιλογή σε κώδικα 'input-radio-set
+** TODO Γιατί δεν γίνεται σωστή επιλογή σε κώδικα 'input-radio-set
 (make-instance 'input-radio-set
                          :name 'propagated-p
                          :checked (getf record :propagated-p)
@@ -218,3 +218,6 @@ property (e.g. selected);
 κάνει fold αλλά η πρώτη γραμμή έχει indentation που κανονικά δεν
 έπρεπε να υπάρχει (ή έπρεπε να υπάρχει σε όλες τις γραμμές αν
 πρόκειται για cell-wide indentation. (<2012-08-15 Τετ> - temtx.lisp)
+** TODO cheque:receivable-p
+Replace it with temtx:customer-p
+(<2012-08-16 Πεμ> - sql.lisp)

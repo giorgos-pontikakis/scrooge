@@ -1,15 +1,7 @@
 (in-package :scrooge)
 
 
-
-(defun unknown-txs ()
-  "Returns the number of transactions that have no corresponding temtx"
-  (with-db ()
-    (query (sql-compile `(:select (count *) :from (:as (:select * (find-temtx id) :from tx) tx-augmented)
-                           :where (:is-null tx-augmented.find-temtx)))
-           :single!)))
-
-;;; COMPANY BALANCE
+;;; COMPANY COMPANY-BALANCE
 
 (defun company-debits/credits-sql (company-id roles)
   (let (temtx-conditions)
@@ -18,7 +10,7 @@
       (push '(:= temtx.customer-p t) temtx-conditions))
     (when (member :supplier roles)
       (push '(:= temtx.customer-p nil) temtx-conditions))
-    ;; query -- uses SQL function: descendants
+    ;; query
     `(:order-by (:select tx-date tx.id tx.description tx.amount
                   temtx.sign cheque.due-date cheque.state-id
                   :from tx
@@ -26,14 +18,12 @@
                   :on (:= cheque-event.tx-id tx.id)
                   :left-join cheque
                   :on (:= cheque.id cheque-event.cheque-id)
-                  :left-join (:as account debit-account)
-                  :on (:= debit-account.id tx.debit-acc-id)
-                  :left-join (:as account credit-account)
-                  :on (:= credit-account.id tx.credit-acc-id)
                   :inner-join temtx
-                  :on (:and (:in temtx.debit-acc-id (:set (:[] debit-account.lineage 0)))
-                            (:in temtx.credit-acc-id (:set (:[] credit-account.lineage 0)))
-                            (:= tx.company-id ,company-id)))
+                  :on (:= temtx.id (find-temtx tx.id)) ;; SQL function
+                  :where (:and (:= tx.company-id ,company-id)
+                               (:or (:= cheque-event.to-state-id cheque.state-id)
+                                    (:is-null cheque-event.to-state-id ))
+                               (:or ,@temtx-conditions)))
                 tx-date tx.description)))
 
 (defun company-debits/credits-all (company-id roles)
@@ -78,7 +68,7 @@
 (defun company-debits/credits (company-id roles since until &key reverse-p)
   (flet ((get-tx-date (row)
            (getf row :tx-date)))
-    ;; Truncate rows and maybe revers result
+    ;; Truncate rows and maybe revert results
     (multiple-value-bind (all-tx-rows debit-sum credit-sum total)
         (company-debits/credits-all company-id roles)
       (let ((truncated (remove-if (lambda (row)

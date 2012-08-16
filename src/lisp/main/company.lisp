@@ -307,7 +307,6 @@
   (:default-initargs :item-class 'company-row :id "company-table"))
 
 (defmethod get-records ((table company-table))
-  ;; Uses SQL function: company-tx-sum
   (let* ((search (getf (filter table) :search))
          (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
@@ -344,7 +343,7 @@
         ((member subset (list "credit" "debit") :test #'string=)
          (push `(:< ,*company-tx-significant-amount*
                     (* ,(if (string= subset "debit") +1 -1)
-                       (:select (company-balance company.id))))
+                       (:select (company-balance company.id)))) ;; SQL function
                where))))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
                            company.title)))

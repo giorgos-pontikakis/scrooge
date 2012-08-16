@@ -328,3 +328,17 @@ where (tx.company_id = 45);
 select * from tx where tx.amount = 15000;
 
 select * from cheque.event where
+
+
+SELECT tx_date, tx.id, tx.description, tx.amount, temtx.sign, cheque.due_date, cheque.state_id
+FROM tx
+LEFT JOIN cheque_event
+ON (cheque_event.tx_id = tx.id)
+LEFT JOIN cheque
+ON (cheque.id = cheque_event.cheque_id)
+INNER JOIN temtx
+ON (temtx.id = find_temtx(tx_id))
+WHERE ((tx.company_id = 45) and
+       ((temtx.customer_p = false) or
+        (temtx.customer_p = true)))
+ORDER BY tx_date, tx.description

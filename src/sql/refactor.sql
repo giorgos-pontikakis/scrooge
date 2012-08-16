@@ -53,12 +53,12 @@ where node.parent_id = account.id
 select (count(id)-1) from node;
 $$ language sql;
 
-alter table account add column lineage integer[];
-alter table account add column descendants integer[];
+-- alter table account add column lineage integer[];
+-- alter table account add column descendants integer[];
 alter table account add column level bigint;
 
-update account set lineage = array(select account_lineage(id));
-update account set descendants = array(select account_descendants(id));
+-- update account set lineage = array(select account_lineage(id));
+-- update account set descendants = array(select account_descendants(id));
 update account set level = (select account_level(id));
 
 -- Manipulation of accounts and temtx
@@ -96,16 +96,16 @@ inner join temtx
 on (temtx.debit_acc_id = tx_debit_account.id and
     temtx.credit_acc_id = tx_credit_account.id)
 or (temtx.propagated_p = 't' and
-    ((temtx.debit_acc_id = any (tx_debit_account.lineage) or
+    ((temtx.debit_acc_id = any (select account_lineage(tx_debit_account.id)) or
       temtx.debit_acc_id = tx_debit_account.id) and
-     (temtx.credit_acc_id = any (tx_credit_account.lineage) or
+     (temtx.credit_acc_id = any (select account_lineage(tx_credit_account.id)) or
       temtx.credit_acc_id = tx_credit_account.id)))
 -- accounts referenced by each temtx
 inner join account as temtx_debit_account
 on temtx.debit_acc_id = temtx_debit_account.id
 inner join account as temtx_credit_account
 on temtx.credit_acc_id = temtx_credit_account.id
-where tx.id = $1   -- 2033
+where tx.id = $1
 order by combined_level desc
 )
 select temtx_level.id
@@ -130,10 +130,12 @@ on temtx.debit_acc_id = debit_account.id
 inner join account as credit_account
 on temtx.credit_acc_id = credit_account.id
 where
+-- precise matches
 temtx.debit_acc_id = input_temtx.debit_acc_id and
 temtx.credit_acc_id = input_temtx.credit_acc_id and
 temtx.id <> input_temtx.id
 or
+-- propagated matches
 (temtx.propagated_p = 't'
  and
  ((input_temtx.debit_acc_id in (select account_lineage(temtx.debit_acc_id)) and
@@ -141,4 +143,22 @@ or
     or
   (input_temtx.debit_acc_id in (select account_descendants(temtx.debit_acc_id)) and
    input_temtx.credit_acc_id in (select account_lineage(temtx.credit_acc_id)))))
+$$ language sql;
+
+
+----------------------------------------------------------------------
+-- Company Balance
+----------------------------------------------------------------------
+create or replace function company_balance (in id integer, out company_balance numeric)
+returns numeric as
+$$ select coalesce(sum(tx.amount*temtx.sign))
+from tx
+left join cheque_event
+on (cheque_event.tx_id = tx.id)
+left join cheque
+on (cheque.id = cheque_event.cheque_id)
+inner join temtx
+on temtx.id = find_temtx(tx.id)
+where tx.company_id = $1 and
+      ((cheque_event.to_state_id = cheque.state_id) or (cheque_event.to_state_id is null))
 $$ language sql;

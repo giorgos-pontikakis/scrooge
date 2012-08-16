@@ -79,3 +79,13 @@
                                (:in 'tx.debit-acc-id (:set *payable-accounts*)))
                           (:is-null 'company.expenses-account-id)))
            :plists)))
+
+
+(defun unknown-txs ()
+  "Returns the number of transactions that have no corresponding temtx"
+  (with-db ()
+    (query (sql-compile `(:select (count *) :from (:as (:select * (find-temtx id) :from tx) tx-augmented)
+                           :where (:is-null tx-augmented.find-temtx)))
+           :single!)))
+
+(assert (= (unknown-txs) 0))
