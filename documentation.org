@@ -193,13 +193,16 @@ Propagated Temtx.
 
 
 * RANDOM
+
 ** TODO Table/tree header labels
 Κανονικά δεν πρέπει να παίρνουν απλό string αλλά να χρησιμοποιείται
 εσωτερικά το display method ώστε να μπορώ να δώσω είτε string είτε
 κάποιο html() snippet.
 (<2012-08-14 Τρι> - collection.lisp)
+
 ** TODO Γιατί πρέπει να κάνω initialize body και value για simple checkboxes (όχι set);
 (<2012-08-15 Τετ> - temtx.lisp)
+
 ** TODO Γιατί δεν γίνεται σωστή επιλογή σε κώδικα 'input-radio-set
 (make-instance 'input-radio-set
                          :name 'propagated-p
@@ -212,16 +215,23 @@ property (e.g. selected);
 
 (<2012-08-15 Τετ> - temtx.lisp)
 ** TODO CSS for column widths
-(<2012-08-15 Τετ> - temtx.lisp)
+   (<2012-08-15 Τετ> - temtx.lisp)
+
 ** TODO Indented folded lines
 Όπου η περιγραφή είναι μακρύτερη από το μήκος του cell του πίνακα,
 κάνει fold αλλά η πρώτη γραμμή έχει indentation που κανονικά δεν
 έπρεπε να υπάρχει (ή έπρεπε να υπάρχει σε όλες τις γραμμές αν
 πρόκειται για cell-wide indentation. (<2012-08-15 Τετ> - temtx.lisp)
+
 ** TODO cheque:receivable-p
 Replace it with temtx:customer-p
 (<2012-08-16 Πεμ> - sql.lisp)
-** insert-list in lisputils
+
+** TODO Implement temtx basic constraint in temtx.lisp
+   in terms of temtx_conflicts which must be tested for correctness
+   (now it is *completely* untested)
+
+** TODO insert-list in lisputils
 Why the 'deleting unreachable code message
 ; file: /home/gnp/src/lisputils/lisputils.lisp
 ; in: DEFUN INSERT-LIST
@@ -232,3 +242,6 @@ Why the 'deleting unreachable code message
 ;
 ; note: deleting unreachable code
 (<2012-08-16 Πεμ> - )
+
+** TODO regex pages for temtx (customer/supplier)
+(<2012-08-17 Παρ> - )
