@@ -53,14 +53,6 @@ where node.parent_id = account.id
 select (count(id)-1) from node;
 $$ language sql;
 
--- alter table account add column lineage integer[];
--- alter table account add column descendants integer[];
-alter table account add column level bigint;
-
--- update account set lineage = array(select account_lineage(id));
--- update account set descendants = array(select account_descendants(id));
-update account set level = (select account_level(id));
-
 -- Manipulation of accounts and temtx
 update account set parent_id = 12 where id = 13;
 update cheque_stran set temtx_id = 5 where id = 23;
@@ -83,8 +75,8 @@ function find_temtx (in tx_id integer, out temtx_id integer)
 returns integer as
 $$
 with temtx_level as (
-select temtx.id, --temtx.title, temtx.debit_acc_id, temtx.credit_acc_id,
-(temtx_debit_account.level + temtx_credit_account.level) as combined_level
+select temtx.id, ((select account_level(temtx_debit_account.id)) +
+                  (select account_level(temtx_credit_account.id))) as combined_level
 from tx
 -- accounts referenced by tx
 inner join account as tx_debit_account

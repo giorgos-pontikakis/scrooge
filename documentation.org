@@ -221,3 +221,14 @@ property (e.g. selected);
 ** TODO cheque:receivable-p
 Replace it with temtx:customer-p
 (<2012-08-16 Πεμ> - sql.lisp)
+** insert-list in lisputils
+Why the 'deleting unreachable code message
+; file: /home/gnp/src/lisputils/lisputils.lisp
+; in: DEFUN INSERT-LIST
+;     (NTHCDR LISPUTILS::N LIST)
+; --> BLOCK FLET TYPECASE LET COND IF COND THE PROGN DO BLOCK LET
+; ==>
+;   LIST
+;
+; note: deleting unreachable code
+(<2012-08-16 Πεμ> - )

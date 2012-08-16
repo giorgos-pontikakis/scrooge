@@ -82,9 +82,7 @@
    (title      :col-type string  :accessor title      :initarg :title)
    (debit-p    :col-type boolean :accessor debit-p    :initarg :debit-p)
    (parent-id  :col-type string  :accessor parent-id  :initarg :parent-id)
-   (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p)
-   (level      :col-type bigint  :accessor level      :initarg :level))
-
+   (chequing-p :col-type boolean :accessor chequing-p :initarg :chequing-p))
   (:metaclass dao-class)
   (:keys id)
   (:default-initargs :title nil :chequing-p nil))
