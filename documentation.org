@@ -245,3 +245,11 @@ Why the 'deleting unreachable code message
 
 ** TODO regex pages for temtx (customer/supplier)
 (<2012-08-17 Παρ> - )
+
+** Re-indent veil/bricks etc (via a macro?)
+(<2012-08-17 Παρ> - )
+
+** core libraries management (bricks, veil etc)
+- consider different tracking options
+- maybe use git submodules
+(<2012-08-17 Παρ> - )
