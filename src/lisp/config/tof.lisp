@@ -40,8 +40,8 @@
   (with-db ()
     (and tof-id
          (query (:select 'id
-                 :from 'company
-                 :where (:= 'tof-id tof-id))
+                  :from 'company
+                  :where (:= 'tof-id tof-id))
                 :column))))
 
 (define-existence-predicate tof-id-exists-p tof id)
@@ -141,19 +141,19 @@
                                      :start-index (val start))))
       (with-document ()
         (:head
-         (:title "Δ.Ο.Υ. » Κατάλογος")
-         (config-headers))
+          (:title "Δ.Ο.Υ. » Κατάλογος")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'tof)
-               (tof-top-actions :catalogue)
-               (:div :class "grid_12"
-                     (:div :id "tof-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (actions tof-table)
-                           (display tof-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'tof)
+            (tof-top-actions :catalogue)
+            (:div :class "grid_12"
+              (:div :id "tof-window" :class "window"
+                (:div :class "title" "Κατάλογος")
+                (actions tof-table)
+                (display tof-table)))
+            (footer)))))))
 
 
 
@@ -171,22 +171,22 @@
                                      :filter filter)))
       (with-document ()
         (:head
-         (:title "Δ.Ο.Υ. » Δημιουργία")
-         (config-headers))
+          (:title "Δ.Ο.Υ. » Δημιουργία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'tof)
-               (tof-top-actions :create)
-               (:div :class "grid_12"
-                     (:div :id "tof-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (actions tof-table)
-                           (notifications)
-                           (with-form (actions/config/tof/create :search (val search))
-                             (display tof-table
-                                      :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'tof)
+            (tof-top-actions :create)
+            (:div :class "grid_12"
+              (:div :id "tof-window" :class "window"
+                (:div :class "title" "Δημιουργία")
+                (actions tof-table)
+                (notifications)
+                (with-form (actions/config/tof/create :search (val search))
+                  (display tof-table
+                           :payload (params->payload)))))
+            (footer)))))))
 
 (defpage tof-page actions/config/tof/create ("actions/config/tof/create" :request-type :post)
     ((title  string chk-tof-title/create t)
@@ -214,23 +214,23 @@
                                      :filter filter)))
       (with-document ()
         (:head
-         (:title "Δ.Ο.Υ. » Επεξεργασία")
-         (config-headers))
+          (:title "Δ.Ο.Υ. » Επεξεργασία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'tof)
-               (tof-top-actions :update)
-               (:div :class "grid_12"
-                     (:div :id "tof-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (actions tof-table)
-                           (notifications)
-                           (with-form (actions/config/tof/update :tof-id (val tof-id)
-                                                                 :filter (val search))
-                             (display tof-table
-                                      :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'tof)
+            (tof-top-actions :update)
+            (:div :class "grid_12"
+              (:div :id "tof-window" :class "window"
+                (:div :class "title" "Επεξεργασία")
+                (actions tof-table)
+                (notifications)
+                (with-form (actions/config/tof/update :tof-id (val tof-id)
+                                                      :filter (val search))
+                  (display tof-table
+                           :payload (params->payload)))))
+            (footer)))))))
 
 (defpage tof-page actions/config/tof/update ("actions/config/tof/update" :request-type :post)
     ((tof-id integer chk-tof-id                          t)
@@ -259,21 +259,21 @@
                                      :filter filter)))
       (with-document ()
         (:head
-         (:title "Δ.Ο.Υ. » Διαγραφή")
-         (config-headers))
+          (:title "Δ.Ο.Υ. » Διαγραφή")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'tof)
-               (tof-top-actions :delete)
-               (:div :class "grid_12"
-                     (:div :id "tof-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (actions tof-table)
-                           (with-form (actions/config/tof/delete :tof-id (val tof-id)
-                                                                 :search (val search))
-                             (display tof-table))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'tof)
+            (tof-top-actions :delete)
+            (:div :class "grid_12"
+              (:div :id "tof-window" :class "window"
+                (:div :class "title" "Διαγραφή")
+                (actions tof-table)
+                (with-form (actions/config/tof/delete :tof-id (val tof-id)
+                                                      :search (val search))
+                  (display tof-table))))
+            (footer)))))))
 
 (defpage tof-page actions/config/tof/delete ("actions/config/tof/delete" :request-type :post)
     ((tof-id integer chk-tof-id/ref t)

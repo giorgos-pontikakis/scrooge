@@ -395,23 +395,23 @@
                                              :op :delete)))
       (with-document ()
         (:head
-         (:title "Μεταπτώσεις Επιταγών » Διαγραφή")
-         (config-headers))
+          (:title "Μεταπτώσεις Επιταγών » Διαγραφή")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'cheque-stran)
-               (cheque-stran-top-actions :delete)
-               (filters cheque-stran-table)
-               (:div :class "grid_12"
-                     (:div :id "cheque-stran-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (actions cheque-stran-table)
-                           (with-form
-                               (actions/config/cheque-stran/delete role
-                                                                   :cheque-stran-id (val cheque-stran-id))
-                             (display cheque-stran-table))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'cheque-stran)
+            (cheque-stran-top-actions :delete)
+            (filters cheque-stran-table)
+            (:div :class "grid_12"
+              (:div :id "cheque-stran-window" :class "window"
+                (:div :class "title" "Διαγραφή")
+                (actions cheque-stran-table)
+                (with-form
+                    (actions/config/cheque-stran/delete role
+                                                        :cheque-stran-id (val cheque-stran-id))
+                  (display cheque-stran-table))))
+            (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/delete
     (("actions/config/cheque-stran/" (role "(customer|supplier)") "/delete")

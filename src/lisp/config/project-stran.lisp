@@ -83,8 +83,8 @@
       nil
       (with-db ()
         (query (:select 1 :from 'project-stran
-                :where (:and (:= 'from-state-id from-state-id)
-                             (:= 'to-state-id to-state-id)))
+                 :where (:and (:= 'from-state-id from-state-id)
+                              (:= 'to-state-id to-state-id)))
                :plists))))
 
 (defun chk-project-stran-from/to (from-state-id to-state-id)
@@ -127,17 +127,17 @@
 (defclass project-stran-table (scrooge-table)
   ((header-labels  :initform '("" "<br />Περιγραφή"
                                "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                                " Πρότυπη<br />Συναλλαγή"))
+                               " Πρότυπη<br />Συναλλαγή"))
    (paginator      :initform nil))
   (:default-initargs :item-class 'project-stran-row))
 
 (defmethod get-records ((table project-stran-table))
   (query (:order-by (:select 'project-stran.project-stran-id 'project-stran.title
-                             'from-state-id 'to-state-id
-                             (:as 'temtx.title 'temtx)
-                             :from 'project-stran
-                             :left-join 'temtx
-                             :on (:= 'temtx-id 'temtx.temtx-id))
+                      'from-state-id 'to-state-id
+                      (:as 'temtx.title 'temtx)
+                      :from 'project-stran
+                      :left-join 'temtx
+                      :on (:= 'temtx-id 'temtx.temtx-id))
                     'project-stran.title)
          :plists))
 
@@ -153,7 +153,7 @@
       (:a :href (if enabled-p
                     (config/project-stran)
                     (config/project-stran :project-stran-id project-stran-id))
-          (selector-img enabled-p)))))
+        (selector-img enabled-p)))))
 
 (defmethod payload ((row project-stran-row) enabled-p)
   (let ((record (record row))
@@ -201,19 +201,19 @@
                                               :id "project-stran-table")))
       (with-document ()
         (:head
-         (:title "Μεταπτώσεις Έργων » Κατάλογος")
-         (config-headers))
+          (:title "Μεταπτώσεις Έργων » Κατάλογος")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'project-stran)
-               (:div :class "grid_12"
-                     (:div :id "project-stran-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (project-stran-actions :catalogue (val project-stran-id))
-                           (display project-stran-table
-                                    :key (val project-stran-id))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'project-stran)
+            (:div :class "grid_12"
+              (:div :id "project-stran-window" :class "window"
+                (:div :class "title" "Κατάλογος")
+                (project-stran-actions :catalogue (val project-stran-id))
+                (display project-stran-table
+                         :key (val project-stran-id))))
+            (footer)))))))
 
 
 
@@ -233,19 +233,19 @@
            (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
         (:head
-         (:title "Μεταπτώσεις Έργων » Δημιουργία")
-         (config-headers))
+          (:title "Μεταπτώσεις Έργων » Δημιουργία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'project-stran)
-               (:div :class "grid_12"
-                     (:div :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (project-stran-actions op nil)
-                           (notifications)
-                           (with-form (actions/config/project-stran/create)
-                             (display project-stran-table :payload (params->payload)))))))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'project-stran)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" "Δημιουργία")
+                (project-stran-actions op nil)
+                (notifications)
+                (with-form (actions/config/project-stran/create)
+                  (display project-stran-table :payload (params->payload)))))))))))
 
 (defpage project-stran-page actions/config/project-stran/create
     ("actions/config/project-stran/create" :request-type :post)
@@ -283,21 +283,21 @@
            (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
         (:head
-         (:title "Μεταπτώσεις Έργων » Επεξεργασία")
-         (config-headers))
+          (:title "Μεταπτώσεις Έργων » Επεξεργασία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'project-stran)
-               (:div :class "grid_12"
-                     (:div :id "project-stran-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (project-stran-actions op (val project-stran-id))
-                           (notifications)
-                           (with-form (actions/config/project-stran/update :project-stran-id (val project-stran-id))
-                             (display project-stran-table :key (val project-stran-id)
-                                                          :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'project-stran)
+            (:div :class "grid_12"
+              (:div :id "project-stran-window" :class "window"
+                (:div :class "title" "Επεξεργασία")
+                (project-stran-actions op (val project-stran-id))
+                (notifications)
+                (with-form (actions/config/project-stran/update :project-stran-id (val project-stran-id))
+                  (display project-stran-table :key (val project-stran-id)
+                                               :payload (params->payload)))))
+            (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/update
     ("actions/config/project-stran/update" :request-type :post)
@@ -331,20 +331,20 @@
            (project-stran-table (make-instance 'project-stran-table :op op)))
       (with-document ()
         (:head
-         (:title "Μεταπτώσεις Έργων » Διαγραφή")
-         (config-headers))
+          (:title "Μεταπτώσεις Έργων » Διαγραφή")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'project-stran)
-               (:div :class "grid_12"
-                     (:div :id "project-stran-window" :class "window"
-                           (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
-                           (project-stran-actions op (val project-stran-id))
-                           (with-form (actions/config/project-stran/delete :project-stran-id (val project-stran-id))
-                             (display project-stran-table
-                                      :key (val project-stran-id)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'project-stran)
+            (:div :class "grid_12"
+              (:div :id "project-stran-window" :class "window"
+                (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
+                (project-stran-actions op (val project-stran-id))
+                (with-form (actions/config/project-stran/delete :project-stran-id (val project-stran-id))
+                  (display project-stran-table
+                           :key (val project-stran-id)))))
+            (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/delete
     ("actions/config/project-stran/delete" :request-type :post)

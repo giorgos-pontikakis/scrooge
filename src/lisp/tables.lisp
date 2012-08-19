@@ -8,10 +8,10 @@
                    `(defmethod ,slot ,surrogate-key-types
                       (with-db ()
                         (,slot (select-dao-unique
-                                ',table
-                                (:and ,@(mapcar (lambda (surrogate-key)
-                                                  `(:= ',surrogate-key ,surrogate-key))
-                                                (mapcar #'first surrogate-key-types))))))))
+                                   ',table
+                                   (:and ,@(mapcar (lambda (surrogate-key)
+                                                     `(:= ',surrogate-key ,surrogate-key))
+                                                   (mapcar #'first surrogate-key-types))))))))
                  slots))))
 
 
@@ -336,15 +336,15 @@
 
 (defmethod max-rank ((dao bill))
   (let ((ranks (query (:select 'rank
-                       :from 'bill
-                       :where (:= 'project-id (project-id dao)))
+                        :from 'bill
+                        :where (:= 'project-id (project-id dao)))
                       :column)))
     (if ranks (reduce #'max ranks) 0)))
 
 (defmethod max-rank ((dao contact))
   (let ((ranks (query (:select 'rank
-                       :from 'contact
-                       :where (:= 'company-id (company-id dao)))
+                        :from 'contact
+                        :where (:= 'company-id (company-id dao)))
                       :column)))
     (if ranks (reduce #'max ranks) 0)))
 
@@ -355,8 +355,8 @@
   "Increase by delta the rank of daos which have rank greater or equal
   to the reference dao"
   (iter (for i in (higher-rank-daos dao delta))
-        (setf (rank i) (+ (rank i) delta))
-        (update-dao i)))
+    (setf (rank i) (+ (rank i) delta))
+    (update-dao i)))
 
 (defgeneric higher-rank-daos (dao delta)
   (:documentation "Get all daos of db-table with rank greater or equal
@@ -364,9 +364,9 @@
 
 (defmethod higher-rank-daos ((dao bill) delta)
   (select-dao 'bill
-              (:and (:not (:= 'id (bill-id dao)))
-                    (:= 'project-id (project-id dao))
-                    (:>= 'rank (rank dao)))))
+      (:and (:not (:= 'id (bill-id dao)))
+            (:= 'project-id (project-id dao))
+            (:>= 'rank (rank dao)))))
 
 (defmethod higher-rank-daos ((dao contact) delta)
   (select-dao 'contact (:and (:not (:= 'id (contact-id dao)))

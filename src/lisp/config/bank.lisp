@@ -40,8 +40,8 @@
   (with-db ()
     (and bank-id
          (query (:select 'id
-                 :from 'cheque
-                 :where (:= 'bank-id bank-id))
+                  :from 'cheque
+                  :where (:= 'bank-id bank-id))
                 :column))))
 
 (define-existence-predicate  bank-id-exists-p bank id)
@@ -141,19 +141,19 @@
                                       :start-index (val start))))
       (with-document ()
         (:head
-         (:title "Τράπεζες » Κατάλογος")
-         (config-headers))
+          (:title "Τράπεζες » Κατάλογος")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions :catalogue)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (actions bank-table)
-                           (display bank-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'bank)
+            (bank-top-actions :catalogue)
+            (:div :class "grid_12"
+              (:div :id "bank-window" :class "window"
+                (:div :class "title" "Κατάλογος")
+                (actions bank-table)
+                (display bank-table)))
+            (footer)))))))
 
 
 
@@ -171,22 +171,22 @@
                                       :filter filter)))
       (with-document ()
         (:head
-         (:title "Τράπεζα » Δημιουργία")
-         (config-headers))
+          (:title "Τράπεζα » Δημιουργία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions :create)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (actions bank-table)
-                           (notifications)
-                           (with-form (actions/config/bank/create :search (val search))
-                             (display bank-table
-                                      :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'bank)
+            (bank-top-actions :create)
+            (:div :class "grid_12"
+              (:div :id "bank-window" :class "window"
+                (:div :class "title" "Δημιουργία")
+                (actions bank-table)
+                (notifications)
+                (with-form (actions/config/bank/create :search (val search))
+                  (display bank-table
+                           :payload (params->payload)))))
+            (footer)))))))
 
 (defpage bank-page actions/config/bank/create ("actions/config/bank/create" :request-type :post)
     ((title  string chk-bank-title/create t)
@@ -214,23 +214,23 @@
                                       :filter filter)))
       (with-document ()
         (:head
-         (:title "Τράπεζα » Επεξεργασία")
-         (config-headers))
+          (:title "Τράπεζα » Επεξεργασία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions :update)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (actions bank-table)
-                           (notifications)
-                           (with-form (actions/config/bank/update :bank-id (val bank-id)
-                                                                  :search (val search))
-                             (display bank-table
-                                      :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'bank)
+            (bank-top-actions :update)
+            (:div :class "grid_12"
+              (:div :id "bank-window" :class "window"
+                (:div :class "title" "Επεξεργασία")
+                (actions bank-table)
+                (notifications)
+                (with-form (actions/config/bank/update :bank-id (val bank-id)
+                                                       :search (val search))
+                  (display bank-table
+                           :payload (params->payload)))))
+            (footer)))))))
 
 (defpage bank-page actions/config/bank/update ("actions/config/bank/update" :request-type :post)
     ((bank-id integer chk-bank-id                           t)
@@ -259,22 +259,22 @@
                                       :filter filter)))
       (with-document ()
         (:head
-         (:title "Τράπεζα » Διαγραφή")
-         (config-headers))
+          (:title "Τράπεζα » Διαγραφή")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'bank)
-               (bank-top-actions :delete)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (actions bank-table)
-                           (with-form (actions/config/bank/delete :bank-id (val bank-id)
-                                                                  :search (val search))
-                             (display bank-table
-                                      :key (val bank-id)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'bank)
+            (bank-top-actions :delete)
+            (:div :class "grid_12"
+              (:div :id "bank-window" :class "window"
+                (:div :class "title" "Διαγραφή")
+                (actions bank-table)
+                (with-form (actions/config/bank/delete :bank-id (val bank-id)
+                                                       :search (val search))
+                  (display bank-table
+                           :key (val bank-id)))))
+            (footer)))))))
 
 (defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)
     ((bank-id integer chk-bank-id/ref t)

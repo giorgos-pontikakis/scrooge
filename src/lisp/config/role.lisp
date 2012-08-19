@@ -47,9 +47,9 @@
 
 (defmethod get-records ((table account-role-table))
   (query (:order-by (:select 'account-role.id (:as 'account.title 'account) 'description 'rank
-                     :from 'account-role
-                     :inner-join 'account
-                     :on (:= 'account-role.account-id 'account.id))
+                      :from 'account-role
+                      :inner-join 'account
+                      :on (:= 'account-role.account-id 'account.id))
                     'rank)
          :plists))
 
@@ -74,7 +74,7 @@
       (:a :href (if selected-p
                     (config/account-role)
                     (config/account-role :account-role-id account-role-id))
-          (selector-img selected-p)))))
+        (selector-img selected-p)))))
 
 (defmethod controls ((row account-role-row) controls-p)
   (simple-controls row controls-p #'config/account-role :account-role-id))
@@ -105,18 +105,18 @@
                                              :selected-key (val account-role-id))))
       (with-document ()
         (:head
-         (:title "Ρόλοι λογαριασμών » Κατάλογος")
-         (config-headers))
+          (:title "Ρόλοι λογαριασμών » Κατάλογος")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'account-role)
-               (:div :class "grid_12"
-                     (:div :id "bank-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (actions account-role-table)
-                           (display account-role-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'account-role)
+            (:div :class "grid_12"
+              (:div :id "bank-window" :class "window"
+                (:div :class "title" "Κατάλογος")
+                (actions account-role-table)
+                (display account-role-table)))
+            (footer)))))))
 
 
 
@@ -133,20 +133,20 @@
                                              :selected-key (val account-role-id))))
       (with-document ()
         (:head
-         (:title "Ρόλοι λογαριασμών » Επεξεργασία")
-         (config-headers))
+          (:title "Ρόλοι λογαριασμών » Επεξεργασία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'account-role)
-               (:div :class "grid_12"
-                     (:div :id "account-role-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (actions account-role-table)
-                           (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
-                             (display account-role-table :payload (params->payload)
-                                                         :styles (params->styles :payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'account-role)
+            (:div :class "grid_12"
+              (:div :id "account-role-window" :class "window"
+                (:div :class "title" "Επεξεργασία")
+                (actions account-role-table)
+                (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
+                  (display account-role-table :payload (params->payload)
+                                              :styles (params->styles :payload)))))
+            (footer)))))))
 
 (defpage account-role-page actions/config/account-role/update
     ("actions/config/account-role/update" :request-type :post)

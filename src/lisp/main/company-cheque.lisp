@@ -55,11 +55,11 @@
          (company-id (company-id table))
          (hrefs (if cheque-id
                     (list :update (apply #'company/cheque/update role :company-id company-id
-                                                                           :cheque-id cheque-id
-                                                                           filter)
+                                                                      :cheque-id cheque-id
+                                                                      filter)
                           :delete (apply #'company/cheque/delete role :company-id company-id
-                                                                           :cheque-id cheque-id
-                                                                           filter))
+                                                                      :cheque-id cheque-id
+                                                                      filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions table))))
@@ -72,24 +72,24 @@
          (filter-spec `((nil      ,(apply #'company/cheque role :company-id company-id filter*)
                                   "Όλες")
                         (pending  ,(apply #'company/cheque role :cstate "pending"
-                                                                     :company-id company-id
-                                                                     filter*)
+                                                                :company-id company-id
+                                                                filter*)
                                   "Σε εκκρεμότητα")
                         (paid     ,(apply #'company/cheque role :cstate "paid"
-                                                                     :company-id company-id
-                                                                     filter*)
+                                                                :company-id company-id
+                                                                filter*)
                                   "Πληρωμένες")
                         (bounced  ,(apply #'company/cheque role :cstate "bounced"
-                                                                     :company-id company-id
-                                                                     filter*)
+                                                                :company-id company-id
+                                                                filter*)
                                   "Ακάλυπτες")
                         (returned ,(apply #'company/cheque role :cstate "returned"
-                                                                     :company-id company-id
-                                                                     filter*)
+                                                                :company-id company-id
+                                                                filter*)
                                   "Επιστραμμένες")
                         (stamped  ,(apply #'company/cheque role :cstate "stamped"
-                                                                     :company-id company-id
-                                                                     filter*)
+                                                                :company-id company-id
+                                                                filter*)
                                   "Σφραγισμένες"))))
     (secondary-filter-area
      (filter-navbar `((customer ,(apply #'company/cheque "customer" :company-id company-id filter)
@@ -120,11 +120,11 @@
     (html ()
       (:a :href (if selected-p
                     (apply #'company/cheque role :start (page-start pg (index row) start)
-                                                      :company-id company-id
-                                                      filter)
+                                                 :company-id company-id
+                                                 filter)
                     (apply #'company/cheque role :cheque-id cheque-id
-                                                      :company-id company-id
-                                                      filter))
+                                                 :company-id company-id
+                                                 filter))
         (selector-img selected-p)))))
 
 (defmethod payload ((row company-cheque-row) enabled-p)
@@ -158,8 +158,8 @@
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
                              :href (apply #'company/cheque role :cheque-id cheque-id
-                                                                     :company-id company-id
-                                                                     filter)))
+                                                                :company-id company-id
+                                                                filter)))
         (list nil nil))))
 
 
@@ -171,8 +171,8 @@
 (defmethod target-url ((pg company-cheque-paginator) start)
   (let ((table (table pg)))
     (apply #'company/cheque (role table) :company-id (company-id table)
-                                              :start start
-                                              (filter table))))
+                                         :start start
+                                         (filter table))))
 
 
 
@@ -400,8 +400,8 @@
                                      :state-id *default-cheque-state*)))
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque role :company-id (val company-id)
-                                                   :cheque-id (cheque-id new-cheque)
-                                                   (params->filter))))))
+                                              :cheque-id (cheque-id new-cheque)
+                                              (params->filter))))))
 
 
 
@@ -489,8 +489,8 @@
             (old-state-id cheque-dao) (state-id cheque-dao))
       (update-dao cheque-dao)
       (see-other (apply #'company/cheque role :company-id (val company-id)
-                                                   :cheque-id (val cheque-id)
-                                                   (params->filter))))))
+                                              :cheque-id (val cheque-id)
+                                              (params->filter))))))
 
 
 

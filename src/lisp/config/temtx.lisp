@@ -193,19 +193,19 @@
                                       :id "temtx-table")))
       (with-document ()
         (:head
-         (:title "Πρότυπα Συναλλαγών » Κατάλογος")
-         (config-headers))
+          (:title "Πρότυπα Συναλλαγών » Κατάλογος")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'temtx)
-               (temtx-top-actions :catalogue)
-               (:div :class "grid_12"
-                     (:div :id "temtx-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (actions temtx-table)
-                           (display temtx-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'temtx)
+            (temtx-top-actions :catalogue)
+            (:div :class "grid_12"
+              (:div :id "temtx-window" :class "window"
+                (:div :class "title" "Κατάλογος")
+                (actions temtx-table)
+                (display temtx-table)))
+            (footer)))))))
 
 
 
@@ -225,20 +225,20 @@
                                       :op :create)))
       (with-document ()
         (:head
-         (:title "Πρότυπα Συναλλαγών » Δημιουργία")
-         (config-headers))
+          (:title "Πρότυπα Συναλλαγών » Δημιουργία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'temtx)
-               (temtx-top-actions :create)
-               (:div :class "grid_12"
-                     (:div :class "window"
-                           (:div :class "title" "Δημιουργία")
-                           (actions temtx-table)
-                           (notifications)
-                           (with-form (actions/config/temtx/create)
-                             (display temtx-table :payload (params->payload)))))))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'temtx)
+            (temtx-top-actions :create)
+            (:div :class "grid_12"
+              (:div :class "window"
+                (:div :class "title" "Δημιουργία")
+                (actions temtx-table)
+                (notifications)
+                (with-form (actions/config/temtx/create)
+                  (display temtx-table :payload (params->payload)))))))))))
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
     ((debit-account  string   chk-account-title)
@@ -280,21 +280,21 @@
                                       :op :update)))
       (with-document ()
         (:head
-         (:title "Πρότυπα Συναλλαγών » Επεξεργασία")
-         (config-headers))
+          (:title "Πρότυπα Συναλλαγών » Επεξεργασία")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'temtx)
-               (temtx-top-actions :update)
-               (:div :class "grid_12"
-                     (:div :id "temtx-window" :class "window"
-                           (:div :class "title" "Επεξεργασία")
-                           (actions temtx-table)
-                           (notifications)
-                           (with-form (actions/config/temtx/update :temtx-id (val temtx-id))
-                             (display temtx-table :payload (params->payload)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'temtx)
+            (temtx-top-actions :update)
+            (:div :class "grid_12"
+              (:div :id "temtx-window" :class "window"
+                (:div :class "title" "Επεξεργασία")
+                (actions temtx-table)
+                (notifications)
+                (with-form (actions/config/temtx/update :temtx-id (val temtx-id))
+                  (display temtx-table :payload (params->payload)))))
+            (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
     ((temtx-id       integer chk-temtx-id      t)
@@ -331,20 +331,20 @@
                                       :op :delete)))
       (with-document ()
         (:head
-         (:title "Πρότυπα Συναλλαγών » Διαγραφή")
-         (config-headers))
+          (:title "Πρότυπα Συναλλαγών » Διαγραφή")
+          (config-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header 'config)
-               (config-navbar 'temtx)
-               (temtx-top-actions :delete)
-               (:div :class "grid_12"
-                     (:div :id "temtx-window" :class "window"
-                           (:div :class "title" "Διαγραφή")
-                           (actions temtx-table)
-                           (with-form (actions/config/temtx/delete :temtx-id (val temtx-id))
-                             (display temtx-table))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header 'config)
+            (config-navbar 'temtx)
+            (temtx-top-actions :delete)
+            (:div :class "grid_12"
+              (:div :id "temtx-window" :class "window"
+                (:div :class "title" "Διαγραφή")
+                (actions temtx-table)
+                (with-form (actions/config/temtx/delete :temtx-id (val temtx-id))
+                  (display temtx-table))))
+            (footer)))))))
 
 (defpage temtx-page actions/config/temtx/delete ("actions/config/temtx/delete" :request-type :post)
     ((temtx-id integer chk-temtx-id t))

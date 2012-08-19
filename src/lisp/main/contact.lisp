@@ -35,8 +35,8 @@
 
 (defmethod get-records ((table contact-table))
   (query (:order-by (:select 'id 'tag 'phone 'rank
-                             :from 'contact
-                             :where (:= 'company-id (company-id table)))
+                      :from 'contact
+                      :where (:= 'company-id (company-id table)))
                     'rank)
          :plists))
 
@@ -47,25 +47,25 @@
          (spec `((:create
                   ,(html ()
                      (:a :class "create"
-                         :href (apply #'contact/create
-                                      :company-id company-id filter)
-                         "Νέα Επαφή")))
+                       :href (apply #'contact/create
+                                    :company-id company-id filter)
+                       "Νέα Επαφή")))
                  (:update
                   ,(html ()
                      (:a :class "update"
-                         :href (apply #'contact/update
-                                      :company-id company-id
-                                      :contact-id contact-id
-                                      filter)
-                         "Επεξεργασία")))
+                       :href (apply #'contact/update
+                                    :company-id company-id
+                                    :contact-id contact-id
+                                    filter)
+                       "Επεξεργασία")))
                  (:delete
                   ,(html ()
                      (:a :class "delete"
-                         :href (apply #'contact/delete
-                                      :company-id company-id
-                                      :contact-id contact-id
-                                      filter)
-                         "Διαγραφή")))
+                       :href (apply #'contact/delete
+                                    :company-id company-id
+                                    :contact-id contact-id
+                                    filter)
+                       "Διαγραφή")))
                  (:rank-up
                   ,(make-instance 'form
                                   :action (action/contact/rank-dec)
@@ -97,7 +97,7 @@
       (:a :href (if selected-p
                     (company/details :company-id company-id)
                     (company/details :company-id company-id :contact-id contact-id))
-          (selector-img selected-p)))))
+        (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
   (let ((record (record row))
@@ -174,28 +174,28 @@
                                          :company-id (val company-id))))
       (with-document ()
         (:head
-         (:title "Επαφές » Δημιουργία")
-         (main-headers))
+          (:title "Επαφές » Δημιουργία")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'company)
-               (company-top-actions :details)
-               (company-tabs (val company-id) filter 'details
-                             (html ()
-                               (:div :class "grid_6 alpha"
-                                     (:div :id "company-window" :class "window"
-                                           (:div :class "title" "Λεπτομέρειες")
-                                           (actions company-form :filter filter)
-                                           (display company-form)))
-                               (:div :class "grid_6 omega"
-                                     (:div :company-id "contact-window" :class "window"
-                                           (:div :class "title" "Δημιουργία")
-                                           (actions contact-table)
-                                           (with-form
-                                               (actions/contact/create :company-id (val company-id))
-                                             (display contact-table))))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'company)
+            (company-top-actions :details)
+            (company-tabs (val company-id) filter 'details
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "company-window" :class "window"
+                                (:div :class "title" "Λεπτομέρειες")
+                                (actions company-form :filter filter)
+                                (display company-form)))
+                            (:div :class "grid_6 omega"
+                              (:div :company-id "contact-window" :class "window"
+                                (:div :class "title" "Δημιουργία")
+                                (actions contact-table)
+                                (with-form
+                                    (actions/contact/create :company-id (val company-id))
+                                  (display contact-table))))))
+            (footer)))))))
 
 (defpage contact-page actions/contact/create ("actions/contact/create" :request-type :post)
     ((search     string)
@@ -241,29 +241,29 @@
                                          :company-id (val company-id))))
       (with-document ()
         (:head
-         (:title "Επαφές » Επεξεργασία")
-         (main-headers))
+          (:title "Επαφές » Επεξεργασία")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'company)
-               (company-top-actions :details)
-               (company-tabs (val company-id) filter 'details
-                             (html ()
-                               (:div :class "grid_6 alpha"
-                                     (:div :id "company-window" :class "window"
-                                           (:div :class "title" "Λεπτομέρειες")
-                                           (actions company-form :filter filter)
-                                           (display company-form)))
-                               (:div :class "grid_6 omega"
-                                     (:div :id "contact-window" :class "window"
-                                           (:div :class "title" "Επεξεργασία")
-                                           (actions contact-table)
-                                           (with-form
-                                               (actions/contact/update :company-id (val company-id)
-                                                                       :contact-id (val contact-id))
-                                             (display contact-table))))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'company)
+            (company-top-actions :details)
+            (company-tabs (val company-id) filter 'details
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "company-window" :class "window"
+                                (:div :class "title" "Λεπτομέρειες")
+                                (actions company-form :filter filter)
+                                (display company-form)))
+                            (:div :class "grid_6 omega"
+                              (:div :id "contact-window" :class "window"
+                                (:div :class "title" "Επεξεργασία")
+                                (actions contact-table)
+                                (with-form
+                                    (actions/contact/update :company-id (val company-id)
+                                                            :contact-id (val contact-id))
+                                  (display contact-table))))))
+            (footer)))))))
 
 (defpage contact-page actions/contact/update ("actions/contact/update"
                                               :request-type :post)
@@ -306,29 +306,29 @@
                                          :company-id (val company-id))))
       (with-document ()
         (:head
-         (:title "Επαφές » Διαγραφή")
-         (main-headers))
+          (:title "Επαφές » Διαγραφή")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'company)
-               (company-top-actions :details)
-               (company-tabs (val company-id) filter 'details
-                             (html ()
-                               (:div :class "grid_6 alpha"
-                                     (:div :id "company-window" :class "window"
-                                           (:div :class "title" "Λεπτομέρειες")
-                                           (actions company-form :filter filter)
-                                           (display company-form)))
-                               (:div :class "grid_6 omega"
-                                     (:div :id "contact-window" :class "window"
-                                           (:div :class "title" "Διαγραφή")
-                                           (actions contact-table)
-                                           (with-form
-                                               (actions/contact/delete :company-id (val company-id)
-                                                                       :contact-id (val contact-id))
-                                             (display contact-table))))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'company)
+            (company-top-actions :details)
+            (company-tabs (val company-id) filter 'details
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "company-window" :class "window"
+                                (:div :class "title" "Λεπτομέρειες")
+                                (actions company-form :filter filter)
+                                (display company-form)))
+                            (:div :class "grid_6 omega"
+                              (:div :id "contact-window" :class "window"
+                                (:div :class "title" "Διαγραφή")
+                                (actions contact-table)
+                                (with-form
+                                    (actions/contact/delete :company-id (val company-id)
+                                                            :contact-id (val contact-id))
+                                  (display contact-table))))))
+            (footer)))))))
 
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
                                               :request-type :post)

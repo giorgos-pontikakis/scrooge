@@ -7,8 +7,8 @@
                     :project-id (id pdao)
                     :tx-id :null
                     :project-stran-id (id (select-dao-unique 'project-stran
-                                                             (:and (:is-null 'from-state)
-                                                                   (:= 'to-state "quoted"))))
+                                              (:and (:is-null 'from-state)
+                                                    (:= 'to-state "quoted"))))
                     :event-date (quote-date pdao))))
   (when (start-date pdao)
     (insert-dao
@@ -16,8 +16,8 @@
                     :project-id (id pdao)
                     :tx-id :null
                     :project-stran-id (id (select-dao-unique 'project-stran
-                                                             (:and (:= 'from-state "quoted")
-                                                                   (:= 'to-state "ongoing"))))
+                                              (:and (:= 'from-state "quoted")
+                                                    (:= 'to-state "ongoing"))))
                     :event-date (start-date pdao))))
   (when (end-date pdao)
     (insert-dao
@@ -25,8 +25,8 @@
                     :project-id (id pdao)
                     :tx-id :null
                     :project-stran-id (id (select-dao-unique 'project-stran
-                                                             (:and (:= 'from-state "ongoing")
-                                                                   (:= 'to-state "finished"))))
+                                              (:and (:= 'from-state "ongoing")
+                                                    (:= 'to-state "finished"))))
                     :event-date (end-date pdao))))
   (when (string-equal (state pdao) "archived")
     (insert-dao
@@ -34,8 +34,8 @@
                     :project-id (id pdao)
                     :tx-id :null
                     :project-stran-id (id (select-dao-unique 'project-stran
-                                                             (:and (:= 'from-state "finished")
-                                                                   (:= 'to-state "archived"))))
+                                              (:and (:= 'from-state "finished")
+                                                    (:= 'to-state "archived"))))
                     :event-date (end-date pdao)))))
 
 (defun make-all-project-events ()

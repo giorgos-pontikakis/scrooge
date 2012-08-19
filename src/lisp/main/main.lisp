@@ -8,23 +8,23 @@
 (defun main-navbar (&optional active)
   (with-html
     (:div :class "grid_12"
-          (:div :class "section-navbar"
-                (navbar `((home    ,(home)
-                                   "Αρχική")
-                          (company ,(company)
-                                   "Εταιρίες")
-                          (project ,(project :cstate "ongoing")
-                                   "Έργα")
-                          (cash    ,(cash "customer")
-                                   "Μετρητά")
-                          (cheque  ,(cheque "customer" :cstate "pending")
-                                   "Επιταγές")
-                          (invoice ,(invoice "customer" "debit")
-                                   "Χρεωπιστώσεις")
-                          (tx      ,(tx)
-                                   "Ημερολόγιο"))
-                        :css-class "hnavbar"
-                        :active active)))))
+      (:div :class "section-navbar"
+        (navbar `((home    ,(home)
+                           "Αρχική")
+                  (company ,(company)
+                           "Εταιρίες")
+                  (project ,(project :cstate "ongoing")
+                           "Έργα")
+                  (cash    ,(cash "customer")
+                           "Μετρητά")
+                  (cheque  ,(cheque "customer" :cstate "pending")
+                           "Επιταγές")
+                  (invoice ,(invoice "customer" "debit")
+                           "Χρεωπιστώσεις")
+                  (tx      ,(tx)
+                           "Ημερολόγιο"))
+                :css-class "hnavbar"
+                :active active)))))
 
 
 

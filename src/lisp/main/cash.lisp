@@ -76,7 +76,7 @@
 
 (defclass cash-tx-table (tx-table)
   ((role :accessor role
-              :initarg :role)
+         :initarg :role)
    (paginator     :initform (make-instance 'cash-paginator
                                            :css-class "paginator"))
    (header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" "")))

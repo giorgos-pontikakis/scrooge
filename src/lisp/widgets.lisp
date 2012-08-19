@@ -75,18 +75,18 @@
     (when (rows (table pg))
       (with-html
         (:div :class (css-class pg)
-              (fmt "Εγγραφές ~A–~A από ~A"
-                   (1+ start)
-                   (min (+ start delta) len)
-                   len)
-              (if prev
-                  (htm (:a :href (target-url pg prev)
-                           (img "resultset_previous.png")))
-                  (img "resultset_first.png"))
-              (if next
-                  (htm (:a :href (target-url pg next)
-                           (img "resultset_next.png")))
-                  (img "resultset_last.png")))))))
+          (fmt "Εγγραφές ~A–~A από ~A"
+               (1+ start)
+               (min (+ start delta) len)
+               len)
+          (if prev
+              (htm (:a :href (target-url pg prev)
+                     (img "resultset_previous.png")))
+              (img "resultset_first.png"))
+          (if next
+              (htm (:a :href (target-url pg next)
+                     (img "resultset_next.png")))
+              (img "resultset_last.png")))))))
 
 ;;; table mixins
 
@@ -168,9 +168,9 @@
 (defmethod display ((cancel-button cancel-button) &key)
   (with-html
     (:a :id (id cancel-button)
-        :class (css-class cancel-button)
-        :href (href cancel-button)
-        (display (body cancel-button)))))
+      :class (css-class cancel-button)
+      :href (href cancel-button)
+      (display (body cancel-button)))))
 
 (defun cancel-button (href &rest instance-initargs)
   (display (apply #'make-instance 'cancel-button
@@ -232,13 +232,13 @@
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
       (:a :id id
-          :href (if selected-p
-                    (apply url-fn :start start filter)
-                    (apply url-fn
-                           id-key
-                           id
-                           filter))
-          (selector-img selected-p)))))
+        :href (if selected-p
+                  (apply url-fn :start start filter)
+                  (apply url-fn
+                         id-key
+                         id
+                         filter))
+        (selector-img selected-p)))))
 
 (defun simple-controls (row enabled-p url-fn id-key)
   (let ((id (key row))

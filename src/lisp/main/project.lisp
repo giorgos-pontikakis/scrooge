@@ -74,13 +74,13 @@
         (if project-id
             (query
              (:select 1 :from 'project :where
-                      (:and (:= 'description description)
-                            (:= company-id 'company-id)
-                            (:not (:= 'id project-id))))
+               (:and (:= 'description description)
+                     (:= company-id 'company-id)
+                     (:not (:= 'id project-id))))
              :single)
             (query (:select 1 :from 'project
-                    :where (:and (:= 'description description)
-                                 (:= company-id 'company-id)))
+                     :where (:and (:= 'description description)
+                                  (:= company-id 'company-id)))
                    :single))))))
 
 (defun chk-project-id (project-id)
@@ -162,15 +162,15 @@
 (defun project-tabs (project-id content)
   (with-html
     (:div :class "grid_12"
-          (:div :id "project-area"
-                (when project-id
-                  (htm
-                   (:div :id "project-title"
-                         (:h2 :class "grid_8 alpha"
-                              (str (description (get-dao 'project project-id))))
-                         (clear))))
-                (display content)
-                (clear)))))
+      (:div :id "project-area"
+        (when project-id
+          (htm
+           (:div :id "project-title"
+             (:h2 :class "grid_8 alpha"
+               (str (description (get-dao 'project project-id))))
+             (clear))))
+        (display content)
+        (clear)))))
 
 
 
@@ -187,53 +187,53 @@
          (ldfn (label-datum disabled record styles)))
     (with-html
       (:div :class "data-form project-form"
-            (:div :class "data-form-title"
-                  (display ldfn 'description "Περιγραφή")
-                  (display ldfn 'company "Εταιρία"
-                           :enabled-styles "ac-company"
-                           :href (company/details :company-id (getf record :company-id))))
-            (:div :class "project-form-details"
-                  (:fieldset
-                   (:legend "Οικονομικά")
-                   (:ul
-                    (:li (label 'state-id "Κατάσταση")
-                         (dropdown 'state-id *project-state-ids*
-                                   :selected (or (getf record :state-id)
-                                                 *default-project-state-id*)
-                                   :disabled disabled))
-                    (:li (display ldfn 'price "Τιμή"))
-                    (:li (display ldfn 'vat "Φ.Π.Α.")))))
-            (:div :class "project-form-details"
-                  (:fieldset
-                   (:legend "Χρονοδιάγραμμα")
-                   (:ul
-                    (:li (display ldfn 'quote-date "Ημερομηνία προσφοράς"
-                                  :enabled-styles "datepicker"
-                                  :default-value (today)))
-                    (:li (display ldfn 'start-date "Ημερομηνία έναρξης"
-                                  :enabled-styles "datepicker"))
-                    (:li (display ldfn 'end-date "Ημερομηνία ολοκλήρωσης"
-                                  :enabled-styles "datepicker")))))
-            (clear)
-            (:div :id "project-notes"
-                  (label 'notes "Σημειώσεις")
-                  (:textarea :name 'notes :disabled disabled
-                             (str (lisp->html (or (getf record :notes) :null))))))
+        (:div :class "data-form-title"
+          (display ldfn 'description "Περιγραφή")
+          (display ldfn 'company "Εταιρία"
+                   :enabled-styles "ac-company"
+                   :href (company/details :company-id (getf record :company-id))))
+        (:div :class "project-form-details"
+          (:fieldset
+            (:legend "Οικονομικά")
+            (:ul
+              (:li (label 'state-id "Κατάσταση")
+                (dropdown 'state-id *project-state-ids*
+                          :selected (or (getf record :state-id)
+                                        *default-project-state-id*)
+                          :disabled disabled))
+              (:li (display ldfn 'price "Τιμή"))
+              (:li (display ldfn 'vat "Φ.Π.Α.")))))
+        (:div :class "project-form-details"
+          (:fieldset
+            (:legend "Χρονοδιάγραμμα")
+            (:ul
+              (:li (display ldfn 'quote-date "Ημερομηνία προσφοράς"
+                            :enabled-styles "datepicker"
+                            :default-value (today)))
+              (:li (display ldfn 'start-date "Ημερομηνία έναρξης"
+                            :enabled-styles "datepicker"))
+              (:li (display ldfn 'end-date "Ημερομηνία ολοκλήρωσης"
+                            :enabled-styles "datepicker")))))
+        (clear)
+        (:div :id "project-notes"
+          (label 'notes "Σημειώσεις")
+          (:textarea :name 'notes :disabled disabled
+            (str (lisp->html (or (getf record :notes) :null))))))
       (:div :class "data-form-buttons"
-            (unless disabled
-              (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-              (cancel-button (cancel-url form) :body "Άκυρο"))))))
+        (unless disabled
+          (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+          (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
 (defmethod get-record ((form project-form))
   (if (key form)
       (let ((project-id (key form)))
         (query (:select 'project.id (:as 'company.title 'company) 'company-id
-                        'description 'location 'state-id 'quote-date
-                        'start-date 'end-date 'price 'vat 'project.notes
-                :from 'project
-                :left-join 'company
-                :on (:= 'project.company-id 'company.id)
-                :where (:= 'project.id project-id))
+                 'description 'location 'state-id 'quote-date
+                 'start-date 'end-date 'price 'vat 'project.notes
+                 :from 'project
+                 :left-join 'company
+                 :on (:= 'project.company-id 'company.id)
+                 :where (:= 'project.id project-id))
                :plist))
       nil))
 
@@ -255,27 +255,27 @@
 (defclass project-table (scrooge-table)
   ((header-labels :accessor header-labels                                                                                :initarg :header-labels)
    (paginator     :initform (make-instance 'project-paginator
-                                            :id "project-paginator"
-                                            :css-class "paginator")))
+                                           :id "project-paginator"
+                                           :css-class "paginator")))
   (:default-initargs :item-class 'project-row :id "project-table"))
 
 (defmethod initialize-instance :after ((table project-table) &key)
   (if (getf (filter table) :cstate)
-   (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "" ""))
-   (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "Κατάσταση" "" ""))))
+      (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "" ""))
+      (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "Κατάσταση" "" ""))))
 
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
          (cstate (getf (filter table) :cstate))
          (base-query `(:select project.id project.description project.notes
-                               price
-                               (:as project-state.description project-state-description)
-                               (:as company.id company-id) (:as company.title company)
-                       :from project
-                       :left-join company
-                       :on (:= project.company-id company.id)
-                       :left-join project-state
-                       :on (:= project-state.id project.state-id)))
+                        price
+                        (:as project-state.description project-state-description)
+                        (:as company.id company-id) (:as company.title company)
+                        :from project
+                        :left-join company
+                        :on (:= project.company-id company.id)
+                        :left-join project-state
+                        :on (:= project-state.id project.state-id)))
          (where-terms nil))
     (when search
       (push `(:or (:ilike project.description ,(ilike search))
@@ -342,10 +342,10 @@
                    (:a :href (apply #'project/details
                                     :project-id (key row)
                                     (filter (collection row)))
-                       (str (lisp->html (getf record :description)))))
+                     (str (lisp->html (getf record :description)))))
                  (html ()
                    (:a :href (company/details :company-id (getf record :company-id))
-                       (str (getf record :company))))
+                     (str (getf record :company))))
                  (html ()
                    (str (lisp->html (fmt-amount (getf record :price) 0)))))))
       (unless (getf (filter (collection row)) :cstate)
@@ -406,20 +406,20 @@
                             :cstate (state-id (get-dao 'project (val project-id))))))
       (with-document ()
         (:head
-         (:title "Έργα » Κατάλογος")
-         (main-headers))
+          (:title "Έργα » Κατάλογος")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'project)
-               (project-top-actions :catalogue)
-               (filters project-table)
-               (:div :class "grid_12"
-                     (:div :id "project-window" :class "window"
-                           (:div :class "title" "Κατάλογος")
-                           (actions project-table)
-                           (display project-table)))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'project)
+            (project-top-actions :catalogue)
+            (filters project-table)
+            (:div :class "grid_12"
+              (:div :id "project-window" :class "window"
+                (:div :class "title" "Κατάλογος")
+                (actions project-table)
+                (display project-table)))
+            (footer)))))))
 
 (defpage project-page project/details ("project/details")
     ((project-id integer chk-project-id                   t)
@@ -437,26 +437,26 @@
                                       :project-id (val project-id))))
       (with-document ()
         (:head
-         (:title "Έργο » Λεπτομέρειες")
-         (main-headers))
+          (:title "Έργο » Λεπτομέρειες")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'project)
-               (project-top-actions :details)
-               (project-tabs (val project-id)
-                             (html ()
-                               (:div :class "grid_6 alpha"
-                                     (:div :id "project-window" :class "window"
-                                           (:p :class "title" "Λεπτομέρειες")
-                                           (actions project-form :filter filter)
-                                           (display project-form)))
-                               (:div :class "grid_6 omega"
-                                     (:div :id "bill-window" :class "window"
-                                           (:div :class "title" "Κοστολόγηση")
-                                           (actions bill-table)
-                                           (display bill-table)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'project)
+            (project-top-actions :details)
+            (project-tabs (val project-id)
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "project-window" :class "window"
+                                (:p :class "title" "Λεπτομέρειες")
+                                (actions project-form :filter filter)
+                                (display project-form)))
+                            (:div :class "grid_6 omega"
+                              (:div :id "bill-window" :class "window"
+                                (:div :class "title" "Κοστολόγηση")
+                                (actions bill-table)
+                                (display bill-table)))))
+            (footer)))))))
 
 
 
@@ -484,25 +484,25 @@
                                         :cancel-url (apply #'project filter))))
       (with-document ()
         (:head
-         (:title "Έργο » Δημιουργία")
-         (main-headers))
+          (:title "Έργο » Δημιουργία")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'project)
-               (project-top-actions :create)
-               (project-tabs nil
-                             (html ()
-                               (:div :class "grid_6 alpha"
-                                     (:div :id "project-window" :class "window"
-                                           (:div :class "title" "Νέο Έργο")
-                                           (actions project-form)
-                                           (notifications)
-                                           (with-form (actions/project/create :search (val search)
-                                                                              :cstate (val cstate))
-                                             (display project-form :payload (params->payload)
-                                                                   :styles (params->styles)))))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'project)
+            (project-top-actions :create)
+            (project-tabs nil
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "project-window" :class "window"
+                                (:div :class "title" "Νέο Έργο")
+                                (actions project-form)
+                                (notifications)
+                                (with-form (actions/project/create :search (val search)
+                                                                   :cstate (val cstate))
+                                  (display project-form :payload (params->payload)
+                                                        :styles (params->styles)))))))
+            (footer)))))))
 
 (defpage project-page actions/project/create ("actions/project/create"
                                               :request-type :post)
@@ -569,32 +569,32 @@
                                       :project-id (val project-id))))
       (with-document ()
         (:head
-         (:title "Έργο » Επεξεργασία")
-         (main-headers))
+          (:title "Έργο » Επεξεργασία")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'project)
-               (project-top-actions :update)
-               (project-tabs (val project-id)
-                             (html ()
-                               (:div :class "grid_6 alpha"
-                                     (:div :id "project-window" :class "window"
-                                           (:p :class "title" "Επεξεργασία")
-                                           (actions project-form :filter filter)
-                                           (notifications)
-                                           (with-form
-                                               (actions/project/update :project-id (val project-id)
-                                                                       :search (val search)
-                                                                       :cstate (val cstate))
-                                             (display project-form :payload (params->payload)
-                                                                   :styles (params->styles)))))
-                               (:div :class "grid_6 omega"
-                                     (:div :id "bill-window" :class "window"
-                                           (:div :class "title" "Κοστολόγηση")
-                                           (actions bill-table)
-                                           (display bill-table)))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'project)
+            (project-top-actions :update)
+            (project-tabs (val project-id)
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "project-window" :class "window"
+                                (:p :class "title" "Επεξεργασία")
+                                (actions project-form :filter filter)
+                                (notifications)
+                                (with-form
+                                    (actions/project/update :project-id (val project-id)
+                                                            :search (val search)
+                                                            :cstate (val cstate))
+                                  (display project-form :payload (params->payload)
+                                                        :styles (params->styles)))))
+                            (:div :class "grid_6 omega"
+                              (:div :id "bill-window" :class "window"
+                                (:div :class "title" "Κοστολόγηση")
+                                (actions bill-table)
+                                (display bill-table)))))
+            (footer)))))))
 
 (defpage project-page actions/project/update ("actions/project/update"
                                               :request-type :post)
@@ -646,23 +646,23 @@
                                          :filter filter)))
       (with-document ()
         (:head
-         (:title "Έργο » Διαγραφή")
-         (main-headers))
+          (:title "Έργο » Διαγραφή")
+          (main-headers))
         (:body
-         (:div :id "container" :class "container_12"
-               (header)
-               (main-navbar 'project)
-               (project-top-actions :delete)
-               (filters project-table)
-               (:div :class "grid_12"
-                     (:div :id "project-window" :class "window"
-                           (:div :class "title" "Έργο » Διαγραφή")
-                           (actions project-table)
-                           (with-form (actions/project/delete :project-id (val project-id)
-                                                              :search (val search)
-                                                              :cstate (val cstate))
-                             (display project-table))))
-               (footer)))))))
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'project)
+            (project-top-actions :delete)
+            (filters project-table)
+            (:div :class "grid_12"
+              (:div :id "project-window" :class "window"
+                (:div :class "title" "Έργο » Διαγραφή")
+                (actions project-table)
+                (with-form (actions/project/delete :project-id (val project-id)
+                                                   :search (val search)
+                                                   :cstate (val cstate))
+                  (display project-table))))
+            (footer)))))))
 
 (defpage project-page actions/project/delete ("actions/project/delete"
                                               :request-type :post)

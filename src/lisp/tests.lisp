@@ -51,7 +51,7 @@
                                  :on (:= 'tx.credit-acc-id 'credit-account.id)
                                  :where (:and (:= 'tx.company-id (getf company :id))
                                               (:in 'tx.credit-acc-id
-                                                        (:set *revenue-accounts*))))))
+                                                   (:set *revenue-accounts*))))))
                       conflicts)))))
 
 

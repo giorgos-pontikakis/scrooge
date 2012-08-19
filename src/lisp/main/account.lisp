@@ -22,12 +22,12 @@
 (defmethod get-records ((table account-tx-table))
   (let ((account-id (filter table)))
     (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)
-                    'debit-acc-id 'credit-acc-id 'amount
-                    :from 'tx
-                    :left-join 'company
-                    :on (:= 'company.id 'tx.company-id)
-                    :where (:or (:= account-id 'tx.debit-acc-id)
-                                (:= account-id 'tx.credit-acc-id)))
+             'debit-acc-id 'credit-acc-id 'amount
+             :from 'tx
+             :left-join 'company
+             :on (:= 'company.id 'tx.company-id)
+             :where (:or (:= account-id 'tx.debit-acc-id)
+                         (:= account-id 'tx.credit-acc-id)))
            :plists)))
 
 
@@ -85,29 +85,29 @@
   (with-view-page
     (with-document ()
       (:head
-       (:title "Λογαριασμοί » Σύνοψη")
-       (main-headers))
+        (:title "Λογαριασμοί » Σύνοψη")
+        (main-headers))
       (:body
-       (:div :id "container" :class "container_12"
-             (header)
-             (main-navbar 'account)
-             (iter
-               (for debit-p in (list t nil))
-               (for div-id in '("debit-accounts" "credit-accounts"))
-               (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-               (for account-tree = (make-instance 'account-ro-tree
-                                                  :op :catalogue
-                                                  :selected-key (val account-id)
-                                                  :debit-p debit-p))
-               (htm
-                (:div :class "grid_6"
-                      (:div :id div-id :class "window"
-                            (:div :class "title" (str window-title))
-                            (account-ro-menu (val id)
-                                             (if (and (val id) (eql flag (debit-p (val id))))
-                                                 '(:overview)
-                                                 '(:overview :details :print)))
-                            (display account-tree :selected-id (val id)))))))))))
+        (:div :id "container" :class "container_12"
+          (header)
+          (main-navbar 'account)
+          (iter
+            (for debit-p in (list t nil))
+            (for div-id in '("debit-accounts" "credit-accounts"))
+            (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+            (for account-tree = (make-instance 'account-ro-tree
+                                               :op :catalogue
+                                               :selected-key (val account-id)
+                                               :debit-p debit-p))
+            (htm
+             (:div :class "grid_6"
+               (:div :id div-id :class "window"
+                 (:div :class "title" (str window-title))
+                 (account-ro-menu (val id)
+                                  (if (and (val id) (eql flag (debit-p (val id))))
+                                      '(:overview)
+                                      '(:overview :details :print)))
+                 (display account-tree :selected-id (val id)))))))))))
 
 
 (defpage dynamic-page account/details ("account/details")

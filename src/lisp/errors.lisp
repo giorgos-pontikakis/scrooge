@@ -18,27 +18,27 @@
 (defun bad-request ()
   (with-html-output-to-string (s)
     (:head
-     (:title "Scrooge - Bad Request"))
+      (:title "Scrooge - Bad Request"))
     (:body
-     (:h1 "Bad Request")
-     (:div :id "content"
-           (:p "An bad request has been received.")
-           (:p "You are supposed to see this page because of illegal manipulation of request parameters.")))))
+      (:h1 "Bad Request")
+      (:div :id "content"
+        (:p "An bad request has been received.")
+        (:p "You are supposed to see this page because of illegal manipulation of request parameters.")))))
 
 (defun internal-server-error ()
   (with-html-output-to-string (s)
     (:head
-     (:title "Scrooge - Internal server error"))
+      (:title "Scrooge - Internal server error"))
     (:body
-     (:h1 "Internal Server Error")
-     (:div :id "content"
-           (:p "An internal server error has occured.")))))
+      (:h1 "Internal Server Error")
+      (:div :id "content"
+        (:p "An internal server error has occured.")))))
 
 (defun not-found ()
   (with-html-output-to-string (s)
     (:head
-     (:title "Not found"))
+      (:title "Not found"))
     (:body
-     (:h1 "Scrooge - Page Not Found")
-     (:div :id "content"
-           (:p "The page you are trying to access does not exist.")))))
+      (:h1 "Scrooge - Page Not Found")
+      (:div :id "content"
+        (:p "The page you are trying to access does not exist.")))))

@@ -91,46 +91,46 @@
 (defun logo ()
   (with-html
     (:div :id "logo"
-          :class "grid_2"
-          (:p "(scrooge)"))))
+      :class "grid_2"
+      (:p "(scrooge)"))))
 
 (defun header (&optional config-p)
   (with-html
     (:div :id "header"
-          (logo)
-          (logout-menu config-p)
-          (:div :class "clear" ""))))
+      (logo)
+      (logout-menu config-p)
+      (:div :class "clear" ""))))
 
 (defun footer ()
   (with-html
     (:div :id "footer" :class "grid_12"
-          (:p "Powered by lisp"))
+      (:p "Powered by lisp"))
     (:div :class "clear" "")))
 
 (defun print-pages-footer ()
   (with-html
     (:div :id "footer" :class "grid_12"
-          (:p (str (format-timestring t (now)
-                                      :format '(:day "/" :month "/" :year
-                                                ", "
-                                                (:hour 2) ":" :min)
-                                      :timezone +greek-zone+))))
+      (:p (str (format-timestring t (now)
+                                  :format '(:day "/" :month "/" :year
+                                            ", "
+                                            (:hour 2) ":" :min)
+                                  :timezone +greek-zone+))))
     (:div :class "clear" "")))
 
 (defun logout-menu (config-p)
   (with-html
     (:div :id "logout"
-          (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
-                    (:a :class (if config-p "active" "")
-                        :href (if config-p (home) (config/city)) "Ρυθμίσεις"))
-               (:li (:a :href (logout) "Έξοδος"))))))
+      (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
+             (:a :class (if config-p "active" "")
+               :href (if config-p (home) (config/city)) "Ρυθμίσεις"))
+        (:li (:a :href (logout) "Έξοδος"))))))
 
 (defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)
     (with-html
       (:div :class "notifications"
-            (messenger (messages page) parameters
-                       :css-class "msg-error")))))
+        (messenger (messages page) parameters
+                   :css-class "msg-error")))))
 
 
 
@@ -141,21 +141,21 @@
 (defun filter-area (&rest widgets)
   (with-html
     (:div :class "grid_12"
-          (:div :class "filter-area"
-                (display widgets)))))
+      (:div :class "filter-area"
+        (display widgets)))))
 
 (defun secondary-filter-area (&rest widgets)
   (with-html
     (:div :class "secondary-filter-area"
-          (display widgets))))
+      (display widgets))))
 
 (defun top-actions-area (actions search)
   (with-html ()
     (:div :class "grid_12 top-actions"
-          (:div :class "grid_8 alpha"
-                (display actions))
-          (:div :class "grid_4 omega"
-                (display search)))))
+      (:div :class "grid_8 alpha"
+        (display actions))
+      (:div :class "grid_4 omega"
+        (display search)))))
 
 
 ;;; actions menu
@@ -170,15 +170,15 @@
 (defmethod make-spec-line ((action symbol) (link string))
   (html ()
     (:a :href link
-        :class (string-downcase action)
-        (str (assoc-value *action-labels* action)))))
+      :class (string-downcase action)
+      (str (assoc-value *action-labels* action)))))
 
 (defmethod make-spec-line ((action symbol) (link list))
   (destructuring-bind (href label &optional css-class) link
     (html ()
       (:a :href href
-          :class (or css-class (string-downcase action))
-          (str label)))))
+        :class (or css-class (string-downcase action))
+        (str label)))))
 
 (defmethod make-spec-line ((action symbol) (link function))
   (declare (ignore action))
@@ -201,10 +201,10 @@
 (defun filter-navbar (spec &key active id)
   (html ()
     (:div :id id :class "filter-navbar"
-          (navbar spec
-                  :css-class "hnavbar"
-                  :active active
-                  :test #'string-equal))))
+      (navbar spec
+              :css-class "hnavbar"
+              :active active
+              :test #'string-equal))))
 
 (defun searchbox (submit-fn cancel-fn filter &optional css-class)
   (let ((hidden (remove-from-plist filter :search))
@@ -213,37 +213,37 @@
                    :action (funcall submit-fn)
                    :body (html ()
                            (:div :id "searchbox" :class "inline-form"
-                                 (:p :class "search"
-                                     "Αναζήτηση: "
-                                     (input-text 'search :id "search-input"
-                                                         :value term
-                                                         :css-class css-class)
-                                     (:button :type "submit"
-                                              (img "magnifier.png"))
-                                     (:a :class "cancel"
-                                         :href (apply cancel-fn hidden)
-                                         (img "cross.png")))))
+                             (:p :class "search"
+                               "Αναζήτηση: "
+                               (input-text 'search :id "search-input"
+                                                   :value term
+                                                   :css-class css-class)
+                               (:button :type "submit"
+                                 (img "magnifier.png"))
+                               (:a :class "cancel"
+                                 :href (apply cancel-fn hidden)
+                                 (img "cross.png")))))
                    :hidden hidden)))
 
 (defun datebox (submit-fn filter)
   (let ((hidden (remove-from-plist filter :since :until)))
     (html ()
       (:div :id "datebox" :class "inline-form filter-navbar"
-            (form (funcall submit-fn)
-                  (html ()
-                    (:p
-                     (label 'since "Από: ")
-                     (input-text 'since :value (getf filter :since)
-                                        :css-class "datepicker")
-                     (label 'since "Εώς: " :id "since")
-                     (input-text 'until :value (getf filter :until)
-                                        :css-class "datepicker")
-                     (:button :type "submit"
-                              (img "tick.png"))
-                     (:a :class "cancel"
-                         :href (apply submit-fn hidden)
-                         (img "cross.png"))))
-                  :hidden hidden)))))
+        (form (funcall submit-fn)
+              (html ()
+                (:p
+                  (label 'since "Από: ")
+                  (input-text 'since :value (getf filter :since)
+                                     :css-class "datepicker")
+                  (label 'since "Εώς: " :id "since")
+                  (input-text 'until :value (getf filter :until)
+                                     :css-class "datepicker")
+                  (:button :type "submit"
+                    (img "tick.png"))
+                  (:a :class "cancel"
+                    :href (apply submit-fn hidden)
+                    (img "cross.png"))))
+              :hidden hidden)))))
 
 
 ;;; label-input-text for forms

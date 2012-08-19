@@ -18,15 +18,15 @@
                                 (:print     . "Εκτύπωση")))
 
 (defparameter *project-state-ids* (lists->alist
-                                (with-db ()
-                                  (query (:select 'id 'description
-                                                  :from 'project-state)))))
+                                   (with-db ()
+                                     (query (:select 'id 'description
+                                              :from 'project-state)))))
 
 (defparameter *cheque-states*
   (lists->alist
    (with-db ()
      (query (:select 'id 'description
-                     :from 'cheque-state)))))
+              :from 'cheque-state)))))
 
 (defparameter *default-project-state-id* "quoted")
 (defparameter *default-cheque-state* "pending")
