@@ -48,3 +48,20 @@
             (write-json (coerce results 'vector)))
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
             "[]")))))
+
+(defpage root-page autocomplete-temtx
+    ("autocomplete-temtx" :content-type "text/plain"
+                          :parameter-groups '(:system (customer-p term)))
+    ((customer-p boolean nil t)
+     (term       string  nil t))
+  (with-xhr-page (autocomplete-xhr-auth-error)
+    (let ((results (query (:select 'title
+                            :from 'temtx
+                            :where (:and (:= 'customer-p (val customer-p))
+                                         (:ilike 'title (ilike (val term)))))
+                          :column)))
+      (if results
+          (with-html-output (*standard-output* nil :indent nil :prologue nil)
+            (write-json (coerce results 'vector)))
+          (with-html-output (*standard-output* nil :indent nil :prologue nil)
+            "[]")))))

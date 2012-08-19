@@ -28,7 +28,7 @@ function applyAutocomplete () {
                           ["project", "project", "description"],
                           "tof", "city", "bank", "account", "temtx",
                           "chq-account", "non-chq-account"];
-   for ( var i = 0; i < autocompleteIDs.length; i++) {
+   for (var i = 0; i < autocompleteIDs.length; i++) {
       if ((typeof autocompleteIDs[i]) === "string") {
          table = autocompleteIDs[i];
          col = "title";
@@ -45,12 +45,14 @@ function applyAutocomplete () {
 
    var autocompleteAccountIDs = [["revenues", "revenues-root-account"],
                                  ["expenses", "expenses-root-account"]];
-   for ( var i = 0; i < autocompleteAccountIDs.length; i++) {
+   for (var i = 0; i < autocompleteAccountIDs.length; i++) {
       id = autocompleteAccountIDs[i][0];
       root = autocompleteAccountIDs[i][1];
       options.source = "/scrooge/autocomplete-accounts?root=" + root;
       $(".ac-" + id).autocomplete(options);
    }
+   var isCustomer = (window.location.pathname.match(/customer/i) !== null);
+   $(".ac-temtx").autocomplete({source: "/scrooge/autocomplete-temtx?customer-p=" + isCustomer});
 
 }
 

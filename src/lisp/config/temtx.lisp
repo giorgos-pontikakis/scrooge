@@ -50,20 +50,37 @@
 ;;; ----------------------------------------------------------------------
 
 (define-existence-predicate temtx-exists-p temtx id)
-(define-existence-predicate* temtx-title-exists-p temtx title id)
+
+(defun temtx-title-exists-p (title customer-p &optional id)
+  (with-db ()
+    (if id
+        (query
+         (:select 1 :from 'temtx :where (:and (:= 'customer-p customer-p)
+                                              (:= 'title title)
+                                              (:not (:= 'id id))))
+         :single)
+        (query (:select 1 :from 'temtx :where (:and (:= 'title title)
+                                                    (:= 'customer-p customer-p)))
+               :single))))
 
 (defun chk-temtx-id (temtx-id)
   (if (temtx-exists-p temtx-id)
       nil
       :temtx-id-unknown))
 
-(defun chk-temtx-title (title)
-  (cond ((eql title :null)
-         :temtx-title-null)
-        ((temtx-title-exists-p title)
+(defun chk-temtx-title (title customer-p)
+  (cond ((temtx-title-exists-p title customer-p)
          nil)
+        ((eql title :null)
+         :temtx-title-null)
         (t
          :temtx-title-unknown)))
+
+(defun chk-temtx-title/create-update (title customer-p &optional temtx-id)
+  (cond ((eql title :null)
+         :temtx-title-null)
+        ((temtx-title-exists-p title customer-p temtx-id)
+         :temtx-title-exists)))
 
 
 
@@ -197,12 +214,12 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/create ("config/temtx/create")
-    ((title          string)
-     (debit-account  string  chk-account-title)
+    ((debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
      (sign           integer chk-sign)
-     (propagated-p   boolean))
+     (propagated-p   boolean)
+     (title          string  (chk-temtx-title/create-update title customer-p)))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :op :create)))
@@ -224,12 +241,12 @@
                              (display temtx-table :payload (params->payload)))))))))))
 
 (defpage temtx-page actions/config/temtx/create ("actions/config/temtx/create" :request-type :post)
-    ((title          string)
-     (debit-account  string  chk-account-title)
-     (credit-account string  chk-account-title)
+    ((debit-account  string   chk-account-title)
+     (credit-account string   chk-account-title)
      (customer-p     boolean)
-     (sign           integer chk-sign)
-     (propagated-p   boolean))
+     (sign           integer  chk-sign)
+     (propagated-p   boolean)
+     (title          string  (chk-temtx-title/create-update title customer-p)))
   (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
@@ -251,12 +268,12 @@
 
 (defpage temtx-page config/temtx/update ("config/temtx/update")
     ((temtx-id       integer chk-temtx-id      t)
-     (title          string)
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
      (sign           integer chk-sign)
-     (propagated-p   boolean))
+     (propagated-p   boolean)
+     (title          string  (chk-temtx-title/create-update title customer-p temtx-id)))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :selected-key (val temtx-id)
@@ -281,12 +298,12 @@
 
 (defpage temtx-page actions/config/temtx/update ("actions/config/temtx/update" :request-type :post)
     ((temtx-id       integer chk-temtx-id      t)
-     (title          string)
      (debit-account  string  chk-account-title)
      (credit-account string  chk-account-title)
      (customer-p     boolean)
      (sign           integer chk-sign)
-     (propagated-p   boolean))
+     (propagated-p   boolean)
+     (title          string  (chk-temtx-title/create-update title customer-p temtx-id)))
   (with-controller-page (config/temtx/update)
     (let ((debit-acc-id (account-id (val debit-account)))
           (credit-acc-id (account-id (val credit-account))))
