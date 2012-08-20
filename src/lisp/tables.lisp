@@ -161,7 +161,6 @@
   ((id          :col-type integer       :reader   project-id)
    (company-id  :col-type integer       :accessor company-id  :initarg :company-id)
    (description :col-type string        :accessor description :initarg :description)
-   (location    :col-type string        :accessor location    :initarg :location)
    (price       :col-type (numeric 9 2) :accessor price       :initarg :price)
    (quote-date  :col-type timestamp     :accessor quote-date  :initarg :quote-date)
    (start-date  :col-type timestamp     :accessor start-date  :initarg :start-date)

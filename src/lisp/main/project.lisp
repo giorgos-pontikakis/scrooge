@@ -9,7 +9,7 @@
 (defclass project-family (family-mixin)
   ()
   (:default-initargs :parameter-groups '(:system (project-id bill-id)
-                                         :payload (company description location price vat
+                                         :payload (company description price vat
                                                    state-id quote-date start-date end-date notes)
                                          :filter (search cstate))))
 
@@ -228,7 +228,7 @@
   (if (key form)
       (let ((project-id (key form)))
         (query (:select 'project.id (:as 'company.title 'company) 'company-id
-                 'description 'location 'state-id 'quote-date
+                 'description 'state-id 'quote-date
                  'start-date 'end-date 'price 'vat 'project.notes
                  :from 'project
                  :left-join 'company
@@ -467,7 +467,6 @@
 (defpage project-page project/create ("project/create")
     ((company     string chk-company-title)
      (description string (chk-project-description/create description company))
-     (location    string)
      (price       float  (chk-price price state-id))
      (vat         float  chk-amount*)
      (state-id    string)
@@ -508,7 +507,6 @@
                                               :request-type :post)
     ((company     string chk-company-title)
      (description string (chk-project-description/create description company))
-     (location    string)
      (price       float  (chk-price price state-id))
      (vat         float  chk-amount*)
      (state-id    string)
@@ -523,7 +521,6 @@
            (new-project (make-instance 'project
                                        :company-id company-id
                                        :description (val description)
-                                       :location (val location)
                                        :price (val price)
                                        :vat (val vat)
                                        :quote-date (val quote-date)
@@ -546,7 +543,6 @@
      (bill-id     integer (chk-bill-id project-id bill-id))
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company project-id))
-     (location    string)
      (price       float   (chk-price price state-id))
      (vat         float   chk-amount*)
      (state-id    string)
@@ -601,7 +597,6 @@
     ((project-id  integer chk-project-id)
      (company     string  chk-company-title)
      (description string  (chk-project-description/update description company project-id))
-     (location    string)
      (price       float   (chk-price price state-id))
      (vat         float   chk-amount*)
      (state-id    string)
@@ -616,7 +611,6 @@
       (execute (:update 'project :set
                         'company-id company-id
                         'description (val description)
-                        'location (val location)
                         'price (val price)
                         'vat (val vat)
                         'quote-date (val quote-date)
