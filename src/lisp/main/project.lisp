@@ -66,6 +66,9 @@
 (define-existence-predicate project-id-exists-p project id)
 (define-existence-predicate bill-id-exists-p bill id)
 
+(defun project-referenced-p (project-id)
+  (referenced-by project-id 'bill 'project-id))
+
 (defun project-description-exists-p (description company &optional project-id)
   ;; Don't even bother to check without a valid company title
   (unless (chk-company-title company)
@@ -84,9 +87,14 @@
                    :single))))))
 
 (defun chk-project-id (project-id)
-  (if (project-id-exists-p project-id)
-      nil
-      :project-id-unknown))
+  (cond ((eql :null project-id)
+         :project-id-null)
+        ((not (project-id-exists-p project-id))
+         :project-id-unknown)))
+
+(defun chk-project-id/ref (project-id)
+  (cond ((chk-project-id project-id))
+        ((project-referenced-p project-id) :project-referenced)))
 
 (defun chk-project-description/create (description company)
   (cond ((eql :null description) :project-description-null)
@@ -239,8 +247,12 @@
 
 (defmethod actions ((form project-form) &key filter)
   (let* ((project-id (key form))
-         (spec (list :update (apply #'project/update :project-id project-id filter)
-                     :delete (apply #'project/delete :project-id project-id filter))))
+         (spec (if project-id
+                   (list :update (apply #'project/update :project-id project-id filter)
+                         :delete (if (project-referenced-p project-id)
+                                     (apply #'project/delete :project-id project-id filter)
+                                     nil))
+                   nil)))
     (actions-menu (make-menu-spec spec)
                   (disabled-actions form))))
 
@@ -629,7 +641,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/delete ("project/delete")
-    ((project-id integer chk-project-id       t)
+    ((project-id integer chk-project-id/ref    t)
      (search     string)
      (cstate     string  chk-project-state-id))
   (with-view-page
@@ -660,7 +672,7 @@
 
 (defpage project-page actions/project/delete ("actions/project/delete"
                                               :request-type :post)
-    ((project-id integer chk-project-id)
+    ((project-id integer chk-project-id/ref t)
      (search     string)
      (cstate     string  chk-project-state-id))
   (with-controller-page (project/delete)

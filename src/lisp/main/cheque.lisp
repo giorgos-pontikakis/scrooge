@@ -135,7 +135,7 @@
          (ldfn (label-datum disabled record styles))
          (events (get-cheque-events (getf record :id)))
          (following (following-cheque-states (getf record :state-id)
-                                             (getf record :receivable-p)))
+                                             (getf record :customer-p)))
          (tstamp-format '((:day 2) #\- (:month 2) #\- (:year 4) " --- " (:hour 2) ":" (:min 2))))
     (let ((*default-timezone* +greek-zone+))
       (with-html
@@ -169,20 +169,20 @@
                                                        (acons "nil" "" following))))))
           (clear))))))
 
-(defun following-cheque-states (from-state-id receivable-p)
+(defun following-cheque-states (from-state-id customer-p)
   (lists->alist
    (query (:select 'cheque-stran.to-state-id 'cheque-state.description
             :from 'cheque-stran
             :inner-join 'cheque-state
             :on (:= 'cheque-stran.to-state-id 'cheque-state.id)
             :where (:and (:= 'from-state-id from-state-id)
-                         (:= 'receivable-p receivable-p))))))
+                         (:= 'customer-p customer-p))))))
 
 (defmethod get-record ((form cheque-form))
   (if-let (cheque-id (key form))
     (query (:select 'cheque.id (:as 'bank.title 'bank)
              'due-date (:as 'company.title 'company)
-             'amount 'receivable-p 'state-id 'serial 'company-id
+             'amount 'customer-p 'state-id 'serial 'company-id
              :from 'cheque
              :left-join 'bank
              :on (:= 'bank.id 'cheque.bank-id)
@@ -218,10 +218,10 @@
          (since (getf (filter table) :since))
          (until (getf (filter table) :until))
          (cstate (getf (filter table) :cstate))
-         (receivable-p (customer-p (role table)))
+         (customer-p (customer-p (role table)))
          (base-query `(:select cheque.id (:as bank.title bank) serial state-id
                         (:as company.title company) company-id
-                        due-date amount receivable-p
+                        due-date amount customer-p
                         :from cheque
                         :left-join bank
                         :on (:= bank.id cheque.bank-id)
@@ -244,7 +244,7 @@
     (when company-id
       (push `(:= company.id ,company-id) where))
     (when (role table)
-      (push `(:= cheque.receivable-p ,receivable-p) where))
+      (push `(:= cheque.customer-p ,customer-p) where))
     (let ((sql `(:order-by (,@base-query :where
                                          (:and
                                           ,@where))
@@ -433,7 +433,7 @@
       (when (and (val cheque-id)
                  (not (find (val cheque-id) (rows cheque-table) :key #'key)))
         (let ((dao (get-dao 'cheque (val cheque-id))))
-          (see-other (cheque (if (receivable-p dao) "customer" "supplier")
+          (see-other (cheque (if (customer-p dao) "customer" "supplier")
                              :cheque-id (val cheque-id)
                              :cstate (state-id dao)))))
       (with-document ()
@@ -554,7 +554,7 @@
                                      :company-id (company-id (val company))
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :receivable-p (customer-p role)
+                                     :customer-p (customer-p role)
                                      :state-id *default-cheque-state*)))
       (insert-dao new-cheque)
       (see-other (apply #'cheque role :cheque-id (cheque-id new-cheque) (params->filter))))))
@@ -633,7 +633,7 @@
            (old-state-id (state-id cheque-dao))
            (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
                                  (null (val state-id)))         ; no following states
-                             old-state-id                       ;; unchanged
+                             old-state-id                       ; unchanged
                              (val state-id))))
       (setf (bank-id cheque-dao) (bank-id (val bank))
             (company-id cheque-dao) (company-id (val company))

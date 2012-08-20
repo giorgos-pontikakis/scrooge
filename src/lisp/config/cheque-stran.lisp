@@ -93,7 +93,7 @@
         (query (:select 1 :from 'cheque-stran
                 :where (:and (:= 'from-state-id from-state-id)
                              (:= 'to-state-id to-state-id)
-                             (:= 'receivable-p (customer-p role))))
+                             (:= 'customer-p (customer-p role))))
                :plists))))
 
 (defun cheque-stran-from/to/payable-exists-p/update (from-state-id to-state-id role cheque-stran-id)
@@ -103,7 +103,7 @@
         (query (:select 1 :from 'cheque-stran
                 :where (:and (:= 'from-state-id from-state-id)
                              (:= 'to-state-id to-state-id)
-                             (:= 'receivable-p (customer-p role))
+                             (:= 'customer-p (customer-p role))
                              (:not (:= 'id cheque-stran-id))))
                :plists))))
 
@@ -163,7 +163,7 @@
                              :from 'cheque-stran
                              :inner-join 'temtx
                              :on (:= 'temtx-id 'temtx.id)
-                             :where (:= 'receivable-p (customer-p (role table))))
+                             :where (:= 'customer-p (customer-p (role table))))
                     'cheque-stran.title)
          :plists))
 
@@ -311,7 +311,7 @@
     (let* ((temtx-id (temtx-id (val temtx)))
            (new-cheque-stran (make-instance 'cheque-stran
                                             :title (val title)
-                                            :receivable-p (customer-p role)
+                                            :customer-p (customer-p role)
                                             :from-state-id (val from-state-id)
                                             :to-state-id (val to-state-id)
                                             :temtx-id temtx-id)))

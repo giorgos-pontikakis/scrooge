@@ -34,6 +34,17 @@ excluded for the search - useful for updates."
                     :where (:= ',field ,field))
                   :single)))))
 
+(defun referenced-by-sql (account-id table columns)
+  `(:select 1 :from ,table :where
+    (:or ,@(mapcar (lambda (col)
+                     (list ':= account-id col))
+                   columns))))
+
+(defun referenced-by (id table &rest columns)
+  (with-db ()
+    (query (sql-compile (referenced-by-sql id table columns))
+           :single)))
+
 (defun children-records (records id &key (parent-key :parent-id))
   "From a set of records (plists), find the direct children of the record with
 the given id."

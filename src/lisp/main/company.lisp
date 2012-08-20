@@ -67,31 +67,25 @@
 ;;; ----------------------------------------------------------------------
 
 (defun company-referenced-p (company-id)
-  (with-db ()
-    (or (query (:select 1 :from 'project
-                 :where (:= 'company-id company-id)))
-        (query (:select 1 :from 'cheque
-                 :where (:= 'company-id company-id)))
-        (query (:select 1 :from 'tx
-                 :where (:= 'company-id company-id))))))
+  (or (referenced-by company-id 'project 'company-id)
+      (referenced-by company-id 'cheque 'company-id)
+      (referenced-by company-id 'tx 'company-id)
+      (referenced-by company-id 'contact 'company-id)))
 
 (define-existence-predicate company-id-exists-p company id)
 (define-existence-predicate contact-id-exists-p contact id)
 (define-existence-predicate* company-title-exists-p company title id)
 (define-existence-predicate* tin-exists-p company tin id)
 
-
 (defun chk-company-id (company-id)
-  (if (company-id-exists-p company-id)
-      nil
-      :company-id-unknown))
+  (cond ((eql :null company-id)
+         :company-id-null)
+        ((not (company-id-exists-p company-id))
+         :acc-id-unknown)))
 
 (defun chk-company-id/ref (company-id)
-  (if (and (not (null company-id))
-           (not (chk-company-id company-id))
-           (not (company-referenced-p company-id)))
-      nil
-      :company-referenced))
+  (cond ((chk-company-id company-id))
+        ((company-referenced-p company-id) :company-referenced)))
 
 (defun chk-company-title/create (title)
   (cond ((eql :null title) :company-title-null)
@@ -275,7 +269,7 @@
   (let* ((company-id (key form))
          (spec (if company-id
                    `(:update ,(apply #'company/update :company-id company-id filter)
-                     :delete ,(if (chk-company-id/ref company-id)
+                     :delete ,(if (company-referenced-p company-id)
                                   nil
                                   (apply #'company/delete :company-id company-id filter))
                      :create-project (,(project/create
@@ -355,7 +349,7 @@
          (filter (filter tbl))
          (hrefs (if company-id
                     `(:details ,(apply #'company/details :company-id company-id filter)
-                       :delete ,(if (chk-company-id/ref company-id)
+                       :delete ,(if (company-referenced-p company-id)
                                     nil
                                     (apply #'company/delete :company-id company-id filter))
                        :create-project (,(project/create
@@ -749,7 +743,7 @@
 
 (defpage company-page actions/company/delete ("actions/company/delete"
                                               :request-type :post)
-    ((company-id integer chk-company-id)
+    ((company-id integer chk-company-id/ref t)
      (search     string)
      (subset     string  chk-subset))
   (with-controller-page (company/delete)

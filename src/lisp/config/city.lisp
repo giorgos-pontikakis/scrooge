@@ -37,12 +37,7 @@
 ;;; ------------------------------------------------------------
 
 (defun city-referenced-p (city-id)
-  (with-db ()
-    (and city-id
-         (query (:select 'id
-                  :from 'company
-                  :where (:= 'city-id city-id))
-                :column))))
+  (referenced-by city-id 'company 'city-id))
 
 (define-existence-predicate city-id-exists-p city id)
 (define-existence-predicate* city-title-exists-p city title id)
@@ -94,7 +89,7 @@
          (filter (filter tbl))
          (hrefs (if city-id
                     (list :update (apply #'config/city/update :city-id city-id filter)
-                          :delete (if (chk-city-id/ref city-id)
+                          :delete (if (city-referenced-p city-id)
                                       nil
                                       (apply #'config/city/delete :city-id city-id filter)))
                     nil)))

@@ -92,7 +92,7 @@
   (let* ((company-id (company-id tbl))
          (filter (filter tbl))
          (tx-id (selected-key tbl))
-         (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
+         (hrefs (if (and tx-id (not (tx-referenced-p tx-id)))
                     (list :update (apply #'company/tx/update :company-id company-id
                                                              :tx-id tx-id
                                                              filter))

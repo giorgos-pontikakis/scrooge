@@ -69,12 +69,8 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun auto-tx-p (tx-id)
-  (if tx-id
-      (query (:select 'tx-id
-               :from 'cheque-event
-               :where (:= 'tx-id tx-id)))
-      nil))
+(defun tx-referenced-p (tx-id)
+  (referenced-by tx-id 'cheque-event 'tx-id))
 
 (defun tx-top-actions (op)
   (top-actions-area
@@ -171,7 +167,7 @@
 (defmethod actions ((tbl tx-table) &key)
   (let* ((tx-id (selected-key tbl))
          (filter (filter tbl))
-         (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
+         (hrefs (if (and tx-id (not (tx-referenced-p tx-id)))
                     (list :update (apply #'tx/update :tx-id tx-id filter)
                           :delete (apply #'tx/delete :tx-id tx-id filter))
                     nil)))
@@ -356,7 +352,7 @@
      (non-chq-credit-acc string  chk-non-chq-acc-title))
   ;; post validation - prevent update if automatically created
   (with-db ()
-    (validate-parameters #'auto-tx-p tx-id))
+    (validate-parameters #'tx-referenced-p tx-id))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -424,7 +420,7 @@
      (search string))
   ;; post validation - prevent delete if automatically created
   (with-db ()
-    (validate-parameters #'auto-tx-p tx-id))
+    (validate-parameters #'tx-referenced-p tx-id))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
