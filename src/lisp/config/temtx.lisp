@@ -51,6 +51,10 @@
 
 (define-existence-predicate temtx-exists-p temtx id)
 
+(defun temtx-referenced-p (temtx-id)
+  (or (referenced-by temtx-id 'cheque-stran 'temtx-id)
+      (referenced-by temtx-id 'tx 'temtx-id)))
+
 (defun temtx-title-exists-p (title customer-p &optional id)
   (with-db ()
     (if id
@@ -67,6 +71,10 @@
   (if (temtx-exists-p temtx-id)
       nil
       :temtx-id-unknown))
+
+(defun chk-temtx-id/ref (temtx-id)
+  (cond ((chk-temtx-id temtx-id)
+         (temtx-referenced-p temtx-id :temtx-referenced))))
 
 (defun chk-temtx-title (title customer-p)
   (cond ((temtx-title-exists-p title customer-p)
@@ -114,7 +122,9 @@
   (let* ((temtx-id (selected-key tbl))
          (hrefs (if temtx-id
                     (list :update (config/temtx/update :temtx-id temtx-id)
-                          :delete (config/temtx/delete :temtx-id temtx-id))
+                          :delete (if (temtx-referenced-p temtx-id)
+                                      nil
+                                      (config/temtx/delete :temtx-id temtx-id)))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
@@ -324,7 +334,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/delete ("config/temtx/delete")
-    ((temtx-id integer chk-temtx-id t))
+    ((temtx-id integer chk-temtx-id/ref t))
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :selected-key (val temtx-id)
@@ -347,7 +357,7 @@
             (footer)))))))
 
 (defpage temtx-page actions/config/temtx/delete ("actions/config/temtx/delete" :request-type :post)
-    ((temtx-id integer chk-temtx-id t))
+    ((temtx-id integer chk-temtx-id/ref t))
   (with-controller-page (config/temtx/delete)
     (delete-dao (get-dao 'temtx (val temtx-id)))
     (see-other (config/temtx))))
