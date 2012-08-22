@@ -303,7 +303,8 @@
    (debit-acc-id  :col-type integer       :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type integer       :accessor credit-acc-id :initarg :credit-acc-id)
    (company-id    :col-type integer       :accessor company-id    :initarg :company-id)
-   (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount))
+   (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount)
+   (temtx-id      :col-type integer       :reader   temtx-id))
   (:metaclass dao-class)
   (:keys id))
 

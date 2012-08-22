@@ -58,19 +58,22 @@
 (define-existence-predicate tx-id-exists-p tx id)
 (define-existence-predicate* tx-description-exists-p tx description id)
 
+(defun tx-referenced-p (tx-id)
+  (referenced-by tx-id 'cheque-event 'tx-id))
+
 (defun chk-tx-id (tx-id)
   (if (tx-id-exists-p tx-id)
       nil
       :tx-id-unknown))
 
+(defun chk-tx-id/ref (tx-id)
+  (cond ((chk-tx-id tx-id))
+        ((tx-referenced-p tx-id) :tx-referenced)))
 
 
 ;;; ----------------------------------------------------------------------
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
-
-(defun tx-referenced-p (tx-id)
-  (referenced-by tx-id 'cheque-event 'tx-id))
 
 (defun tx-top-actions (op)
   (top-actions-area
@@ -414,7 +417,7 @@
 ;;; -----------------------------------------------------------------------
 
 (defpage tx-page tx/delete ("tx/delete")
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (since  date)
      (until  date)
      (search string))
@@ -450,7 +453,7 @@
 
 (defpage tx-page actions/tx/delete ("actions/tx/delete"
                                     :request-type :post)
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (since  date)
      (until  date)
      (search string))
