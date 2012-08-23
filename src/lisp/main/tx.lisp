@@ -37,7 +37,9 @@
        (:account-title-null
         "Ο λογαριασμός χρέωσης είναι κενός"
         :account-title-unknown
-        "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
+        "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"
+        :unknown-temtx-for-accounts
+        "Δεν υπάρχει πρότυπη συναλλαγή που αντιστοιχεί σε αυτούς τους λογαριασμούς χρέωσης/πίστωσης"))
       (non-chq-credit-acc
        (:account-title-null
         "Ο λογαριασμός πίστωσης είναι κενός"
@@ -57,6 +59,12 @@
 
 (define-existence-predicate tx-id-exists-p tx id)
 (define-existence-predicate* tx-description-exists-p tx description id)
+
+(defun check-temtx-existence (debit-acc-id credit-acc-id)
+  (with-db ()
+    (query (:select 1 :from 'temtx
+             :where (:and (:= 'debit-acc-id (account-id debit-acc-id))
+                          (:= 'credit-acc-id (account-id credit-acc-id)))))))
 
 (defun tx-referenced-p (tx-id)
   (referenced-by tx-id 'cheque-event 'tx-id))
@@ -285,6 +293,8 @@
      (amount             float  chk-amount)
      (non-chq-debit-acc  string chk-non-chq-acc-title)
      (non-chq-credit-acc string chk-non-chq-acc-title))
+  ;; post-validation - prevent update for unknown temtx of if tx is referenced
+  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -322,6 +332,8 @@
      (amount             float  chk-amount)
      (non-chq-debit-acc  string chk-non-chq-acc-title)
      (non-chq-credit-acc string chk-non-chq-acc-title))
+  ;; post-validation - prevent update for unknown temtx of if tx is referenced
+  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
   (with-controller-page (tx/create)
     (let* ((company-id (company-id (val company)))
            (debit-acc-id (account-id (val non-chq-debit-acc)))
@@ -353,9 +365,9 @@
      (amount             float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
-  ;; post validation - prevent update if automatically created
-  (with-db ()
-    (validate-parameters #'tx-referenced-p tx-id))
+  ;; post-validation - prevent update for unknown temtx of if tx is referenced
+  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
+  (validate-parameters #'tx-referenced-p tx-id)
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -396,6 +408,9 @@
      (amount             float   chk-amount)
      (non-chq-debit-acc  string  chk-non-chq-acc-title)
      (non-chq-credit-acc string  chk-non-chq-acc-title))
+  ;; post-validation - prevent update for unknown temtx of if tx is referenced
+  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
+  (validate-parameters #'tx-referenced-p tx-id)
   (with-controller-page (tx/update)
     (let ((company-id (company-id (val company)))
           (debit-acc-id (account-id (val non-chq-debit-acc)))

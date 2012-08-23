@@ -73,8 +73,8 @@
       :temtx-id-unknown))
 
 (defun chk-temtx-id/ref (temtx-id)
-  (cond ((chk-temtx-id temtx-id)
-         (temtx-referenced-p temtx-id :temtx-referenced))))
+  (cond ((chk-temtx-id temtx-id))
+        ((temtx-referenced-p temtx-id) :temtx-referenced)))
 
 (defun chk-temtx-title (title customer-p)
   (cond ((temtx-title-exists-p title customer-p)
