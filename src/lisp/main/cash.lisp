@@ -582,7 +582,7 @@
 
 (defpage cash-page cash/delete
     (("cash/" (role "(customer|supplier)") "/delete"))
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (search string)
      (since  date)
      (until  date))
@@ -619,7 +619,7 @@
 
 (defpage cash-page actions/cash/delete
     (("actions/cash/" (role "(customer|supplier)") "/delete") :request-type :post)
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (search string)
      (since  date)
      (until  date))

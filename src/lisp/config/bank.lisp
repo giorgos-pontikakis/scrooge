@@ -37,12 +37,7 @@
 ;;; ------------------------------------------------------------
 
 (defun bank-referenced-p (bank-id)
-  (with-db ()
-    (and bank-id
-         (query (:select 'id
-                  :from 'cheque
-                  :where (:= 'bank-id bank-id))
-                :column))))
+  (referenced-by bank-id 'cheque 'bank-id))
 
 (define-existence-predicate  bank-id-exists-p bank id)
 (define-existence-predicate* bank-title-exists-p bank title id)
@@ -94,7 +89,7 @@
          (filter (filter tbl))
          (hrefs (if bank-id
                     (list :update (apply #'config/bank/update :bank-id bank-id filter)
-                          :delete (if (chk-bank-id/ref bank-id)
+                          :delete (if (bank-referenced-p bank-id)
                                       nil
                                       (apply #'config/bank/delete :bank-id bank-id filter)))
                     nil)))

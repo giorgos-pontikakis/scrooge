@@ -396,7 +396,7 @@
                                      :company-id (val company-id)
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :receivable-p (customer-p role)
+                                     :customer-p (customer-p role)
                                      :state-id *default-cheque-state*)))
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque role :company-id (val company-id)
@@ -481,7 +481,7 @@
   (check-cheque-accounts)
   (with-controller-page (company/cheque/update role)
     (let ((cheque-dao (get-dao 'cheque (val cheque-id))))
-      ;; Don't touch company-id, state-id and receivable-p
+      ;; Don't touch company-id, state-id and customer-p
       (setf (bank-id cheque-dao) (bank-id (val bank))
             (due-date cheque-dao) (val due-date)
             (amount cheque-dao) (val amount)

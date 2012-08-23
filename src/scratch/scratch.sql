@@ -12,3 +12,6 @@ alter table project_stran rename column to_state to to_state_id;
 alter table project_stran alter column from_state_id set not null;
 delete from project_stran;
 alter table project_stran alter column temtx_id set not null;
+
+alter table cheque rename column receivable_p to customer_p;
+alter table cheque_stran rename column receivable_p to customer_p;

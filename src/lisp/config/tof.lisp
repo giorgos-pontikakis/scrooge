@@ -37,12 +37,7 @@
 ;;; ------------------------------------------------------------
 
 (defun tof-referenced-p (tof-id)
-  (with-db ()
-    (and tof-id
-         (query (:select 'id
-                  :from 'company
-                  :where (:= 'tof-id tof-id))
-                :column))))
+  (referenced-by tof-id 'company 'tof-id))
 
 (define-existence-predicate tof-id-exists-p tof id)
 (define-existence-predicate* tof-title-exists-p tof title id)
@@ -94,7 +89,7 @@
          (filter (filter tbl))
          (hrefs (if tof-id
                     (list :update (apply #'config/tof/update :tof-id tof-id filter)
-                          :delete (if (chk-tof-id/ref tof-id)
+                          :delete (if (tof-referenced-p tof-id)
                                       nil
                                       (apply #'config/tof/delete :tof-id tof-id filter)))
                     nil)))

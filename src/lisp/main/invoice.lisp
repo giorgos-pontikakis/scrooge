@@ -619,7 +619,7 @@
 
 (defpage invoice-page invoice/delete
     (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete"))
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (search string)
      (since  date)
      (until  date))
@@ -658,7 +658,7 @@
 (defpage invoice-page actions/invoice/delete
     (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete")
      :request-type :post)
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (search string)
      (since  date)
      (until  date))

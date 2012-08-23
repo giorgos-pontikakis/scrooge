@@ -194,7 +194,7 @@
   ((id            :col-type integer :reader   cheque-stran-id)
    (from-state-id :col-type string  :accessor from-state-id :initarg :from-state-id)
    (to-state-id   :col-type string  :accessor to-state-id   :initarg :to-state-id)
-   (receivable-p  :col-type boolean :accessor receivable-p  :initarg :receivable-p)
+   (customer-p    :col-type boolean :accessor customer-p    :initarg :customer-p)
    (title         :col-type string  :accessor title         :initarg :title)
    (temtx-id      :col-type integer :accessor temtx-id      :initarg :temtx-id))
   (:metaclass dao-class)
@@ -216,7 +216,7 @@
    (company-id   :col-type integer       :accessor company-id   :initarg :company-id)
    (due-date     :col-type timestamp     :accessor due-date     :initarg :due-date)
    (amount       :col-type (numeric 9 2) :accessor amount       :initarg :amount)
-   (receivable-p :col-type boolean       :accessor receivable-p :initarg :receivable-p)
+   (customer-p   :col-type boolean       :accessor customer-p   :initarg :customer-p)
    (state-id     :col-type (string 32)   :accessor state-id     :initarg :state-id)
    (serial       :col-type (string 16)   :accessor serial       :initarg :serial)
    (old-state-id :accessor old-state-id  :initarg  :old-state-id))
@@ -226,7 +226,7 @@
 (defmethod insert-dao :around ((dao cheque))
   (let* ((cheque-stran (select-dao-unique 'cheque-stran
                            (:and (:= 'from-state-id "nil")
-                                 (:= 'receivable-p (receivable-p dao)))))
+                                 (:= 'customer-p (customer-p dao)))))
          (temtx (select-dao-unique 'temtx
                     (:= 'id (temtx-id cheque-stran))))
          (new-tx (make-instance 'tx
@@ -250,7 +250,7 @@
 (defmethod update-dao :around ((cheque-dao cheque))
   (with-transaction ()
     (when-let (cheque-stran (select-dao-unique 'cheque-stran
-                                (:and (:= 'receivable-p (receivable-p cheque-dao))
+                                (:and (:= 'customer-p (customer-p cheque-dao))
                                       (:= 'from-state-id (old-state-id cheque-dao))
                                       (:= 'to-state-id (state-id cheque-dao)))))
       (let* ((temtx (select-dao-unique 'temtx
@@ -303,7 +303,8 @@
    (debit-acc-id  :col-type integer       :accessor debit-acc-id  :initarg :debit-acc-id)
    (credit-acc-id :col-type integer       :accessor credit-acc-id :initarg :credit-acc-id)
    (company-id    :col-type integer       :accessor company-id    :initarg :company-id)
-   (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount))
+   (amount        :col-type (numeric 9 2) :accessor amount        :initarg :amount)
+   (temtx-id      :col-type integer       :reader   temtx-id))
   (:metaclass dao-class)
   (:keys id))
 

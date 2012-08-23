@@ -58,23 +58,22 @@
 (define-existence-predicate tx-id-exists-p tx id)
 (define-existence-predicate* tx-description-exists-p tx description id)
 
+(defun tx-referenced-p (tx-id)
+  (referenced-by tx-id 'cheque-event 'tx-id))
+
 (defun chk-tx-id (tx-id)
   (if (tx-id-exists-p tx-id)
       nil
       :tx-id-unknown))
 
+(defun chk-tx-id/ref (tx-id)
+  (cond ((chk-tx-id tx-id))
+        ((tx-referenced-p tx-id) :tx-referenced)))
 
 
 ;;; ----------------------------------------------------------------------
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
-
-(defun auto-tx-p (tx-id)
-  (if tx-id
-      (query (:select 'tx-id
-               :from 'cheque-event
-               :where (:= 'tx-id tx-id)))
-      nil))
 
 (defun tx-top-actions (op)
   (top-actions-area
@@ -171,7 +170,7 @@
 (defmethod actions ((tbl tx-table) &key)
   (let* ((tx-id (selected-key tbl))
          (filter (filter tbl))
-         (hrefs (if (and tx-id (not (auto-tx-p tx-id)))
+         (hrefs (if (and tx-id (not (tx-referenced-p tx-id)))
                     (list :update (apply #'tx/update :tx-id tx-id filter)
                           :delete (apply #'tx/delete :tx-id tx-id filter))
                     nil)))
@@ -356,7 +355,7 @@
      (non-chq-credit-acc string  chk-non-chq-acc-title))
   ;; post validation - prevent update if automatically created
   (with-db ()
-    (validate-parameters #'auto-tx-p tx-id))
+    (validate-parameters #'tx-referenced-p tx-id))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -418,13 +417,13 @@
 ;;; -----------------------------------------------------------------------
 
 (defpage tx-page tx/delete ("tx/delete")
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (since  date)
      (until  date)
      (search string))
   ;; post validation - prevent delete if automatically created
   (with-db ()
-    (validate-parameters #'auto-tx-p tx-id))
+    (validate-parameters #'tx-referenced-p tx-id))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -454,7 +453,7 @@
 
 (defpage tx-page actions/tx/delete ("actions/tx/delete"
                                     :request-type :post)
-    ((tx-id  integer chk-tx-id t)
+    ((tx-id  integer chk-tx-id/ref t)
      (since  date)
      (until  date)
      (search string))

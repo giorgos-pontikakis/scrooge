@@ -27,17 +27,12 @@
 ;;; Account - Validation
 ;;; ------------------------------------------------------------
 
-(defun ref-transactions (account-id)
-  (with-db ()
-    (query (:select 'id
-             :from 'tx
-             :where (:or (:= 'debit-acc-id account-id)
-                         (:= 'credit-acc-id account-id)))
-           :single)))
-
-(defun acc-referenced-p (account-id)
-  (or (children-records *accounts* account-id)
-      (ref-transactions account-id)))
+(defun account-referenced-p (account-id)
+  (or (referenced-by account-id 'account 'parent-id)
+      (referenced-by account-id 'company 'expenses-account-id 'revenues-account-id)
+      (referenced-by account-id 'account-role 'account-id)
+      (referenced-by account-id 'temtx 'debit-acc-id 'credit-acc-id)
+      (referenced-by account-id 'tx 'debit-acc-id 'credit-acc-id)))
 
 (define-existence-predicate  account-id-exists-p account id)
 (define-existence-predicate* account-title-exists-p account title id)
@@ -69,7 +64,7 @@
 
 (defun chk-account-id/ref (account-id)
   (cond ((chk-account-id account-id))
-        ((acc-referenced-p account-id) :account-referenced)))
+        ((account-referenced-p account-id) :account-referenced)))
 
 (defun chk-account-title/create (title)
   (cond ((eql :null title) :account-title-null)
@@ -116,10 +111,10 @@
 
 (defun chk-chequing-p (chequing-p account-id)
   (with-db ()
-    (let ((dependent-tx (ref-transactions account-id))
+    (let ((referenced-p (account-referenced-p account-id))
           (chequing-p-changed-p (not (eql chequing-p
                                           (chequing-p (get-dao 'account account-id))))))
-      (if (and dependent-tx chequing-p-changed-p)
+      (if (and referenced-p chequing-p-changed-p)
           :chequing-p-cannot-change
           nil))))
 
@@ -152,7 +147,7 @@
                                                       :parent-id account-id)
                               "Νέος Λογαριασμός")
                      :update ,(config/account/update :account-id account-id)
-                     :delete ,(if (chk-account-id/ref account-id)
+                     :delete ,(if (account-referenced-p account-id)
                                   nil
                                   (config/account/delete :account-id account-id)))
                    nil)))
@@ -201,9 +196,9 @@
 
 (defmethod display ((form account-form) &key styles)
   (let* ((record (record form))
-         (dependent-tx-p (if (slot-boundp record 'id)
-                             (ref-transactions (account-id record))
-                             nil)))
+         (account-referenced-p (if (slot-boundp record 'id)
+                                   (account-referenced-p (account-id record))
+                                   nil)))
     (with-html
       (:div :id "config-account-data-form" :class "data-form"
         (:div :class "data-form-title"
@@ -214,8 +209,8 @@
         (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
                         :css-class "inline"
                         :checked (chequing-p record)
-                        :disabled dependent-tx-p
-                        :readonly dependent-tx-p))
+                        :disabled account-referenced-p
+                        :readonly account-referenced-p))
       (:div :class "data-form-buttons"
         (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
         (cancel-button (cancel-url form) :body "Άκυρο")))))

@@ -75,33 +75,33 @@ $$ language sql;
 -- Implement Temtx Basic Constraint
 ----------------------------------------------------------------------
 create or replace
-function temtx_conflicts (in temtx_id integer, out conflicts integer)
+function temtx_conflicts (in debit_account_id integer, in credit_account_id integer, out conflicts integer)
 returns setof integer as
 $$
 select temtx.id
 from temtx
-inner join temtx as input_temtx
-on $1 = input_temtx.id
 inner join account as debit_account
 on temtx.debit_acc_id = debit_account.id
 inner join account as credit_account
 on temtx.credit_acc_id = credit_account.id
 where
 -- precise matches
-temtx.debit_acc_id = input_temtx.debit_acc_id and
-temtx.credit_acc_id = input_temtx.credit_acc_id and
-temtx.id <> input_temtx.id
+temtx.debit_acc_id = $1 and
+temtx.credit_acc_id = $2
 or
 -- propagated matches
 (temtx.propagated_p = 't'
  and
- ((input_temtx.debit_acc_id in (select account_lineage(temtx.debit_acc_id)) and
-   input_temtx.credit_acc_id in (select account_descendants(temtx.credit_acc_id)))
+ (($1 in (select account_lineage(temtx.debit_acc_id)) and
+   $2 in (select account_descendants(temtx.credit_acc_id)))
     or
-  (input_temtx.debit_acc_id in (select account_descendants(temtx.debit_acc_id)) and
-   input_temtx.credit_acc_id in (select account_lineage(temtx.credit_acc_id)))))
+  ($1 in (select account_descendants(temtx.debit_acc_id)) and
+   $2 in (select account_lineage(temtx.credit_acc_id)))))
 $$ language sql;
 
+-- validation for existing temtxs
+select * from (select temtx.id, temtx.title, temtx_conflicts(debit_acc_id, credit_acc_id) from temtx) as foo
+where foo.id <> foo.temtx_conflicts;
 
 
 ----------------------------------------------------------------------
