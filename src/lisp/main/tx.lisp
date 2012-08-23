@@ -38,13 +38,14 @@
         "Ο λογαριασμός χρέωσης είναι κενός"
         :account-title-unknown
         "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"
-        :unknown-temtx-for-accounts
+        :unknown-implicit-temtx
         "Δεν υπάρχει πρότυπη συναλλαγή που αντιστοιχεί σε αυτούς τους λογαριασμούς χρέωσης/πίστωσης"))
       (non-chq-credit-acc
        (:account-title-null
         "Ο λογαριασμός πίστωσης είναι κενός"
         :account-title-unknown
-        "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"))
+        "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"
+        :unknown-implicit-temtx ""))
       (tx-date
        (:date-null
         "Η ημερομηνία της συναλλαγής είναι κενή"
@@ -60,11 +61,12 @@
 (define-existence-predicate tx-id-exists-p tx id)
 (define-existence-predicate* tx-description-exists-p tx description id)
 
-(defun check-temtx-existence (debit-acc-id credit-acc-id)
-  (with-db ()
-    (query (:select 1 :from 'temtx
-             :where (:and (:= 'debit-acc-id (account-id debit-acc-id))
-                          (:= 'credit-acc-id (account-id credit-acc-id)))))))
+(defun check-temtx-existence (debit-account credit-account)
+  (let ((temtx-exists-p (with-db ()
+                          (query (:select (:not (:is-null (:get-temtx (account-id debit-account)
+                                                                      (account-id credit-account)))))
+                                 :single!))))
+    (if temtx-exists-p nil :unknown-implicit-temtx)))
 
 (defun tx-referenced-p (tx-id)
   (referenced-by tx-id 'cheque-event 'tx-id))
