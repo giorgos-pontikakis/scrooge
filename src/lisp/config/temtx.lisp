@@ -27,12 +27,16 @@
        (:account-title-null
         "Άκυρος λογαριασμός χρέωσης: Το όνομα είναι κενό."
         :account-title-unknown
-        "Άκυρος λογαριασμός χρέωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))
+        "Άκυρος λογαριασμός χρέωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."
+        :temtx-basic-constraint-conflicts
+        "Παραβίαση του Βασικού Περιορισμού για τα Πρότυπα Συναλλαγών"))
       (credit-account
        (:account-title-null
         "Άκυρος λογαριασμός πίστωσης: Το όνομα είναι κενό."
         :account-title-unknown
-        "Άκυρος λογαριασμός πίστωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."))))))
+        "Άκυρος λογαριασμός πίστωσης: Δεν υπάρχει λογαριασμός με αυτό το όνομα."
+        :temtx-basic-constraint-conflicts
+        ""))))))
 
 (defun temtx-top-actions (op)
   (top-actions-area
@@ -50,6 +54,18 @@
 ;;; ----------------------------------------------------------------------
 
 (define-existence-predicate temtx-exists-p temtx id)
+
+(defun temtx-basic-constraint-conflicts (debit-account credit-account propagated-p &optional id)
+  (with-db ()
+    (let* ((where-form (if id `(:not (:= id ,id)) t))
+           (sql `(:select id
+                   :from temtx
+                   :where (:and (:in id (:select (:temtx-conflicts ,(account-id debit-account)
+                                                                   ,(account-id credit-account)
+                                                                   ,propagated-p)))
+                                ,where-form)))
+           (conflict-ids (query (sql-compile sql) :plists)))
+      (if conflict-ids (values :temtx-basic-constraint-conflicts conflict-ids) nil))))
 
 (defun temtx-referenced-p (temtx-id)
   (or (referenced-by temtx-id 'cheque-stran 'temtx-id)
@@ -230,6 +246,7 @@
      (sign           integer chk-sign)
      (propagated-p   boolean)
      (title          string  (chk-temtx-title/create-update title customer-p)))
+  (validate-parameters #'temtx-basic-constraint-conflicts debit-account credit-account propagated-p)
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :op :create)))
@@ -257,6 +274,7 @@
      (sign           integer  chk-sign)
      (propagated-p   boolean)
      (title          string  (chk-temtx-title/create-update title customer-p)))
+  (validate-parameters #'temtx-basic-constraint-conflicts debit-account credit-account propagated-p)
   (with-controller-page (config/temtx/create)
     (let* ((debit-acc-id (account-id (val debit-account)))
            (credit-acc-id (account-id (val credit-account)))
@@ -284,6 +302,9 @@
      (sign           integer chk-sign)
      (propagated-p   boolean)
      (title          string  (chk-temtx-title/create-update title customer-p temtx-id)))
+  (validate-parameters (lambda (dai cai)
+                         (temtx-basic-constraint-conflicts dai cai (val propagated-p) (val temtx-id)))
+                       debit-account credit-account)
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :selected-key (val temtx-id)
@@ -314,6 +335,9 @@
      (sign           integer chk-sign)
      (propagated-p   boolean)
      (title          string  (chk-temtx-title/create-update title customer-p temtx-id)))
+  (validate-parameters (lambda (dai cai)
+                         (temtx-basic-constraint-conflicts dai cai (val propagated-p) (val temtx-id)))
+                       debit-account credit-account)
   (with-controller-page (config/temtx/update)
     (let ((debit-acc-id (account-id (val debit-account)))
           (credit-acc-id (account-id (val credit-account))))

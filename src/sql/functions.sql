@@ -75,7 +75,8 @@ $$ language sql;
 -- Implement Temtx Basic Constraint
 ----------------------------------------------------------------------
 create or replace
-function temtx_conflicts (in debit_account_id integer, in credit_account_id integer, out conflicts integer)
+function temtx_conflicts (in debit_account_id integer, in credit_account_id integer,
+                          in propagated_p boolean, out conflicts integer)
 returns setof integer as
 $$
 select temtx.id
@@ -90,7 +91,7 @@ temtx.debit_acc_id = $1 and
 temtx.credit_acc_id = $2
 or
 -- propagated matches
-(temtx.propagated_p = 't'
+((temtx.propagated_p = 't' or $3 = 't')
  and
  (($1 in (select account_lineage(temtx.debit_acc_id)) and
    $2 in (select account_descendants(temtx.credit_acc_id)))
@@ -100,7 +101,9 @@ or
 $$ language sql;
 
 -- validation for existing temtxs
-select * from (select temtx.id, temtx.title, temtx_conflicts(debit_acc_id, credit_acc_id) from temtx) as foo
+select *
+from (select temtx.id, temtx.title,
+             temtx_conflicts(debit_acc_id, credit_acc_id, propagated_p) from temtx) as foo
 where foo.id <> foo.temtx_conflicts;
 
 
