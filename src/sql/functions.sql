@@ -127,7 +127,7 @@ $$ language sql;
 
 
 ----------------------------------------------------------------------
--- temtx trigger
+-- temtx triggers
 ----------------------------------------------------------------------
 create or replace function generate_temtx_id () returns trigger as $$
 begin
@@ -140,3 +140,20 @@ create trigger generate_temtx_id_trigger
 before insert or update
 on tx for each row
 execute procedure generate_temtx_id();
+
+
+create or replace function temtx_update_guard () returns trigger as $$
+begin
+perform 1 from tx where temtx_id = new.id;
+if found then
+   return null;
+else
+   return new;
+end if;
+end;
+$$ language plpgsql;
+
+create trigger temtx_update_guard_trigger
+before update
+on temtx for each row
+execute procedure temtx_update_guard();
