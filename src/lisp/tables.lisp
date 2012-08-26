@@ -355,8 +355,8 @@
   "Increase by delta the rank of daos which have rank greater or equal
   to the reference dao"
   (iter (for i in (higher-rank-daos dao delta))
-    (setf (rank i) (+ (rank i) delta))
-    (update-dao i)))
+        (setf (rank i) (+ (rank i) delta))
+        (update-dao i)))
 
 (defgeneric higher-rank-daos (dao delta)
   (:documentation "Get all daos of db-table with rank greater or equal

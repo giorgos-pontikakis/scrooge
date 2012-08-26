@@ -36,9 +36,9 @@ excluded for the search - useful for updates."
 
 (defun referenced-by-sql (account-id table columns)
   `(:select 1 :from ,table :where
-    (:or ,@(mapcar (lambda (col)
-                     (list ':= account-id col))
-                   columns))))
+     (:or ,@(mapcar (lambda (col)
+                      (list ':= account-id col))
+                    columns))))
 
 (defun referenced-by (id table &rest columns)
   (with-db ()
@@ -84,9 +84,9 @@ id, i.e. all records of the subtree with root specified by the given id."
                         (nreverse (subseq tin 0 (1- len)))))
            (control-digit (char-parse-integer (elt tin (1- len)))))
       (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
-                   (for i from 1)
-                   (reducing (* d (expt 2 i))
-                             by #'+))))
+                       (for i from 1)
+                       (reducing (* d (expt 2 i))
+                                 by #'+))))
         (and (= len 9)
              (= (mod (mod sum 11)
                      10)

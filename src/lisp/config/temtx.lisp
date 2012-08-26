@@ -133,16 +133,16 @@
 
 (defun temtx-top-actions (op)
   (let ((role (first *registers*)))
-   (top-actions-area
-    (make-instance 'scrooge-menu
-                   :spec (make-menu-spec
-                          `(:create (,(family-url 'config/temtx/create)
-                                     ,(conc "Νέο Πρότυπο Συναλλαγής " (if (customer-p role)
-                                                                          "Πελάτη"
-                                                                          "Προμηθευτή")))))
-                   :css-class "hmenu"
-                   :disabled (list op))
-    nil)))
+    (top-actions-area
+     (make-instance 'scrooge-menu
+                    :spec (make-menu-spec
+                           `(:create (,(family-url 'config/temtx/create)
+                                      ,(conc "Νέο Πρότυπο Συναλλαγής " (if (customer-p role)
+                                                                           "Πελάτη"
+                                                                           "Προμηθευτή")))))
+                    :css-class "hmenu"
+                    :disabled (list op))
+     nil)))
 
 
 
@@ -155,10 +155,11 @@
 (defclass temtx-table (scrooge-table)
   ((header-labels :initform '("" "<br />Περιγραφή"
                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
-                              "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση"))
+                              "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση" "" ""))
    (paginator :accessor paginator :initarg :paginator)
    (role :accessor role :initarg :role))
-  (:default-initargs :item-class 'temtx-row
+  (:default-initargs :id "temtx-table"
+                     :item-class 'temtx-row
                      :paginator (make-instance 'temtx-paginator
                                                :id "temtx-paginator"
                                                :css-class "paginator")))

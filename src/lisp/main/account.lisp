@@ -92,22 +92,22 @@
           (header)
           (main-navbar 'account)
           (iter
-            (for debit-p in (list t nil))
-            (for div-id in '("debit-accounts" "credit-accounts"))
-            (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-            (for account-tree = (make-instance 'account-ro-tree
-                                               :op :catalogue
-                                               :selected-key (val account-id)
-                                               :debit-p debit-p))
-            (htm
-             (:div :class "grid_6"
-               (:div :id div-id :class "window"
-                 (:div :class "title" (str window-title))
-                 (account-ro-menu (val id)
-                                  (if (and (val id) (eql flag (debit-p (val id))))
-                                      '(:overview)
-                                      '(:overview :details :print)))
-                 (display account-tree :selected-id (val id)))))))))))
+              (for debit-p in (list t nil))
+                (for div-id in '("debit-accounts" "credit-accounts"))
+                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
+                (for account-tree = (make-instance 'account-ro-tree
+                                                   :op :catalogue
+                                                   :selected-key (val account-id)
+                                                   :debit-p debit-p))
+                (htm
+                 (:div :class "grid_6"
+                   (:div :id div-id :class "window"
+                     (:div :class "title" (str window-title))
+                     (account-ro-menu (val id)
+                                      (if (and (val id) (eql flag (debit-p (val id))))
+                                          '(:overview)
+                                          '(:overview :details :print)))
+                     (display account-tree :selected-id (val id)))))))))))
 
 
 (defpage dynamic-page account/details ("account/details")

@@ -72,7 +72,14 @@ ul.crud-tree {
 .crud-table td, .crud-table th  {
     line-height: 22px;
     text-align: left;
+}
+
+.crud-table td  {
     padding: 3px 5px;
+}
+
+.crud-table th  {
+    padding: 3px 10px;
 }
 
 .crud-table td input {
@@ -82,9 +89,14 @@ ul.crud-tree {
 }
 
 .crud-table td span {
+    display: block;
     padding: 0px 5px;
 }
 
+.crud-table td a {
+    display: block;
+    padding: 0px 5px;
+}
 
 /* Hover effects - no form */
 

@@ -156,13 +156,13 @@
             (:table :class "crud-table"
               (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
               (iter
-                (for ev in events)
-                (htm (:tr
-                       (:td (str (assoc-value *cheque-states*
-                                              (getf ev :to-state-id)
-                                              :test #'string=)))
-                       (:td (str (format-timestring nil (getf ev :tstamp)
-                                                    :format tstamp-format)))))))
+                  (for ev in events)
+                    (htm (:tr
+                           (:td (str (assoc-value *cheque-states*
+                                                  (getf ev :to-state-id)
+                                                  :test #'string=)))
+                           (:td (str (format-timestring nil (getf ev :tstamp)
+                                                        :format tstamp-format)))))))
 
             (when (and following (not disabled))
               (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id

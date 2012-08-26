@@ -347,11 +347,11 @@
 (defun seed-companies ()
   (mapc (lambda (rec)
           (let ((list (iter (for field-name
-                                 in '(:title :occupation :tof-id :tin
-                                      :address :city :pobox :zipcode))
-                        (for field-value in rec)
-                        (collect field-name)
-                        (collect field-value))))
+                             in '(:title :occupation :tof-id :tin
+                                  :address :city :pobox :zipcode))
+                            (for field-value in rec)
+                            (collect field-name)
+                            (collect field-value))))
             (apply #'create-row 'company list)))
         '(("Ε. Καφφές Α.Ε."
            "Εμπορία"
