@@ -145,7 +145,10 @@ execute procedure generate_temtx_id();
 create or replace function temtx_update_guard () returns trigger as $$
 begin
 perform 1 from tx where temtx_id = new.id;
-if found then
+if found and
+   (new.debit_acc_id <> old.debit_acc_id or new.credit_acc_id <> old.credit_acc_id)
+then
+   raise exception 'Attempt to change temtx accounts but temtx is referenced';
    return null;
 else
    return new;
