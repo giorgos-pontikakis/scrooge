@@ -132,7 +132,11 @@ $$ language sql;
 create or replace function generate_temtx_id () returns trigger as $$
 begin
 select get_temtx(new.debit_acc_id, new.credit_acc_id) into new.temtx_id;
-return new;
+if new.temtx_id is null then
+   raise exception 'The account pair specified does not correspond to any temtx';
+else
+   return new;
+end if;
 end
 $$ language plpgsql;
 

@@ -38,14 +38,14 @@
         "Ο λογαριασμός χρέωσης είναι κενός"
         :account-title-unknown
         "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"
-        :unknown-implicit-temtx
+        :unknown-temtx-for-account-pair
         "Δεν υπάρχει πρότυπη συναλλαγή που αντιστοιχεί σε αυτούς τους λογαριασμούς χρέωσης/πίστωσης"))
       (non-chq-credit-acc
        (:account-title-null
         "Ο λογαριασμός πίστωσης είναι κενός"
         :account-title-unknown
         "Λάθος λογαριασμός πίστωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"
-        :unknown-implicit-temtx ""))
+        :unknown-temtx-for-account-pair ""))
       (tx-date
        (:date-null
         "Η ημερομηνία της συναλλαγής είναι κενή"
@@ -66,7 +66,7 @@
                           (query (:select (:not (:is-null (:get-temtx (account-id debit-account)
                                                                       (account-id credit-account)))))
                                  :single!))))
-    (if temtx-exists-p nil :unknown-implicit-temtx)))
+    (if temtx-exists-p nil :unknown-temtx-for-account-pair)))
 
 (defun tx-referenced-p (tx-id)
   (referenced-by tx-id 'cheque-event 'tx-id))
