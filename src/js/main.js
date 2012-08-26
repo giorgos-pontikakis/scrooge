@@ -93,9 +93,10 @@ function selectableRows () {
 
    // crud-tree radio inputs
    $(".crud-tree input[type=radio]").click(function (e) {
+      var companyInp = $(".data-form input.ac-company");
       e.stopPropagation();
-      $(".crud-tree li.selected").removeClass("selected");
-      $(this).parent().parent().parent().addClass("selected");
+      highlightCRUDTreeLeaf(this);
+      companyInp.unbind("blur");
    });
 
 }
@@ -104,9 +105,6 @@ function autoSelectAccount () {
    var companyInp = $(".data-form input.ac-company");
    companyInp.bind("autocompleteclose", clickAccount);
    companyInp.bind("blur", clickAccount);
-   // Also apply clickAccount using companyInp as the value of this.
-   // Useful when the input field contains a default value
-   // clickAccount.apply(companyInp);
 }
 
 function clickAccount () {
@@ -123,6 +121,12 @@ function clickAccount () {
       var isRevenue = $(".company-dependent input[value=" + data.accountIDs[0] + "]").length === 1;
       var accountID = isRevenue ? data.accountIDs[1][0] : data.accountIDs[1][1];
       var jq = ".company-dependent input[type=radio][value=" + accountID +  "]";
-      $(jq).click();
+      $(jq).attr('checked', true);
+      highlightCRUDTreeLeaf(jq);
    });
+}
+
+function highlightCRUDTreeLeaf (item) {
+      $(".crud-tree li.selected").removeClass("selected");
+      $(item).parent().parent().parent().addClass("selected");
 }

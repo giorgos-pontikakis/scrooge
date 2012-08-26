@@ -37,7 +37,7 @@
         :parse-error
         "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
       (account-id
-       (:acc-id-null
+       (:account-id-null
         "Δεν έχετε επιλέξει λογαριασμό"))
       (tx-date
        (:parse-error

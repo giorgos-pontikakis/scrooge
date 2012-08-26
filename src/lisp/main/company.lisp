@@ -81,7 +81,7 @@
   (cond ((eql :null company-id)
          :company-id-null)
         ((not (company-id-exists-p company-id))
-         :acc-id-unknown)))
+         :account-id-unknown)))
 
 (defun chk-company-id/ref (company-id)
   (cond ((chk-company-id company-id))
