@@ -88,12 +88,12 @@
 (defmethod get-records ((table invoice-tx-table))
   (labels ((invoice-receivable/payable-account (kind)
              (if (debit-invoice-p kind)
-                 'tx.debit-acc-id
-                 'tx.credit-acc-id))
+                 'tx.debit-account-id
+                 'tx.credit-account-id))
            (invoice-revenues/expenses-account (kind)
              (if (debit-invoice-p kind)
-                 'tx.credit-acc-id
-                 'tx.debit-acc-id))
+                 'tx.credit-account-id
+                 'tx.debit-account-id))
            (invoice-base-where (role kind)
              `((:= ,(invoice-receivable/payable-account kind)
                    ,(receivable/payable-root role))
@@ -233,12 +233,12 @@
 (defun debit-invoice-p (kind)
   (string-equal kind "debit"))
 
-(defun invoice-debit-acc-id (role kind account-id)
+(defun invoice-debit-account-id (role kind account-id)
   (if (debit-invoice-p kind)
       (receivable/payable-root role)
       account-id))
 
-(defun invoice-credit-acc-id (role kind account-id)
+(defun invoice-credit-account-id (role kind account-id)
   (if (debit-invoice-p kind)
       account-id
       (receivable/payable-root role)))
@@ -301,8 +301,8 @@
                               :debit-p (not customer-p)
                               :selected-key (or (getf record :account-id)
                                                 (getf record (if (debit-invoice-p kind)
-                                                                 :credit-acc-id
-                                                                 :debit-acc-id))
+                                                                 :credit-account-id
+                                                                 :debit-account-id))
                                                 root-key))))
     (with-html
       (:div :id "invoice-data-form" :class "data-form"
@@ -368,14 +368,14 @@
 ;;; ----------------------------------------------------------------------
 
 (defun invoice-kind (dao)
-  (if (or (member (debit-acc-id dao) *expense-accounts*)
-          (member (credit-acc-id dao) *revenue-accounts*))
+  (if (or (member (debit-account-id dao) *expense-accounts*)
+          (member (credit-account-id dao) *revenue-accounts*))
       "debit"
       "credit"))
 
 (defun invoice-role (dao)
-  (if (or (member (debit-acc-id dao) *expense-accounts*)
-          (member (credit-acc-id dao) *expense-accounts*))
+  (if (or (member (debit-account-id dao) *expense-accounts*)
+          (member (credit-account-id dao) *expense-accounts*))
       "customer"
       "supplier"))
 
@@ -515,15 +515,15 @@
   (check-invoice-accounts)
   (with-controller-page (invoice/create role kind)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (invoice-debit-acc-id role kind (val account-id)))
-           (credit-acc-id (invoice-credit-acc-id role kind (val account-id)))
+           (debit-account-id (invoice-debit-account-id role kind (val account-id)))
+           (credit-account-id (invoice-credit-account-id role kind (val account-id)))
            (new-tx (make-instance 'tx
                                   :tx-date (val tx-date)
                                   :description (val description)
                                   :company-id company-id
                                   :amount (val amount)
-                                  :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id
+                                  :credit-account-id credit-account-id
+                                  :debit-account-id debit-account-id
                                   :auto t)))
       (insert-dao new-tx)
       (see-other (apply #'invoice/details role kind :tx-id (tx-id new-tx)
@@ -598,15 +598,15 @@
   (check-invoice-accounts)
   (with-controller-page (invoice/update role kind)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (invoice-debit-acc-id role kind (val account-id)))
-          (credit-acc-id (invoice-credit-acc-id role kind (val account-id))))
+          (debit-account-id (invoice-debit-account-id role kind (val account-id)))
+          (credit-account-id (invoice-credit-account-id role kind (val account-id))))
       (execute (:update 'tx :set
                         'tx-date (val tx-date)
                         'description (val description)
                         'company-id company-id
                         'amount (val amount)
-                        'debit-acc-id debit-acc-id
-                        'credit-acc-id credit-acc-id
+                        'debit-account-id debit-account-id
+                        'credit-account-id credit-account-id
                         :where (:= 'id (val tx-id))))
       (see-other (apply #'invoice/details role kind :tx-id (val tx-id)
                         (params->filter))))))

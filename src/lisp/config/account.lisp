@@ -31,8 +31,8 @@
   (or (referenced-by account-id 'account 'parent-id)
       (referenced-by account-id 'company 'expenses-account-id 'revenues-account-id)
       (referenced-by account-id 'account-role 'account-id)
-      (referenced-by account-id 'temtx 'debit-acc-id 'credit-acc-id)
-      (referenced-by account-id 'tx 'debit-acc-id 'credit-acc-id)))
+      (referenced-by account-id 'temtx 'debit-account-id 'credit-account-id)
+      (referenced-by account-id 'tx 'debit-account-id 'credit-account-id)))
 
 (define-existence-predicate  account-id-exists-p account id)
 (define-existence-predicate* account-title-exists-p account title id)
@@ -51,16 +51,16 @@
                           (:= 'chequing-p nil)))
            :single)))
 
-(defun chk-parent-acc-id (val)
+(defun chk-parent-account-id (val)
   (if (or (null val) (account-id-exists-p val))
       nil
-      :parent-acc-id-unknown))
+      :parent-account-id-unknown))
 
 (defun chk-account-id (account-id)
   (cond ((eql :null account-id)
          :account-id-null)
         ((not (account-id-exists-p account-id))
-         :acc-id-unknown)))
+         :account-id-unknown)))
 
 (defun chk-account-id/ref (account-id)
   (cond ((chk-account-id account-id))
@@ -78,11 +78,11 @@
   (cond ((eql title :null) :account-title-null)
         ((not (account-title-exists-p title)) :account-title-unknown)))
 
-(defun chk-chq-acc-title (title)
+(defun chk-chq-account-title (title)
   (cond ((eql title :null) :account-title-null)
         ((not (chq-account-title-exists-p title)) :account-title-unknown)))
 
-(defun chk-non-chq-acc-title (title)
+(defun chk-non-chq-account-title (title)
   (cond ((eql title :null) :account-title-null)
         ((not (non-chq-account-title-exists-p title)) :account-title-unknown)))
 
@@ -107,7 +107,7 @@
     (if (or (null account-id)
             (eql debitp (debit-p (get-dao 'account account-id))))
         nil
-        :invalid-debitp-acc-id-combo)))
+        :invalid-debitp-account-id-combo)))
 
 (defun chk-chequing-p (chequing-p account-id)
   (with-db ()
@@ -261,7 +261,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-page config/account/create ("config/account/create")
-    ((parent-id  integer chk-parent-acc-id)
+    ((parent-id  integer chk-parent-account-id)
      (debitp     boolean (chk-debitp debitp parent-id))
      (title      string  chk-account-title/create)
      (chequing-p boolean))
@@ -290,7 +290,7 @@
 
 (defpage account-page actions/config/account/create ("actions/account/create"
                                                      :request-type :post)
-    ((parent-id  integer chk-parent-acc-id)
+    ((parent-id  integer chk-parent-account-id)
      (title      string  chk-account-title/create      t)
      (debitp     boolean (chk-debitp debitp parent-id))
      (chequing-p boolean))

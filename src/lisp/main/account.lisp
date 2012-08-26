@@ -22,12 +22,12 @@
 (defmethod get-records ((table account-tx-table))
   (let ((account-id (filter table)))
     (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)
-             'debit-acc-id 'credit-acc-id 'amount
+             'debit-account-id 'credit-account-id 'amount
              :from 'tx
              :left-join 'company
              :on (:= 'company.id 'tx.company-id)
-             :where (:or (:= account-id 'tx.debit-acc-id)
-                         (:= account-id 'tx.credit-acc-id)))
+             :where (:or (:= account-id 'tx.debit-account-id)
+                         (:= account-id 'tx.credit-account-id)))
            :plists)))
 
 
@@ -42,7 +42,7 @@
   (let* ((record (record row))
          (account-id (filter (collection row)))
          (record-plus (append record
-                              (if (eql account-id (getf record :debit-acc-id))
+                              (if (eql account-id (getf record :debit-account-id))
                                   (list :debit-amount (getf record :amount)
                                         :credit-amount :null)
                                   (list :debit-amount :null
@@ -146,9 +146,9 @@
                                'amount
                                :from 'tx
                                :inner-join (:as 'account 'debit-account)
-                               :on (:= 'debit-account.id 'debit-acc-id)
+                               :on (:= 'debit-account.id 'debit-account-id)
                                :inner-join (:as 'account 'credit-account)
-                               :on (:= 'credit-account.id 'credit-acc-id)
+                               :on (:= 'credit-account.id 'credit-account-id)
                                :where (:or (:= id 'debit-account.id)
                                            (:= id 'credit-account.id)))
                              :plists)))

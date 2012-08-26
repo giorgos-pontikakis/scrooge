@@ -83,14 +83,14 @@
   (:default-initargs :item-class 'cash-tx-row :id "cash-tx-table"))
 
 (defmethod get-records ((table cash-tx-table))
-  (flet ((acc-filter (role)
+  (flet ((account-filter (role)
            (if (customer-p role)
-               `(debit-acc-id ,(account-id 'cash-account))    ; revenue
-               `(credit-acc-id ,(account-id 'cash-account)))) ; expense
-         (acc-join (role)
+               `(debit-account-id ,(account-id 'cash-account))    ; revenue
+               `(credit-account-id ,(account-id 'cash-account)))) ; expense
+         (account-join (role)
            (if (customer-p role)
-               'tx.credit-acc-id   ; revenue
-               'tx.debit-acc-id))) ; expense
+               'tx.credit-account-id   ; revenue
+               'tx.debit-account-id))) ; expense
     (let* ((search (getf (filter table) :search))
            (since (getf (filter table) :since))
            (until (getf (filter table) :until))
@@ -104,7 +104,7 @@
                           :left-join company
                           :on (:= tx.company-id company.id)
                           :left-join account
-                          :on (:= ,(acc-join role) account.id)
+                          :on (:= ,(account-join role) account.id)
                           :left-join 'cheque-event
                           :on (:= 'cheque-event.tx-id 'tx.id)))
            (where nil))
@@ -120,7 +120,7 @@
         (push `(:<= tx-date ,until)
               where))
       (let ((sql `(:order-by (,@base-query :where
-                                           (:and (:= ,@(acc-filter role))
+                                           (:and (:= ,@(account-filter role))
                                                  (:is-null 'cheque-event.cheque-id)
                                                  ,@where))
                              (:desc tx-date) account company description)))
@@ -217,12 +217,12 @@
 ;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun cash-debit-acc-id (role account-id)
+(defun cash-debit-account-id (role account-id)
   (if (customer-p role)
       (account-id 'cash-account)
       account-id))
 
-(defun cash-credit-acc-id (role account-id)
+(defun cash-credit-account-id (role account-id)
   (if (customer-p role)
       account-id
       (account-id 'cash-account)))
@@ -269,8 +269,8 @@
          (receivable/payable-root-key (receivable/payable-root (role form)))
          (selected-key (or (getf record :account-id)
                            (getf record (if customer-p
-                                            :credit-acc-id
-                                            :debit-acc-id))
+                                            :credit-account-id
+                                            :debit-account-id))
                            revenues/expenses-root-key)))
     (with-html
       (:div :id "cash-data-form" :class "data-form"
@@ -366,9 +366,9 @@
       (when (and (val tx-id)
                  (not (find (val tx-id) (rows cash-tx-table) :key #'key)))
         (let ((tx (get-dao 'tx (val tx-id))))
-          (see-other (cash (cond ((eql (debit-acc-id tx) (account-id 'cash-account))
+          (see-other (cash (cond ((eql (debit-account-id tx) (account-id 'cash-account))
                                   "customer")
-                                 ((eql (credit-acc-id tx) (account-id 'cash-account))
+                                 ((eql (credit-account-id tx) (account-id 'cash-account))
                                   "supplier")
                                  (t (error 'bad-request-error)))
                            :tx-id (val tx-id)))))
@@ -481,15 +481,15 @@
   (check-cash-accounts)
   (with-controller-page (cash/create role)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (cash-debit-acc-id role (val account-id)))
-           (credit-acc-id (cash-credit-acc-id role (val account-id)))
+           (debit-account-id (cash-debit-account-id role (val account-id)))
+           (credit-account-id (cash-credit-account-id role (val account-id)))
            (new-tx (make-instance 'tx
                                   :tx-date (val tx-date)
                                   :description (val description)
                                   :company-id company-id
                                   :amount (val amount)
-                                  :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id
+                                  :credit-account-id credit-account-id
+                                  :debit-account-id debit-account-id
                                   :auto t)))
       (insert-dao new-tx)
       (see-other (apply #'cash/details role :tx-id (tx-id new-tx)
@@ -562,15 +562,15 @@
   (check-cash-accounts)
   (with-controller-page (cash/update role)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (cash-debit-acc-id role (val account-id)))
-          (credit-acc-id (cash-credit-acc-id role (val account-id))))
+          (debit-account-id (cash-debit-account-id role (val account-id)))
+          (credit-account-id (cash-credit-account-id role (val account-id))))
       (execute (:update 'tx :set
                         'tx-date (val tx-date)
                         'description (val description)
                         'company-id company-id
                         'amount (val amount)
-                        'debit-acc-id debit-acc-id
-                        'credit-acc-id credit-acc-id
+                        'debit-account-id debit-account-id
+                        'credit-account-id credit-account-id
                         :where (:= 'id (val tx-id))))
       (see-other (apply #'cash/details role :tx-id (val tx-id) (params->filter))))))
 

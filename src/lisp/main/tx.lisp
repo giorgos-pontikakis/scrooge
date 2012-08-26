@@ -11,7 +11,7 @@
   (:default-initargs
    :parameter-groups '(:system (tx-id)
                        :payload (tx-date description company amount
-                                 non-chq-debit-acc non-chq-credit-acc)
+                                 non-chq-debit-account non-chq-credit-account)
                        :filter  (search since until))))
 
 (defclass tx-page (auth-dynamic-page tx-family)
@@ -33,14 +33,14 @@
         "Το ποσό της συναλλαγής είναι δεν πρέπει να ξεπερνά το 9,999,999.99"
         :parse-error
         "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
-      (non-chq-debit-acc
+      (non-chq-debit-account
        (:account-title-null
         "Ο λογαριασμός χρέωσης είναι κενός"
         :account-title-unknown
         "Λάθος λογαριασμός χρέωσης: Δεν έχει καταχωρηθεί λογαριασμός με αυτό το όνομα"
         :unknown-temtx-for-account-pair
         "Δεν υπάρχει πρότυπη συναλλαγή που αντιστοιχεί σε αυτούς τους λογαριασμούς χρέωσης/πίστωσης"))
-      (non-chq-credit-acc
+      (non-chq-credit-account
        (:account-title-null
         "Ο λογαριασμός πίστωσης είναι κενός"
         :account-title-unknown
@@ -110,18 +110,18 @@
     (query (:select 'tx.id 'tx-date
              (:as 'company.title 'company)
              'description
-             (:as 'non-chq-debit-acc.title 'non-chq-debit-acc)
-             (:as 'non-chq-credit-acc.title 'non-chq-credit-acc)
-             'tx.debit-acc-id
-             'tx.credit-acc-id
+             (:as 'non-chq-debit-account.title 'non-chq-debit-account)
+             (:as 'non-chq-credit-account.title 'non-chq-credit-account)
+             'tx.debit-account-id
+             'tx.credit-account-id
              'amount 'company-id
              :from 'tx
              :left-join 'company
              :on (:= 'tx.company-id 'company.id)
-             :left-join (:as 'account 'non-chq-debit-acc)
-             :on (:= 'non-chq-debit-acc.id 'debit-acc-id)
-             :left-join (:as 'account 'non-chq-credit-acc)
-             :on (:= 'non-chq-credit-acc.id 'credit-acc-id)
+             :left-join (:as 'account 'non-chq-debit-account)
+             :on (:= 'non-chq-debit-account.id 'debit-account-id)
+             :left-join (:as 'account 'non-chq-credit-account)
+             :on (:= 'non-chq-credit-account.id 'credit-account-id)
              :where (:= 'tx.id tx-id))
            :plist)
     nil))
@@ -149,8 +149,8 @@
          (base-query `(:select tx.id
                         (:as company.title company)
                         (:as company.id company-id)
-                        (:as debit-acc.title non-chq-debit-acc)
-                        (:as credit-acc.title non-chq-credit-acc)
+                        (:as debit-acc.title non-chq-debit-account)
+                        (:as credit-acc.title non-chq-credit-account)
                         tx-date
                         description
                         amount
@@ -158,9 +158,9 @@
                         :left-join company
                         :on (:= tx.company-id company.id)
                         :inner-join (:as account debit-acc)
-                        :on (:= debit-acc.id debit-acc-id)
+                        :on (:= debit-acc.id debit-account-id)
                         :inner-join (:as account credit-acc)
-                        :on (:= credit-acc.id credit-acc-id)))
+                        :on (:= credit-acc.id credit-account-id)))
          (where nil))
     (when search
       (push `(:or (:ilike description ,(ilike search))
@@ -173,7 +173,7 @@
     (when (and until (not (eql until :null)))
       (push `(:<= tx-date ,until) where))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
-                           (:desc tx-date) non-chq-debit-acc non-chq-credit-acc company description)))
+                           (:desc tx-date) non-chq-debit-account non-chq-credit-account company description)))
       (query (sql-compile sql)
              :plists))))
 
@@ -206,8 +206,8 @@
   (let ((record (record row))
         (css-class '(tx-date "datepicker"
                      company "ac-company"
-                     non-chq-debit-acc "ac-non-chq-account"
-                     non-chq-credit-acc "ac-non-chq-account")))
+                     non-chq-debit-account "ac-non-chq-account"
+                     non-chq-credit-account "ac-non-chq-account")))
     (list* (make-instance 'textbox
                           :name 'tx-date
                           :value (or (getf record :tx-date) (today))
@@ -228,7 +228,7 @@
                                             :value (getf record (make-keyword name))
                                             :disabled (not enabled-p)
                                             :css-class (if enabled-p (getf css-class name) nil)))
-                           '(description non-chq-debit-acc non-chq-credit-acc))
+                           '(description non-chq-debit-account non-chq-credit-account))
                    (list (make-instance 'textbox
                                         :name 'amount
                                         :value (fmt-amount (getf record :amount))
@@ -286,17 +286,17 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx/create ("tx/create")
-    ((search             string)
-     (since              date)
-     (until              date)
-     (tx-date            date   chk-date)
-     (description        string)
-     (company            string chk-company-title)
-     (amount             float  chk-amount)
-     (non-chq-debit-acc  string chk-non-chq-acc-title)
-     (non-chq-credit-acc string chk-non-chq-acc-title))
+    ((search                 string)
+     (since                  date)
+     (until                  date)
+     (tx-date                date   chk-date)
+     (description            string)
+     (company                string chk-company-title)
+     (amount                 float  chk-amount)
+     (non-chq-debit-account  string chk-non-chq-account-title)
+     (non-chq-credit-account string chk-non-chq-account-title))
   ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
+  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -325,28 +325,28 @@
 
 (defpage tx-page actions/tx/create ("actions/tx/create"
                                     :request-type :post)
-    ((search             string)
-     (since              date)
-     (until              date)
-     (tx-date            date   chk-date)
-     (description        string)
-     (company            string chk-company-title)
-     (amount             float  chk-amount)
-     (non-chq-debit-acc  string chk-non-chq-acc-title)
-     (non-chq-credit-acc string chk-non-chq-acc-title))
+    ((search                 string)
+     (since                  date)
+     (until                  date)
+     (tx-date                date   chk-date)
+     (description            string)
+     (company                string chk-company-title)
+     (amount                 float  chk-amount)
+     (non-chq-debit-account  string chk-non-chq-account-title)
+     (non-chq-credit-account string chk-non-chq-account-title))
   ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
+  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
   (with-controller-page (tx/create)
     (let* ((company-id (company-id (val company)))
-           (debit-acc-id (account-id (val non-chq-debit-acc)))
-           (credit-acc-id (account-id (val non-chq-credit-acc)))
+           (debit-account-id (account-id (val non-chq-debit-account)))
+           (credit-account-id (account-id (val non-chq-credit-account)))
            (new-tx (make-instance 'tx
                                   :tx-date (val tx-date)
                                   :description (val description)
                                   :company-id company-id
                                   :amount (val amount)
-                                  :credit-acc-id credit-acc-id
-                                  :debit-acc-id debit-acc-id)))
+                                  :credit-account-id credit-account-id
+                                  :debit-account-id debit-account-id)))
       (insert-dao new-tx)
       (see-other (apply #'tx :tx-id (tx-id new-tx) (params->filter))))))
 
@@ -357,18 +357,18 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx/update ("tx/update")
-    ((search             string)
-     (tx-id              integer chk-tx-id             t)
-     (since              date)
-     (until              date)
-     (tx-date            date    chk-date)
-     (description        string)
-     (company            string  chk-company-title)
-     (amount             float   chk-amount)
-     (non-chq-debit-acc  string  chk-non-chq-acc-title)
-     (non-chq-credit-acc string  chk-non-chq-acc-title))
+    ((search                 string)
+     (tx-id                  integer chk-tx-id                 t)
+     (since                  date)
+     (until                  date)
+     (tx-date                date    chk-date)
+     (description            string)
+     (company                string  chk-company-title)
+     (amount                 float   chk-amount)
+     (non-chq-debit-account  string  chk-non-chq-account-title)
+     (non-chq-credit-account string  chk-non-chq-account-title))
   ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
+  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
   (validate-parameters #'tx-referenced-p tx-id)
   (with-view-page
     (let* ((filter (params->filter))
@@ -400,30 +400,30 @@
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
                                     :request-type :post)
-    ((search             string)
-     (since              date)
-     (until              date)
-     (tx-id              integer chk-tx-id             t)
-     (tx-date            date    chk-date)
-     (description        string)
-     (company            string  chk-company-title)
-     (amount             float   chk-amount)
-     (non-chq-debit-acc  string  chk-non-chq-acc-title)
-     (non-chq-credit-acc string  chk-non-chq-acc-title))
+    ((search                 string)
+     (since                  date)
+     (until                  date)
+     (tx-id                  integer chk-tx-id                 t)
+     (tx-date                date    chk-date)
+     (description            string)
+     (company                string  chk-company-title)
+     (amount                 float   chk-amount)
+     (non-chq-debit-account  string  chk-non-chq-account-title)
+     (non-chq-credit-account string  chk-non-chq-account-title))
   ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-acc non-chq-credit-acc)
+  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
   (validate-parameters #'tx-referenced-p tx-id)
   (with-controller-page (tx/update)
     (let ((company-id (company-id (val company)))
-          (debit-acc-id (account-id (val non-chq-debit-acc)))
-          (credit-acc-id (account-id (val non-chq-credit-acc))))
+          (debit-account-id (account-id (val non-chq-debit-account)))
+          (credit-account-id (account-id (val non-chq-credit-account))))
       (execute (:update 'tx :set
                         'tx-date (val tx-date)
                         'description (val description)
                         'company-id company-id
                         'amount (val amount)
-                        'debit-acc-id debit-acc-id
-                        'credit-acc-id credit-acc-id
+                        'debit-account-id debit-account-id
+                        'credit-account-id credit-account-id
                         :where (:= 'id (val tx-id))))
       (see-other (apply #'tx :tx-id (val tx-id) (params->filter))))))
 

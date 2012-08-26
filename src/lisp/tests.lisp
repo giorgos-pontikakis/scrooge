@@ -36,7 +36,7 @@
                      (:and (:is-null 'revenues-account-id)
                            (:exists (:select 'tx.id :from 'tx
                                       :where (:and (:= 'company.id 'tx.company-id)
-                                                   (:in 'tx.credit-acc-id
+                                                   (:in 'tx.credit-account-id
                                                         (:set *revenue-accounts*)))))))
                    :plists)))
       (values conflicts
@@ -46,11 +46,11 @@
                                  'debit-account.title 'credit-account.title
                                  :from 'tx
                                  :inner-join (:as 'account 'debit-account)
-                                 :on (:= 'tx.debit-acc-id 'debit-account.id)
+                                 :on (:= 'tx.debit-account-id 'debit-account.id)
                                  :inner-join (:as 'account 'credit-account)
-                                 :on (:= 'tx.credit-acc-id 'credit-account.id)
+                                 :on (:= 'tx.credit-account-id 'credit-account.id)
                                  :where (:and (:= 'tx.company-id (getf company :id))
-                                              (:in 'tx.credit-acc-id
+                                              (:in 'tx.credit-account-id
                                                    (:set *revenue-accounts*))))))
                       conflicts)))))
 
@@ -61,9 +61,9 @@
              :inner-join 'company
              :on (:= 'tx.company-id 'company-id)
              :where (:and (:= 'company.id 'tx.company-id)
-                          (:or (:in 'tx.credit-acc-id
+                          (:or (:in 'tx.credit-account-id
                                     (:set *revenue-accounts*))
-                               (:in 'tx.credit-acc-id
+                               (:in 'tx.credit-account-id
                                     (:set *receivable-accounts*)))
                           (:is-null 'company.revenues-account-id)))
            :plists)))
@@ -75,8 +75,8 @@
              :inner-join 'company
              :on (:= 'tx.company-id 'company-id)
              :where (:and (:= 'company.id 'tx.company-id)
-                          (:or (:= 'tx.credit-acc-id (account-id 'cash))
-                               (:in 'tx.debit-acc-id (:set *payable-accounts*)))
+                          (:or (:= 'tx.credit-account-id (account-id 'cash))
+                               (:in 'tx.debit-account-id (:set *payable-accounts*)))
                           (:is-null 'company.expenses-account-id)))
            :plists)))
 

@@ -66,8 +66,8 @@
     (let ((temtx-dao (if id (get-dao 'temtx id) nil)))
       (and temtx-dao
            (temtx-referenced-p id)
-           (or (not (eql debit-account-id (debit-acc-id temtx-dao)))
-               (not (eql credit-account-id (credit-acc-id temtx-dao)))
+           (or (not (eql debit-account-id (debit-account-id temtx-dao)))
+               (not (eql credit-account-id (credit-account-id temtx-dao)))
                (not (eql propagated-p (propagated-p temtx-dao))))))))
 
 (defun temtx-basic-constraint-conflicts (debit-account credit-account propagated-p &optional temtx-id)
@@ -171,9 +171,9 @@
                       (:as 'credit-account.title 'credit-account)
                       :from 'temtx
                       :inner-join (:as 'account 'debit-account)
-                      :on (:= 'debit-acc-id 'debit-account.id)
+                      :on (:= 'debit-account-id 'debit-account.id)
                       :inner-join (:as 'account 'credit-account)
-                      :on (:= 'credit-acc-id 'credit-account.id)
+                      :on (:= 'credit-account-id 'credit-account.id)
                       :where (:= 'temtx.customer-p (customer-p (role table))))
                     (:desc 'customer-p) (:desc 'temtx.sign) 'temtx.title)
          :plists))
@@ -339,12 +339,12 @@
   (validate-parameters #'temtx-basic-constraint-conflicts
                        debit-account credit-account propagated-p)
   (with-controller-page (config/temtx/create role)
-    (let* ((debit-acc-id (account-id (val debit-account)))
-           (credit-acc-id (account-id (val credit-account)))
+    (let* ((debit-account-id (account-id (val debit-account)))
+           (credit-account-id (account-id (val credit-account)))
            (new-temtx (make-instance 'temtx
                                      :title (val title)
-                                     :debit-acc-id debit-acc-id
-                                     :credit-acc-id credit-acc-id
+                                     :debit-account-id debit-account-id
+                                     :credit-account-id credit-account-id
                                      :customer-p (customer-p role)
                                      :sign (val sign)
                                      :propagated-p (val propagated-p))))
@@ -415,12 +415,12 @@
                                                            (val temtx-id)))
                        debit-account credit-account)
   (with-controller-page (config/temtx/update role)
-    (let ((debit-acc-id (account-id (val debit-account)))
-          (credit-acc-id (account-id (val credit-account))))
+    (let ((debit-account-id (account-id (val debit-account)))
+          (credit-account-id (account-id (val credit-account))))
       (execute (:update 'temtx :set
                         'title (val title)
-                        'debit-acc-id debit-acc-id
-                        'credit-acc-id credit-acc-id
+                        'debit-account-id debit-account-id
+                        'credit-account-id credit-account-id
                         'customer-p (customer-p role)
                         'sign (val sign)
                         'propagated-p (val propagated-p)

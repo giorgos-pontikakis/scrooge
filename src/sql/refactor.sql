@@ -35,3 +35,9 @@ alter table tx add column temtx_id integer not null default -1;
 
 update tx set temtx_id = get_temtx(debit_acc_id, credit_acc_id);
 alter table tx alter column temtx_id drop default;
+
+
+alter table tx rename column debit_acc_id to debit_account_id;
+alter table tx rename column credit_acc_id to credit_account_id;
+alter table temtx rename column debit_acc_id to debit_account_id;
+alter table temtx rename column credit_acc_id to credit_account_id;
