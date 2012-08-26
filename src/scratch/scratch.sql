@@ -19,3 +19,6 @@ alter table cheque_stran rename column receivable_p to customer_p;
 
 insert into tx(tx_date, description, debit_acc_id, credit_acc_id, company_id, amount, temtx_id)
 values ('2012-9-25', 'foobar', 20, 5, 42,  99, 0);
+
+
+select * from account where chequing_p = 't';

@@ -133,7 +133,7 @@
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
-  (query (:select 'id 'title 'parent-id
+  (query (:select 'id 'title 'parent-id 'chequing-p
            :from 'account
            :where (:= 'debit-p (debit-p tree)))
          :plists))
@@ -172,6 +172,7 @@
 
 (defmethod payload ((node account-node) enabled-p)
   (make-instance 'textbox
+                 :css-class (if (getf (record node) :chequing-p) "chequing" "")
                  :name 'title
                  :value (getf (record node) :title)
                  :disabled (not enabled-p)))
