@@ -388,7 +388,7 @@
 
 (defpage cheque-stran-page config/cheque-stran/delete
     (("config/cheque-stran/" (role "(customer|supplier)") "/delete"))
-    ((cheque-stran-id integer chk-cheque-stran-id/ref t))
+    ((cheque-stran-id integer chk-cheque-stran-id t))
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :role role
