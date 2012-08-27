@@ -249,14 +249,16 @@
 ;;; label-input-text for forms
 
 (defun label-datum (disabled record styles)
-  (html (name label &key href default-value enabled-styles disabled-styles)
+  (html (name label &key href default-value enabled-styles disabled-styles common-styles)
     (let ((value (or (getf record (make-keyword name))
                      default-value))
           (all-styles (conc (getf styles (make-keyword name))
                             " "
                             (if disabled
                                 disabled-styles
-                                enabled-styles))))
+                                enabled-styles)
+                            " "
+                            common-styles)))
       (label name label)
       (if disabled
           (if href
@@ -269,4 +271,4 @@
           (input-text name
                       :value value
                       :disabled disabled
-                      :css-class (conc (getf styles (make-keyword name)) " " all-styles))))))
+                      :css-class all-styles)))))

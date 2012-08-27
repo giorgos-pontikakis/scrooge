@@ -305,25 +305,29 @@
                                                                  :debit-account-id))
                                                 root-key))))
     (with-html
-      (:div :id "invoice-data-form" :class "data-form"
-        (:div :class "grid_5 prefix_1 alpha"
-          (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
-                                              :default-value (today))
-          (display ldfn 'description "Περιγραφή")
-          (display ldfn 'company "Εταιρία"
-                   :enabled-styles "ac-company"
-                   :href (company/details :company-id (getf record :company-id)))
-          (display ldfn 'amount "Ποσό")
-          (unless disabled
-            (htm (:div :class "data-form-buttons"
-                   (ok-button :body (if (eql (op form) :update)
-                                        "Ανανέωση"
-                                        "Δημιουργία"))
-                   (cancel-button (cancel-url form)
-                                  :body "Άκυρο")))))
+      (:div :id "ci-data-form" :class "data-form"
+        (:div :class "grid_6 alpha"
+          (:div :class "left-column"
+            (:h3 "Στοιχεία Συναλλαγής")
+            (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
+                                                :default-value (today))
+            (display ldfn 'description "Περιγραφή"
+                     :common-styles "description")
+            (display ldfn 'company "Εταιρία"
+                     :enabled-styles "ac-company"
+                     :href (company/details :company-id (getf record :company-id))
+                     :common-styles "company")
+            (display ldfn 'amount "Ποσό"
+                     :common-styles "amount")
+            (unless disabled
+              (htm (:div :class "data-form-buttons"
+                     (ok-button :body (if (eql (op form) :update)
+                                          "Ανανέωση"
+                                          "Δημιουργία"))
+                     (cancel-button (cancel-url form)
+                                    :body "Άκυρο"))))))
         (:div :class "grid_5 omega"
-          (label 'account-id (conc "Λογαριασμός "
-                                   (if customer-p "εσόδων" "εξόδων")))
+          (:h3 (str (conc "Λογαριασμός " (if customer-p "χρέωσης" "πίστωσης"))))
           ;; Display the tree. If needed, preselect the first account of the tree.
           (display tree))
         (clear)))))

@@ -242,11 +242,32 @@
 
 
 /* ---------------------------------------------------------------------- */
-/* data-form additional styles  */
+/* ci (Cash-Invoice) data-form additional styles  */
 /* ---------------------------------------------------------------------- */
 
-#cash-data-form li.selected, #invoice-data-form li.selected {
+#ci-data-form h3 {
+    margin-top: 10px;
+}
+
+#ci-data-form li.selected {
     background-color: transparent;
+}
+
+#ci-data-form input.datepicker {
+    width: 80px;
+}
+
+#ci-data-form input.description,
+#ci-data-form input.company {
+    width: 350px;
+}
+
+#ci-data-form input.amount {
+    width: 40px;
+}
+
+#ci-data-form .left-column {
+    margin-left: 30px;
 }
 
 
