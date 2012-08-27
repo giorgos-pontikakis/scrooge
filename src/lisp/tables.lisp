@@ -194,7 +194,6 @@
   ((id            :col-type integer :reader   cheque-stran-id)
    (from-state-id :col-type string  :accessor from-state-id :initarg :from-state-id)
    (to-state-id   :col-type string  :accessor to-state-id   :initarg :to-state-id)
-   (customer-p    :col-type boolean :accessor customer-p    :initarg :customer-p)
    (title         :col-type string  :accessor title         :initarg :title)
    (temtx-id      :col-type integer :accessor temtx-id      :initarg :temtx-id))
   (:metaclass dao-class)

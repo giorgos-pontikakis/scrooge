@@ -51,17 +51,30 @@
 
 (defpage root-page autocomplete/temtx
     ("autocomplete/temtx" :content-type "text/plain"
-                          :parameter-groups '(:system (customer-p term)))
-    ((customer-p boolean nil t)
-     (term       string  nil t))
+                          :parameter-groups '(:system (customer-p term force-chequing-p)))
+    ((customer-p       boolean nil t)
+     (term             string  nil t)
+     (force-chequing-p boolean nil))
   (with-xhr-page (autocomplete-xhr-auth-error)
-    (let ((results (query (:select 'title
-                            :from 'temtx
-                            :where (:and (:= 'customer-p (val customer-p))
-                                         (:ilike 'title (ilike (val term)))))
-                          :column)))
-      (if results
-          (with-html-output (*standard-output* nil :indent nil :prologue nil)
-            (write-json (coerce results 'vector)))
-          (with-html-output (*standard-output* nil :indent nil :prologue nil)
-            "[]")))))
+    (let ((sql (if (val force-chequing-p)
+                   `(:select temtx.title
+                      :from temtx
+                      :inner-join (:as account debit-account)
+                      :on (:= debit-account.id temtx.debit-account-id)
+                      :inner-join (:as account credit-account)
+                      :on (:= credit-account.id temtx.credit-account-id)
+                      :where (:and (:= customer-p ,(val customer-p))
+                                   (:ilike temtx.title ,(ilike (val term)))
+                                   (:or (:= debit-account.chequing-p t)
+                                        (:= credit-account.chequing-p t))))
+                   `(:select temtx.title
+                      :from temtx
+                      :where (:and (:= customer-p ,(val customer-p))
+                                   (:ilike temtx.title ,(ilike (val term))))))))
+      (let ((results (query (sql-compile sql)
+                            :column)))
+        (if results
+            (with-html-output (*standard-output* nil :indent nil :prologue nil)
+              (write-json (coerce results 'vector)))
+            (with-html-output (*standard-output* nil :indent nil :prologue nil)
+              "[]"))))))
