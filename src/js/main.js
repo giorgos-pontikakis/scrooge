@@ -52,19 +52,20 @@ function applyAutocomplete () {
       $(".ac-" + id).autocomplete(options);
    }
    var isCustomer = (window.location.pathname.match(/customer/i) !== null);
-   $(".ac-temtx").autocomplete({source: "/scrooge/autocomplete/temtx?customer-p=" + isCustomer});
-
+   var acTemtxPath = "/scrooge/autocomplete/temtx?customer-p="
+   $(".ac-temtx").autocomplete({source: acTemtxPath + isCustomer});
+   $(".ac-temtx-chq").autocomplete({source: acTemtxPath + isCustomer});
 }
 
 
 function selectableRows () {
 
    // crud-table
-   $(".crud-table input").click(function (e){
+   $(".crud-table input").click(function (e) {
       e.stopPropagation();
    });
 
-   $(".crud-table select").click(function (e){
+   $(".crud-table select").click(function (e) {
       e.stopPropagation();
    });
 

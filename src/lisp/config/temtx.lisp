@@ -49,6 +49,7 @@
 ;;; ----------------------------------------------------------------------
 
 (define-existence-predicate temtx-exists-p temtx id)
+(define-existence-predicate temtx-exists-p temtx id)
 
 (defun temtx-conflict-account-ids (debit-account-id credit-account-id propagated-p id)
   (with-db ()
@@ -88,6 +89,15 @@
   (or (referenced-by temtx-id 'cheque-stran 'temtx-id)
       (referenced-by temtx-id 'tx 'temtx-id)))
 
+(flet ((temtx-title-existence-query ()
+         (let ((temtx-table (if force-chequing-p 'temtx-chq 'temtx)))
+          (if id
+              `(:select 1 :from temtx-table :where (:and (:= 'customer-p customer-p)
+                                                         (:= 'title title)
+                                                         (:not (:= 'id id))))
+              `(:select 1 :from temtx-table :where (:and (:= 'title title)
+                                                         (:= 'customer-p customer-p))))))))
+
 (defun temtx-title-exists-p (title customer-p &optional id)
   (with-db ()
     (if id
@@ -111,6 +121,14 @@
 
 (defun chk-temtx-title (title customer-p)
   (cond ((temtx-title-exists-p title customer-p)
+         nil)
+        ((eql title :null)
+         :temtx-title-null)
+        (t
+         :temtx-title-unknown)))
+
+(defun chk-temtx-chq-title (title customer-p)
+  (cond ((temtx-chq-title-exists-p title customer-p)
          nil)
         ((eql title :null)
          :temtx-title-null)

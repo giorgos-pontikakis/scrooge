@@ -137,7 +137,7 @@
                              nil))
                        from-state-id to-state-id)
   (validate-parameters (lambda (temtx)
-                         (chk-temtx-title temtx (customer-p role)))
+                         (chk-temtx-chq-title temtx (customer-p role)))
                        temtx)
   nil)
 
@@ -220,7 +220,7 @@
           (make-instance 'textbox
                          :name 'temtx
                          :value (getf record :temtx)
-                         :css-class "ac-temtx"
+                         :css-class "ac-temtx-chq"
                          :disabled disabled))))
 
 (defmethod controls ((row cheque-stran-row) enabled-p)
@@ -307,7 +307,6 @@
      (to-state-id   string chk-cheque-state-id)
      (temtx         string))
   (check-cheque-stran-parameters from-state-id to-state-id role temtx)
-  (validate-parameters #'chk-temtx-title temtx (customer-p role))
   (with-controller-page (config/cheque-stran/create role)
     (let* ((temtx-id (temtx-id (val temtx)))
            (new-cheque-stran (make-instance 'cheque-stran
@@ -332,7 +331,6 @@
      (to-state-id     string  chk-cheque-state-id)
      (temtx           string))
   (check-cheque-stran-parameters from-state-id to-state-id role temtx cheque-stran-id)
-  (validate-parameters #'chk-temtx-title temtx (customer-p role))
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :role role
@@ -368,7 +366,6 @@
      (to-state-id     string  chk-cheque-state-id)
      (temtx           string))
   (check-cheque-stran-parameters from-state-id to-state-id role temtx cheque-stran-id)
-  (validate-parameters #'chk-temtx-title temtx (customer-p role))
   (with-controller-page (config/cheque-stran/update role)
     (let ((temtx-id (temtx-id (val temtx))))
       (execute (:update 'cheque-stran :set

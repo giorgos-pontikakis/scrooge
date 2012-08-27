@@ -56,21 +56,12 @@
      (term             string  nil t)
      (force-chequing-p boolean nil))
   (with-xhr-page (autocomplete-xhr-auth-error)
-    (let ((sql (if (val force-chequing-p)
-                   `(:select temtx.title
-                      :from temtx
-                      :inner-join (:as account debit-account)
-                      :on (:= debit-account.id temtx.debit-account-id)
-                      :inner-join (:as account credit-account)
-                      :on (:= credit-account.id temtx.credit-account-id)
-                      :where (:and (:= customer-p ,(val customer-p))
-                                   (:ilike temtx.title ,(ilike (val term)))
-                                   (:or (:= debit-account.chequing-p t)
-                                        (:= credit-account.chequing-p t))))
-                   `(:select temtx.title
-                      :from temtx
-                      :where (:and (:= customer-p ,(val customer-p))
-                                   (:ilike temtx.title ,(ilike (val term))))))))
+    ;; When force-chequing-p is true, we return temtxs
+    ;; that reference at least one chequing account
+    (let ((sql `(:select temtx.title
+                  :from ,(if (val force-chequing-p) 'temtx-chq 'temtx)
+                  :where (:and (:= customer-p ,(val customer-p))
+                               (:ilike temtx.title ,(ilike (val term)))))))
       (let ((results (query (sql-compile sql)
                             :column)))
         (if results

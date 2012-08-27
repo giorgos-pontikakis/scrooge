@@ -164,3 +164,17 @@ create trigger temtx_update_guard_trigger
 before update
 on temtx for each row
 execute procedure temtx_update_guard();
+
+
+
+create or replace view temtx_chq as
+select temtx.id, temtx.title, temtx.debit_account_id,
+       temtx.credit_account_id, temtx.customer_p,
+       temtx.propagated_p, temtx.sign
+from temtx
+inner join account as debit_account
+on debit_account.id = temtx.debit_account_id
+inner join account as credit_account
+on credit_account.id = temtx.credit_account_id
+where
+(debit_account.chequing_p = 't') or (credit_account.chequing_p = 't');
