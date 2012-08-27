@@ -30,8 +30,8 @@
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
             "[]")))))
 
-(defpage root-page autocomplete-accounts
-    ("autocomplete-accounts" :content-type "text/plain"
+(defpage root-page autocomplete/accounts
+    ("autocomplete/accounts" :content-type "text/plain"
                              :parameter-groups '(:system (root term)))
     ((root symbol nil t)
      (term string nil t))
@@ -49,8 +49,8 @@
           (with-html-output (*standard-output* nil :indent nil :prologue nil)
             "[]")))))
 
-(defpage root-page autocomplete-temtx
-    ("autocomplete-temtx" :content-type "text/plain"
+(defpage root-page autocomplete/temtx
+    ("autocomplete/temtx" :content-type "text/plain"
                           :parameter-groups '(:system (customer-p term)))
     ((customer-p boolean nil t)
      (term       string  nil t))

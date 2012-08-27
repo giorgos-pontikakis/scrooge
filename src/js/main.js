@@ -48,11 +48,11 @@ function applyAutocomplete () {
    for (var i = 0; i < autocompleteAccountIDs.length; i++) {
       id = autocompleteAccountIDs[i][0];
       root = autocompleteAccountIDs[i][1];
-      options.source = "/scrooge/autocomplete-accounts?root=" + root;
+      options.source = "/scrooge/autocomplete/accounts?root=" + root;
       $(".ac-" + id).autocomplete(options);
    }
    var isCustomer = (window.location.pathname.match(/customer/i) !== null);
-   $(".ac-temtx").autocomplete({source: "/scrooge/autocomplete-temtx?customer-p=" + isCustomer});
+   $(".ac-temtx").autocomplete({source: "/scrooge/autocomplete/temtx?customer-p=" + isCustomer});
 
 }
 
