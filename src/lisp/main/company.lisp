@@ -237,7 +237,6 @@
           (label 'notes "Σημειώσεις")
           (:textarea :name 'notes :disabled disabled
             (str (lisp->html (or (getf record :notes) :null))))))
-
       (:div :class "data-form-buttons"
         (unless disabled
           (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))

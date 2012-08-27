@@ -139,6 +139,9 @@
   (validate-parameters (lambda (temtx)
                          (chk-temtx-title temtx (customer-p role)))
                        temtx)
+  (validate-parameters (lambda (from to)
+                         (or ()))
+                       from-state-id to-state-id)
   nil)
 
 
@@ -164,7 +167,7 @@
                       :from 'cheque-stran
                       :inner-join 'temtx
                       :on (:= 'temtx-id 'temtx.id)
-                      :where (:= 'customer-p (customer-p (role table))))
+                      :where (:= 'cheque-stran.customer-p (customer-p (role table))))
                     'cheque-stran.title)
          :plists))
 
