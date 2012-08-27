@@ -31,7 +31,8 @@
        (:temtx-title-null
         "Η περιγραφή της Πρότυπης Συναλλαγής είναι κενή."
         :temtx-title-unknown
-        "Δεν έχει οριστεί Πρότυπη Συναλλαγή με αυτή την περιγραφή."))))))
+        "Δεν έχει οριστεί Πρότυπη Συναλλαγή που αναφέρεται σε
+        λογαριασμό επιταγών και έχει αυτή την περιγραφή."))))))
 
 (defun cheque-stran-top-actions (op)
   (top-actions-area
@@ -90,8 +91,9 @@
   (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
-        ;; foobar
         (query (:select 1 :from 'cheque-stran
+                 :inner-join 'temtx
+                 :on (:= 'temtx-id 'temtx.id)
                  :where (:and (:= 'from-state-id from-state-id)
                               (:= 'to-state-id to-state-id)
                               (:= 'customer-p (customer-p role))))
@@ -102,6 +104,8 @@
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
+                 :inner-join 'temtx
+                 :on (:= 'temtx-id 'temtx.id)
                  :where (:and (:= 'from-state-id from-state-id)
                               (:= 'to-state-id to-state-id)
                               (:= 'customer-p (customer-p role))
@@ -164,7 +168,7 @@
                       :from 'cheque-stran
                       :inner-join 'temtx
                       :on (:= 'temtx-id 'temtx.id)
-                      :where (:= 'temtx.customer-p (customer-p (role table))))
+                      :where (:= 'customer-p (customer-p (role table))))
                     'cheque-stran.title)
          :plists))
 
@@ -384,7 +388,7 @@
 
 (defpage cheque-stran-page config/cheque-stran/delete
     (("config/cheque-stran/" (role "(customer|supplier)") "/delete"))
-    ((cheque-stran-id integer chk-cheque-stran-id t))
+    ((cheque-stran-id integer chk-cheque-stran-id/ref t))
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :role role

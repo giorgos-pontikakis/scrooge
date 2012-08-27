@@ -54,7 +54,7 @@ function applyAutocomplete () {
    var isCustomer = (window.location.pathname.match(/customer/i) !== null);
    var acTemtxPath = "/scrooge/autocomplete/temtx?customer-p="
    $(".ac-temtx").autocomplete({source: acTemtxPath + isCustomer});
-   $(".ac-temtx-chq").autocomplete({source: acTemtxPath + isCustomer});
+   $(".ac-temtx-chq").autocomplete({source: acTemtxPath + isCustomer + "&force-chequing-p=true"});
 }
 
 

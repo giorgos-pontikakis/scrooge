@@ -49,7 +49,6 @@
 ;;; ----------------------------------------------------------------------
 
 (define-existence-predicate temtx-exists-p temtx id)
-(define-existence-predicate temtx-exists-p temtx id)
 
 (defun temtx-conflict-account-ids (debit-account-id credit-account-id propagated-p id)
   (with-db ()
@@ -89,26 +88,22 @@
   (or (referenced-by temtx-id 'cheque-stran 'temtx-id)
       (referenced-by temtx-id 'tx 'temtx-id)))
 
-(flet ((temtx-title-existence-query ()
+(flet ((temtx-title-existence-query (title customer-p id force-chequing-p)
          (let ((temtx-table (if force-chequing-p 'temtx-chq 'temtx)))
-          (if id
-              `(:select 1 :from temtx-table :where (:and (:= 'customer-p customer-p)
-                                                         (:= 'title title)
-                                                         (:not (:= 'id id))))
-              `(:select 1 :from temtx-table :where (:and (:= 'title title)
-                                                         (:= 'customer-p customer-p))))))))
-
-(defun temtx-title-exists-p (title customer-p &optional id)
-  (with-db ()
-    (if id
-        (query
-         (:select 1 :from 'temtx :where (:and (:= 'customer-p customer-p)
-                                              (:= 'title title)
-                                              (:not (:= 'id id))))
-         :single)
-        (query (:select 1 :from 'temtx :where (:and (:= 'title title)
-                                                    (:= 'customer-p customer-p)))
-               :single))))
+           (if id
+               `(:select 1 :from ,temtx-table :where (:and (:= customer-p ,customer-p)
+                                                           (:= title ,title)
+                                                           (:not (:= id ,id))))
+               `(:select 1 :from ,temtx-table :where (:and (:= title ,title)
+                                                           (:= customer-p ,customer-p)))))))
+  (defun temtx-title-exists-p (title customer-p &optional id)
+    (with-db ()
+      (query (sql-compile (temtx-title-existence-query title customer-p id nil))
+             :single)))
+  (defun temtx-chq-title-exists-p (title customer-p &optional id)
+    (with-db ()
+      (query (sql-compile (temtx-title-existence-query title customer-p id t))
+             :single))))
 
 (defun chk-temtx-id (temtx-id)
   (if (temtx-exists-p temtx-id)

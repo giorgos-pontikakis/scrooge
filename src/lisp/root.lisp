@@ -58,10 +58,10 @@
   (with-xhr-page (autocomplete-xhr-auth-error)
     ;; When force-chequing-p is true, we return temtxs
     ;; that reference at least one chequing account
-    (let ((sql `(:select temtx.title
+    (let ((sql `(:select title
                   :from ,(if (val force-chequing-p) 'temtx-chq 'temtx)
                   :where (:and (:= customer-p ,(val customer-p))
-                               (:ilike temtx.title ,(ilike (val term)))))))
+                               (:ilike title ,(ilike (val term)))))))
       (let ((results (query (sql-compile sql)
                             :column)))
         (if results
