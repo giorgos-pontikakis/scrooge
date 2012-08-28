@@ -146,7 +146,6 @@
 /* ---------------------------------------------------------------------- */
 /* Company-Cheque Table */
 /* ---------------------------------------------------------------------- */
-
 #company-cheque-table td:nth-child(5), #company-cheque-table th:nth-child(5)
 {
     width: 70px;
@@ -303,6 +302,26 @@
 /* cheque-table */
 /* ---------------------------------------------------------------------- */
 
+#cheque-table td:nth-child(2), #cheque-table th:nth-child(2)
+{
+    width: 80px;
+    text-align: right;
+}
+#cheque-table td:nth-child(2) input {
+    width: 70px;
+    text-align: right;
+}
+
+#cheque-table td:nth-child(5), #cheque-table th:nth-child(5)
+{
+    width: 80px;
+    text-align: right;
+}
+#cheque-table td:nth-child(5) input {
+    width: 70px;
+    text-align: right;
+}
+
 #cheque-table td:nth-child(6), #cheque-table th:nth-child(6)
 {
     width: 60px;
@@ -356,7 +375,7 @@
 
 #tx-table td:nth-child(3) input,
 #tx-table td:nth-child(4) input {
-    width: 160px;
+    width: 165px;
 }
 
 #tx-table td:nth-child(5), #tx-table th:nth-child(5),
@@ -368,7 +387,7 @@
 #tx-table td:nth-child(5) input,
 #tx-table td:nth-child(6) input
 {
-    width: 118px;
+    width: 122px;
 }
 
 #tx-table td:nth-child(7), #tx-table th:nth-child(7)
