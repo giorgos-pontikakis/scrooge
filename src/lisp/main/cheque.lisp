@@ -335,7 +335,9 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row cheque-row) enabled-p)
-  (let ((record (record row)))
+  (let* ((record (record row))
+         (following (following-cheque-states (getf record :state-id)
+                                             (getf record :customer-p))))
     (list (make-instance 'textbox
                          :name 'serial
                          :value (getf record :serial)
@@ -359,7 +361,10 @@
           (make-instance 'textbox
                          :name 'amount
                          :value (fmt-amount (getf record :amount))
-                         :disabled (not enabled-p)))))
+                         :disabled (not enabled-p))
+          (make-instance 'dropdown
+                         :name 'state-id
+                         :value-label-alist (acons "nil" "" following)))))
 
 (defmethod controls ((row cheque-row) controls-p)
   (let* ((cheque-id (key row))
@@ -581,14 +586,11 @@
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
-           (cheque-form (make-instance 'cheque-form
-                                       :role role
-                                       :op :update
-                                       :key (val cheque-id)
-                                       :cancel-url (apply #'cheque/details
-                                                          role
-                                                          :cheque-id (val cheque-id)
-                                                          filter)))
+           (cheque-table (make-instance 'cheque-table
+                                        :role role
+                                        :op :update
+                                        :selected-key (val cheque-id)
+                                        :filter filter))
            (page-title (cheque-page-title role "Επεξεργασία")))
       (with-document ()
         (:head
@@ -602,7 +604,7 @@
             (:div :class "grid_12"
               (:div :id "cheque-window" :class "window"
                 (:p :class "title" (str page-title))
-                (actions cheque-form :filter filter)
+                (actions cheque-table)
                 (notifications)
                 (with-form (actions/cheque/update role
                                                   :cheque-id (val cheque-id)
@@ -610,7 +612,7 @@
                                                   :since (val since)
                                                   :until (val until)
                                                   :cstate (val cstate))
-                  (display cheque-form :payload (params->payload)))))
+                  (display cheque-table :payload (params->payload)))))
             (footer)))))))
 
 (defpage cheque-page actions/cheque/update
