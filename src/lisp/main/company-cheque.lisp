@@ -397,7 +397,7 @@
                                      :due-date (val due-date)
                                      :amount (val amount)
                                      :customer-p (customer-p role)
-                                     :state-id *default-cheque-state*)))
+                                     :state-id *default-cheque-state-id*)))
       (insert-dao new-cheque)
       (see-other (apply #'company/cheque role :company-id (val company-id)
                                               :cheque-id (cheque-id new-cheque)
