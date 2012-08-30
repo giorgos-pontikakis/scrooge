@@ -233,7 +233,7 @@
                         :on (:= company.id cheque.company-id)
                         :inner-join cheque-state
                         :on (:= cheque-state.id cheque.state-id)))
-         (sort-order (if (string= cstate *default-cheque-state*)
+         (sort-order (if (string= cstate *default-cheque-state-id*)
                          '(due-date company)
                          '((:desc 'due-date) company)))
          (where nil))
@@ -375,7 +375,7 @@
               (make-instance 'textbox
                              :name 'state-id
                              :value (or (getf record :state-description)
-                                        (description (get-dao 'cheque-state *default-cheque-state*)))
+                                        (description (get-dao 'cheque-state *default-cheque-state-id*)))
                              :disabled (not (eql (op (collection row)) :update)))))))
 
 (defmethod controls ((row cheque-row) controls-p)
@@ -571,7 +571,8 @@
                                      :company-id (company-id (val company))
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :customer-p (customer-p role))))
+                                     :customer-p (customer-p role)
+                                     :state-id *default-cheque-state-id*)))
       (insert-dao new-cheque)
       (see-other (apply #'cheque role :cheque-id (cheque-id new-cheque) (params->filter))))))
 

@@ -29,7 +29,7 @@
               :from 'cheque-state)))))
 
 (defparameter *default-project-state-id* "quoted")
-(defparameter *default-cheque-state* "pending")
+(defparameter *default-cheque-state-id* "pending")
 (defparameter *company-tx-significant-amount* 1.0)
 
 

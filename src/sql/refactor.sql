@@ -41,3 +41,5 @@ alter table tx rename column debit_acc_id to debit_account_id;
 alter table tx rename column credit_acc_id to credit_account_id;
 alter table temtx rename column debit_acc_id to debit_account_id;
 alter table temtx rename column credit_acc_id to credit_account_id;
+
+\d cheque_stran
