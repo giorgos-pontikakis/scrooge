@@ -185,10 +185,10 @@
 ;;; CHEQUES
 
 (defclass cheque-state ()
-  ((state       :col-type string :reader   state)
+  ((id          :col-type string :reader   id)
    (description :col-type string :accessor description :initarg :description))
   (:metaclass dao-class)
-  (:keys state))
+  (:keys id))
 
 (defclass cheque-stran ()
   ((id            :col-type integer :reader   cheque-stran-id)

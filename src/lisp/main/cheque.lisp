@@ -165,18 +165,21 @@
                                                         :format tstamp-format)))))))
 
             (when (and following (not disabled))
-              (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id
-                                                       (acons "nil" "" following))))))
+              (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id following)))))
           (clear))))))
 
 (defun following-cheque-states (from-state-id customer-p)
   (lists->alist
-   (query (:select 'cheque-stran.to-state-id 'cheque-state.description
-            :from 'cheque-stran
-            :inner-join 'cheque-state
-            :on (:= 'cheque-stran.to-state-id 'cheque-state.id)
-            :where (:and (:= 'from-state-id from-state-id)
-                         (:= 'customer-p customer-p))))))
+   (query (:select 'cheque-state.id 'cheque-state.description
+            :from 'cheque-state
+            :inner-join 'cheque-stran
+            :on (:= 'cheque-state.id 'cheque-stran.to-state-id)
+            :inner-join 'temtx
+            :on (:= 'cheque-stran.temtx-id 'temtx.id)
+            :where (:or (:and (:= 'cheque-stran.from-state-id from-state-id)
+                              (:= 'temtx.customer-p customer-p))
+                        (:and (:= 'cheque-state.id from-state-id)
+                              (:= 'temtx.customer-p customer-p)))))))
 
 (defmethod get-record ((form cheque-form))
   (if-let (cheque-id (key form))
@@ -221,12 +224,15 @@
          (customer-p (customer-p (role table)))
          (base-query `(:select cheque.id (:as bank.title bank) serial state-id
                         (:as company.title company) company-id
+                        (:as cheque-state.description state-description)
                         due-date amount customer-p
                         :from cheque
                         :left-join bank
                         :on (:= bank.id cheque.bank-id)
                         :inner-join company
-                        :on (:= company.id cheque.company-id)))
+                        :on (:= company.id cheque.company-id)
+                        :inner-join cheque-state
+                        :on (:= cheque-state.id cheque.state-id)))
          (sort-order (if (string= cstate *default-cheque-state*)
                          '(due-date company)
                          '((:desc 'due-date) company)))
@@ -335,9 +341,7 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row cheque-row) enabled-p)
-  (let* ((record (record row))
-         (following (following-cheque-states (getf record :state-id)
-                                             (getf record :customer-p))))
+  (let* ((record (record row)))
     (list (make-instance 'textbox
                          :name 'serial
                          :value (getf record :serial)
@@ -362,9 +366,17 @@
                          :name 'amount
                          :value (fmt-amount (getf record :amount))
                          :disabled (not enabled-p))
-          (make-instance 'dropdown
-                         :name 'state-id
-                         :value-label-alist (acons "nil" "" following)))))
+          (if (and enabled-p (eql (op (collection row)) :update))
+              (make-instance 'dropdown
+                             :name 'state-id
+                             :selected (getf record :state-id)
+                             :value-label-alist (following-cheque-states (getf record :state-id)
+                                                                         (getf record :customer-p)))
+              (make-instance 'textbox
+                             :name 'state-id
+                             :value (or (getf record :state-description)
+                                        (description (get-dao 'cheque-state *default-cheque-state*)))
+                             :disabled (not (eql (op (collection row)) :update)))))))
 
 (defmethod controls ((row cheque-row) controls-p)
   (let* ((cheque-id (key row))
@@ -559,8 +571,7 @@
                                      :company-id (company-id (val company))
                                      :due-date (val due-date)
                                      :amount (val amount)
-                                     :customer-p (customer-p role)
-                                     :state-id *default-cheque-state*)))
+                                     :customer-p (customer-p role))))
       (insert-dao new-cheque)
       (see-other (apply #'cheque role :cheque-id (cheque-id new-cheque) (params->filter))))))
 
@@ -633,10 +644,7 @@
   (with-controller-page (cheque/update role)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
            (old-state-id (state-id cheque-dao))
-           (new-state-id (if (or (string= "nil" (val state-id)) ; form with following states; no change
-                                 (null (val state-id)))         ; no following states
-                             old-state-id                       ; unchanged
-                             (val state-id))))
+           (new-state-id (val state-id)))
       (setf (bank-id cheque-dao) (bank-id (val bank))
             (company-id cheque-dao) (company-id (val company))
             (due-date cheque-dao) (val due-date)
