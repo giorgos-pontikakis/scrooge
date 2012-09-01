@@ -213,15 +213,12 @@
                           :value (or (getf record :tx-date) (today))
                           :disabled (not enabled-p)
                           :css-class (if enabled-p (getf css-class 'tx-date) nil))
-           (if (member (op (collection row)) '(:create :update))
-               (make-instance 'textbox
-                              :name 'company
-                              :value (getf record :company)
-                              :disabled (not enabled-p)
-                              :css-class (if enabled-p (getf css-class 'company) nil))
-               (html ()
-                 (:a :href (company/details :company-id (getf record :company-id))
-                   (str (getf record :company)))))
+           (make-instance 'textbox
+                          :name 'company
+                          :value (getf record :company)
+                          :disabled (not enabled-p)
+                          :css-class (if enabled-p (getf css-class 'company) nil)
+                          :href (company/details :company-id (getf record :company-id)))
            (append (mapcar (lambda (name)
                              (make-instance 'textbox
                                             :name name

@@ -22,3 +22,9 @@ values ('2012-9-25', 'foobar', 20, 5, 42,  99, 0);
 
 
 select * from account where chequing_p = 't';
+
+
+select cheque.id, cheque.customer_p from cheque
+left join cheque_event
+on cheque_event.cheque_id = cheque.id
+where cheque_event.from_state_id = 'nil';

@@ -192,20 +192,20 @@
 
 (defclass cheque-stran ()
   ((id            :col-type integer :reader   cheque-stran-id)
+   (title         :col-type string  :accessor title         :initarg :title)
    (from-state-id :col-type string  :accessor from-state-id :initarg :from-state-id)
    (to-state-id   :col-type string  :accessor to-state-id   :initarg :to-state-id)
-   (title         :col-type string  :accessor title         :initarg :title)
+   (customer-p    :col-type boolean :accessor customer-p    :initarg :customer-p)
    (temtx-id      :col-type integer :accessor temtx-id      :initarg :temtx-id))
   (:metaclass dao-class)
   (:keys id))
 
 (defclass cheque-event ()
-  ((id            :col-type integer     :reader   id)
-   (tstamp        :col-type timestamp   :accessor tstamp        :initarg :tstamp)
-   (cheque-id     :col-type integer     :accessor cheque-id     :initarg :cheque-id)
-   (tx-id         :col-type integer     :accessor tx-id         :initarg :tx-id)
-   (from-state-id :col-type (string 32) :accessor from-state-id :initarg :from-state-id)
-   (to-state-id   :col-type (string 32) :accessor to-state-id   :initarg :to-state-id))
+  ((id              :col-type integer   :reader   id)
+   (tstamp          :col-type timestamp :accessor tstamp          :initarg :tstamp)
+   (cheque-id       :col-type integer   :accessor cheque-id       :initarg :cheque-id)
+   (tx-id           :col-type integer   :accessor tx-id           :initarg :tx-id)
+   (cheque-stran-id :col-type integer   :accessor cheque-stran-id :initarg :cheque-stran-id))
   (:metaclass dao-class)
   (:keys id))
 
@@ -218,7 +218,7 @@
    (customer-p   :col-type boolean       :accessor customer-p   :initarg :customer-p)
    (state-id     :col-type (string 32)   :accessor state-id     :initarg :state-id)
    (serial       :col-type (string 16)   :accessor serial       :initarg :serial)
-   (old-state-id :accessor old-state-id  :initarg  :old-state-id))
+   (old-state-id :accessor old-state-id  :initarg  :old-state-id)) ;; not in the database
   (:metaclass dao-class)
   (:keys id))
 
@@ -241,8 +241,7 @@
       (insert-dao (make-instance 'cheque-event
                                  :tstamp (now)
                                  :cheque-id (cheque-id dao)
-                                 :from-state-id (from-state-id cheque-stran)
-                                 :to-state-id (to-state-id cheque-stran)
+                                 :cheque_stran-id (id cheque-stran)
                                  :tx-id (tx-id new-tx)))
       dao)))
 
@@ -265,8 +264,7 @@
         (insert-dao (make-instance 'cheque-event
                                    :tstamp (now)
                                    :cheque-id (cheque-id cheque-dao)
-                                   :from-state-id (from-state-id cheque-stran)
-                                   :to-state-id (to-state-id cheque-stran)
+                                   :cheque-stran-id (id cheque-stran)
                                    :tx-id (tx-id new-tx)))))
     ;; In any case, update cheque's data
     (call-next-method)

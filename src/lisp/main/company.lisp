@@ -391,11 +391,11 @@
 (defmethod payload ((row company-row) enabled-p)
   (let ((record (record row)))
     (list*
-     (html ()
-       (:a :href (apply #'company/details
-                        :company-id (key row)
-                        (filter (collection row)))
-         (str (lisp->html (getf record :title)))))
+     (make-instance 'textbox
+                    :name 'company
+                    :value (getf record :title)
+                    :disabled (not enabled-p)
+                    :href (apply #'company/details :company-id (key row) (filter (collection row))))
      (mapcar (lambda (name)
                (make-instance 'textbox
                               :name name

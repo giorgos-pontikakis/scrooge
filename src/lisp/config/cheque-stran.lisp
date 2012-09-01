@@ -92,8 +92,6 @@
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
-                 :inner-join 'temtx
-                 :on (:= 'temtx-id 'temtx.id)
                  :where (:and (:= 'from-state-id from-state-id)
                               (:= 'to-state-id to-state-id)
                               (:= 'customer-p (customer-p role))))
@@ -104,8 +102,6 @@
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
-                 :inner-join 'temtx
-                 :on (:= 'temtx-id 'temtx.id)
                  :where (:and (:= 'from-state-id from-state-id)
                               (:= 'to-state-id to-state-id)
                               (:= 'customer-p (customer-p role))
@@ -168,7 +164,7 @@
                       :from 'cheque-stran
                       :inner-join 'temtx
                       :on (:= 'temtx-id 'temtx.id)
-                      :where (:= 'customer-p (customer-p (role table))))
+                      :where (:= 'cheque-stran.customer-p (customer-p (role table))))
                     'cheque-stran.title)
          :plists))
 
@@ -317,6 +313,7 @@
                                             :title (val title)
                                             :from-state-id (val from-state-id)
                                             :to-state-id (val to-state-id)
+                                            :customer-p (customer-p role)
                                             :temtx-id temtx-id)))
       (insert-dao new-cheque-stran)
       (see-other (config/cheque-stran role :cheque-stran-id (cheque-stran-id new-cheque-stran))))))

@@ -174,12 +174,10 @@
             :from 'cheque-state
             :inner-join 'cheque-stran
             :on (:= 'cheque-state.id 'cheque-stran.to-state-id)
-            :inner-join 'temtx
-            :on (:= 'cheque-stran.temtx-id 'temtx.id)
             :where (:or (:and (:= 'cheque-stran.from-state-id from-state-id)
-                              (:= 'temtx.customer-p customer-p))
+                              (:= 'cheque-stran.customer-p customer-p))
                         (:and (:= 'cheque-state.id from-state-id)
-                              (:= 'temtx.customer-p customer-p)))))))
+                              (:= 'cheque-stran.customer-p customer-p)))))))
 
 (defmethod get-record ((form cheque-form))
   (if-let (cheque-id (key form))
@@ -408,9 +406,9 @@
 (defpage cheque-page actions/cheque/search
     (("actions/cheque/" (role "(customer|supplier)") "/search") :request-type :get)
     ((search string)
-     (cstate    string  chk-cheque-state-id)
-     (since     date    chk-date)
-     (until     date    chk-date))
+     (cstate string chk-cheque-state-id)
+     (since  date   chk-date)
+     (until  date   chk-date))
   (with-db ()
     (let* ((filter (params->filter))
            (rows (rows (make-instance 'cheque-table

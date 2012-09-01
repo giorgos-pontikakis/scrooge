@@ -351,13 +351,13 @@
   (let ((record (record row)))
     (let ((list (list
                  (html ()
-                   (:a :href (apply #'project/details
-                                    :project-id (key row)
-                                    (filter (collection row)))
-                     (str (lisp->html (getf record :description)))))
+                   (:p (:a :href (apply #'project/details
+                                        :project-id (key row)
+                                        (filter (collection row)))
+                         (str (lisp->html (getf record :description))))))
                  (html ()
-                   (:a :href (company/details :company-id (getf record :company-id))
-                     (str (getf record :company))))
+                   (:p (:a :href (company/details :company-id (getf record :company-id))
+                         (str (getf record :company)))))
                  (html ()
                    (str (lisp->html (fmt-amount (getf record :price) 0)))))))
       (unless (getf (filter (collection row)) :cstate)

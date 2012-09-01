@@ -88,15 +88,14 @@ ul.crud-tree {
     margin: -2px 0px -2px 0px;
 }
 
-.crud-table td span {
+.crud-table td p {
     display: block;
     padding: 0px 5px;
 }
 
-.crud-table td a {
-    display: block;
-    padding: 0px 5px;
-}
+/* .crud-table td a { */
+/*     padding: 0px 5px; */
+/* } */
 
 /* Hover effects - no form */
 
