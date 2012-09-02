@@ -95,6 +95,17 @@
 (defun cheque-page-title (role op-label)
   (conc "Επιταγές » " (if (customer-p role) "Εισπρακτέες" "Πληρωτέες") " » " op-label))
 
+(defun following-cheque-states (from-state-id customer-p)
+  (lists->alist
+   (query (:select 'cheque-state.id 'cheque-state.description
+            :from 'cheque-state
+            :inner-join 'cheque-stran
+            :on (:= 'cheque-state.id 'cheque-stran.to-state-id)
+            :where (:or (:and (:= 'cheque-stran.from-state-id from-state-id)
+                              (:= 'cheque-stran.customer-p customer-p))
+                        (:and (:= 'cheque-state.id from-state-id)
+                              (:= 'cheque-stran.customer-p customer-p)))))))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -123,98 +134,8 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Cheque form
-;;; ----------------------------------------------------------------------
-
-(defclass cheque-form (crud-form/plist)
-  ((role :accessor role :initarg :role)))
-
-(defmethod display ((form cheque-form) &key styles)
-  (let* ((record (record form))
-         (disabled (eql (op form) :details))
-         (ldfn (label-datum disabled record styles))
-         (events (get-cheque-events (getf record :id)))
-         (following (following-cheque-states (getf record :state-id)
-                                             (getf record :customer-p)))
-         (tstamp-format '((:day 2) #\- (:month 2) #\- (:year 4) " --- " (:hour 2) ":" (:min 2))))
-    (let ((*default-timezone* +greek-zone+))
-      (with-html
-        (:div :id "cheque-data-form" :class "data-form"
-          (:div :class "grid_5 prefix_1 alpha"
-            (display ldfn 'serial "Σειριακός Αριθμός")
-            (display ldfn 'due-date "Ημερομηνία" :enabled-styles "datepicker")
-            (display ldfn 'company "Εταιρία"
-                     :enabled-styles "ac-company"
-                     :href (company/details :company-id (getf record :company-id)))
-            (display ldfn 'bank "Τράπεζα" :enabled-styles "ac-bank")
-            (display ldfn 'amount "Ποσό")
-            (:div :class "data-form-buttons"
-              (unless disabled
-                (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-                (cancel-button (cancel-url form) :body "Άκυρο"))))
-          (:div :class "prefix_1 grid_4 omega"
-            (:table :class "crud-table"
-              (:thead (:tr (:th "Κατάσταση") (:th "Χρονικό σημείο αλλαγής")))
-              (iter
-                  (for ev in events)
-                    (htm (:tr
-                           (:td (str (assoc-value *cheque-states*
-                                                  (getf ev :to-state-id)
-                                                  :test #'string=)))
-                           (:td (str (format-timestring nil (getf ev :tstamp)
-                                                        :format tstamp-format)))))))
-
-            (when (and following (not disabled))
-              (htm (:p "Αλλαγή κατάστασης: " (dropdown 'state-id following)))))
-          (clear))))))
-
-(defun following-cheque-states (from-state-id customer-p)
-  (lists->alist
-   (query (:select 'cheque-state.id 'cheque-state.description
-            :from 'cheque-state
-            :inner-join 'cheque-stran
-            :on (:= 'cheque-state.id 'cheque-stran.to-state-id)
-            :where (:or (:and (:= 'cheque-stran.from-state-id from-state-id)
-                              (:= 'cheque-stran.customer-p customer-p))
-                        (:and (:= 'cheque-state.id from-state-id)
-                              (:= 'cheque-stran.customer-p customer-p)))))))
-
-(defmethod get-record ((form cheque-form))
-  (if-let (cheque-id (key form))
-    (query (:select 'cheque.id (:as 'bank.title 'bank)
-             'due-date (:as 'company.title 'company)
-             'amount 'customer-p 'state-id 'serial 'company-id
-             :from 'cheque
-             :left-join 'bank
-             :on (:= 'bank.id 'cheque.bank-id)
-             :inner-join 'company
-             :on (:= 'company.id 'cheque.company-id)
-             :where (:= 'cheque.id cheque-id))
-           :plist)
-    nil))
-
-(defmethod actions ((form cheque-form) &key filter)
-  (let* ((cheque-id (key form))
-         (role (role form))
-         (hrefs (list :update (apply #'cheque/update role :cheque-id cheque-id filter)
-                      :delete (apply #'cheque/delete role :cheque-id cheque-id filter))))
-    (actions-menu (make-menu-spec hrefs)
-                  (disabled-actions form))))
-
-
-
-;;; ----------------------------------------------------------------------
 ;;; Database interface
 ;;; ----------------------------------------------------------------------
-
-(defun get-cheque-events (cheque-id)
-  (query (:order-by (:select 'to-state-id 'tstamp
-                      :from 'cheque-event
-                      :inner-join 'cheque-stran
-                      :on (:= 'cheque-stran.id 'cheque-event.cheque-stran-id)
-                      :where (:= 'cheque-id cheque-id))
-                    'tstamp)
-         :plists))
 
 (defun get-cheque-records (table &optional company-id)
   (let* ((search (getf (filter table) :search))
