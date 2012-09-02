@@ -87,7 +87,7 @@
 
 ;;; post checks
 
-(defun cheque-stran-from/to/payable-exists-p/create (from-state-id to-state-id role)
+(defun cheque-stran-from/to/role-exists-p/create (from-state-id to-state-id role)
   (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
@@ -97,7 +97,7 @@
                               (:= 'customer-p (customer-p role))))
                :plists))))
 
-(defun cheque-stran-from/to/payable-exists-p/update (from-state-id to-state-id role cheque-stran-id)
+(defun cheque-stran-from/to/role-exists-p/update (from-state-id to-state-id role cheque-stran-id)
   (if (or (null from-state-id) (null to-state-id))
       nil
       (with-db ()
@@ -109,12 +109,12 @@
                :plists))))
 
 (defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id role)
-  (if (cheque-stran-from/to/payable-exists-p/create from-state-id to-state-id role)
+  (if (cheque-stran-from/to/role-exists-p/create from-state-id to-state-id role)
       :cheque-stran-from/to/payable-exists
       nil))
 
 (defun chk-cheque-stran-from/to/payable-exists/update (from-state-id to-state-id role cheque-stran-id)
-  (if (cheque-stran-from/to/payable-exists-p/update from-state-id to-state-id role cheque-stran-id)
+  (if (cheque-stran-from/to/role-exists-p/update from-state-id to-state-id role cheque-stran-id)
       :cheque-stran-from/to/payable-exists
       nil))
 
