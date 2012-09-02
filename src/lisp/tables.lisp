@@ -201,7 +201,7 @@
   (:keys id))
 
 (defclass cheque-event ()
-  ((id              :col-type integer   :reader   id)
+  ((id              :col-type integer   :reader   cheque-event-id)
    (tstamp          :col-type timestamp :accessor tstamp          :initarg :tstamp)
    (cheque-id       :col-type integer   :accessor cheque-id       :initarg :cheque-id)
    (tx-id           :col-type integer   :accessor tx-id           :initarg :tx-id)
@@ -241,7 +241,7 @@
       (insert-dao (make-instance 'cheque-event
                                  :tstamp (now)
                                  :cheque-id (cheque-id dao)
-                                 :cheque_stran-id (id cheque-stran)
+                                 :cheque-stran-id (cheque-stran-id cheque-stran)
                                  :tx-id (tx-id new-tx)))
       dao)))
 
@@ -264,7 +264,7 @@
         (insert-dao (make-instance 'cheque-event
                                    :tstamp (now)
                                    :cheque-id (cheque-id cheque-dao)
-                                   :cheque-stran-id (id cheque-stran)
+                                   :cheque-stran-id (cheque-stran-id cheque-stran)
                                    :tx-id (tx-id new-tx)))))
     ;; In any case, update cheque's data
     (call-next-method)

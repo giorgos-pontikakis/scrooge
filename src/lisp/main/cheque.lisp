@@ -210,6 +210,8 @@
 (defun get-cheque-events (cheque-id)
   (query (:order-by (:select 'to-state-id 'tstamp
                       :from 'cheque-event
+                      :inner-join 'cheque-stran
+                      :on (:= 'cheque-stran.id 'cheque-event.cheque-stran-id)
                       :where (:= 'cheque-id cheque-id))
                     'tstamp)
          :plists))
@@ -374,7 +376,7 @@
                              :name 'state-id
                              :value (or (getf record :state-description)
                                         (description (get-dao 'cheque-state *default-cheque-state-id*)))
-                             :disabled (not (eql (op (collection row)) :update)))))))
+                             :disabled t)))))
 
 (defmethod controls ((row cheque-row) controls-p)
   (let* ((cheque-id (key row))
@@ -536,6 +538,7 @@
             (header)
             (main-navbar 'cheque)
             (cheque-top-actions :create)
+            (filters cheque-table)
             (:div :class "grid_12"
               (:div :class "window"
                 (:div :class "title" (str page-title))
@@ -611,6 +614,7 @@
             (header)
             (main-navbar 'cheque)
             (cheque-top-actions :update)
+            (filters cheque-table)
             (:div :class "grid_12"
               (:div :id "cheque-window" :class "window"
                 (:p :class "title" (str page-title))
@@ -652,7 +656,7 @@
             (state-id cheque-dao) new-state-id
             (serial cheque-dao) (val serial))
       (update-dao cheque-dao)
-      (see-other (apply #'cheque/details role :cheque-id (val cheque-id) (params->filter))))))
+      (see-other (apply #'cheque role :cheque-id (val cheque-id) (params->filter))))))
 
 
 

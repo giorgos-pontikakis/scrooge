@@ -315,23 +315,33 @@
 #cheque-table td:nth-child(5), #cheque-table th:nth-child(5)
 {
     width: 80px;
-    text-align: right;
+    text-align: center;
 }
 #cheque-table td:nth-child(5) input {
     width: 70px;
-    text-align: right;
+    text-align: center;
 }
 
 #cheque-table td:nth-child(6), #cheque-table th:nth-child(6)
 {
-    width: 60px;
+    width: 65px;
     text-align: right;
 }
 
 #cheque-table td:nth-child(6) input
 {
-    width: 50px;
+    width: 55px;
     text-align: right;
+}
+
+#cheque-table td:nth-child(7), #cheque-table th:nth-child(7)
+{
+    width: 120px;
+}
+
+#cheque-table td:nth-child(7) select
+{
+    width: 110px;
 }
 
 
