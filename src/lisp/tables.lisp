@@ -2,16 +2,16 @@
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro define-surrogate-key-readers (table (&rest surrogate-key-types) &rest slots)
+  (defmacro define-alternate-key-readers (table (&rest alternate-key-types) &rest slots)
     `(progn
        ,@(mapcar (lambda (slot)
-                   `(defmethod ,slot ,surrogate-key-types
+                   `(defmethod ,slot ,alternate-key-types
                       (with-db ()
                         (,slot (select-dao-unique
                                    ',table
-                                   (:and ,@(mapcar (lambda (surrogate-key)
-                                                     `(:= ',surrogate-key ,surrogate-key))
-                                                   (mapcar #'first surrogate-key-types))))))))
+                                   (:and ,@(mapcar (lambda (alternate-key)
+                                                     `(:= ',alternate-key ,alternate-key))
+                                                   (mapcar #'first alternate-key-types))))))))
                  slots))))
 
 
@@ -33,7 +33,7 @@
   (:keys id)
   (:default-initargs :title nil))
 
-(define-surrogate-key-readers bank ((title string)) bank-id)
+(define-alternate-key-readers bank ((title string)) bank-id)
 
 (defmethod bank-id ((title (eql :null)))
   :null)
@@ -46,7 +46,7 @@
   (:keys id)
   (:default-initargs :title nil))
 
-(define-surrogate-key-readers tof ((title string)) tof-id)
+(define-alternate-key-readers tof ((title string)) tof-id)
 
 (defmethod tof-id ((title (eql :null)))
   :null)
@@ -59,7 +59,7 @@
   (:keys id)
   (:default-initargs :title nil))
 
-(define-surrogate-key-readers city ((title string)) city-id)
+(define-alternate-key-readers city ((title string)) city-id)
 
 (defmethod city-id ((title (eql :null)))
   :null)
@@ -90,7 +90,7 @@
 (defmethod account-id ((title (eql :null)))
   :null)
 
-(define-surrogate-key-readers account ((title string)) account-id)
+(define-alternate-key-readers account ((title string)) account-id)
 
 
 
@@ -119,7 +119,7 @@
 (defmethod company-id ((title (eql :null)))
   :null)
 
-(define-surrogate-key-readers company ((title string)) company-id)
+(define-alternate-key-readers company ((title string)) company-id)
 
 (defclass contact ()
   ((id         :col-type integer :reader   contact-id)
@@ -247,6 +247,7 @@
 
 (defmethod update-dao :around ((cheque-dao cheque))
   (with-transaction ()
+    ;; In case of state change, insert a corresponding tx and cheque-event
     (when-let (cheque-stran (select-dao-unique 'cheque-stran
                                 (:and (:= 'customer-p (customer-p cheque-dao))
                                       (:= 'from-state-id (old-state-id cheque-dao))
@@ -316,7 +317,7 @@
   (:metaclass dao-class)
   (:keys id))
 
-(define-surrogate-key-readers temtx ((title string)) temtx-id)
+(define-alternate-key-readers temtx ((title string)) temtx-id)
 
 (defmethod temtx-id ((title (eql :null)))
   :null)
