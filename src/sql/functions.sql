@@ -118,10 +118,12 @@ left join cheque_event
 on (cheque_event.tx_id = tx.id)
 left join cheque
 on (cheque.id = cheque_event.cheque_id)
+left join cheque_stran
+on (cheque_event.cheque_stran_id = cheque_stran.id)
 inner join temtx
 on temtx.id = tx.temtx_id
 where tx.company_id = $1 and
-      ((cheque_event.to_state_id = cheque.state_id) or (cheque_event.to_state_id is null))
+      ((cheque_stran.to_state_id = cheque.state_id) or (cheque_event.id is null))
 $$ language sql;
 
 

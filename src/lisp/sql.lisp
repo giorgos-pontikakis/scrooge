@@ -18,13 +18,13 @@
                   :on (:= cheque-event.tx-id tx.id)
                   :left-join cheque
                   :on (:= cheque.id cheque-event.cheque-id)
-                  :inner-join cheque-stran
+                  :left-join cheque-stran
                   :on (:= cheque-stran.id cheque-event.cheque-stran-id)
                   :inner-join temtx
                   :on (:= temtx.id tx.temtx-id) ;; SQL function
                   :where (:and (:= tx.company-id ,company-id)
                                (:or (:= cheque-stran.to-state-id cheque.state-id)
-                                    (:is-null cheque-event.to-state-id))
+                                    (:is-null cheque-event.id))
                                (:or ,@temtx-conditions)))
                 tx-date tx.description)))
 

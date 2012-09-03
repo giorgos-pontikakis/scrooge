@@ -98,10 +98,10 @@
                                 "Προς πληρωμή"))
                     :active role
                     :id "cheque-role-navbar")
-     (filter-navbar filter-spec
-                    :active (getf filter :cstate))
      (datebox (family-url-fn 'company/cheque)
-              (family-params 'company/cheque :system :filter)))))
+              (family-params 'company/cheque :system :filter))
+     (filter-navbar filter-spec
+                    :active (getf filter :cstate)))))
 
 
 ;;; row
