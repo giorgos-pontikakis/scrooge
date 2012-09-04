@@ -423,7 +423,8 @@
      (subset string chk-subset))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'company-table :filter filter))))
+           (rows (rows (make-instance 'company-table :op :catalogue
+                                                     :filter filter))))
       (if (single-item-list-p rows)
           (see-other (apply #'company/details
                             :company-id (key (first rows))

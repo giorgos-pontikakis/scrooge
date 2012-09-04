@@ -276,7 +276,7 @@
                   (display (make-instance 'company-tx-table
                                           :records records
                                           :company-id (val company-id)
-                                          :op :details
+                                          :op :catalogue
                                           :filter filter
                                           :paginator nil))
                   (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
