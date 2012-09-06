@@ -264,9 +264,12 @@
                     (:h1 (str (string-upcase-gr
                                (title (get-dao 'company (val company-id))))))
                     (:h2 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
-                                                          (if (customer-p role)
-                                                              "προμηθευτής"
-                                                              "πελάτης"))))
+                                                          (cond ((not (suppliedp role))
+                                                                 "προμηθευτής και πελάτης")
+                                                                ((customer-p (val role))
+                                                                 "προμηθευτής")
+                                                                (t
+                                                                 "πελάτης")))))
                     (:div :class "grid_4 omega"
                       (display (datebox (family-url-fn 'company/tx/print)
                                         (family-params 'company/tx/print
