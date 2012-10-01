@@ -267,9 +267,9 @@
                                                           (cond ((not (suppliedp role))
                                                                  "προμηθευτής και πελάτης")
                                                                 ((customer-p (val role))
-                                                                 "προμηθευτής")
+                                                                 "πελάτης")
                                                                 (t
-                                                                 "πελάτης")))))
+                                                                 "προμηθευτής")))))
                     (:div :class "grid_4 omega"
                       (display (datebox (family-url-fn 'company/tx/print)
                                         (family-params 'company/tx/print

@@ -207,8 +207,7 @@
          (role (role tbl))
          (filter (filter tbl))
          (hrefs (if cheque-id
-                    (list :details (apply #'cheque/details role :cheque-id cheque-id filter)
-                          :update (apply #'cheque/update role :cheque-id cheque-id filter)
+                    (list :update (apply #'cheque/update role :cheque-id cheque-id filter)
                           :delete (apply #'cheque/delete role :cheque-id cheque-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
@@ -334,11 +333,11 @@
      (until  date   chk-date))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'cheque-table
-                                      :role role
-                                      :filter filter))))
+           (rows (rows (make-instance 'cheque-table :op :catalogue
+                                                    :role role
+                                                    :filter filter))))
       (if (single-item-list-p rows)
-          (see-other (apply #'cheque/details role
+          (see-other (apply #'cheque role
                             :cheque-id (key (first rows))
                             filter))
           (see-other (apply #'cheque role filter))))))
@@ -389,40 +388,6 @@
                 (:div :class "title" (str page-title))
                 (actions cheque-table)
                 (display cheque-table)))
-            (footer)))))))
-
-(defpage cheque-page cheque/details (("cheque/" (role "(customer|supplier)") "/details"))
-    ((cheque-id integer chk-cheque-id       t)
-     (search    string)
-     (cstate    string  chk-cheque-state-id)
-     (since     date    chk-date)
-     (until     date    chk-date))
-  (check-cheque-accounts)
-  (with-view-page
-    (let* ((filter (params->filter))
-           (page-title (cheque-page-title role "Λεπτομέρειες"))
-           (cheque-form (make-instance 'cheque-form
-                                       :role role
-                                       :op :details
-                                       :key (val cheque-id)
-                                       :cancel-url (apply #'cheque
-                                                          role
-                                                          :cheque-id (val cheque-id)
-                                                          filter))))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header)
-            (main-navbar 'cheque)
-            (cheque-top-actions :details)
-            (:div :class "grid_12"
-              (:div :id "cheque-window" :class "window"
-                (:div :class "title" (str page-title))
-                (actions cheque-form :filter filter)
-                (display cheque-form)))
             (footer)))))))
 
 
