@@ -23,8 +23,8 @@
                   :inner-join temtx
                   :on (:= temtx.id tx.temtx-id) ;; SQL function
                   :where (:and (:= tx.company-id ,company-id)
-                               (:or (:= cheque-stran.to-state-id cheque.state-id)
-                                    (:is-null cheque-event.id))
+                               #|(:or (:= cheque-stran.to-state-id cheque.state-id)
+                                    (:is-null cheque-event.id))|#
                                (:or ,@temtx-conditions)))
                 tx-date tx.description)))
 
@@ -32,9 +32,10 @@
   (flet ((amounts (row)
            (let ((sign (getf row :sign))
                  (amount (getf row :amount)))
-             (cond ((= sign +1) (values amount nil amount))
-                   ((= sign -1) (values nil amount (- amount)))
-                   ((= sign 0) (values amount amount 0)))))
+             (cond ((eql sign :null) (values nil nil 0))
+                   ((eql sign +1) (values amount nil amount))
+                   ((eql sign -1) (values nil amount (- amount)))
+                   ((eql sign 0) (values amount amount 0)))))
          (cheque-row-p (row)
            (not (eql (getf row :due-date) :null))))
     (with-db ()

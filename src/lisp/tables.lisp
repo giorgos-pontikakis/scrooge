@@ -230,7 +230,7 @@
                     (:= 'id (temtx-id cheque-stran))))
          (new-tx (make-instance 'tx
                                 :tx-date (today)
-                                :description (title temtx)
+                                :description (title cheque-stran)
                                 :company-id (company-id dao)
                                 :amount (amount dao)
                                 :credit-account-id (credit-account-id temtx)

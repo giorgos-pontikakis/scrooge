@@ -9,7 +9,8 @@
 (defclass temtx-family (family-mixin)
   ()
   (:default-initargs :parameter-groups '(:system (temtx-id)
-                                         :payload (title debit-account credit-account sign propagated-p)
+                                         :payload (title debit-account credit-account
+                                                   sign propagated-p)
                                          :filter ())))
 
 (defclass temtx-page (auth-regex-page temtx-family)
@@ -136,6 +137,12 @@
         ((temtx-title-exists-p title customer-p temtx-id)
          :temtx-title-exists)))
 
+(defun chk-sign (integer)
+  (if (member integer '(-1 0 1 :null))
+      nil
+      :unknown-temtx-sign))
+
+
 
 ;;; ------------------------------------------------------------
 ;;; UI Elements
@@ -242,9 +249,10 @@
                          :disabled disabled)
           (make-instance 'dropdown
                          :name 'sign
-                         :value-label-alist '((+1 . "Χρέωση μόνο")
-                                              (-1 . "Πίστωση μόνο")
-                                              (0 . "Πίστωση και Χρέωση"))
+                         :value-label-alist '((+1 . "Χρέωση")
+                                              (-1 . "Πίστωση")
+                                              (0  . "Πίστωση και Χρέωση")
+                                              (:null . "Ούτε πίστωση, ούτε χρέωση"))
                          :selected (getf record :sign)
                          :disabled disabled)
           (make-instance 'input-checkbox
