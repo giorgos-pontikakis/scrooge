@@ -9,7 +9,7 @@ case $1 in
         if [[ -z $exists ]]
         then
             echo "Starting detached screen/sbcl/$self chain"
-            screen -S $self -d -m sbcl --eval "(require :$self)"
+            LANG=en_US.UTF-8 screen -S $self -d -m  sbcl --eval "(require :$self)"
             exit 0
         else
             echo "It seems that a detached screen/sbcl/$self chain is already running"
