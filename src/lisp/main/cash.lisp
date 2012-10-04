@@ -336,9 +336,9 @@
      (until date))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'cash-tx-table
-                                      :role role
-                                      :filter filter))))
+           (rows (rows (make-instance 'cash-tx-table :op :catalogue
+                                                     :role role
+                                                     :filter filter))))
       (if (single-item-list-p rows)
           (see-other (apply #'cash/details role
                             :tx-id (key (first rows))

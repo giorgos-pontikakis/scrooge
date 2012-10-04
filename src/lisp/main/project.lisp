@@ -386,7 +386,8 @@
      (cstate string  chk-project-state-id))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'project-table :filter filter))))
+           (rows (rows (make-instance 'project-table :op :catalogue
+                                                     :filter filter))))
       (if (single-item-list-p rows)
           (see-other (apply #'project/details
                             :project-id (key (first rows))

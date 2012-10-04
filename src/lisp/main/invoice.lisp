@@ -355,10 +355,10 @@
      (until  string))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'invoice-tx-table
-                                      :role role
-                                      :kind kind
-                                      :filter filter))))
+           (rows (rows (make-instance 'invoice-tx-table :op :catalogue
+                                                        :role role
+                                                        :kind kind
+                                                        :filter filter))))
       (if (single-item-list-p rows)
           (see-other (apply #'invoice/details role kind
                             :tx-id (key (first rows))
@@ -395,13 +395,12 @@
   (with-view-page
     (let* ((filter (params->filter))
            (page-title (invoice-page-title role kind "Κατάλογος"))
-           (invoice-tx-table (make-instance 'invoice-tx-table
-                                            :role role
-                                            :op :catalogue
-                                            :kind kind
-                                            :selected-key (val tx-id)
-                                            :filter filter
-                                            :start-index (val start))))
+           (invoice-tx-table (make-instance 'invoice-tx-table :op :catalogue
+                                                              :role role
+                                                              :kind kind
+                                                              :selected-key (val tx-id)
+                                                              :filter filter
+                                                              :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
       (when (and (val tx-id)
                  (not (find (val tx-id) (rows invoice-tx-table) :key #'key)))
