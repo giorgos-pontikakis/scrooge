@@ -122,8 +122,7 @@ left join cheque_stran
 on (cheque_event.cheque_stran_id = cheque_stran.id)
 inner join temtx
 on temtx.id = tx.temtx_id
-where tx.company_id = $1 and
-      ((cheque_stran.to_state_id = cheque.state_id) or (cheque_event.id is null))
+where tx.company_id = $1
 $$ language sql;
 
 
