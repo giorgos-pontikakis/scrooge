@@ -69,8 +69,7 @@
 (defun company-referenced-p (company-id)
   (or (referenced-by company-id 'project 'company-id)
       (referenced-by company-id 'cheque 'company-id)
-      (referenced-by company-id 'tx 'company-id)
-      (referenced-by company-id 'contact 'company-id)))
+      (referenced-by company-id 'tx 'company-id)))
 
 (define-existence-predicate company-id-exists-p company id)
 (define-existence-predicate contact-id-exists-p contact id)
