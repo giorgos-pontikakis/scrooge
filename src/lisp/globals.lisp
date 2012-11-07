@@ -19,8 +19,9 @@
 
 (defparameter *project-state-ids* (lists->alist
                                    (with-db ()
-                                     (query (:select 'id 'description
-                                              :from 'project-state)))))
+                                     (query (:order-by (:select 'id 'description
+							 :from 'project-state)
+						       'rank)))))
 
 (defparameter *cheque-states*
   (lists->alist
