@@ -116,6 +116,7 @@
                 (eql date :null))
            :start-date-null)
           ((and (not (member state-id state-ids :test #'string=))
+		(not (string= state-id "canceled"))
                 (not (eql date :null)))
            :start-date-nonnull))))
 
@@ -125,6 +126,7 @@
                 (eql date :null))
            :end-date-null)
           ((and (not (member state-id state-ids :test #'string=))
+		(not (string= state-id "canceled"))
                 (not (eql date :null)))
            :end-date-nonnull)
           (t
