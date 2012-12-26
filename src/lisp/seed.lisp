@@ -13,7 +13,7 @@
              (save-dao
               (make-instance 'usr
                              :username username
-                             :password (md5sum-sequence->string password)
+                             :password (hash-password password)
                              :authgroup authgroup))))
           '("gnp" "litsa" "admin")
           '("gnp" "litsa" "admin")

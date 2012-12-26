@@ -1,10 +1,11 @@
 (in-package :scrooge)
 
 
-
-(defun md5sum-sequence->string (str)
-  (format nil "~(~{~2,'0X~}~)"
-          (map 'list #'identity (md5:md5sum-sequence str))))
+(defun hash-password (password)
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence
+    :sha256
+    (ironclad:ascii-string-to-byte-array password))))
 
 (defun chk-user (username)
   (with-db ()
@@ -18,7 +19,7 @@
     (let ((user-dao (get-dao 'usr username)))
       (if (and (not (eql password :null))
                (string= (password user-dao)
-                        (md5sum-sequence->string password)))
+                        (hash-password password)))
           nil
           'invalid-password))))
 
@@ -56,6 +57,7 @@
     ((user   string chk-user             t)
      (pass   string (chk-pass user pass) t)
      (target string))
+  (break)
   (if (and (validp user)
            (validp pass))
       (let ((login-time (get-universal-time)))
