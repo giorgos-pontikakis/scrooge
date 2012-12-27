@@ -57,7 +57,6 @@
     ((user   string chk-user             t)
      (pass   string (chk-pass user pass) t)
      (target string))
-  (break)
   (if (and (validp user)
            (validp pass))
       (let ((login-time (get-universal-time)))

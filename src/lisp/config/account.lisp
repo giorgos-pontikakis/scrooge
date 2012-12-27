@@ -238,21 +238,21 @@
         (:div :id "container" :class "container_12"
           (header 'config)
           (config-navbar 'account)
-          (iter
-              (for debit-p in (list t nil))
-                (for div-id in '("debit-accounts" "credit-accounts"))
-                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                (for account-tree = (make-instance 'account-tree
-                                                   :op :catalogue
-                                                   :selected-key (val account-id)
-                                                   :debit-p debit-p))
-                (htm
-                 (:div :class "grid_6"
-                   (:div :id div-id :class "window"
-                     (:div :class "title" (str window-title))
-                     (notifications)
-                     (actions account-tree)
-                     (display account-tree :hide-root-p t)))))
+          (mapc (lambda (debit-p div-id window-title)
+                  (let ((account-tree (make-instance 'account-tree
+                                                     :op :catalogue
+                                                     :selected-key (val account-id)
+                                                     :debit-p debit-p)))
+                    (htm
+                     (:div :class "grid_6"
+                       (:div :id div-id :class "window"
+                         (:div :class "title" (str window-title))
+                         (notifications)
+                         (actions account-tree)
+                         (display account-tree :hide-root-p t))))))
+                '(t nil)
+                '("debit-accounts" "credit-accounts")
+                '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
           (footer))))))
 
 
@@ -374,23 +374,22 @@
         (:div :id "container" :class "container_12"
           (header 'config)
           (config-navbar 'account)
-          (iter
-              (for debit-p in (list t nil))
-                (for id-debit-p  = (eql debit-p (debit-p (get-dao 'account (val account-id)))))
-                (for div-id in '("debit-accounts" "credit-accounts"))
-                (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
-                (for account-tree = (make-instance 'account-tree
-                                                   :op :delete
-                                                   :selected-key (val account-id)
-                                                   :debit-p debit-p))
-                (htm
-                 (:div :class "grid_6"
-                   (:div :id div-id :class "window"
-                     (:div :class "title" (str window-title))
-                     (notifications)
-                     (actions account-tree)
-                     (with-form (actions/config/account/delete :account-id (val account-id))
-                       (display account-tree :hide-root-p t))))))
+          (mapc (lambda (debit-p div-id window-title)
+                  (let ((account-tree (make-instance 'account-tree
+                                                     :op :delete
+                                                     :selected-key (val account-id)
+                                                     :debit-p debit-p)))
+                    (htm
+                     (:div :class "grid_6"
+                       (:div :id div-id :class "window"
+                         (:div :class "title" (str window-title))
+                         (notifications)
+                         (actions account-tree)
+                         (with-form (actions/config/account/delete :account-id (val account-id))
+                           (display account-tree :hide-root-p t)))))))
+                '(t nil)
+                '("debit-accounts" "credit-accounts")
+                '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
           (footer))))))
 
 (defpage account-page actions/config/account/delete ("actions/config/account/delete"

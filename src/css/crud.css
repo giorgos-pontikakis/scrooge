@@ -26,6 +26,10 @@ ul.crud-tree {
     padding: 0px;
 }
 
+.crud-tree.op-delete li.selected > div {
+    background-color: hsl(0, 90%, 90%);
+}
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -63,9 +67,7 @@ ul.crud-tree {
     background-color: hsl(60, 90%, 90%);
 }
 
-.crud-table.op-delete tr.selected,
-.crud-tree.op-delete li.selected > div
-{
+.crud-table.op-delete li.selected > div {
     background-color: hsl(0, 90%, 90%);
 }
 
