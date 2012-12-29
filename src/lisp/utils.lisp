@@ -83,10 +83,9 @@ id, i.e. all records of the subtree with root specified by the given id."
            (digits (map 'vector #'char-parse-integer
                         (nreverse (subseq tin 0 (1- len)))))
            (control-digit (char-parse-integer (elt tin (1- len)))))
-      (let ((sum (iter (for d in-vector (subseq digits 0 (1- len)))
-                       (for i from 1)
-                       (reducing (* d (expt 2 i))
-                                 by #'+))))
+      (let ((sum (loop for d across (subseq digits 0 (1- len))
+                       for i from 1
+                       summing (* d (expt 2 i)))))
         (and (= len 9)
              (= (mod (mod sum 11)
                      10)

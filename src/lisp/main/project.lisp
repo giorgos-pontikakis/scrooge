@@ -67,7 +67,8 @@
 (define-existence-predicate bill-id-exists-p bill id)
 
 (defun project-referenced-p (project-id)
-  (referenced-by project-id 'bill 'project-id))
+  (declare (ignore project-id))
+  nil)
 
 (defun project-description-exists-p (description company &optional project-id)
   ;; Don't even bother to check without a valid company title
@@ -116,7 +117,7 @@
                 (eql date :null))
            :start-date-null)
           ((and (not (member state-id state-ids :test #'string=))
-		(not (string= state-id "canceled"))
+                (not (string= state-id "canceled"))
                 (not (eql date :null)))
            :start-date-nonnull))))
 
@@ -126,7 +127,7 @@
                 (eql date :null))
            :end-date-null)
           ((and (not (member state-id state-ids :test #'string=))
-		(not (string= state-id "canceled"))
+                (not (string= state-id "canceled"))
                 (not (eql date :null)))
            :end-date-nonnull)
           (t
@@ -252,8 +253,8 @@
          (spec (if project-id
                    (list :update (apply #'project/update :project-id project-id filter)
                          :delete (if (project-referenced-p project-id)
-                                     (apply #'project/delete :project-id project-id filter)
-                                     nil))
+                                     nil
+                                     (apply #'project/delete :project-id project-id filter)))
                    nil)))
     (actions-menu (make-menu-spec spec)
                   (disabled-actions form))))
@@ -321,7 +322,9 @@
          (filter (filter tbl))
          (hrefs (if project-id
                     (list :details (apply #'project/details :project-id project-id filter)
-                          :delete (apply #'project/delete :project-id project-id filter))
+                          :delete (if (project-referenced-p project-id)
+                                      nil
+                                      (apply #'project/delete :project-id project-id filter)))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
@@ -406,7 +409,7 @@
     ((project-id integer chk-project-id)
      (cstate     string)
      (search     string)
-     (start      integer))
+     (start      integer)) ()
   (with-view-page
     (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
@@ -644,7 +647,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage project-page project/delete ("project/delete")
-    ((project-id integer chk-project-id/ref    t)
+    ((project-id integer chk-project-id       t)
      (search     string)
      (cstate     string  chk-project-state-id))
   (with-view-page
@@ -675,7 +678,7 @@
 
 (defpage project-page actions/project/delete ("actions/project/delete"
                                               :request-type :post)
-    ((project-id integer chk-project-id/ref t)
+    ((project-id integer chk-project-id/ref   t)
      (search     string)
      (cstate     string  chk-project-state-id))
   (with-controller-page (project/delete)

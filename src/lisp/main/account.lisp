@@ -92,7 +92,7 @@
           (header)
           (main-navbar 'account)
           (iter
-              (for debit-p in (list t nil))
+              (for debit-p in (list tq nil))
                 (for div-id in '("debit-accounts" "credit-accounts"))
                 (for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί"))
                 (for account-tree = (make-instance 'account-ro-tree
