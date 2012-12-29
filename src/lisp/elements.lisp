@@ -192,7 +192,7 @@
   (loop for key in actions-and-links by #'cddr
         for val in (cdr actions-and-links) by #'cddr
         when val
-        collect (list key (make-spec-line key val))))
+          collect (list key (make-spec-line key val))))
 
 
 ;;; widgets
