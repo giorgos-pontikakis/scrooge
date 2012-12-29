@@ -58,18 +58,18 @@
 (defun company-tx-top-actions (op)
   (top-actions-area
    (make-instance 'scrooge-menu
-		  :spec (make-menu-spec 
-			 `(:catalogue ,(family-url 'company :system :filter)
-			   :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
-			   :print ,(family-url 'company/tx/print :system :filter)))
-		  :css-class "hmenu"
-		  :disabled (case op
-			      (:catalogue '())
-			      ((:create :update :delete) '(:print))))
+                  :spec (make-menu-spec
+                         `(:catalogue ,(family-url 'company :system :filter)
+                           :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
+                           :print ,(family-url 'company/tx/print :system :filter)))
+                  :css-class "hmenu"
+                  :disabled (case op
+                              (:catalogue '())
+                              ((:create :update :delete) '(:print))))
    (searchbox (family-url-fn 'actions/company/search)
-	      (family-url-fn 'company :system)
-	      (family-params 'company :filter)
-	      "ac-company")))
+              (family-url-fn 'company :system)
+              (family-params 'company :filter)
+              "ac-company")))
 
 
 
