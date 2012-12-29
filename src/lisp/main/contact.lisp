@@ -35,8 +35,8 @@
 
 (defmethod get-records ((table contact-table))
   (query (:order-by (:select 'id 'tag 'phone 'rank
-                      :from 'contact
-                      :where (:= 'company-id (company-id table)))
+                             :from 'contact
+                             :where (:= 'company-id (company-id table)))
                     'rank)
          :plists))
 

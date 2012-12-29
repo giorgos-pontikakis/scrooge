@@ -108,21 +108,21 @@
 (defmethod get-record ((form tx-form))
   (if-let (tx-id (key form))
     (query (:select 'tx.id 'tx-date
-             (:as 'company.title 'company)
-             'description
-             (:as 'non-chq-debit-account.title 'non-chq-debit-account)
-             (:as 'non-chq-credit-account.title 'non-chq-credit-account)
-             'tx.debit-account-id
-             'tx.credit-account-id
-             'amount 'company-id
-             :from 'tx
-             :left-join 'company
-             :on (:= 'tx.company-id 'company.id)
-             :left-join (:as 'account 'non-chq-debit-account)
-             :on (:= 'non-chq-debit-account.id 'debit-account-id)
-             :left-join (:as 'account 'non-chq-credit-account)
-             :on (:= 'non-chq-credit-account.id 'credit-account-id)
-             :where (:= 'tx.id tx-id))
+                    (:as 'company.title 'company)
+                    'description
+                    (:as 'non-chq-debit-account.title 'non-chq-debit-account)
+                    (:as 'non-chq-credit-account.title 'non-chq-credit-account)
+                    'tx.debit-account-id
+                    'tx.credit-account-id
+                    'amount 'company-id
+                    :from 'tx
+                    :left-join 'company
+                    :on (:= 'tx.company-id 'company.id)
+                    :left-join (:as 'account 'non-chq-debit-account)
+                    :on (:= 'non-chq-debit-account.id 'debit-account-id)
+                    :left-join (:as 'account 'non-chq-credit-account)
+                    :on (:= 'non-chq-credit-account.id 'credit-account-id)
+                    :where (:= 'tx.id tx-id))
            :plist)
     nil))
 
@@ -147,20 +147,20 @@
          (since (getf (filter table) :since))
          (until (getf (filter table) :until))
          (base-query `(:select tx.id
-                        (:as company.title company)
-                        (:as company.id company-id)
-                        (:as debit-acc.title non-chq-debit-account)
-                        (:as credit-acc.title non-chq-credit-account)
-                        tx-date
-                        description
-                        amount
-                        :from tx
-                        :left-join company
-                        :on (:= tx.company-id company.id)
-                        :inner-join (:as account debit-acc)
-                        :on (:= debit-acc.id debit-account-id)
-                        :inner-join (:as account credit-acc)
-                        :on (:= credit-acc.id credit-account-id)))
+                               (:as company.title company)
+                               (:as company.id company-id)
+                               (:as debit-acc.title non-chq-debit-account)
+                               (:as credit-acc.title non-chq-credit-account)
+                               tx-date
+                               description
+                               amount
+                               :from tx
+                               :left-join company
+                               :on (:= tx.company-id company.id)
+                               :inner-join (:as account debit-acc)
+                               :on (:= debit-acc.id debit-account-id)
+                               :inner-join (:as account credit-acc)
+                               :on (:= credit-acc.id credit-account-id)))
          (where nil))
     (when search
       (push `(:or (:ilike description ,(ilike search))

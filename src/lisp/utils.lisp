@@ -15,7 +15,7 @@ if it already exists in the database."
   `(defun ,name (,primary-key)
      (with-db ()
        (query (:select 1 :from ',table
-                :where (:= ',primary-key ,primary-key))
+               :where (:= ',primary-key ,primary-key))
               :single))))
 
 (defmacro define-existence-predicate* (name table field primary-key)
@@ -27,18 +27,18 @@ excluded for the search - useful for updates."
      (with-db ()
        (if ,primary-key
            (query (:select 1 :from ',table
-                    :where (:and (:= ',field ,field)
-                                 (:not (:= ',primary-key ,primary-key))))
+                   :where (:and (:= ',field ,field)
+                                (:not (:= ',primary-key ,primary-key))))
                   :single)
            (query (:select 1 :from ',table
-                    :where (:= ',field ,field))
+                   :where (:= ',field ,field))
                   :single)))))
 
 (defun referenced-by-sql (account-id table columns)
   `(:select 1 :from ,table :where
-     (:or ,@(mapcar (lambda (col)
-                      (list ':= account-id col))
-                    columns))))
+            (:or ,@(mapcar (lambda (col)
+                             (list ':= account-id col))
+                           columns))))
 
 (defun referenced-by (id table &rest columns)
   (with-db ()
@@ -122,8 +122,8 @@ id, i.e. all records of the subtree with root specified by the given id."
       (with-db ()
         (let ((tx-constraints
                 (query (:select 'immediate-tx-only-p 'revenues-account-id 'expenses-account-id
-                         :from 'company
-                         :where (:= 'title company-title))
+                        :from 'company
+                        :where (:= 'title company-title))
                        :plist)))
           (cond ((and (not cash-tx-p)
                       (getf tx-constraints :immediate-tx-only-p))

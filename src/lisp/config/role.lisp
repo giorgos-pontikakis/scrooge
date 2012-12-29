@@ -47,9 +47,9 @@
 
 (defmethod get-records ((table account-role-table))
   (query (:order-by (:select 'account-role.id (:as 'account.title 'account) 'description 'rank
-                      :from 'account-role
-                      :inner-join 'account
-                      :on (:= 'account-role.account-id 'account.id))
+                             :from 'account-role
+                             :inner-join 'account
+                             :on (:= 'account-role.account-id 'account.id))
                     'rank)
          :plists))
 

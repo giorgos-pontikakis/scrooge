@@ -19,9 +19,9 @@
      (term   string nil t))
   (with-xhr-page (autocomplete-xhr-auth-error)
     (let ((results (sort (query (:select (val column) :distinct
-                                  :from (val table)
-                                  :where (:ilike (val column)
-                                                 (ilike (val term))))
+                                         :from (val table)
+                                         :where (:ilike (val column)
+                                                        (ilike (val term))))
                                 :column)
                          #'string<)))
       (if results
@@ -59,9 +59,9 @@
     ;; When force-chequing-p is true, we return temtxs
     ;; that reference at least one chequing account
     (let ((sql `(:select title
-                  :from ,(if (val force-chequing-p) 'temtx-chq 'temtx)
-                  :where (:and (:= customer-p ,(val customer-p))
-                               (:ilike title ,(ilike (val term)))))))
+                 :from ,(if (val force-chequing-p) 'temtx-chq 'temtx)
+                 :where (:and (:= customer-p ,(val customer-p))
+                              (:ilike title ,(ilike (val term)))))))
       (let ((results (query (sql-compile sql)
                             :column)))
         (if results

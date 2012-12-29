@@ -83,8 +83,8 @@
       nil
       (with-db ()
         (query (:select 1 :from 'project-stran
-                 :where (:and (:= 'from-state-id from-state-id)
-                              (:= 'to-state-id to-state-id)))
+                :where (:and (:= 'from-state-id from-state-id)
+                             (:= 'to-state-id to-state-id)))
                :plists))))
 
 (defun chk-project-stran-from/to (from-state-id to-state-id)
@@ -133,11 +133,11 @@
 
 (defmethod get-records ((table project-stran-table))
   (query (:order-by (:select 'project-stran.project-stran-id 'project-stran.title
-                      'from-state-id 'to-state-id
-                      (:as 'temtx.title 'temtx)
-                      :from 'project-stran
-                      :left-join 'temtx
-                      :on (:= 'temtx-id 'temtx.temtx-id))
+                             'from-state-id 'to-state-id
+                             (:as 'temtx.title 'temtx)
+                     :from 'project-stran
+                     :left-join 'temtx
+                     :on (:= 'temtx-id 'temtx.temtx-id))
                     'project-stran.title)
          :plists))
 

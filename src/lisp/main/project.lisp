@@ -78,13 +78,13 @@
         (if project-id
             (query
              (:select 1 :from 'project :where
-               (:and (:= 'description description)
-                     (:= company-id 'company-id)
-                     (:not (:= 'id project-id))))
+                      (:and (:= 'description description)
+                            (:= company-id 'company-id)
+                            (:not (:= 'id project-id))))
              :single)
             (query (:select 1 :from 'project
-                     :where (:and (:= 'description description)
-                                  (:= company-id 'company-id)))
+                    :where (:and (:= 'description description)
+                                 (:= company-id 'company-id)))
                    :single))))))
 
 (defun chk-project-id (project-id)
@@ -239,12 +239,12 @@
   (if (key form)
       (let ((project-id (key form)))
         (query (:select 'project.id (:as 'company.title 'company) 'company-id
-                 'description 'state-id 'quote-date
-                 'start-date 'end-date 'price 'vat 'project.notes
-                 :from 'project
-                 :left-join 'company
-                 :on (:= 'project.company-id 'company.id)
-                 :where (:= 'project.id project-id))
+                        'description 'state-id 'quote-date
+                        'start-date 'end-date 'price 'vat 'project.notes
+                :from 'project
+                :left-join 'company
+                :on (:= 'project.company-id 'company.id)
+                :where (:= 'project.id project-id))
                :plist))
       nil))
 
@@ -283,14 +283,14 @@
   (let* ((search (getf (filter table) :search))
          (cstate (getf (filter table) :cstate))
          (base-query `(:select project.id project.description project.notes
-                        price
-                        (:as project-state.description project-state-description)
-                        (:as company.id company-id) (:as company.title company)
-                        :from project
-                        :left-join company
-                        :on (:= project.company-id company.id)
-                        :left-join project-state
-                        :on (:= project-state.id project.state-id)))
+                               price
+                               (:as project-state.description project-state-description)
+                               (:as company.id company-id) (:as company.title company)
+                       :from project
+                       :left-join company
+                       :on (:= project.company-id company.id)
+                       :left-join project-state
+                       :on (:= project-state.id project.state-id)))
          (where-terms nil))
     (when search
       (push `(:or (:ilike project.description ,(ilike search))

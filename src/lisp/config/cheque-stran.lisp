@@ -92,9 +92,9 @@
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
-                 :where (:and (:= 'from-state-id from-state-id)
-                              (:= 'to-state-id to-state-id)
-                              (:= 'customer-p (customer-p role))))
+                :where (:and (:= 'from-state-id from-state-id)
+                             (:= 'to-state-id to-state-id)
+                             (:= 'customer-p (customer-p role))))
                :plists))))
 
 (defun cheque-stran-from/to/role-exists-p/update (from-state-id to-state-id role cheque-stran-id)
@@ -102,10 +102,10 @@
       nil
       (with-db ()
         (query (:select 1 :from 'cheque-stran
-                 :where (:and (:= 'from-state-id from-state-id)
-                              (:= 'to-state-id to-state-id)
-                              (:= 'customer-p (customer-p role))
-                              (:not (:= 'id cheque-stran-id))))
+                :where (:and (:= 'from-state-id from-state-id)
+                             (:= 'to-state-id to-state-id)
+                             (:= 'customer-p (customer-p role))
+                             (:not (:= 'id cheque-stran-id))))
                :plists))))
 
 (defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id role)
@@ -159,12 +159,12 @@
 
 (defmethod get-records ((table cheque-stran-table))
   (query (:order-by (:select 'cheque-stran.id 'cheque-stran.title
-                      'from-state-id 'to-state-id
-                      (:as 'temtx.title 'temtx)
-                      :from 'cheque-stran
-                      :inner-join 'temtx
-                      :on (:= 'temtx-id 'temtx.id)
-                      :where (:= 'cheque-stran.customer-p (customer-p (role table))))
+                             'from-state-id 'to-state-id
+                             (:as 'temtx.title 'temtx)
+                     :from 'cheque-stran
+                     :inner-join 'temtx
+                     :on (:= 'temtx-id 'temtx.id)
+                     :where (:= 'cheque-stran.customer-p (customer-p (role table))))
                     'cheque-stran.title)
          :plists))
 

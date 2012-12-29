@@ -55,11 +55,11 @@
   (with-db ()
     (let* ((where-form (if id `(:not (:= id ,id)) t))
            (sql `(:select id
-                   :from temtx
-                   :where (:and (:in id (:select (:temtx-conflicts ,debit-account-id
-                                                                   ,credit-account-id
-                                                                   ,propagated-p)))
-                                ,where-form))))
+                  :from temtx
+                  :where (:and (:in id (:select (:temtx-conflicts ,debit-account-id
+                                                                  ,credit-account-id
+                                                                  ,propagated-p)))
+                               ,where-form))))
       (query (sql-compile sql) :plists))))
 
 (defun ref-temtx-changed-accounts-p (debit-account-id credit-account-id propagated-p id)
@@ -186,15 +186,15 @@
 
 (defmethod get-records ((table temtx-table))
   (query (:order-by (:select 'temtx.id 'temtx.title 'temtx.customer-p
-                      'temtx.sign 'temtx.propagated-p
-                      (:as 'debit-account.title 'debit-account)
-                      (:as 'credit-account.title 'credit-account)
-                      :from 'temtx
-                      :inner-join (:as 'account 'debit-account)
-                      :on (:= 'debit-account-id 'debit-account.id)
-                      :inner-join (:as 'account 'credit-account)
-                      :on (:= 'credit-account-id 'credit-account.id)
-                      :where (:= 'temtx.customer-p (customer-p (role table))))
+                             'temtx.sign 'temtx.propagated-p
+                             (:as 'debit-account.title 'debit-account)
+                             (:as 'credit-account.title 'credit-account)
+                     :from 'temtx
+                     :inner-join (:as 'account 'debit-account)
+                     :on (:= 'debit-account-id 'debit-account.id)
+                     :inner-join (:as 'account 'credit-account)
+                     :on (:= 'credit-account-id 'credit-account.id)
+                     :where (:= 'temtx.customer-p (customer-p (role table))))
                     (:desc 'customer-p) (:desc 'temtx.sign) 'temtx.title)
          :plists))
 

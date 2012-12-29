@@ -38,8 +38,8 @@
 
 (defmethod get-records ((table bill-table))
   (query (:order-by (:select 'id 'tag 'amount 'rank
-                      :from 'bill
-                      :where (:= 'project-id (project-id table)))
+                             :from 'bill
+                             :where (:= 'project-id (project-id table)))
                     'rank)
          :plists))
 

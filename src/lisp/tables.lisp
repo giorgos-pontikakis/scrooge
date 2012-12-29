@@ -334,15 +334,15 @@
 
 (defmethod max-rank ((dao bill))
   (let ((ranks (query (:select 'rank
-                        :from 'bill
-                        :where (:= 'project-id (project-id dao)))
+                       :from 'bill
+                       :where (:= 'project-id (project-id dao)))
                       :column)))
     (if ranks (reduce #'max ranks) 0)))
 
 (defmethod max-rank ((dao contact))
   (let ((ranks (query (:select 'rank
-                        :from 'contact
-                        :where (:= 'company-id (company-id dao)))
+                       :from 'contact
+                       :where (:= 'company-id (company-id dao)))
                       :column)))
     (if ranks (reduce #'max ranks) 0)))
 

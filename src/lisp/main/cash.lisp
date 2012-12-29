@@ -96,17 +96,17 @@
            (until (getf (filter table) :until))
            (role (role table))
            (base-query `(:select tx.id tx-date
-                          (:as company.title company)
-                          (:as company.id 'company-id)
-                          (:as account.title account)
-                          description amount
-                          :from tx
-                          :left-join company
-                          :on (:= tx.company-id company.id)
-                          :left-join account
-                          :on (:= ,(account-join role) account.id)
-                          :left-join 'cheque-event
-                          :on (:= 'cheque-event.tx-id 'tx.id)))
+                                 (:as company.title company)
+                                 (:as company.id 'company-id)
+                                 (:as account.title account)
+                                 description amount
+                         :from tx
+                         :left-join company
+                         :on (:= tx.company-id company.id)
+                         :left-join account
+                         :on (:= ,(account-join role) account.id)
+                         :left-join 'cheque-event
+                         :on (:= 'cheque-event.tx-id 'tx.id)))
            (where nil))
       (when search
         (push `(:or (:ilike description ,(ilike search))

@@ -105,15 +105,15 @@
            (kind (kind table))
            (role (role table))
            (base-query `(:select tx.id tx-date
-                          (:as company.title company)
-                          (:as company.id 'company-id)
-                          (:as account.title account)
-                          description amount
-                          :from tx
-                          :inner-join company
-                          :on (:= tx.company-id company.id)
-                          :inner-join account
-                          :on (:= account.id ,(invoice-revenues/expenses-account kind))))
+                                 (:as company.title company)
+                                 (:as company.id 'company-id)
+                                 (:as account.title account)
+                                 description amount
+                         :from tx
+                         :inner-join company
+                         :on (:= tx.company-id company.id)
+                         :inner-join account
+                         :on (:= account.id ,(invoice-revenues/expenses-account kind))))
            (where nil))
       (when search
         (push `(:or (:ilike description ,(ilike search))

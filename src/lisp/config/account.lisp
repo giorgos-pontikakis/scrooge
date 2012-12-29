@@ -40,15 +40,15 @@
 (defun chq-account-title-exists-p (title)
   (with-db ()
     (query (:select 1 :from 'account
-             :where (:and (:= 'title title)
-                          (:= 'chequing-p t)))
+            :where (:and (:= 'title title)
+                         (:= 'chequing-p t)))
            :single)))
 
 (defun non-chq-account-title-exists-p (title)
   (with-db ()
     (query (:select 1 :from 'account
-             :where (:and (:= 'title title)
-                          (:= 'chequing-p nil)))
+            :where (:and (:= 'title title)
+                         (:= 'chequing-p nil)))
            :single)))
 
 (defun chk-parent-account-id (val)
@@ -134,8 +134,8 @@
 
 (defmethod get-records ((tree account-tree))
   (query (:select 'id 'title 'parent-id 'chequing-p
-           :from 'account
-           :where (:= 'debit-p (debit-p tree)))
+                  :from 'account
+                  :where (:= 'debit-p (debit-p tree)))
          :plists))
 
 (defmethod actions ((tree account-tree) &key)

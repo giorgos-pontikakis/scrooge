@@ -98,13 +98,13 @@
 (defun following-cheque-states (from-state-id customer-p)
   (lists->alist
    (query (:select 'cheque-state.id 'cheque-state.description
-            :from 'cheque-state
-            :inner-join 'cheque-stran
-            :on (:= 'cheque-state.id 'cheque-stran.to-state-id)
-            :where (:or (:and (:= 'cheque-stran.from-state-id from-state-id)
-                              (:= 'cheque-stran.customer-p customer-p))
-                        (:and (:= 'cheque-state.id from-state-id)
-                              (:= 'cheque-stran.customer-p customer-p)))))))
+                   :from 'cheque-state
+                   :inner-join 'cheque-stran
+                   :on (:= 'cheque-state.id 'cheque-stran.to-state-id)
+                   :where (:or (:and (:= 'cheque-stran.from-state-id from-state-id)
+                                     (:= 'cheque-stran.customer-p customer-p))
+                               (:and (:= 'cheque-state.id from-state-id)
+                                     (:= 'cheque-stran.customer-p customer-p)))))))
 
 
 
@@ -144,16 +144,16 @@
          (cstate (getf (filter table) :cstate))
          (customer-p (customer-p (role table)))
          (base-query `(:select cheque.id (:as bank.title bank) serial state-id
-                        (:as company.title company) company-id
-                        (:as cheque-state.description state-description)
-                        due-date amount customer-p
-                        :from cheque
-                        :left-join bank
-                        :on (:= bank.id cheque.bank-id)
-                        :inner-join company
-                        :on (:= company.id cheque.company-id)
-                        :inner-join cheque-state
-                        :on (:= cheque-state.id cheque.state-id)))
+                               (:as company.title company) company-id
+                               (:as cheque-state.description state-description)
+                               due-date amount customer-p
+                               :from cheque
+                               :left-join bank
+                               :on (:= bank.id cheque.bank-id)
+                               :inner-join company
+                               :on (:= company.id cheque.company-id)
+                               :inner-join cheque-state
+                               :on (:= cheque-state.id cheque.state-id)))
          (sort-order (if (string= cstate *default-cheque-state-id*)
                          '(due-date company)
                          '((:desc 'due-date) company)))

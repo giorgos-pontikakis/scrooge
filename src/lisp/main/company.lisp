@@ -245,21 +245,21 @@
   (let ((company-id (key form)))
     (if company-id
         (query (:select 'company.title 'occupation
-                 'tin (:as 'tof.title 'tof)
-                 'address (:as 'city.title 'city)
-                 'zipcode 'pobox 'notes 'immediate-tx-only-p
-                 (:as 'revenues-account.title 'revenues-account)
-                 (:as 'expenses-account.title 'expenses-account)
-                 :from 'company
-                 :left-join 'city
-                 :on (:= 'company.city-id 'city.id)
-                 :left-join 'tof
-                 :on (:= 'company.tof-id 'tof.id)
-                 :left-join (:as 'account 'revenues-account)
-                 :on (:= 'company.revenues-account-id 'revenues-account.id)
-                 :left-join (:as 'account 'expenses-account)
-                 :on (:= 'company.expenses-account-id 'expenses-account.id)
-                 :where (:= 'company.id company-id))
+                        'tin (:as 'tof.title 'tof)
+                        'address (:as 'city.title 'city)
+                        'zipcode 'pobox 'notes 'immediate-tx-only-p
+                        (:as 'revenues-account.title 'revenues-account)
+                        (:as 'expenses-account.title 'expenses-account)
+                        :from 'company
+                        :left-join 'city
+                        :on (:= 'company.city-id 'city.id)
+                        :left-join 'tof
+                        :on (:= 'company.tof-id 'tof.id)
+                        :left-join (:as 'account 'revenues-account)
+                        :on (:= 'company.revenues-account-id 'revenues-account.id)
+                        :left-join (:as 'account 'expenses-account)
+                        :on (:= 'company.expenses-account-id 'expenses-account.id)
+                        :where (:= 'company.id company-id))
                :plist)
         nil)))
 
@@ -303,19 +303,19 @@
          (subset (getf (filter table) :subset))
          (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin
-                        (:as tof.title tof)
-                        address occupation
-                        (:as city.title city-name)
-                        :distinct
-                        :from company
-                        :left-join city
-                        :on (:= city.id company.city-id)
-                        :left-join tof
-                        :on (:= tof.id company.tof-id)
-                        :left-join contact
-                        :on (:= contact.company-id company.id)
-                        :left-join project
-                        :on (:= project.company-id company.id)))
+                               (:as tof.title tof)
+                               address occupation
+                               (:as city.title city-name)
+                       :distinct
+                       :from company
+                       :left-join city
+                       :on (:= city.id company.city-id)
+                       :left-join tof
+                       :on (:= tof.id company.tof-id)
+                       :left-join contact
+                       :on (:= contact.company-id company.id)
+                       :left-join project
+                       :on (:= project.company-id company.id)))
          (where nil))
     (when search
       (push `(:or (:ilike company.title ,ilike-term)

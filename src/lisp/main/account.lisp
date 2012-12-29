@@ -22,12 +22,12 @@
 (defmethod get-records ((table account-tx-table))
   (let ((account-id (filter table)))
     (query (:select 'tx.id 'tx.tx-date 'tx.description (:as 'company.title 'company)
-             'debit-account-id 'credit-account-id 'amount
-             :from 'tx
-             :left-join 'company
-             :on (:= 'company.id 'tx.company-id)
-             :where (:or (:= account-id 'tx.debit-account-id)
-                         (:= account-id 'tx.credit-account-id)))
+                    'debit-account-id 'credit-account-id 'amount
+            :from 'tx
+            :left-join 'company
+            :on (:= 'company.id 'tx.company-id)
+            :where (:or (:= account-id 'tx.debit-account-id)
+                        (:= account-id 'tx.credit-account-id)))
            :plists)))
 
 
@@ -141,16 +141,16 @@
   (with-view-page
     (let ((account-title (title (get-dao 'account (val id))))
           (account-tx (query (:select 'tx.id 'tx-date 'description
-                               (:as 'debit-account.title 'debit-account-title)
-                               (:as 'credit-account.title 'credit-account-title)
-                               'amount
-                               :from 'tx
-                               :inner-join (:as 'account 'debit-account)
-                               :on (:= 'debit-account.id 'debit-account-id)
-                               :inner-join (:as 'account 'credit-account)
-                               :on (:= 'credit-account.id 'credit-account-id)
-                               :where (:or (:= id 'debit-account.id)
-                                           (:= id 'credit-account.id)))
+                                      (:as 'debit-account.title 'debit-account-title)
+                                      (:as 'credit-account.title 'credit-account-title)
+                                      'amount
+                                      :from 'tx
+                                      :inner-join (:as 'account 'debit-account)
+                                      :on (:= 'debit-account.id 'debit-account-id)
+                                      :inner-join (:as 'account 'credit-account)
+                                      :on (:= 'credit-account.id 'credit-account-id)
+                                      :where (:or (:= id 'debit-account.id)
+                                                  (:= id 'credit-account.id)))
                              :plists)))
       (with-document ()
         (:head

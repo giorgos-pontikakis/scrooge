@@ -20,14 +20,14 @@
 (defparameter *project-state-ids* (lists->alist
                                    (with-db ()
                                      (query (:order-by (:select 'id 'description
-							 :from 'project-state)
-						       'rank)))))
+                                                                :from 'project-state)
+                                                       'rank)))))
 
 (defparameter *cheque-states*
   (lists->alist
    (with-db ()
      (query (:select 'id 'description
-              :from 'cheque-state)))))
+                     :from 'cheque-state)))))
 
 (defparameter *default-project-state-id* "quoted")
 (defparameter *default-cheque-state-id* "pending")
