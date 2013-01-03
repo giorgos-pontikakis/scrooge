@@ -3,7 +3,7 @@
 (in-package :cl-user)
 
 (asdf:defsystem :scrooge
-  :depends-on ("veil" "bricks" "mortar" "json" "ironclad")
+  :depends-on ("ironclad" "lisputils" "veil" "bricks" "mortar" "json")
   :serial t
   :components ((:file "package")
                (:file "utils")
