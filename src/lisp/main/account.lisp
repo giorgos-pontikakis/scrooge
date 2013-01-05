@@ -84,7 +84,7 @@
     (if (children node)
         (progn
           (mapc #'set-balance (children node))
-          (setf (cumul-balance node) (+ balance (reduce #'+ (mapcar #'balance (children node))))
+          (setf (cumul-balance node) (+ balance (reduce #'+ (mapcar #'cumul-balance (children node))))
                 (balance node) balance
                 (debits node) debits
                 (credits node) credits)
@@ -96,7 +96,7 @@
           (setf (credits node) credits)
           node))))
 
-(defmethod actions ((tree account-tree) &key)
+(defmethod actions ((tree balance-account-tree) &key)
   (declare (ignore tree))
   (actions-menu nil))
 
@@ -124,7 +124,7 @@
         (:li :class "debits-credits"
           "Balance: " (mon (balance node)) " | Debits: " (mon (debits node)) " | Credits: " (mon (credits node)))))))
 
-(defmethod controls ((node account-node) controls-p)
+(defmethod controls ((node balance-account-node) controls-p)
   (declare (ignore node))
   (list nil nil))
 
@@ -170,6 +170,7 @@
 (defclass account-tx-table (tx-table)
   ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
    (paginator :initform (make-instance 'account-tx-paginator
+                                       :delta 1000
                                        :id "tx-paginator"
                                        :css-class "paginator"))
    (account-id :accessor account-id

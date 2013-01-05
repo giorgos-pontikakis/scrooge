@@ -562,7 +562,7 @@
                             (:div :class "grid_6 alpha"
                               (:div :id "company-window" :class "window"
                                 (:div :class "title" "Νέα εταιρία")
-                                (actions company-form :filter filter)
+                                (actions company-form)
                                 (notifications)
                                 (with-form (actions/company/create :search (val search))
                                   (display company-form
