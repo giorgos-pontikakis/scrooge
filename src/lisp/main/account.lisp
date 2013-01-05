@@ -45,6 +45,8 @@
 
 (defclass balance-account-node (account-node)
   ((record-class :allocation :class :initform 'account)
+   (cumul-balance :accessor cumul-balance
+                  :initform nil)
    (balance :accessor balance
             :initform nil)
    (debits :accessor debits
@@ -64,21 +66,21 @@
   tree)
 
 (defmethod set-balance ((node balance-account-node))
-  (flet ((children-sum (fn)
-           (reduce #'+ (mapcar fn (children node)))))
-    (multiple-value-bind (balance debits credits) (account-sums node)
-      (if (children node)
-          (progn
-            (mapc #'set-balance (children node))
-            (setf (balance node) (children-sum #'balance)
-                  (debits node) (children-sum #'debits)
-                  (credits node) (children-sum #'credits))
-            node)
-          (progn
-            (setf (balance node) balance)
-            (setf (debits node) debits)
-            (setf (credits node) credits)
-            node)))))
+  (multiple-value-bind (balance debits credits) (account-sums node)
+    (if (children node)
+        (progn
+          (mapc #'set-balance (children node))
+          (setf (cumul-balance node) (+ balance (reduce #'+ (mapcar #'balance (children node))))
+                (balance node) balance
+                (debits node) debits
+                (credits node) credits)
+          node)
+        (progn
+          (setf (cumul-balance node) balance)
+          (setf (balance node) balance)
+          (setf (debits node) debits)
+          (setf (credits node) credits)
+          node))))
 
 (defmethod actions ((tree account-tree) &key)
   (declare (ignore tree))
@@ -99,7 +101,7 @@
   (html ()
     (:strong (str (getf (record node) :title)))
     (:ul
-      (:li "Balance = " (str (balance node)))
+      (:li "Cumulative Balance = " (str (cumul-balance node)) " | Balance = " (str (balance node)))
       (:li "Debits = " (str (debits node)) " | Credits = " (str (credits node))))))
 
 (defmethod controls ((node account-node) controls-p)
