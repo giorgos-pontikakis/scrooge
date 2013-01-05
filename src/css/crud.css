@@ -8,6 +8,11 @@
     line-height: 22px;
 }
 
+
+.crud-tree a {
+    color: #018;
+}
+
 .crud-tree a img {
     vertical-align: middle;
     padding-right: 2px;
@@ -84,7 +89,7 @@ ul.crud-tree {
 }
 
 .crud-table th  {
-    padding: 3px 10px;
+    padding: 3px 5px;
 }
 
 .crud-table td input {

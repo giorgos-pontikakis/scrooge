@@ -135,11 +135,11 @@
 ;;; table
 
 (defclass tx-table (scrooge-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
-                               "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
-   (paginator      :initform (make-instance 'tx-paginator
-                                            :id "tx-paginator"
-                                            :css-class "paginator")))
+  ((header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
+                              "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
+   (paginator :initform (make-instance 'tx-paginator
+                                       :id "tx-paginator"
+                                       :css-class "paginator")))
   (:default-initargs :item-class 'tx-row :id "tx-table"))
 
 (defmethod get-records ((table tx-table))

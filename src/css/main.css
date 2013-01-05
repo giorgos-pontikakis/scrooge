@@ -428,3 +428,10 @@
     margin-bottom: 5px;
     line-height: 16px;
 }
+
+#account-tx-table td:nth-child(5), #account-tx-table th:nth-child(5),
+#account-tx-table td:nth-child(6), #account-tx-table th:nth-child(6)
+{
+    width: 65px;
+    text-align: right;
+}
