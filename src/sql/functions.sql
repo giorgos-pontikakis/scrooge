@@ -112,7 +112,7 @@ where foo.id <> foo.temtx_conflicts;
 ----------------------------------------------------------------------
 create or replace function company_balance (in id integer, out company_balance numeric)
 returns numeric as
-$$ select coalesce(sum(tx.amount*temtx.sign))
+$$ select coalesce(sum(tx.amount*temtx.sign), 0)
 from tx
 left join cheque_event
 on (cheque_event.tx_id = tx.id)

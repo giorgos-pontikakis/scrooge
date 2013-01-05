@@ -41,5 +41,4 @@
                (:file "main/cheque")
                (:file "main/company-tx")
                (:file "main/company-cheque")
-               ;; (:file "main/account")
-               ))
+               (:file "main/account")))

@@ -21,7 +21,7 @@
                  :left-join cheque-stran
                  :on (:= cheque-stran.id cheque-event.cheque-stran-id)
                  :inner-join temtx
-                 :on (:= temtx.id tx.temtx-id) ;; SQL function
+                 :on (:= temtx.id tx.temtx-id)
                  :where (:and (:= tx.company-id ,company-id)
                               (:or ,@temtx-conditions)))
                 tx-date tx.description)))

@@ -32,17 +32,17 @@
 ;;; Widgets
 ;;; ----------------------------------------------------------------------
 
-;;; account-radio tree
+;;; radio-account-tree
 
-(defclass rev/exp-account-tree (account-tree)
+(defclass radio-account-tree (account-tree)
   ((op       :accessor op       :initform :catalogue)
    (disabled :accessor disabled :initarg :disabled))
-  (:default-initargs :item-class 'rev/exp-account-node :disabled nil))
+  (:default-initargs :item-class 'radio-account-node :disabled nil))
 
-(defclass rev/exp-account-node (account-node)
+(defclass radio-account-node (account-node)
   ())
 
-(defmethod selector ((node rev/exp-account-node) selected-p)
+(defmethod selector ((node radio-account-node) selected-p)
   (make-instance 'input-radio
                  :disabled (disabled (collection node))
                  :name 'account-id
@@ -50,10 +50,10 @@
                  :body nil
                  :checked selected-p))
 
-(defmethod payload ((node rev/exp-account-node) enabled-p)
+(defmethod payload ((node radio-account-node) enabled-p)
   (html ()
     (str (lisp->html (getf (record node) :title)))))
 
-(defmethod controls ((node rev/exp-account-node) controls-p)
+(defmethod controls ((node radio-account-node) controls-p)
   (declare (ignore controls-p))
   (list nil nil))

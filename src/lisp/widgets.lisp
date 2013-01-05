@@ -106,7 +106,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-tree (crud-tree)
-  ((root-parent-key :allocation :class   :initform :null))
+  ((root-parent-key :allocation :class :initform :null))
   (:default-initargs :css-class "crud-tree" :root-key nil))
 
 

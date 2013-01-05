@@ -294,7 +294,7 @@
          (record (record form))
          (ldfn (label-datum disabled record styles))
          (root-key (revenues/expenses-root role))
-         (tree (make-instance 'rev/exp-account-tree
+         (tree (make-instance 'radio-account-tree
                               :css-class "crud-tree company-dependent"
                               :disabled disabled
                               :root-key root-key

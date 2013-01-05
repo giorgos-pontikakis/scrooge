@@ -133,7 +133,7 @@
   (:default-initargs :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
-  (query (:select 'id 'title 'parent-id 'chequing-p
+  (query (:select 'id 'title 'parent-id 'chequing-p 'debit-p
                   :from 'account
                   :where (:= 'debit-p (debit-p tree)))
          :plists))

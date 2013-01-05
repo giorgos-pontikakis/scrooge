@@ -299,7 +299,7 @@
                ;;
                (:div :class "hidden-when-immediate-tx-only"
                  (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
-                 (display (make-instance 'rev/exp-account-tree
+                 (display (make-instance 'radio-account-tree
                                          :disabled disabled
                                          :root-key receivable/payable-root-key
                                          :debit-p customer-p
@@ -308,7 +308,7 @@
                (:div :class "company-dependent"
                  (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
                                  (if customer-p "εσόδων" "εξόδων"))))
-                 (display (make-instance 'rev/exp-account-tree
+                 (display (make-instance 'radio-account-tree
                                          :disabled disabled
                                          :root-key revenues/expenses-root-key
                                          :debit-p (not customer-p)
