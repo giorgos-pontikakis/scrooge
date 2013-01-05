@@ -21,6 +21,8 @@
                            "Επιταγές")
                   (invoice ,(invoice "customer" "debit")
                            "Χρεωπιστώσεις")
+                  (account ,(account)
+                           "Λογαριασμοί")
                   (tx      ,(tx)
                            "Ημερολόγιο"))
                 :css-class "hnavbar"

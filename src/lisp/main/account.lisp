@@ -37,6 +37,8 @@
 ;;; Account tree with balance info
 ;;; ------------------------------------------------------------
 
+;;; tree
+
 (defclass balance-account-tree (account-tree)
   ()
   (:default-initargs :item-class 'balance-account-node))
@@ -50,24 +52,24 @@
    (credits :accessor credits
             :initform nil)))
 
-(defmethod initialize-instance :after ((tree account-tree) &key)
-  (set-account-balance tree))
+(defmethod initialize-instance :after ((tree balance-account-tree) &key)
+  (set-balance tree))
 
-(defgeneric set-account-balance (account-tree-or-node)
+(defgeneric set-balance (balance-account-tree-or-node)
   (:documentation "Recursively transverse the account tree or subtree
   and set the balance, debits and credits slots"))
 
-(defmethod set-account-balance ((tree account-tree))
-  (set-account-balance (root tree))
+(defmethod set-balance ((tree balance-account-tree))
+  (set-balance (root tree))
   tree)
 
-(defmethod set-account-balance ((node account-node))
+(defmethod set-balance ((node balance-account-node))
   (flet ((children-sum (fn)
            (reduce #'+ (mapcar fn (children node)))))
     (multiple-value-bind (balance debits credits) (account-sums node)
       (if (children node)
           (progn
-            (mapc #'set-account-balance (children node))
+            (mapc #'set-balance (children node))
             (setf (balance node) (children-sum #'balance)
                   (debits node) (children-sum #'debits)
                   (credits node) (children-sum #'credits))
@@ -78,6 +80,63 @@
             (setf (credits node) credits)
             node)))))
 
+(defmethod actions ((tree account-tree) &key)
+  (declare (ignore tree))
+  (actions-menu nil))
+
+
+;;; nodes
+
+(defmethod selector ((node balance-account-node) selected-p)
+  (let ((account-id (key node)))
+    (html ()
+      (:a :href (if selected-p
+                    (account)
+                    (account :account-id account-id))
+        (selector-img selected-p)))))
+
+(defmethod payload ((node balance-account-node) enabled-p)
+  (html ()
+    (:strong (str (getf (record node) :title)))
+    (:ul
+      (:li "Balance = " (str (balance node)))
+      (:li "Debits = " (str (debits node)) " | Credits = " (str (credits node))))))
+
+(defmethod controls ((node account-node) controls-p)
+  (declare (ignore node))
+  (list nil nil))
+
+
+
+;;; ------------------------------------------------------------
+;;; VIEW
+;;; ------------------------------------------------------------
+
+(defpage account-page account ("account")
+    ((account-id integer chk-account-id))
+  (with-view-page
+    (with-document ()
+      (:head
+        (:title "Λογαριασμοί")
+        (main-headers))
+      (:body
+        (:div :id "container" :class "container_12"
+          (header)
+          (main-navbar 'account)
+          (loop for debit-p in '(t nil)
+                for div-id in '("debit-accounts" "credit-accounts")
+                for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
+                for account-tree = (make-instance 'balance-account-tree
+                                                  :op :catalogue
+                                                  :selected-key (val account-id)
+                                                  :debit-p debit-p)
+                do (htm
+                    (:div :class "grid_6"
+                      (:div :id div-id :class "window"
+                        (:div :class "title" (str window-title))
+                        (actions account-tree)
+                        (display account-tree :hide-root-p t)))))
+          (footer))))))
 
 
 ;; ;;; ----------------------------------------------------------------------
