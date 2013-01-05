@@ -26,7 +26,7 @@
 (defun account-sums (account-node)
   (let ((debits (account-sums-sql (key account-node) 'debit))
         (credits (account-sums-sql (key account-node) 'credit))
-        (sign (if (debit-p (collection account-node)) +1.0 -1.0)))
+        (sign (if (debit-p (collection account-node)) 1 -1)))
     (values (* sign (- debits credits))
             (float debits)
             (float credits))))
@@ -98,11 +98,16 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((node balance-account-node) enabled-p)
-  (html ()
-    (:strong (str (getf (record node) :title)))
-    (:ul
-      (:li "Cumulative Balance = " (str (cumul-balance node)) " | Balance = " (str (balance node)))
-      (:li "Debits = " (str (debits node)) " | Credits = " (str (credits node))))))
+  (macrolet ((mon (x)
+               `(fmt "~,2F" ,x)))
+    (html ()
+      (:strong (str (getf (record node) :title)))
+      (:span :class (conc "balance-details "
+                          (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
+        " [" (mon (cumul-balance node)) "]")
+      (:ul
+        (:li :class "debits-credits"
+          "Balance: " (mon (balance node)) " | Debits: " (mon (debits node)) " | Credits: " (mon (credits node)))))))
 
 (defmethod controls ((node account-node) controls-p)
   (declare (ignore node))

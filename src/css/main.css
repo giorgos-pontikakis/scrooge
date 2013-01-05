@@ -411,3 +411,20 @@
     width: 50px;
     text-align: right;
 }
+
+
+/* ---------------------------------------------------------------------- */
+/* Accounts */
+/* ---------------------------------------------------------------------- */
+
+.crud-tree .balance-details {
+    font-weight: normal;
+    /* padding-left: 20px; */
+}
+
+.crud-tree .debits-credits {
+    color: grey;
+    padding-left: 20px;
+    margin-bottom: 5px;
+    line-height: 16px;
+}
