@@ -4,7 +4,8 @@
 create or replace
 function account_lineage (in id integer, out parent_ids integer)
 returns setof integer as
-$$ with recursive node (id, parent_id) as (
+$$
+with recursive node (id, parent_id) as (
 select id, parent_id from account where account.id = $1
 union
 select account.id, account.parent_id
@@ -17,7 +18,8 @@ $$ language sql;
 create or replace
 function account_descendants (in id integer, out children_ids integer)
 returns setof integer as
-$$ with recursive node (id, parent_id) as (
+$$
+with recursive node (id, parent_id) as (
 select id, parent_id from account where account.id = $1
 union
 select account.id, account.parent_id
@@ -30,7 +32,8 @@ $$ language sql;
 create or replace
 function account_level (in id integer, out level bigint)
 returns bigint as
-$$ with recursive node (id, parent_id) as (
+$$
+with recursive node (id, parent_id) as (
 select id, parent_id from account where account.id = $1
 union
 select account.id, account.parent_id
@@ -112,7 +115,8 @@ where foo.id <> foo.temtx_conflicts;
 ----------------------------------------------------------------------
 create or replace function company_balance (in id integer, out company_balance numeric)
 returns numeric as
-$$ select coalesce(sum(tx.amount*temtx.sign), 0)
+$$
+select coalesce(sum(tx.amount*temtx.sign), 0)
 from tx
 left join cheque_event
 on (cheque_event.tx_id = tx.id)
@@ -130,7 +134,8 @@ $$ language sql;
 ----------------------------------------------------------------------
 -- temtx triggers
 ----------------------------------------------------------------------
-create or replace function generate_temtx_id () returns trigger as $$
+create or replace function generate_temtx_id () returns trigger as
+$$
 begin
 select get_temtx(new.debit_account_id, new.credit_account_id) into new.temtx_id;
 if new.temtx_id is null then
@@ -141,13 +146,16 @@ end if;
 end
 $$ language plpgsql;
 
+drop trigger if exists generate_temtx_id_trigger on tx;
+
 create trigger generate_temtx_id_trigger
 before insert or update
 on tx for each row
 execute procedure generate_temtx_id();
 
 
-create or replace function temtx_update_guard () returns trigger as $$
+create or replace function temtx_update_guard () returns trigger as
+$$
 begin
 perform 1 from tx where temtx_id = new.id;
 if found and
@@ -160,6 +168,8 @@ else
 end if;
 end;
 $$ language plpgsql;
+
+drop trigger if exists temtx_update_guard_trigger on temtx;
 
 create trigger temtx_update_guard_trigger
 before update
