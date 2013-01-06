@@ -151,6 +151,8 @@
                                (:as company.id company-id)
                                (:as debit-acc.title non-chq-debit-account)
                                (:as credit-acc.title non-chq-credit-account)
+                               (:as debit-acc.id non-chq-debit-account-id)
+                               (:as credit-acc.id non-chq-credit-account-id)
                                tx-date
                                description
                                amount
@@ -219,13 +221,19 @@
                           :disabled (not enabled-p)
                           :css-class (if enabled-p (getf css-class 'company) nil)
                           :href (company/details :company-id (getf record :company-id)))
-           (append (mapcar (lambda (name)
+           (make-instance 'textbox
+                          :name 'description
+                          :value (getf record :description)
+                          :disabled (not enabled-p))
+           (append (mapcar (lambda (name id)
                              (make-instance 'textbox
                                             :name name
                                             :value (getf record (make-keyword name))
                                             :disabled (not enabled-p)
-                                            :css-class (if enabled-p (getf css-class name) nil)))
-                           '(description non-chq-debit-account non-chq-credit-account))
+                                            :css-class (if enabled-p (getf css-class name) nil)
+                                            :href (account/tx :account-id (getf record (make-keyword id)))))
+                           '(non-chq-debit-account non-chq-credit-account)
+                           '(non-chq-debit-account-id non-chq-credit-account-id))
                    (list (make-instance 'textbox
                                         :name 'amount
                                         :value (fmt-amount (getf record :amount))

@@ -423,6 +423,7 @@
 }
 
 .crud-tree .debits-credits {
+    font-size: 12px;
     color: grey;
     padding-left: 20px;
     margin-bottom: 5px;

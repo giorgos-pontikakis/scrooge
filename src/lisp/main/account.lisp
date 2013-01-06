@@ -115,8 +115,8 @@
   (macrolet ((mon (x)
                `(fmt "~,2F" ,x)))
     (html ()
-      (:strong (:a :href (account/tx :account-id (key node))
-                 (str (getf (record node) :title))))
+      (:a :href (account/tx :account-id (key node))
+        (str (getf (record node) :title)))
       (:span :class (conc "balance-details "
                           (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
         " [" (mon (cumul-balance node)) "]")
@@ -186,6 +186,7 @@
                                tx.tx-date
                                tx.description
                                (:as company.title company)
+                               (:as company.id company-id)
                                debit-account-id
                                credit-account-id
                                amount
@@ -223,18 +224,26 @@
                                         :credit-amount :null)
                                   (list :debit-amount :null
                                         :credit-amount (getf record :amount))))))
-    (append (mapcar (lambda (name)
-                         (make-instance 'textbox
-                                        :name name
-                                        :value (getf record-plus (make-keyword name))
-                                        :disabled (not enabled-p)))
-                    '(tx-date description company))
-            (mapcar (lambda (name)
-                      (make-instance 'textbox
-                                     :name name
-                                     :value (fmt-amount (getf record-plus (make-keyword name)))
-                                     :disabled (not enabled-p)))
-                    '(debit-amount credit-amount)))))
+    (list* (make-instance 'textbox
+                          :name 'tx-date
+                          :value (getf record-plus :tx-date)
+                          :disabled (not enabled-p))
+           (make-instance 'textbox
+                          :name 'description
+                          :value (getf record-plus :description)
+                          :disabled (not enabled-p)
+                          :href (tx :tx-id (getf record :id)))
+           (make-instance 'textbox
+                          :name 'company
+                          :value (getf record-plus :company)
+                          :disabled (not enabled-p)
+                          :href (company/details :company-id (getf record :company-id)))
+           (mapcar (lambda (name)
+                     (make-instance 'textbox
+                                    :name name
+                                    :value (fmt-amount (getf record-plus (make-keyword name)))
+                                    :disabled (not enabled-p)))
+                   '(debit-amount credit-amount)))))
 
 (defmethod controls ((row account-tx-row) enabled-p)
   (declare (ignore row enabled-p))
