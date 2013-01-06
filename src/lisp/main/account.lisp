@@ -1,11 +1,6 @@
 (in-package :scrooge)
 
-#|
-(with-db ()
-  (account-balance
-   (root (make-instance 'account-tree :debit-p t
-                                      :op :catalogue))))
-|#
+
 
 ;;; ----------------------------------------------------------------------
 ;;; Page family
@@ -14,9 +9,9 @@
 (defclass account-tx-family (family-mixin)
   ()
   (:default-initargs
-   :parameter-groups '(:system (account-id)
+   :parameter-groups '(:system ()
                        :payload ()
-                       :filter (since until))))
+                       :filter (account-id search since until))))
 
 (defclass account-tx-page (auth-dynamic-page account-tx-family)
   ())
@@ -170,7 +165,6 @@
 (defclass account-tx-table (tx-table)
   ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
    (paginator :initform (make-instance 'account-tx-paginator
-                                       :delta 1000
                                        :id "tx-paginator"
                                        :css-class "paginator"))
    (account-id :accessor account-id
@@ -180,6 +174,7 @@
 
 (defmethod get-records ((table account-tx-table))
   (let* ((account-id (account-id table))
+         (search (getf (filter table) :search))
          (since (getf (filter table) :since))
          (until (getf (filter table) :until))
          (base-query `(:select tx.id
@@ -196,6 +191,10 @@
          (where nil)
          (where-base `(:or (:= ,account-id tx.debit-account-id)
                            (:= ,account-id tx.credit-account-id))))
+    (when search
+      (push `(:or (:ilike tx.description ,(ilike search))
+                  (:ilike company.title ,(ilike search)))
+            where))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date) where))
     (when (and until (not (eql until :null)))
@@ -204,6 +203,9 @@
                            (:desc tx-date) company description)))
       (query (sql-compile sql)
              :plists))))
+
+(defmethod filters ((tbl account-tx-table))
+  (filter-area (datebox #'account/tx (filter tbl))))
 
 
 ;;; row
@@ -267,15 +269,18 @@
 
 (defpage account-tx-page account/tx ("account/tx")
     ((account-id integer chk-account-id t)
+     (search     string)
+     (since      date)
+     (until      date)
      (start      integer))
   (with-view-page
     (let ((account-title (with-db ()
                            (title (get-dao 'account (val account-id)))))
-          (tx-table (make-instance 'account-tx-table
-                                   :op :catalogue
-                                   :account-id (val account-id)
-                                   :filter (params->filter)
-                                   :start-index (val start))))
+          (account-tx-table (make-instance 'account-tx-table
+                                           :op :catalogue
+                                           :account-id (val account-id)
+                                           :filter (params->filter)
+                                           :start-index (val start))))
       (with-document ()
         (:head
           (:title "Λογαριασμοί » Συναλλαγές")
@@ -290,8 +295,12 @@
                                    `(:catalogue ,(account :account-id (val account-id))))
                             :css-class "hmenu"
                             :disabled nil)
-             nil)
+             (searchbox (family-url-fn 'account/tx)
+                        (family-url-fn 'account/tx :system)
+                        (family-params 'account/tx :filter)
+                        "ac-company"))
+            (filters account-tx-table)
             (:div :class "grid_12"
               (:div :class "window"
                 (:div :class "title" (str account-title))
-                (display tx-table)))))))))
+                (display account-tx-table)))))))))

@@ -7,7 +7,7 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass family-mixin ()
-  ((parameter-groups :reader   parameter-groups :initarg :parameter-groups))
+  ((parameter-groups :reader parameter-groups :initarg :parameter-groups))
   (:default-initargs :parameter-groups '()))
 
 

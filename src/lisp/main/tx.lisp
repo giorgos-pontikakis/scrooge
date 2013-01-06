@@ -12,7 +12,7 @@
    :parameter-groups '(:system (tx-id)
                        :payload (tx-date description company amount
                                  non-chq-debit-account non-chq-credit-account)
-                       :filter  (search since until))))
+                       :filter (search since until))))
 
 (defclass tx-page (auth-dynamic-page tx-family)
   ((messages
