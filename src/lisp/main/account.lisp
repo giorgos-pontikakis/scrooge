@@ -283,7 +283,7 @@
                                            :start-index (val start))))
       (with-document ()
         (:head
-          (:title "Λογαριασμοί » Συναλλαγές")
+          (:title (str (conc "Λογαριασμοί » Συναλλαγές: " account-title)))
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"

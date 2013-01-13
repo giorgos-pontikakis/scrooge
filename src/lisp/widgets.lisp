@@ -63,7 +63,7 @@
 
 (defclass scrooge-paginator (paginator)
   ()
-  (:default-initargs :delta 500
+  (:default-initargs :delta 15
                      :id "paginator"
                      :css-class "paginator"))
 
