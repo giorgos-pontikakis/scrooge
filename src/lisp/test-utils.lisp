@@ -45,3 +45,21 @@ receivables"
                                                       (:union (:select ,@*receivable-accounts*)
                                                               (:select (account-descendants ,@*receivable-accounts*)))))))))))
       (query (sql-compile sql) :column))))
+
+
+
+;;; CORRECTIVE ACTIONS
+
+(defun move-general-expense-to-default-account-for-company ()
+  (with-db ()
+    (let ((txs (query (:select 'tx.id 'company-id 'tx.credit-account-id
+                               'company.revenues-account-id 'tx.description
+                       :from 'tx
+                       :left-join 'company
+                       :on (:= 'company.id 'tx.company-id)
+                       :where (:= 'tx.credit-account-id 5))
+                      :plists)))
+      (loop for tx in txs
+            do (ignore-errors (execute (:update 'tx
+                                        :set 'credit-account-id (getf tx :revenues-account-id)
+                                        :where (:= 'id (getf tx :id)))))))))
