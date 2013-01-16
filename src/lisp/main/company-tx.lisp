@@ -161,7 +161,8 @@
           (make-instance 'textbox
                          :name 'description
                          :value (getf record :description)
-                         :disabled (not enabled-p))
+                         :disabled (not enabled-p)
+                         :href (tx :tx-id (getf record :id)))
           (make-instance 'textbox
                          :name 'debit-amount
                          :value (fmt-amount (getf record :debit-amount))

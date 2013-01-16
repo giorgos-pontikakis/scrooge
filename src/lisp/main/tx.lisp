@@ -220,7 +220,8 @@
                           :value (getf record :company)
                           :disabled (not enabled-p)
                           :css-class (if enabled-p (getf css-class 'company) nil)
-                          :href (company/details :company-id (getf record :company-id)))
+                          :href (company/tx :company-id (getf record :company-id)
+                                            :tx-id (getf record :id)))
            (make-instance 'textbox
                           :name 'description
                           :value (getf record :description)
@@ -231,7 +232,8 @@
                                             :value (getf record (make-keyword name))
                                             :disabled (not enabled-p)
                                             :css-class (if enabled-p (getf css-class name) nil)
-                                            :href (account/tx :account-id (getf record (make-keyword id)))))
+                                            :href (account/tx :account-id (getf record (make-keyword id))
+                                                              :tx-id (getf record :id))))
                            '(non-chq-debit-account non-chq-credit-account)
                            '(non-chq-debit-account-id non-chq-credit-account-id))
                    (list (make-instance 'textbox

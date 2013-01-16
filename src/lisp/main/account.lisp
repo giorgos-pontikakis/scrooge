@@ -9,9 +9,9 @@
 (defclass account-tx-family (family-mixin)
   ()
   (:default-initargs
-   :parameter-groups '(:system ()
+   :parameter-groups '(:system (account-id tx-id start)
                        :payload ()
-                       :filter (account-id search since until))))
+                       :filter (search since until))))
 
 (defclass account-tx-page (auth-dynamic-page account-tx-family)
   ())
@@ -214,8 +214,18 @@
   ())
 
 (defmethod selector ((row account-tx-row) selected-p)
-  (declare (ignore row selected-p))
-  (list nil nil))
+  (let* ((table (collection row))
+         (tx-id (key row))
+         (account-id (account-id table))
+         (filter (filter table))
+         (start (page-start (paginator table) (index row) (start-index table))))
+    (html ()
+      (:a :href (if selected-p
+                    (apply #'account/tx :account-id account-id
+                                        :start start filter)
+                    (apply #'account/tx :account-id account-id
+                                        :tx-id tx-id filter))
+        (selector-img selected-p)))))
 
 (defmethod payload ((row account-tx-row) enabled-p)
   (let* ((record (record row))
@@ -269,6 +279,7 @@
 
 (defpage account-tx-page account/tx ("account/tx")
     ((account-id integer chk-account-id t)
+     (tx-id      integer chk-tx-id)
      (search     string)
      (since      date)
      (until      date)
@@ -279,6 +290,7 @@
           (account-tx-table (make-instance 'account-tx-table
                                            :op :catalogue
                                            :account-id (val account-id)
+                                           :selected-key (val tx-id)
                                            :filter (params->filter)
                                            :start-index (val start))))
       (with-document ()
