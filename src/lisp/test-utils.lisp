@@ -46,18 +46,23 @@ receivables"
                                                               (:select (account-descendants ,@*receivable-accounts*)))))))))))
       (query (sql-compile sql) :column))))
 
-;; (defun companies-with-non-default-txs ()
-;;   (with-db ()
-;;     (query (:select 'company.id 'company.title
-;;              :from 'company
-;;              :left-join 'tx
-;;              :on (:= 'company.id 'tx.company-id)
-;;              :where (:not (:= 'company.expenses-account-id 'tx.debit-account-id))))))
+(defun companies-with-non-default-expense/revenue-txs ()
+  (with-db ()
+    (let ((sql `(:select company.title
+                 :distinct
+                 :from company
+                 :left-join tx
+                 :on (:= company.id tx.company-id)
+                 :where (:or (:and (:in tx.debit-account-id (:set ,@*expense-accounts*))
+                                   (:not (:= tx.debit-account-id company.expenses-account-id)))
+                             (:and (:in tx.credit-account-id (:set ,@*revenue-accounts*))
+                                   (:not (:= company.revenues-account-id tx.credit-account-id)))))))
+      (query (sql-compile sql) :column))))
 
 
 ;;; CORRECTIVE ACTIONS
 
-(defun move-general-expense-to-default-account-for-company ()
+(defun move-general-revenues-to-company-default-accounts (&key doit)
   (with-db ()
     (let ((txs (query (:select 'tx.id 'company-id 'tx.credit-account-id
                                'company.revenues-account-id 'tx.description
@@ -66,7 +71,34 @@ receivables"
                        :on (:= 'company.id 'tx.company-id)
                        :where (:= 'tx.credit-account-id 5))
                       :plists)))
-      (loop for tx in txs
-            do (ignore-errors (execute (:update 'tx
-                                        :set 'credit-account-id (getf tx :revenues-account-id)
-                                        :where (:= 'id (getf tx :id)))))))))
+      (if doit
+          (loop for tx in txs
+                do (ignore-errors (execute (:update 'tx
+                                            :set 'credit-account-id (getf tx :revenues-account-id)
+                                            :where (:= 'id (getf tx :id))))))
+          txs))))
+
+
+(defun move-expense-to-default-account-for-company (company &key doit)
+  (with-db ()
+    (let ((sql `(:select company-id tx.id
+                         (:as debit-account.title debit-account-title)
+                         (:as credit-account.title credit-account-title)
+                         company.expenses-account-id tx.description
+                         :from tx
+                         :left-join company
+                         :on (:= company.id tx.company-id)
+                         :left-join (:as account debit-account)
+                         :on (:= debit-account.id tx.debit-account-id)
+                         :left-join (:as account credit-account)
+                         :on (:= credit-account.id tx.credit-account-id)
+                         :where (:and (:ilike company.title ,(ilike company))
+                                      (:in tx.debit-account-id (:set ,@*expense-accounts*))
+                                      (:not (:= tx.debit-account-id company.expenses-account-id))))))
+      (let ((txs (query (sql-compile sql) :plists)))
+        (if doit
+            (loop for tx in txs
+                  do (execute (:update 'tx
+                               :set 'debit-account-id (getf tx :expenses-account-id)
+                               :where (:= 'id (getf tx :id)))))
+            txs)))))
