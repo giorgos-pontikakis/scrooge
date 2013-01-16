@@ -46,6 +46,13 @@ receivables"
                                                               (:select (account-descendants ,@*receivable-accounts*)))))))))))
       (query (sql-compile sql) :column))))
 
+;; (defun companies-with-non-default-txs ()
+;;   (with-db ()
+;;     (query (:select 'company.id 'company.title
+;;              :from 'company
+;;              :left-join 'tx
+;;              :on (:= 'company.id 'tx.company-id)
+;;              :where (:not (:= 'company.expenses-account-id 'tx.debit-account-id))))))
 
 
 ;;; CORRECTIVE ACTIONS
