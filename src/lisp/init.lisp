@@ -1,17 +1,6 @@
 (in-package :scrooge)
 
 
-
-;;; ----------------------------------------------------------------------
-;;; integration for local-time and cl-postgres
-;;; ----------------------------------------------------------------------
-
-(set-local-time-cl-postgres-readers)
-
-(define-timezone "+GREEK-ZONE+" #p"/usr/share/zoneinfo/Europe/Athens")
-
-
-
 ;;; ----------------------------------------------------------------------
 ;;; Acceptor configuration
 ;;; ----------------------------------------------------------------------
