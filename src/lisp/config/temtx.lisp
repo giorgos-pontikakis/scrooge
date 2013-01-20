@@ -274,7 +274,7 @@
   ())
 
 (defmethod target-url ((pg temtx-paginator) start)
-  (apply #'config/temtx (role (table pg)) :start start))
+  (config/temtx (role (table pg)) :start start))
 
 
 
@@ -290,6 +290,7 @@
                                       :role role
                                       :op :catalogue
                                       :selected-key (val temtx-id)
+                                      :start-index (val start)
                                       :id "temtx-table")))
       (with-document ()
         (:head
