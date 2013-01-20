@@ -266,9 +266,9 @@
                              :create (,(family-url 'invoice/create :filter) ,new-invoice-label)))
                     :css-class "hmenu"
                     :disabled (cond ((member op '(:catalogue :delete))
-                                     '(catalogue))
+                                     '(:catalogue))
                                     ((eql op :create)
-                                     '(create))
+                                     '(:create))
                                     (t
                                      nil)))
      (searchbox (family-url-fn 'actions/invoice/search)

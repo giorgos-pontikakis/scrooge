@@ -436,3 +436,8 @@
     width: 65px;
     text-align: right;
 }
+
+#account-tx-window h4 {
+    display: inline-block;
+    margin: 0px 20px 20px 20px;
+}

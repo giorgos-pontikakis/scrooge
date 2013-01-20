@@ -21,6 +21,7 @@
 (defun favicon ()
   (with-html ()
     (:link :rel "icon" :type "image/png" :href (url 'img "money.png"))))
+
 (defun jquery ()
   (js (url 'lib "jquery/jquery-1.5.min.js")))
 
@@ -234,7 +235,7 @@
                   (label 'since "Από: ")
                   (input-text 'since :value (getf filter :since)
                                      :css-class "datepicker")
-                  (label 'since "Εώς: " :id "since")
+                  (label 'until "Εώς: " :id "until")
                   (input-text 'until :value (getf filter :until)
                                      :css-class "datepicker")
                   (:button :type "submit"

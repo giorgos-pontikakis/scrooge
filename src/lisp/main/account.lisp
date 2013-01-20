@@ -11,7 +11,7 @@
   (:default-initargs
    :parameter-groups '(:system (account-id tx-id start)
                        :payload ()
-                       :filter (search since until))))
+                       :filter (account-id search since until))))
 
 (defclass account-tx-page (auth-dynamic-page account-tx-family)
   ())
@@ -22,19 +22,25 @@
 ;;; Account sums
 ;;; ------------------------------------------------------------
 
-(defun account-sums-sql (account-id direction)
+(defun account-sums-sql (account-id direction until)
   (with-db ()
-    (let ((column (ecase direction
-                    (debit 'debit-account-id)
-                    (credit 'credit-account-id))))
-      (query (sql-compile `(:select (coalesce (sum tx.amount) 0)
-                            :from tx
-                            :where (:= ,column ,account-id)))
+    (let* ((column (ecase direction
+                     (debit 'debit-account-id)
+                     (credit 'credit-account-id)))
+           (sql `(:select (coalesce (sum tx.amount) 0)
+                  :from tx
+                  :where (:and (:= ,column ,account-id)
+                               ,(if until
+                                    `(:<= tx-date ,until)
+                                    t)))))
+      #|(:break sql)|#
+      (query (sql-compile sql)
              :single))))
 
-(defun account-sums (account-node)
-  (let ((debits (account-sums-sql (key account-node) 'debit))
-        (credits (account-sums-sql (key account-node) 'credit))
+(defun account-sums (account-node until)
+  #|(:break until)|#
+  (let ((debits (account-sums-sql (key account-node) 'debit until))
+        (credits (account-sums-sql (key account-node) 'credit until))
         (sign (if (debit-p (collection account-node)) 1 -1)))
     (values (* sign (- debits credits))
             (float debits)
@@ -75,21 +81,23 @@
   tree)
 
 (defmethod set-balance ((node balance-account-node))
-  (multiple-value-bind (balance debits credits) (account-sums node)
-    (if (children node)
-        (progn
-          (mapc #'set-balance (children node))
-          (setf (cumul-balance node) (+ balance (reduce #'+ (mapcar #'cumul-balance (children node))))
-                (balance node) balance
-                (debits node) debits
-                (credits node) credits)
-          node)
-        (progn
-          (setf (cumul-balance node) balance)
-          (setf (balance node) balance)
-          (setf (debits node) debits)
-          (setf (credits node) credits)
-          node))))
+  (let ((filter (filter (collection node))))
+    (multiple-value-bind (balance debits credits) (account-sums node (getf filter :until))
+      (if (children node)
+          (progn
+            (mapc #'set-balance (children node))
+            (setf (cumul-balance node) (+ balance (reduce #'+ (mapcar #'cumul-balance (children node))))
+                  (balance node) balance
+                  (debits node) debits
+                  (credits node) credits)
+            node)
+          (progn
+            (setf (cumul-balance node) balance)
+            (setf (balance node) balance)
+            (setf (debits node) debits)
+            (setf (credits node) credits)
+            node)))))
+
 
 (defmethod actions ((tree balance-account-tree) &key)
   (declare (ignore tree))
@@ -99,18 +107,19 @@
 ;;; nodes
 
 (defmethod selector ((node balance-account-node) selected-p)
-  (let ((account-id (key node)))
+  (let ((filter (filter (collection node)))
+        (account-id (key node)))
     (html ()
       (:a :href (if selected-p
-                    (account)
-                    (account :account-id account-id))
+                    (apply #'account filter)
+                    (apply #'account :account-id account-id filter))
         (selector-img selected-p)))))
 
 (defmethod payload ((node balance-account-node) enabled-p)
   (macrolet ((mon (x)
                `(fmt "~,2F" ,x)))
     (html ()
-      (:a :href (account/tx :account-id (key node))
+      (:a :href (account/tx :account-id (key node) :until (getf (filter (collection node)) :until))
         (str (getf (record node) :title)))
       (:span :class (conc "balance-details "
                           (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
@@ -130,30 +139,47 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-tx-page account ("account")
-    ((account-id integer chk-account-id))
+    ((account-id integer chk-account-id)
+     (until      date))
   (with-view-page
-    (with-document ()
-      (:head
-        (:title "Λογαριασμοί")
-        (main-headers))
-      (:body
-        (:div :id "container" :class "container_12"
-          (header)
-          (main-navbar 'account)
-          (loop for debit-p in '(t nil)
-                for div-id in '("debit-accounts" "credit-accounts")
-                for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
-                for account-tree = (make-instance 'balance-account-tree
-                                                  :op :catalogue
-                                                  :selected-key (val account-id)
-                                                  :debit-p debit-p)
-                do (htm
-                    (:div :class "grid_6"
-                      (:div :id div-id :class "window"
-                        (:div :class "title" (str window-title))
-                        (actions account-tree)
-                        (display account-tree :hide-root-p t)))))
-          (footer))))))
+    (let ((filter (params->filter)))
+      (with-document ()
+        (:head
+          (:title "Λογαριασμοί")
+          (main-headers))
+        (:body
+          (:div :id "container" :class "container_12"
+            (header)
+            (main-navbar 'account)
+            (top-actions-area nil
+                              (html ()
+                                (:div :id "datebox" :class "inline-form filter-navbar"
+                                  (with-form (account :account-id (val account-id))
+                                    (:p
+                                      (label 'since "Εώς: " :id "until")
+                                      (input-text 'until :value (getf filter :until)
+                                                         :css-class "datepicker")
+                                      (:button :type "submit"
+                                        (img "tick.png"))
+                                      (:a :class "cancel"
+                                        :href (account :account-id (val account-id))
+                                        (img "cross.png")))))))
+            (loop for debit-p in '(t nil)
+                  for div-id in '("debit-accounts" "credit-accounts")
+                  for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
+                  for account-tree = (make-instance 'balance-account-tree
+                                                    :op :catalogue
+                                                    :selected-key (val account-id)
+                                                    :debit-p debit-p
+                                                    :filter filter)
+                  do (htm
+                      (:div :class "grid_6"
+                        (:div :id div-id :class "window"
+                          (:div :class "title" (str window-title))
+                          (actions account-tree)
+                          (display account-tree :hide-root-p t)))))
+            (footer)))))))
+
 
 
 ;;; ----------------------------------------------------------------------
@@ -205,7 +231,8 @@
              :plists))))
 
 (defmethod filters ((tbl account-tx-table))
-  (filter-area (datebox #'account/tx (filter tbl))))
+  (filter-area (datebox #'account/tx
+                        (list* :account-id (account-id tbl) (filter tbl)))))
 
 
 ;;; row
@@ -285,14 +312,24 @@
      (until      date)
      (start      integer))
   (with-view-page
-    (let ((account-title (with-db ()
-                           (title (get-dao 'account (val account-id)))))
-          (account-tx-table (make-instance 'account-tx-table
-                                           :op :catalogue
-                                           :account-id (val account-id)
-                                           :selected-key (val tx-id)
-                                           :filter (params->filter)
-                                           :start-index (val start))))
+    (let* ((account-title (with-db ()
+                            (title (get-dao 'account (val account-id)))))
+           (account-tx-table (make-instance 'account-tx-table
+                                            :op :catalogue
+                                            :account-id (val account-id)
+                                            :selected-key (val tx-id)
+                                            :filter (params->filter)
+                                            :start-index (val start)))
+           (debit-sum 0)
+           (credit-sum 0)
+           (total 0))
+      (loop for rec in (records account-tx-table)
+            for amount = (getf rec :amount)
+            do (if (eql (getf rec :debit-account-id) (val account-id))
+                   (progn (incf debit-sum amount)
+                          (incf total amount))
+                   (progn (incf credit-sum amount)
+                          (decf total amount))))
       (with-document ()
         (:head
           (:title (str (conc "Λογαριασμοί » Συναλλαγές: " account-title)))
@@ -304,7 +341,8 @@
             (top-actions-area
              (make-instance 'scrooge-menu
                             :spec (make-menu-spec
-                                   `(:catalogue ,(account :account-id (val account-id))))
+                                   `(:catalogue ,(account :account-id (val account-id)
+                                                          :until (val until))))
                             :css-class "hmenu"
                             :disabled nil)
              (searchbox (family-url-fn 'account/tx)
@@ -313,6 +351,9 @@
                         "ac-company"))
             (filters account-tx-table)
             (:div :class "grid_12"
-              (:div :class "window"
+              (:div :id "account-tx-window" :class "window"
                 (:div :class "title" (str account-title))
-                (display account-tx-table)))))))))
+                (display account-tx-table)
+                (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
+                (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
+                (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total))))))))))
