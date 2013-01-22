@@ -22,7 +22,7 @@
 ;;; Account sums
 ;;; ------------------------------------------------------------
 
-(defun account-sums-sql (account-id direction until)
+(defun account-sums-sql (account-id direction since until)
   (with-db ()
     (let* ((column (ecase direction
                      (debit 'debit-account-id)
@@ -30,17 +30,18 @@
            (sql `(:select (coalesce (sum tx.amount) 0)
                   :from tx
                   :where (:and (:= ,column ,account-id)
+                               ,(if since
+                                    `(:<= ,since tx-date)
+                                    t)
                                ,(if until
                                     `(:<= tx-date ,until)
                                     t)))))
-      #|(:break sql)|#
       (query (sql-compile sql)
              :single))))
 
-(defun account-sums (account-node until)
-  #|(:break until)|#
-  (let ((debits (account-sums-sql (key account-node) 'debit until))
-        (credits (account-sums-sql (key account-node) 'credit until))
+(defun account-sums (account-node since until)
+  (let ((debits (account-sums-sql (key account-node) 'debit since  until))
+        (credits (account-sums-sql (key account-node) 'credit since until))
         (sign (if (debit-p (collection account-node)) 1 -1)))
     (values (* sign (- debits credits))
             (float debits)
@@ -82,7 +83,9 @@
 
 (defmethod set-balance ((node balance-account-node))
   (let ((filter (filter (collection node))))
-    (multiple-value-bind (balance debits credits) (account-sums node (getf filter :until))
+    (multiple-value-bind (balance debits credits) (account-sums node
+                                                                (getf filter :since)
+                                                                (getf filter :until))
       (if (children node)
           (progn
             (mapc #'set-balance (children node))
@@ -103,6 +106,17 @@
   (declare (ignore tree))
   (actions-menu nil))
 
+;; (defmethod filters ((tree balance-account-tree))
+;;   (let ((role (role tbl))
+;;         (filter (filter tbl)))
+;;     (top-actions-area
+;;      (filter-navbar `((snapshot ,(apply #'cash "customer" filter) "Στιγμιότυπο")
+;;                       (cumulative ,(apply #'cash "supplier" filter) "Αθροιστικά"))
+;;                     :active role
+;;                     :id "role-navbar")
+;;      (datebox (lambda (&rest args)
+;;                 (apply #'cash role args))
+;;               filter))))
 
 ;;; nodes
 
@@ -140,6 +154,7 @@
 
 (defpage account-tx-page account ("account")
     ((account-id integer chk-account-id)
+     (since      date)
      (until      date))
   (with-view-page
     (let ((filter (params->filter)))
@@ -156,7 +171,7 @@
                                 (:div :id "datebox" :class "inline-form filter-navbar"
                                   (with-form (account :account-id (val account-id))
                                     (:p
-                                      (label 'since "Εώς: " :id "until")
+                                      (label 'since "Ημερομηνία: " :id "until")
                                       (input-text 'until :value (getf filter :until)
                                                          :css-class "datepicker")
                                       (:button :type "submit"
