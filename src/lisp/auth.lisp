@@ -64,7 +64,7 @@
         (setf (session-value 'user) (val user))
         (setf (session-value 'login-time) login-time)
         (setf (session-max-time *session*) 3600)
-        (see-other (or (val target) (home))))
+        (see-other (or (val target) (company))))
       (see-other (login :user (raw user)))))
 
 (defpage dynamic-page logout ("logout") ()

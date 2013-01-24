@@ -379,7 +379,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'cheque)
             (cheque-top-actions :catalogue)
             (filters cheque-table)
@@ -421,7 +421,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'cheque)
             (cheque-top-actions :create)
             (filters cheque-table)
@@ -497,7 +497,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'cheque)
             (cheque-top-actions :update)
             (filters cheque-table)
@@ -571,7 +571,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'cheque)
             (cheque-top-actions :delete)
             (filters cheque-table)

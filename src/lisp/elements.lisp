@@ -99,7 +99,7 @@
   (with-html
     (:div :id "header"
       (logo)
-      (logout-menu config-p)
+      (header-menu config-p)
       (:div :class "clear" ""))))
 
 (defun footer ()
@@ -118,12 +118,16 @@
                                   :timezone +greek-zone+))))
     (:div :class "clear" "")))
 
-(defun logout-menu (config-p)
+(defun header-menu (active-item)
   (with-html
-    (:div :id "logout"
+    (:div :id "header-menu"
       (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
-             (:a :class (if config-p "active" "")
-               :href (if config-p (home) (config/city)) "Ρυθμίσεις"))
+             (:a :class (if (eql active-item 'main) "active" "")
+               :href (company) "Συναλλαγές")
+             (:a :class (if (eql active-item 'advanced) "active" "")
+               :href (account) "Λογιστική")
+             (:a :class (if (eql active-item 'config) "active" "")
+               :href (config/city) "Ρυθμίσεις"))
         (:li (:a :href (logout) "Έξοδος"))))))
 
 (defun notifications (&optional (page *page*) (parameters *parameters*))

@@ -18,8 +18,11 @@
                (:file "elements")
                (:file "auth")
                (:file "root")
-               ;; config
+               ;; section roots
                (:file "config/config")
+               (:file "main/main")
+               (:file "advanced/advanced")
+               ;; config
                (:file "config/bank")
                (:file "config/tof")
                (:file "config/city")
@@ -27,18 +30,17 @@
                (:file "config/role")
                (:file "config/temtx")
                (:file "config/cheque-stran")
-               ;; (:file "config/project-stran")
-               ;; main
-               (:file "main/main")
-               (:file "main/home")
+               ;; basics
                (:file "main/company")
                (:file "main/contact")
                (:file "main/project")
                (:file "main/bill")
-               (:file "main/tx")
+               ;; tx basics
+               (:file "advanced/tx")
+               (:file "advanced/account")
+               ;; tx details
                (:file "main/cash")
                (:file "main/invoice")
                (:file "main/cheque")
                (:file "main/company-tx")
-               (:file "main/company-cheque")
-               (:file "main/account")))
+               (:file "main/company-cheque")))

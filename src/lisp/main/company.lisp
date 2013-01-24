@@ -471,7 +471,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :catalogue)
             (filters company-table)
@@ -505,7 +505,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :details)
             (company-tabs (val company-id) filter 'data
@@ -554,7 +554,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :create)
             (company-tabs nil filter 'data
@@ -646,7 +646,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :update)
             (company-tabs (val company-id) filter 'data
@@ -727,7 +727,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :delete)
             (filters company-table)

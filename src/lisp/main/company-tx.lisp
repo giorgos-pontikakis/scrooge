@@ -223,7 +223,7 @@
               (main-headers))
             (:body
               (:div :id "container" :class "container_12"
-                (header)
+                (header 'main)
                 (main-navbar 'company)
                 (company-tx-top-actions :catalogue)
                 (company-tabs
@@ -326,7 +326,7 @@
               (main-headers))
             (:body
               (:div :id "container" :class "container_12"
-                (header)
+                (header 'main)
                 (main-navbar 'company)
                 (company-tx-top-actions :update)
                 (company-tabs

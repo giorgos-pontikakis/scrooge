@@ -9,9 +9,7 @@
   (with-html
     (:div :class "grid_12"
       (:div :class "section-navbar"
-        (navbar `((home    ,(home)
-                           "Αρχική")
-                  (company ,(company)
+        (navbar `((company ,(company)
                            "Εταιρίες")
                   (project ,(project :cstate "ongoing")
                            "Έργα")
@@ -20,11 +18,7 @@
                   (cheque  ,(cheque "customer" :cstate "pending")
                            "Επιταγές")
                   (invoice ,(invoice "customer" "debit")
-                           "Χρεωπιστώσεις")
-                  (account ,(account)
-                           "Λογαριασμοί")
-                  (tx      ,(tx)
-                           "Ημερολόγιο"))
+                           "Χρεωπιστώσεις"))
                 :css-class "hnavbar"
                 :active active)))))
 

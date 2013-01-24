@@ -178,7 +178,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :details)
             (company-tabs (val company-id) filter 'details
@@ -245,7 +245,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :details)
             (company-tabs (val company-id) filter 'details
@@ -310,7 +310,7 @@
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
-            (header)
+            (header 'main)
             (main-navbar 'company)
             (company-top-actions :details)
             (company-tabs (val company-id) filter 'details
