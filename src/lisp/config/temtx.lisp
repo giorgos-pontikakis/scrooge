@@ -175,7 +175,7 @@
 (defclass temtx-table (scrooge-table)
   ((header-labels :initform '("" "<br />Περιγραφή"
                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
-                              "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση" "" ""))
+                              "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση" "Βιβλιοθήκη" "" ""))
    (paginator :accessor paginator :initarg :paginator)
    (role :accessor role :initarg :role))
   (:default-initargs :id "temtx-table"
@@ -186,7 +186,7 @@
 
 (defmethod get-records ((table temtx-table))
   (query (:order-by (:select 'temtx.id 'temtx.title 'temtx.customer-p
-                             'temtx.sign 'temtx.propagated-p
+                             'temtx.sign 'temtx.propagated-p 'temtx.lib-p
                              (:as 'debit-account.title 'debit-account)
                              (:as 'credit-account.title 'credit-account)
                      :from 'temtx
@@ -260,6 +260,12 @@
                          :value t
                          :checked (getf record :propagated-p)
                          :disabled disabled
+                         :body nil)
+          (make-instance 'input-checkbox
+                         :name 'lib-p
+                         :value t
+                         :checked (getf record :lib-p)
+                         :disabled disabled
                          :body nil))))
 
 (defmethod controls ((row temtx-row) controls-p)
@@ -320,6 +326,7 @@
      (credit-account string  chk-account-title)
      (sign           integer chk-sign)
      (propagated-p   boolean)
+     (lib-p          boolean)
      (title          string))
   (validate-parameters (lambda (title)
                          (chk-temtx-title/create-update title (customer-p role)))
@@ -354,6 +361,7 @@
      (credit-account string   chk-account-title)
      (sign           integer  chk-sign)
      (propagated-p   boolean)
+     (lib-p          boolean)
      (title          string))
   (validate-parameters (lambda (title)
                          (chk-temtx-title/create-update title (customer-p role)))
@@ -369,7 +377,8 @@
                                      :credit-account-id credit-account-id
                                      :customer-p (customer-p role)
                                      :sign (val sign)
-                                     :propagated-p (val propagated-p))))
+                                     :propagated-p (val propagated-p)
+                                     :lib-p (val lib-p))))
       (insert-dao new-temtx)
       (see-other (config/temtx role :temtx-id (temtx-id new-temtx))))))
 
@@ -385,6 +394,7 @@
      (credit-account string  chk-account-title)
      (sign           integer chk-sign)
      (propagated-p   boolean)
+     (lib-p          boolean)
      (title          string))
   (validate-parameters (lambda (title)
                          (chk-temtx-title/create-update title (customer-p role) (val temtx-id)))
@@ -426,6 +436,7 @@
      (credit-account string  chk-account-title)
      (sign           integer chk-sign)
      (propagated-p   boolean)
+     (lib-p          boolean)
      (title          string))
   (validate-parameters (lambda (title)
                          (chk-temtx-title/create-update title (customer-p role) (val temtx-id)))
@@ -446,6 +457,7 @@
                         'customer-p (customer-p role)
                         'sign (val sign)
                         'propagated-p (val propagated-p)
+                        'lib-p (val lib-p)
                         :where (:= 'id (val temtx-id)))))
     (see-other (config/temtx role :temtx-id (val temtx-id)))))
 

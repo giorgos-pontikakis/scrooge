@@ -295,7 +295,8 @@
               (make-instance 'textbox
                              :name 'state-id
                              :value (or (getf record :state-description)
-                                        (description (get-dao 'cheque-state *default-cheque-state-id*)))
+                                        (description (get-dao 'cheque-state
+                                                              *default-cheque-state-id*)))
                              :disabled t)))))
 
 (defmethod controls ((row cheque-row) controls-p)

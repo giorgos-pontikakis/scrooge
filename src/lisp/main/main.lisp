@@ -18,7 +18,9 @@
                   (cheque  ,(cheque "customer" :cstate "pending")
                            "Επιταγές")
                   (invoice ,(invoice "customer" "debit")
-                           "Χρεωπιστώσεις"))
+                           "Χρεωπιστώσεις")
+                  (libtx   ,(libtx "customer")
+                           "Βιβλιοθήκη"))
                 :css-class "hnavbar"
                 :active active)))))
 

@@ -313,7 +313,8 @@
    (credit-account-id :col-type integer :accessor credit-account-id :initarg :credit-account-id)
    (customer-p        :col-type boolean :accessor customer-p        :initarg :customer-p)
    (sign              :col-type integer :accessor sign              :initarg :sign)
-   (propagated-p      :col-type boolean :accessor propagated-p      :initarg :propagated-p))
+   (propagated-p      :col-type boolean :accessor propagated-p      :initarg :propagated-p)
+   (lib-p             :col-type boolean :accessor lib-p             :initarg :lib-p))
   (:metaclass dao-class)
   (:keys id))
 

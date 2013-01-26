@@ -494,8 +494,7 @@
                                   :company-id company-id
                                   :amount (val amount)
                                   :credit-account-id credit-account-id
-                                  :debit-account-id debit-account-id
-                                  :auto t)))
+                                  :debit-account-id debit-account-id!)))
       (insert-dao new-tx)
       (see-other (apply #'cash/details role :tx-id (tx-id new-tx)
                         (params->filter))))))

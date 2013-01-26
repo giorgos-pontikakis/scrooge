@@ -42,5 +42,6 @@
                (:file "main/cash")
                (:file "main/invoice")
                (:file "main/cheque")
+               (:file "main/libtx")
                (:file "main/company-tx")
                (:file "main/company-cheque")))

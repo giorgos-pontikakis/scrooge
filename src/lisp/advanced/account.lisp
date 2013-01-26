@@ -161,7 +161,7 @@
       (with-document ()
         (:head
           (:title "Λογαριασμοί")
-          (main-headers))
+          (advanced-headers))
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
@@ -348,7 +348,7 @@
       (with-document ()
         (:head
           (:title (str (conc "Λογαριασμοί » Συναλλαγές: " account-title)))
-          (main-headers))
+          (advanced-headers))
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)

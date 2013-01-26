@@ -71,6 +71,13 @@
   (jquery-autocomplete)
   (css (url 'css "main.css")))
 
+(defun advanced-headers ()
+  (global-headers)
+  (jquery)
+  (jquery-ui)
+  (jquery-autocomplete)
+  (css (url 'css "advanced.css")))
+
 (defun print-headers ()
   (main-headers)
   (css (url 'css "print.css"))

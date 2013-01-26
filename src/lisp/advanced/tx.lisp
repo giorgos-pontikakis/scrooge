@@ -114,7 +114,7 @@
                     (:as 'non-chq-credit-account.title 'non-chq-credit-account)
                     'tx.debit-account-id
                     'tx.credit-account-id
-                    'amount 'company-id
+                    'amount 'company-id 'temtx-id
                     :from 'tx
                     :left-join 'company
                     :on (:= 'tx.company-id 'company.id)
@@ -272,7 +272,7 @@
       (with-document ()
         (:head
           (:title "Συναλλαγές")
-          (main-headers))
+          (advanced-headers))
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
@@ -312,7 +312,7 @@
       (with-document ()
         (:head
           (:title "Συναλλαγές » Δημιουργία")
-          (main-headers))
+          (advanced-headers))
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
@@ -386,7 +386,7 @@
       (with-document ()
         (:head
           (:title "Συναλλαγή » Επεξεργασία")
-          (main-headers))
+          (advanced-headers))
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
@@ -457,7 +457,7 @@
       (with-document ()
         (:head
           (:title "Συναλλαγή » Διαγραφή")
-          (main-headers))
+          (advanced-headers))
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
