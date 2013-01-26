@@ -30,10 +30,10 @@
            (sql `(:select (coalesce (sum tx.amount) 0)
                   :from tx
                   :where (:and (:= ,column ,account-id)
-                               ,(if since
+                               ,(if (and since (not (eql since :null)))
                                     `(:<= ,since tx-date)
                                     t)
-                               ,(if until
+                               ,(if (and until (not (eql until :null)))
                                     `(:<= tx-date ,until)
                                     t)))))
       (query (sql-compile sql)
@@ -106,18 +106,6 @@
   (declare (ignore tree))
   (actions-menu nil))
 
-;; (defmethod filters ((tree balance-account-tree))
-;;   (let ((role (role tbl))
-;;         (filter (filter tbl)))
-;;     (top-actions-area
-;;      (filter-navbar `((snapshot ,(apply #'cash "customer" filter) "Στιγμιότυπο")
-;;                       (cumulative ,(apply #'cash "supplier" filter) "Αθροιστικά"))
-;;                     :active role
-;;                     :id "role-navbar")
-;;      (datebox (lambda (&rest args)
-;;                 (apply #'cash role args))
-;;               filter))))
-
 ;;; nodes
 
 (defmethod selector ((node balance-account-node) selected-p)
@@ -133,7 +121,7 @@
   (macrolet ((mon (x)
                `(fmt "~,2F" ,x)))
     (html ()
-      (:a :href (account/tx :account-id (key node) :until (getf (filter (collection node)) :until))
+      (:a :href (apply #'account/tx :account-id (key node) (filter (collection node)))
         (str (getf (record node) :title)))
       (:span :class (conc "balance-details "
                           (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
@@ -166,19 +154,7 @@
           (:div :id "container" :class "container_12"
             (header 'advanced)
             (advanced-navbar 'account)
-            (top-actions-area nil
-                              (html ()
-                                (:div :id "datebox" :class "inline-form filter-navbar"
-                                  (with-form (account :account-id (val account-id))
-                                    (:p
-                                      (label 'since "Ημερομηνία: " :id "until")
-                                      (input-text 'until :value (getf filter :until)
-                                                         :css-class "datepicker")
-                                      (:button :type "submit"
-                                        (img "tick.png"))
-                                      (:a :class "cancel"
-                                        :href (account :account-id (val account-id))
-                                        (img "cross.png")))))))
+            (top-actions-area (datebox #'account filter) nil)
             (loop for debit-p in '(t nil)
                   for div-id in '("debit-accounts" "credit-accounts")
                   for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
