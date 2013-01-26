@@ -98,16 +98,25 @@
 
 (defun logo ()
   (with-html
-    (:div :id "logo"
-      :class "grid_2"
-      (:p "(scrooge)"))))
+    (:span :id "logo" "(scrooge)")))
 
-(defun header (&optional config-p)
+(defun header (&optional active-menu)
   (with-html
     (:div :id "header"
-      (logo)
-      (header-menu config-p)
+      (header-menu active-menu)
+      (system-menu)
       (:div :class "clear" ""))))
+
+(defun header-menu (active-tag)
+  (with-html
+    (:div :class "grid_8"
+      (logo)
+      (navbar `((main ,(company) "Συναλλαγές")
+                (advanced ,(account) "Λογιστική")
+                (config ,(config/city) "Ρυθμίσεις"))
+              :id "header-menu"
+              :css-class "hnavbar"
+              :active active-tag))))
 
 (defun footer ()
   (with-html
@@ -125,16 +134,11 @@
                                   :timezone +greek-zone+))))
     (:div :class "clear" "")))
 
-(defun header-menu (active-item)
+(defun system-menu ()
   (with-html
-    (:div :id "header-menu"
-      (:ul (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance)))
-             (:a :class (if (eql active-item 'main) "active" "")
-               :href (company) "Συναλλαγές")
-             (:a :class (if (eql active-item 'advanced) "active" "")
-               :href (account) "Λογιστική")
-             (:a :class (if (eql active-item 'config) "active" "")
-               :href (config/city) "Ρυθμίσεις"))
+    (:div :id "system-menu" :class "grid_4"
+      (:ul :class "hnavbar"
+        (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance))))
         (:li (:a :href (logout) "Έξοδος"))))))
 
 (defun notifications (&optional (page *page*) (parameters *parameters*))

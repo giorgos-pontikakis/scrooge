@@ -236,44 +236,55 @@ select:disabled {
 /* ---------------------------------------------------------------------- */
 
 #header {
-    line-height: 30px;
-    margin-bottom: 5px;
+    line-height: 24px;
+    margin-bottom: 10px;
+    padding: 8px 0px 0px 0px;
+    background-color: #f3f3f3;
+    border-bottom: 1px solid #ccc;
 }
 
-#header ul, #header li {
-    display: inline;
+#header-menu span {
+    font-weight: bold;
+    margin: 0px 10px;
+    padding: 0px 5px;
+    color: hsl(210, 60%, 45%);
+    border-bottom: 3px solid hsl(30, 90%, 65%);
 }
 
-#header a {
-    padding: 5px;
+#header-menu a {
+    font-weight: bold;
+    padding: 0px 5px;
+    margin: 0px 10px;
     text-decoration: none;
     color: #222;
 }
 
-#header a:hover, #header a.active:hover {
-    text-decoration: underline;
+#header a:hover {
+    color: hsl(210, 60%, 45%);
 }
 
-#header a.active {
-    border-radius: 3px;
-    color: #222;
-    background-color: hsl(0, 60%, 85%);
-    margin: 0px 2px;
-}
-
-#header span {
-    margin: 0px 2px;
-    padding: 5px;
-    color: #222;
-}
-
-#header p {
+span#logo  {
     font-size: 16px;
     font-weight: normal;
     font-family: 'Courier New','Courier',monospace;
+    padding: 0px 20px 0px 10px;
 }
 
-#header-menu {
+#system-menu ul {
     float: right;
     margin-right: 10px;
+}
+
+#system-menu ul li {
+    margin-left: 10px;
+}
+
+#system-menu a {
+    color: black;
+    /* font-weight: bold; */
+}
+
+#system-menu a:hover {
+    color: hsl(210, 60%, 45%);
+    /* color: hsl(30, 90%, 65%) */
 }
