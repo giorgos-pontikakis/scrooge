@@ -107,9 +107,12 @@
              :single))))
 
 (defun chk-temtx-id (temtx-id)
-  (if (temtx-exists-p temtx-id)
-      nil
-      :temtx-id-unknown))
+  (cond ((temtx-exists-p temtx-id)
+         nil)
+        ((eql temtx-id :null)
+         :temtx-id-null)
+        (t
+         :temtx-id-unknown)))
 
 (defun chk-temtx-id/ref (temtx-id)
   (cond ((chk-temtx-id temtx-id))
@@ -309,7 +312,7 @@
             (temtx-top-actions :catalogue)
             (filters temtx-table)
             (:div :class "grid_12"
-              (:div :id "temtx-window" :class "window"
+              (:div :class "window"
                 (:div :class "title" "Κατάλογος")
                 (actions temtx-table)
                 (display temtx-table)))
@@ -421,7 +424,7 @@
             (temtx-top-actions :update)
             (filters temtx-table)
             (:div :class "grid_12"
-              (:div :id "temtx-window" :class "window"
+              (:div :class "window"
                 (:div :class "title" "Επεξεργασία")
                 (actions temtx-table)
                 (notifications)
@@ -485,7 +488,7 @@
             (temtx-top-actions :delete)
             (filters temtx-table)
             (:div :class "grid_12"
-              (:div :id "temtx-window" :class "window"
+              (:div :class "window"
                 (:div :class "title" "Διαγραφή")
                 (actions temtx-table)
                 (with-form (actions/config/temtx/delete role :temtx-id (val temtx-id))

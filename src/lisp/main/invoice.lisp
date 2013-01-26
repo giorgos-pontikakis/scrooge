@@ -110,6 +110,8 @@
                                  (:as account.title account)
                                  description amount
                          :from tx
+                         :inner-join temtx
+                         :on (:= tx.temtx-id temtx.id)
                          :inner-join company
                          :on (:= tx.company-id company.id)
                          :inner-join account
@@ -129,6 +131,7 @@
       (let ((sql `(:order-by
                    (,@base-query :where
                                  (:and ,@(invoice-base-where role kind)
+                                       (:= temtx.lib-p nil)
                                        ,@where))
                    (:desc tx-date) account company description)))
         (query (sql-compile sql)

@@ -27,16 +27,17 @@
 
 
 #temtx-table td:nth-child(2) input {
-    width: 210px;
+    width: 200px;
 }
 
 #temtx-table td:nth-child(3) input, #temtx-table th:nth-child(3) input,
 #temtx-table td:nth-child(4) input, #temtx-table th:nth-child(4) input
 {
-    width: 160px;
+    width: 130px;
 }
 
-#temtx-table td:nth-child(6) {
+#temtx-table td:nth-child(6),
+#temtx-table td:nth-child(7) {
     text-align: center;
 }
 

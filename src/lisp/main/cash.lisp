@@ -85,8 +85,8 @@
 (defmethod get-records ((table cash-tx-table))
   (flet ((account-filter (role)
            (if (customer-p role)
-               `(debit-account-id ,(account-id 'cash-account))    ; revenue
-               `(credit-account-id ,(account-id 'cash-account)))) ; expense
+               `(tx.debit-account-id ,(account-id 'cash-account))    ; revenue
+               `(tx.credit-account-id ,(account-id 'cash-account)))) ; expense
          (account-join (role)
            (if (customer-p role)
                'tx.credit-account-id   ; revenue
@@ -101,9 +101,11 @@
                                  (:as account.title account)
                                  description amount
                          :from tx
-                         :left-join company
+                         :inner-join temtx
+                         :on (:= tx.temtx-id temtx.id)
+                         :inner-join company
                          :on (:= tx.company-id company.id)
-                         :left-join account
+                         :inner-join account
                          :on (:= ,(account-join role) account.id)
                          :left-join 'cheque-event
                          :on (:= 'cheque-event.tx-id 'tx.id)))
@@ -121,6 +123,7 @@
               where))
       (let ((sql `(:order-by (,@base-query :where
                                            (:and (:= ,@(account-filter role))
+                                                 (:= temtx.lib-p nil)
                                                  (:is-null 'cheque-event.cheque-id)
                                                  ,@where))
                              (:desc tx-date) account company description)))
@@ -494,7 +497,7 @@
                                   :company-id company-id
                                   :amount (val amount)
                                   :credit-account-id credit-account-id
-                                  :debit-account-id debit-account-id!)))
+                                  :debit-account-id debit-account-id)))
       (insert-dao new-tx)
       (see-other (apply #'cash/details role :tx-id (tx-id new-tx)
                         (params->filter))))))

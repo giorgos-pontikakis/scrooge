@@ -36,7 +36,7 @@
         "Το ποσό της συναλλαγής περιέχει άκυρους χαρακτήρες"))
       (temtx-id
        (:temtx-id-null
-        "Δεν έχετε επιλέξει πρότυπο συναλλαγής"))
+        "Δεν έχετε επιλέξει πρότυπο συναλλαγής από τη βιβλιοθήκη"))
       (tx-date
        (:parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
@@ -68,9 +68,9 @@
                                (:as temtx.title temtx-title)
                                description amount
                        :from tx
-                       :left-join temtx
+                       :inner-join temtx
                        :on (:= tx.temtx-id temtx.id)
-                       :left-join company
+                       :inner-join company
                        :on (:= tx.company-id company.id)))
          (where nil))
     (when search
@@ -247,11 +247,14 @@
                      (cancel-button (cancel-url form)
                                     :body "Άκυρο"))))))
         (htm (:div :class "grid_5 omega"
-               (:h3 "Βιβλιοθήκη")
+               (:h3 "Βιβλιοθήκη προτύπων")
                (:ul (loop for i in lib-temtx
                           do (htm (:li (:input :type "radio"
+                                         :name 'temtx-id
                                          :checked (eql (getf i :id)
                                                        (getf record :temtx-id))
+                                         :disabled disabled
+                                         :value (getf i :id)
                                          (str (getf i :title)))))))))
         (clear)))))
 
@@ -420,7 +423,7 @@
      (since       date)
      (until       date))
   (validate-parameters (chk-tx-constraints-fn role t) company)
-  (with-controller-page (libtx/create role)
+  (with-controller-page (libtx/create role :temtx-id (if (suppliedp temtx-id) (val temtx-id) :null))
     (let* ((company-id (company-id (val company)))
            (temtx (get-dao 'temtx (val temtx-id)))
            (new-tx (make-instance 'tx
@@ -450,17 +453,17 @@
      (description string)
      (company     string  chk-company-title)
      (amount      float   chk-amount)
-     (temtx-id    integer chk-temtx-id t))
+     (temtx-id    integer chk-temtx-id))
   (validate-parameters (chk-tx-constraints-fn role t) company)
   (with-view-page
     (let* ((filter (params->filter))
            (libtx-form (make-instance 'libtx-form
-                                     :role role
-                                     :op :update
-                                     :key (val tx-id)
-                                     :cancel-url (apply #'libtx/details role
-                                                        :tx-id (val tx-id)
-                                                        filter)))
+                                      :role role
+                                      :op :update
+                                      :key (val tx-id)
+                                      :cancel-url (apply #'libtx/details role
+                                                         :tx-id (val tx-id)
+                                                         filter)))
            (page-title (libtx-page-title role "Επεξεργασία")))
       (with-document ()
         (:head
@@ -477,12 +480,12 @@
                 (actions libtx-form :filter filter)
                 (notifications)
                 (with-form (actions/libtx/update role
-                                                :tx-id (val tx-id)
-                                                :search (val search)
-                                                :since (val since)
-                                                :until (val until))
+                                                 :tx-id (val tx-id)
+                                                 :search (val search)
+                                                 :since (val since)
+                                                 :until (val until))
                   (display libtx-form :payload (params->payload)
-                                     :styles (params->styles)))))
+                                      :styles (params->styles)))))
             (footer)))))))
 
 (defpage libtx-page actions/libtx/update
@@ -497,7 +500,7 @@
      (amount      float   chk-amount)
      (temtx-id    integer chk-temtx-id t))
   (validate-parameters (chk-tx-constraints-fn role t) company)
-  (with-controller-page (libtx/update role)
+  (with-controller-page (libtx/update role :temtx-id (if (suppliedp temtx-id) (val temtx-id) :null))
     (let ((company-id (company-id (val company)))
           (temtx (get-dao 'temtx (val temtx-id))))
       (execute (:update 'tx :set
@@ -526,10 +529,10 @@
     (let* ((filter (params->filter))
            (page-title (libtx-page-title role "Διαγραφή"))
            (libtx-table (make-instance 'libtx-table
-                                         :op :delete
-                                         :role role
-                                         :selected-key (val tx-id)
-                                         :filter filter)))
+                                       :op :delete
+                                       :role role
+                                       :selected-key (val tx-id)
+                                       :filter filter)))
       (with-document ()
         (:head
           (:title (str page-title))
@@ -545,10 +548,10 @@
                 (:div :class "title" (str page-title))
                 (actions libtx-table)
                 (with-form (actions/libtx/delete role
-                                                :tx-id (val tx-id)
-                                                :search (val search)
-                                                :since (val since)
-                                                :until (val until))
+                                                 :tx-id (val tx-id)
+                                                 :search (val search)
+                                                 :since (val since)
+                                                 :until (val until))
                   (display libtx-table))))
             (footer)))))))
 

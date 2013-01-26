@@ -370,9 +370,9 @@
                         ("projects" ,(apply #'company :subset "projects" filter*)
                                     "Με ενεργά έργα")
                         ("debit"    ,(apply #'company :subset "debit" filter*)
-                                    "Με χρεωστικό υπόλοιπο")
+                                    "Χρεωστικές")
                         ("credit"   ,(apply #'company :subset "credit" filter*)
-                                    "Με πιστωτικό υπόλοιπο"))))
+                                    "Πιστωτικές"))))
     (filter-area (filter-navbar filter-spec
                                 :active (getf (filter tbl) :subset)))))
 
