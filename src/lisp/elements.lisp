@@ -98,7 +98,7 @@
 
 (defun logo ()
   (with-html
-    (:span :id "logo" "(scrooge)")))
+    (:span :class "logo" "(scrooge)")))
 
 (defun header (&optional active-menu)
   (with-html

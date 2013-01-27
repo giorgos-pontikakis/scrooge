@@ -292,7 +292,7 @@
 ;;; table
 
 (defclass company-table (scrooge-table)
-  ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "" ""))
+  ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Ισοζύγιο" "" ""))
    (paginator      :initform (make-instance 'company-paginator
                                             :id "company-paginator"
                                             :css-class "paginator")))
@@ -306,7 +306,8 @@
                                (:as tof.title tof)
                                address occupation
                                (:as city.title city-name)
-                       :distinct
+                               (:as (:select (company-balance company.id)) balance)  ;; SQL function
+                               :distinct
                        :from company
                        :left-join city
                        :on (:= city.id company.city-id)
@@ -316,7 +317,8 @@
                        :on (:= contact.company-id company.id)
                        :left-join project
                        :on (:= project.company-id company.id)))
-         (where nil))
+         (where nil)
+         (order '(company.title)))
     (when search
       (push `(:or (:ilike company.title ,ilike-term)
                   (:ilike tin ,ilike-term)
@@ -333,12 +335,15 @@
          (push `(:= project.state-id "ongoing")
                where))
         ((member subset (list "credit" "debit") :test #'string=)
-         (push `(:< ,*company-tx-significant-amount*
-                    (* ,(if (string= subset "debit") +1 -1)
-                       (:select (company-balance company.id)))) ;; SQL function
-               where))))
+         (if (string= subset "debit")
+             (progn (push `(:< ,*company-tx-significant-amount* (company-balance company.id))
+                          where)
+                    (push '(:desc balance) order))
+             (progn (push `(:< (company-balance company.id) ,(* -1 *company-tx-significant-amount*))
+                          where)
+                    (push 'balance order))))))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
-                           company.title)))
+                           ,@order)))
       (query (sql-compile sql)
              :plists))))
 
@@ -389,18 +394,20 @@
 
 (defmethod payload ((row company-row) enabled-p)
   (let ((record (record row)))
-    (list*
-     (make-instance 'textbox
-                    :name 'company
-                    :value (getf record :title)
-                    :disabled (not enabled-p)
-                    :href (apply #'company/details :company-id (key row) (filter (collection row))))
-     (mapcar (lambda (name)
-               (make-instance 'textbox
-                              :name name
-                              :value (getf record (make-keyword name))
-                              :disabled (not enabled-p)))
-             '(tin tof)))))
+    `(,(make-instance 'textbox
+                      :name 'company
+                      :value (getf record :title)
+                      :disabled (not enabled-p)
+                      :href (apply #'company/details :company-id (key row) (filter (collection row))))
+      ,@(mapcar (lambda (name)
+                  (make-instance 'textbox
+                                 :name name
+                                 :value (getf record (make-keyword name))
+                                 :disabled (not enabled-p)))
+                '(tin tof))
+      ,(make-instance 'textbox :name 'balance
+                               :value (fmt-amount (abs (getf record :balance)))
+                               :disabled (not enabled-p)))))
 
 
 ;;; paginator

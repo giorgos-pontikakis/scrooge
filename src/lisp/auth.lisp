@@ -37,7 +37,7 @@
     (:body
       (:div :id "container" :class "container_12"
         (:div :class "grid_4 prefix_3"
-          (:div :id "header"
+          (:div :id "login-header"
             (logo)
             (:div :class "clear" ""))
           (when (and (suppliedp user) (not (null user)))

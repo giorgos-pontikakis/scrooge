@@ -232,7 +232,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------- */
-/* logo */
+/* header */
 /* ---------------------------------------------------------------------- */
 
 #header {
@@ -245,7 +245,6 @@ select:disabled {
     margin-top: 2px;
     line-height: 24px;
     margin-bottom: 10px;
-    background-color: #f3f3f3;
 }
 
 #header-menu span {
@@ -271,12 +270,15 @@ select:disabled {
     border-bottom: 3px solid hsl(210, 70%, 80%);
 }
 
-#logo {
+.logo {
     font-size: 16px;
     font-weight: normal;
     font-family: 'Courier New','Courier',monospace;
     padding: 10px 20px 8px 10px;
     display: inline-block;
+}
+
+#header .logo {
     border-right: 1px solid #ccc;
 }
 
@@ -298,4 +300,28 @@ select:disabled {
 
 #system-menu a:hover {
     color: hsl(210, 60%, 45%);
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* login header */
+/* ---------------------------------------------------------------------- */
+
+#login-header {
+    margin-bottom: 10px;
+    margin-left: -1px;
+    margin-right: -1px;
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 2px;
+    line-height: 24px;
+    margin-bottom: 10px;
+}
+
+#login-header .logo {
+    font-size: 16px;
+    font-weight: normal;
+    font-family: 'Courier New','Courier',monospace;
+    padding: 10px 20px 8px 10px;
 }

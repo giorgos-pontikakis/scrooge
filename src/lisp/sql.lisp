@@ -1,7 +1,7 @@
 (in-package :scrooge)
 
 
-;;; COMPANY COMPANY-BALANCE
+;;; COMPANY DEBITS/CREDITS
 
 (defun company-debits/credits-sql (company-id roles)
   (let (temtx-conditions)
