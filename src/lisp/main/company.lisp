@@ -501,7 +501,7 @@
                                          :company-id (val company-id))))
       (with-document ()
         (:head
-          (:title "Εταιρία » Λεπτομέρειες")
+          (:title "Εταιρία » Λεπτομέρειες » Στοιχεία")
           (main-headers))
         (:body
           (:div :id "container" :class "container_12"
@@ -512,7 +512,7 @@
                           (html ()
                             (:div :class "grid_6 alpha"
                               (:div :id "company-window" :class "window"
-                                (:div :class "title" "Λεπτομέρειες")
+                                (:div :class "title" "Στοιχεία")
                                 (actions company-form :filter filter)
                                 (display company-form)))
                             (:div :class "grid_6 omega"
@@ -653,7 +653,7 @@
                           (html ()
                             (:div :class "grid_6 alpha"
                               (:div :id "company-window" :class "window"
-                                (:div :class "title" "Επεξεργασία")
+                                (:div :class "title" "Στοιχεία » Επεξεργασία")
                                 (actions company-form :filter filter)
                                 (notifications)
                                 (with-form (actions/company/update

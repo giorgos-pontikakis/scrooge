@@ -23,8 +23,7 @@
 ;;; ------------------------------------------------------------
 
 (defun company-cheque-page-title (role op-label)
-  (conc "Εταιρία » Λεπτομέρειες » "
-        (cheque-page-title role op-label)))
+  (cheque-page-title role op-label))
 
 
 

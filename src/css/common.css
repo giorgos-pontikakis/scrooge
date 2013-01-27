@@ -279,12 +279,15 @@ span#logo  {
     margin-left: 10px;
 }
 
+#system-menu span {
+    color: #555;
+}
+
 #system-menu a {
-    color: black;
-    /* font-weight: bold; */
+    color: hsl(210, 60%, 35%);
+    padding: 1px 5px;
 }
 
 #system-menu a:hover {
-    color: hsl(210, 60%, 45%);
-    /* color: hsl(30, 90%, 65%) */
+    color: hsl(0, 70%, 35%);
 }

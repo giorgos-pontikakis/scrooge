@@ -152,7 +152,27 @@
         (list nil nil))))
 
 (defmethod payload ((row company-tx-row) enabled-p)
-  (let ((record (record row)))
+  (let* ((record (record row))
+         (cash-account-id (account-id 'cash-account))
+         (cheque-account-ids (list (account-id 'cheque-receivable-account)
+                                   (account-id 'cheque-payable-account)))
+         (tx-account-ids (list (getf record :debit-account-id)
+                               (getf record :credit-account-id)))
+         (role (if (getf record :customer-p) "customer" "supplier"))
+
+         (href (cond ((getf record :lib-p)
+                      (libtx role :tx-id (getf record :id)))
+                     ((member cash-account-id tx-account-ids)
+                      (cash role :tx-id (getf record :id)))
+                     ((intersection cheque-account-ids tx-account-ids)
+                      (cheque role :cheque-id (getf record :cheque-id)))
+                     ((intersection (revenues/expenses-set role) tx-account-ids)
+                      (let ((kind (if (member (getf record :credit-account-id)
+                                              (revenues/expenses-set role))
+                                      "debit"
+                                      "credit")))
+                        (invoice role kind :tx-id (getf record :id))))
+                     (t nil))))
     (list (make-instance 'textbox
                          :name 'tx-date
                          :value (getf record :tx-date)
@@ -162,7 +182,7 @@
                          :name 'description
                          :value (getf record :description)
                          :disabled (not enabled-p)
-                         :href (tx :tx-id (getf record :id)))
+                         :href href)
           (make-instance 'textbox
                          :name 'debit-amount
                          :value (fmt-amount (getf record :debit-amount))
@@ -177,6 +197,9 @@
                          :name 'total
                          :value (fmt-amount (getf record :total))
                          :disabled t))))
+
+(defun tx-category ())
+
 
 
 ;;; paginator
@@ -219,7 +242,7 @@
                                                :start-index (val start))))
           (with-document ()
             (:head
-              (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές")
+              (:title "Συναλλαγές » Κατάλογος")
               (main-headers))
             (:body
               (:div :id "container" :class "container_12"
@@ -231,7 +254,7 @@
                  (html ()
                    (filters company-tx-table)
                    (:div :id "company-tx-window" :class "window"
-                     (:div :class "title" "Συναλλαγές")
+                     (:div :class "title" "Συναλλαγές » Κατάλογος")
                      (actions company-tx-table)
                      (display company-tx-table)
                      (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
@@ -322,7 +345,7 @@
                                                :filter filter)))
           (with-document ()
             (:head
-              (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Επεξεργασία")
+              (:title "Συναλλαγές » Επεξεργασία")
               (main-headers))
             (:body
               (:div :id "container" :class "container_12"
@@ -334,7 +357,7 @@
                  (html ()
                    (filters company-tx-table)
                    (:div :id "company-tx-window" :class "window"
-                     (:div :class "title" "Συναλλαγές")
+                     (:div :class "title" "Συναλλαγές » Επεξεργασία")
                      (actions company-tx-table)
                      (notifications)
                      (with-form

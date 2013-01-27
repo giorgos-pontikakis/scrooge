@@ -13,6 +13,9 @@
     ;; query
     `(:order-by (:select tx-date tx.id tx.description tx.amount
                          temtx.sign cheque.due-date cheque.state-id
+                         ;; the following are needed for the payload of company-tx-row
+                         temtx.lib-p temtx.customer-p (:as cheque.id cheque-id)
+                         temtx.debit-account-id temtx.credit-account-id
                  :from tx
                  :left-join cheque-event
                  :on (:= cheque-event.tx-id tx.id)

@@ -192,7 +192,8 @@
   (let ((record (record row)))
     (insert-list 1
                  (html ()
-                   (:a :href (company/details :company-id (getf record :company-id))
+                   (:a :href (company/tx :company-id (getf record :company-id)
+                                         :tx-id (key row))
                      (str (getf record :company))))
                  (append (mapcar (lambda (name)
                                    (make-instance 'textbox

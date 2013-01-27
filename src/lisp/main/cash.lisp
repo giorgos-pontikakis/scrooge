@@ -179,7 +179,7 @@
                          :value (getf record :tx-date)
                          :disabled (not enabled-p))
           (html ()
-            (:a :href (company/details :company-id (getf record :company-id))
+            (:a :href (company/tx :company-id (getf record :company-id) :tx-id (key row))
               (str (getf record :company))))
           (make-instance 'textbox
                          :name 'description
