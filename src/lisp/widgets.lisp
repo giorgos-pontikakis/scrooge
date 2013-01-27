@@ -17,6 +17,9 @@
 (defgeneric filters (collection)
   (:documentation "Returns the filter linke of a collection widget"))
 
+(defgeneric extra-info (widget)
+  (:documentation "Display extra info for the widget, e.g. sums for a table"))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; Tables

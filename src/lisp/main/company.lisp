@@ -155,11 +155,12 @@
    (make-instance 'scrooge-menu
                   :spec (make-menu-spec
                          `(:catalogue ,(family-url 'company :system :filter)
-                           :create (,(family-url 'company/create :filter) "Νέα Εταιρία")))
+                           :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
+                           :print ,(family-url 'company/print :system :filter)))
                   :css-class "hmenu"
                   :disabled (case op
                               (:catalogue '(:catalogue))
-                              ((:create :update :delete) '(:create))))
+                              ((:create :update :delete) '(:create :print))))
    (searchbox (family-url-fn 'actions/company/search)
               (family-url-fn 'company :system)
               (family-params 'company :filter)
@@ -293,10 +294,12 @@
 
 (defclass company-table (scrooge-table)
   ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Ισοζύγιο" "" ""))
-   (paginator      :initform (make-instance 'company-paginator
-                                            :id "company-paginator"
-                                            :css-class "paginator")))
-  (:default-initargs :item-class 'company-row :id "company-table"))
+   (paginator      :initarg :paginator))
+  (:default-initargs :item-class 'company-row
+                     :id "company-table"
+                     :paginator (make-instance 'company-paginator
+                                               :id "company-paginator"
+                                               :css-class "paginator")))
 
 (defmethod get-records ((table company-table))
   (let* ((search (getf (filter table) :search))
@@ -346,6 +349,14 @@
                            ,@order)))
       (query (sql-compile sql)
              :plists))))
+
+(defmethod extra-info ((table company-table))
+  (with-html
+    (:div :class "window-footer"
+      (:h4 "Σύνολο: " (str (fmt-amount (reduce #'+
+                                               (mapcar #'(lambda (rec)
+                                                           (getf rec :balance 0))
+                                                       (records table)))))))))
 
 (defmethod actions ((tbl company-table) &key)
   (let* ((company-id (selected-key tbl))
@@ -486,8 +497,40 @@
               (:div :id "company-window" :class "window"
                 (:div :class "title"  "Κατάλογος")
                 (actions company-table)
-                (display company-table)))
+                (display company-table)
+                (extra-info company-table)))
             (footer)))))))
+
+(defpage company-page company/print ("company/print")
+    ((company-id integer chk-company-id)
+     (start      integer)
+     (search     string)
+     (subset     string  chk-subset))
+  (with-view-page
+    (let* ((filter (params->filter))
+           (company-table (make-instance 'company-table
+                                         :op :catalogue
+                                         :selected-key nil
+                                         :filter filter
+                                         :start-index (val start)
+                                         :paginator nil)))
+      (with-document ()
+        (:head
+          (:title "Εταιρίες » Κατάλογος » Εκτύπωση")
+          (print-headers))
+        (:body
+          (:div :id "container" :class "container_12"
+            (:div :class "grid_12"
+              (:a :id "back"
+                :href (family-url 'company :system :filter)
+                "« Επιστροφή")
+              (:div :id "company-window" :class "window"
+                (:div :class "title"
+                  (:h2 (str (conc (if (string= (val subset) "debit") "Χρεωστικές" "Πιστωτικές")
+                                  " Εταιρίες"))))
+                (display company-table)
+                (extra-info company-table))
+              (print-pages-footer))))))))
 
 (defpage company-page company/details ("company/details")
     ((company-id integer chk-company-id                         t)
@@ -528,8 +571,6 @@
                                 (actions contact-table)
                                 (display contact-table)))))
             (footer)))))))
-
-
 
 ;;; ----------------------------------------------------------------------
 ;;; CREATE

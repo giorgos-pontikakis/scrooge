@@ -6,14 +6,10 @@
 }
 
 @media print {
-    a, button {
+    a#back, button {
         display: none;
     }
     input {
         border: none;
     }
 }
-
-/* h3 { */
-/*     padding: 5px 15px 10px 15px; */
-/* } */

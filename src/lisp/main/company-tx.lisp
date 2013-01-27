@@ -83,7 +83,10 @@
   ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" ""))
    (paginator     :initarg :paginator)
    (company-id    :accessor company-id
-                  :initarg :company-id))
+                  :initarg :company-id)
+   (debit-sum     :initarg :debit-sum  :reader debit-sum)
+   (credit-sum    :initarg :credit-sum :reader credit-sum)
+   (total         :initarg :total      :reader total))
   (:default-initargs :item-class 'company-tx-row
                      :id "company-tx-table"
                      :paginator (make-instance 'company-tx-paginator
@@ -118,6 +121,13 @@
                                           :active (getf filter :role))
                            (datebox #'company/tx
                                     (list* :company-id company-id filter)))))
+
+(defmethod extra-info ((table company-tx-table))
+  (with-html
+    (:div :class "window-footer"
+      (:h4 "Σύνολο χρεώσεων: " (str (fmt-amount (debit-sum table))))
+      (:h4 "Σύνολο πιστώσεων: " (str (fmt-amount (credit-sum table))))
+      (:h4 "Γενικό Σύνολο: " (str (fmt-amount (total table)))))))
 
 
 ;;; rows
@@ -198,8 +208,6 @@
                          :value (fmt-amount (getf record :total))
                          :disabled t))))
 
-(defun tx-category ())
-
 
 
 ;;; paginator
@@ -239,7 +247,10 @@
                                                :op :catalogue
                                                :selected-key (val tx-id)
                                                :filter filter
-                                               :start-index (val start))))
+                                               :start-index (val start)
+                                               :debit-sum debit-sum
+                                               :credit-sum credit-sum
+                                               :total total)))
           (with-document ()
             (:head
               (:title "Συναλλαγές » Κατάλογος")
@@ -257,9 +268,7 @@
                      (:div :class "title" "Συναλλαγές » Κατάλογος")
                      (actions company-tx-table)
                      (display company-tx-table)
-                     (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                     (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                     (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                     (extra-info company-tx-table))))
                 (footer)))))))))
 
 (defpage company-tx-page company/tx/print ("company/tx/print")
@@ -273,46 +282,47 @@
   (with-view-page
     (let ((filter (params->filter))
           (roles (tx-roles (val role))))
-      (multiple-value-bind (records debit-sum credit-sum)
+      (multiple-value-bind (records debit-sum credit-sum total)
           (company-debits/credits (val company-id) roles (val since) (val until))
-        (with-document ()
-          (:head
-            (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
-            (print-headers))
-          (:body
-            (:div :id "container" :class "container_12"
-              (:div :class "grid_12"
-                (:a :id "back"
-                  :href (family-url 'company/tx :system :filter)
-                  "« Επιστροφή")
-                (:div :id "company-tx-window" :class "window"
-                  (:div :class "title"
-                    (:h1 (str (string-upcase-gr
-                               (title (get-dao 'company (val company-id))))))
-                    (:h2 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
-                                                          (cond ((not (suppliedp role))
-                                                                 "προμηθευτής και πελάτης")
-                                                                ((customer-p (val role))
-                                                                 "πελάτης")
-                                                                (t
-                                                                 "προμηθευτής")))))
-                    (:div :class "grid_4 omega"
-                      (display (datebox (family-url-fn 'company/tx/print)
-                                        (family-params 'company/tx/print
-                                                       :system
-                                                       :filter))))
-                    (clear))
-                  (display (make-instance 'company-tx-table
-                                          :records records
-                                          :company-id (val company-id)
-                                          :op :catalogue
-                                          :filter filter
-                                          :paginator nil))
-                  (:h4 "Σύνολο χρεώσεων: " (fmt "~9,2F" debit-sum))
-                  (:h4 "Σύνολο πιστώσεων: " (fmt "~9,2F" credit-sum))
-                  (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" (- debit-sum
-                                                         credit-sum))))
-                (print-pages-footer)))))))))
+        (let ((company-tx-table (make-instance 'company-tx-table
+                                               :records records
+                                               :company-id (val company-id)
+                                               :op :catalogue
+                                               :filter filter
+                                               :paginator nil
+                                               :debit-sum debit-sum
+                                               :credit-sum credit-sum
+                                               :total total)))
+          (with-document ()
+            (:head
+              (:title "Εταιρία » Λεπτομέρειες » Συναλλαγές » Εκτύπωση")
+              (print-headers))
+            (:body
+              (:div :id "container" :class "container_12"
+                (:div :class "grid_12"
+                  (:a :id "back"
+                    :href (family-url 'company/tx :system :filter)
+                    "« Επιστροφή")
+                  (:div :id "company-tx-window" :class "window"
+                    (:div :class "title"
+                      (:h1 (str (string-upcase-gr
+                                 (title (get-dao 'company (val company-id))))))
+                      (:h2 :class "grid_7 alpha" (str (conc "Συναλλαγές ως "
+                                                            (cond ((not (suppliedp role))
+                                                                   "προμηθευτής και πελάτης")
+                                                                  ((customer-p (val role))
+                                                                   "πελάτης")
+                                                                  (t
+                                                                   "προμηθευτής")))))
+                      (:div :class "grid_4 omega"
+                        (display (datebox (family-url-fn 'company/tx/print)
+                                          (family-params 'company/tx/print
+                                                         :system
+                                                         :filter))))
+                      (clear))
+                    (display company-tx-table)
+                    (extra-info company-tx-table))
+                  (print-pages-footer))))))))))
 
 
 
@@ -342,7 +352,10 @@
                                                :company-id (val company-id)
                                                :op :update
                                                :selected-key (val tx-id)
-                                               :filter filter)))
+                                               :filter filter
+                                               :debit-sum debit-sum
+                                               :credit-sum credit-sum
+                                               :total total)))
           (with-document ()
             (:head
               (:title "Συναλλαγές » Επεξεργασία")
@@ -369,9 +382,7 @@
                                                     :until (val until)
                                                     :role (val role))
                        (display company-tx-table :payload (params->payload)))
-                     (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                     (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                     (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total)))))
+                     (extra-info company-tx-table))))
                 (footer)))))))))
 
 (defpage company-tx-page actions/company/tx/update
