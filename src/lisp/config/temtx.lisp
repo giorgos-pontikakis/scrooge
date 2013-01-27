@@ -10,7 +10,7 @@
   ()
   (:default-initargs :parameter-groups '(:system (temtx-id)
                                          :payload (title debit-account credit-account
-                                                   sign propagated-p)
+                                                   sign propagated-p lib-p)
                                          :filter ())))
 
 (defclass temtx-page (auth-regex-page temtx-family)

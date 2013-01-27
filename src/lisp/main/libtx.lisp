@@ -76,7 +76,7 @@
     (when search
       (push `(:or (:ilike description ,(ilike search))
                   (:ilike company.title ,(ilike search))
-                  (:ilike temtx-title ,(ilike search)))
+                  (:ilike temtx.title ,(ilike search)))
             where))
     (when (and since (not (eql since :null)))
       (push `(:<= ,since tx-date)

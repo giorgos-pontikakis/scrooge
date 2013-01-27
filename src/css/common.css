@@ -243,13 +243,13 @@ select:disabled {
     border: 1px solid #ccc;
     border-radius: 5px;
     margin-top: 2px;
-    line-height: 24px;
-    margin-bottom: 10px;
+    line-height: 16px;
+    margin-bottom: 25px;
 }
 
 #header-menu span {
     font-weight: bold;
-    padding: 10px 25px 5px 25px;
+    padding: 5px 25px 5px 25px;
     color: #222;
     border-right: 1px solid #ccc;
     border-bottom: 3px solid hsl(30, 90%, 65%);
@@ -257,7 +257,7 @@ select:disabled {
 
 #header-menu a {
     font-weight: bold;
-    padding: 10px 25px 8px 25px;
+    padding: 5px 25px 8px 25px;
     text-decoration: none;
     color: #555;
     border-right: 1px solid #ccc;
@@ -266,7 +266,7 @@ select:disabled {
 #header-menu a:hover {
     color: hsl(210, 60%, 45%);
     background-color: hsl(210, 70%, 95%);
-    padding: 10px 25px 5px 25px;
+    padding: 5px 25px 5px 25px;
     border-bottom: 3px solid hsl(210, 70%, 80%);
 }
 
@@ -274,7 +274,7 @@ select:disabled {
     font-size: 16px;
     font-weight: normal;
     font-family: 'Courier New','Courier',monospace;
-    padding: 10px 20px 8px 10px;
+    padding: 5px 20px 7px 10px;
     display: inline-block;
 }
 
@@ -288,13 +288,13 @@ select:disabled {
 
 #system-menu span {
     color: #555;
-    padding: 10px 10px 8px 15px;
+    padding: 5px 10px 8px 15px;
 }
 
 #system-menu a {
     color: #555;
     font-weight: bold;
-    padding: 10px 15px 8px 10px;
+    padding: 5px 15px 8px 10px;
     margin-right: -10px;
 }
 
