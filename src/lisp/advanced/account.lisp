@@ -118,17 +118,17 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((node balance-account-node) enabled-p)
-  (macrolet ((mon (x)
-               `(fmt "~,2F" ,x)))
-    (html ()
-      (:a :href (apply #'account/tx :account-id (key node) (filter (collection node)))
-        (str (getf (record node) :title)))
-      (:span :class (conc "balance-details "
-                          (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
-        " [" (mon (cumul-balance node)) "]")
-      (:ul
-        (:li :class "debits-credits"
-          "Balance: " (mon (balance node)) " | Debits: " (mon (debits node)) " | Credits: " (mon (credits node)))))))
+  (html ()
+    (:a :href (apply #'account/tx :account-id (key node) (filter (collection node)))
+      (str (getf (record node) :title)))
+    (:span :class (conc "balance-details "
+                        (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
+      " [" (str (fmt-amount (cumul-balance node))) "]")
+    (:ul
+      (:li :class "debits-credits"
+        "Balance: " (str (fmt-amount (balance node)))
+        " | Debits: " (str (fmt-amount (debits node)))
+        " | Credits: " (str (fmt-amount (credits node)))))))
 
 (defmethod controls ((node balance-account-node) controls-p)
   (declare (ignore node))
@@ -225,6 +225,23 @@
   (filter-area (datebox #'account/tx
                         (list* :account-id (account-id tbl) (filter tbl)))))
 
+(defmethod extra-info ((table account-tx-table))
+  (let ((debit-sum 0)
+        (credit-sum 0)
+        (total 0))
+    (dolist (rec (records table))
+      (let ((amount (getf rec :amount)))
+        (if (eql (getf rec :debit-account-id) (account-id table))
+            (progn (incf debit-sum amount)
+                   (incf total amount))
+            (progn (incf credit-sum amount)
+                   (decf total amount)))))
+    (with-html
+      (:div :class "window-footer"
+        (:h4 "Σύνολο Χρεώσεων: " (str (fmt-amount debit-sum)))
+        (:h4 "Σύνολο Πιστώσεων: " (str (fmt-amount credit-sum)))
+        (:h4 "Γενικό Σύνολο: " (str (fmt-amount total)))))))
+
 
 ;;; row
 
@@ -310,17 +327,7 @@
                                             :account-id (val account-id)
                                             :selected-key (val tx-id)
                                             :filter (params->filter)
-                                            :start-index (val start)))
-           (debit-sum 0)
-           (credit-sum 0)
-           (total 0))
-      (dolist (rec (records account-tx-table))
-        (let ((amount (getf rec :amount)))
-          (if (eql (getf rec :debit-account-id) (val account-id))
-              (progn (incf debit-sum amount)
-                     (incf total amount))
-              (progn (incf credit-sum amount)
-                     (decf total amount)))))
+                                            :start-index (val start))))
       (with-document ()
         (:head
           (:title (str (conc "Λογαριασμοί » Συναλλαγές: " account-title)))
@@ -345,6 +352,4 @@
               (:div :id "account-tx-window" :class "window"
                 (:div :class "title" (str account-title))
                 (display account-tx-table)
-                (:h4 "Σύνολο Χρεώσεων: " (fmt "~9,2F" debit-sum))
-                (:h4 "Σύνολο Πιστώσεων: " (fmt "~9,2F" credit-sum))
-                (:h4 "Γενικό Σύνολο: " (fmt "~9,2F" total))))))))))
+                (extra-info account-tx-table)))))))))

@@ -4,6 +4,9 @@
 (defclass root-page (auth-dynamic-page family-mixin)
   ())
 
+(defpage root-page home ("")
+    ()
+  (see-other (company)))
 
 ;;; --- Autocomplete --------------------
 
