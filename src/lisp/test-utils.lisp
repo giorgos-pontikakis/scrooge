@@ -102,3 +102,59 @@ receivables"
                                :set 'debit-account-id (getf tx :expenses-account-id)
                                :where (:= 'id (getf tx :id)))))
             txs)))))
+
+
+
+;;; DEBUGGING CODE
+
+(defun purge-company (company-id)
+  (with-db ()
+    ;; cheque-events
+    (print (list 'cheque-events-purged
+                 (execute (:delete-from 'cheque-event
+                           :where (:in 'cheque-event.cheque-id
+                                       (:select 'id :from 'cheque
+                                        :where (:= company-id 'cheque.company-id) ))))))
+    ;; cheques
+    (print (list 'cheques-purged
+                 (execute (:delete-from 'cheque
+                           :where (:= company-id 'cheque.company-id)))))
+    ;; txs
+    (print (list 'txs-purged
+                 (execute (:delete-from 'tx
+                           :where (:= company-id 'tx.company-id)))))
+    ;; contacts
+    (print (list 'contacts-purged
+                 (execute (:delete-from 'contact
+                           :where (:= company-id 'contact.company-id)))))
+    ;; bills
+    (print (list 'bills-purged
+                 (execute (:delete-from 'bill
+                           :where (:in 'bill.project-id
+                                       (:select 'id :from 'project
+                                        :where (:= company-id 'project.company-id)))))))
+    ;; projects
+    (print (list 'projects-purged
+                 (execute (:delete-from 'project
+                           :where (:= company-id 'project.company-id)))))
+    ;; company per se
+    (print (execute (:delete-from 'company :where (:= 'company.id company-id))))))
+
+
+(defun account-balance (account-id)
+  (with-db ()
+    (float (- (account-sums-sql account-id 'debit nil nil)
+              (account-sums-sql account-id 'credit nil nil)))))
+
+
+(defun companies-sum (subset)
+  (with-db ()
+    (let ((records (records (make-instance 'company-table :filter (list :subset subset)
+                                                          :op :catalogue))))
+      (float (reduce #'+
+                     (mapcar (lambda (rec)
+                               (getf rec :balance 0)) records))))))
+
+(defun sum-error ()
+  (- (account-balance (account-id 'receivable-root-account))
+     (companies-sum "debit")))

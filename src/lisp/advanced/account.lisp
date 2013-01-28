@@ -89,7 +89,10 @@
       (if (children node)
           (progn
             (mapc #'set-balance (children node))
-            (setf (cumul-balance node) (+ balance (reduce #'+ (mapcar #'cumul-balance (children node))))
+            (setf (cumul-balance node) (+ balance
+                                          (reduce #'+
+                                                  (mapcar #'cumul-balance
+                                                          (children node))))
                   (balance node) balance
                   (debits node) debits
                   (credits node) credits)
