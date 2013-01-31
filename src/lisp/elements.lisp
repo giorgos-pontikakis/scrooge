@@ -287,3 +287,17 @@
                       :value value
                       :disabled disabled
                       :css-class all-styles)))))
+
+
+;;; payload
+
+(defun textbox-maker (record enabled-p)
+  (lambda (arg)
+    (destructuring-bind (name &key href format-fn css-class) (ensure-list arg)
+      (make-instance 'textbox
+                     :name name
+                     :css-class css-class
+                     :value (getf record (make-keyword name))
+                     :disabled (not enabled-p)
+                     :href href
+                     :format-fn format-fn))))

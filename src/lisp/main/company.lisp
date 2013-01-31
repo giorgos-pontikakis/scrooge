@@ -405,20 +405,11 @@
 
 (defmethod payload ((row company-row) enabled-p)
   (let ((record (record row)))
-    `(,(make-instance 'textbox
-                      :name 'company
-                      :value (getf record :title)
-                      :disabled (not enabled-p)
-                      :href (apply #'company/details :company-id (key row) (filter (collection row))))
-      ,@(mapcar (lambda (name)
-                  (make-instance 'textbox
-                                 :name name
-                                 :value (getf record (make-keyword name))
-                                 :disabled (not enabled-p)))
-                '(tin tof))
-      ,(make-instance 'textbox :name 'balance
-                               :value (fmt-amount (abs (getf record :balance)))
-                               :disabled (not enabled-p)))))
+    (mapcar (textbox-maker record enabled-p)
+            `((title :href ,(apply #'company/details :company-id (key row) (filter (collection row))))
+              tin
+              tof
+              (balance :format-fn ,(compose #'fmt-amount #'abs))))))
 
 
 ;;; paginator

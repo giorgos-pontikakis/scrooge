@@ -100,14 +100,10 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
-  (let ((record (record row))
-        (disabled (not enabled-p)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :value (getf record (make-keyword name))
-                             :disabled disabled))
-            '(tag phone))))
+  (let ((record (record row)))
+    (mapcar (textbox-maker record enabled-p)
+            '((tag :css-class "tag")
+              (phone :css-class "phone")))))
 
 (defmethod controls ((row contact-row) enabled-p)
   (let ((table (collection row))

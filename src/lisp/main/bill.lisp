@@ -94,15 +94,10 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row bill-row) enabled-p)
-  (let ((record (record row))
-        (disabled (not enabled-p)))
-    (mapcar (lambda (name)
-              (make-instance 'textbox
-                             :name name
-                             :css-class (string-downcase name)
-                             :value (getf record (make-keyword name))
-                             :disabled disabled))
-            '(tag amount))))
+  (let ((record (record row)))
+    (mapcar (textbox-maker record enabled-p)
+            '((tag :css-class "tag")
+              (amount :css-class "amount")))))
 
 (defmethod controls ((row bill-row) enabled-p)
   (let ((table (collection row))

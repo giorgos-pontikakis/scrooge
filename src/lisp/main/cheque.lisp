@@ -269,44 +269,29 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row cheque-row) enabled-p)
-  (let* ((record (record row)))
-    (list (make-instance 'textbox
-                         :name 'serial
-                         :value (getf record :serial)
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'company
-                         :value (getf record :company)
-                         :css-class "ac-company"
-                         :disabled (not enabled-p)
-                         :href (company/tx :company-id (getf record :company-id)
-                                           :tx-id (getf record :tx-id)))
-          (make-instance 'textbox
-                         :name 'bank
-                         :value (getf record :bank)
-                         :css-class "ac-bank"
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'due-date
-                         :value (getf record :due-date)
-                         :css-class (if enabled-p "datepicker" nil)
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'amount
-                         :value (fmt-amount (getf record :amount))
-                         :disabled (not enabled-p))
-          (if (and enabled-p (eql (op (collection row)) :update))
-              (make-instance 'dropdown
-                             :name 'state-id
-                             :selected (getf record :state-id)
-                             :value-label-alist (following-cheque-states (getf record :state-id)
-                                                                         (getf record :customer-p)))
-              (make-instance 'textbox
-                             :name 'state-id
-                             :value (or (getf record :state-description)
-                                        (description (get-dao 'cheque-state
-                                                              *default-cheque-state-id*)))
-                             :disabled t)))))
+  (let* ((record (record row))
+         (head (mapcar (textbox-maker record enabled-p)
+                       `(serial
+                         (company :css-class "ac-company"
+                                  :href ,(company/tx :company-id (getf record :company-id)
+                                                     :tx-id (getf record :tx-id)))
+                         (bank :css-class "ac-bank")
+                         (due-date :css-class ,(if enabled-p "datepicker" nil))
+                         (amount :format-fn ,#'fmt-amount)))))
+    (append head
+            (list
+             (if (and enabled-p (eql (op (collection row)) :update))
+                 (make-instance 'dropdown
+                                :name 'state-id
+                                :selected (getf record :state-id)
+                                :value-label-alist (following-cheque-states (getf record :state-id)
+                                                                            (getf record :customer-p)))
+                 (make-instance 'textbox
+                                :name 'state-id
+                                :value (or (getf record :state-description)
+                                           (description (get-dao 'cheque-state
+                                                                 *default-cheque-state-id*)))
+                                :disabled t))))))
 
 (defmethod controls ((row cheque-row) controls-p)
   (let* ((cheque-id (key row))

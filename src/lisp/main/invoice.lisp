@@ -189,23 +189,16 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row invoice-tx-row) enabled-p)
-  (let ((record (record row)))
-    (insert-list 1
-                 (html ()
-                   (:a :href (company/tx :company-id (getf record :company-id)
-                                         :tx-id (key row))
-                     (str (getf record :company))))
-                 (append (mapcar (lambda (name)
-                                   (make-instance 'textbox
-                                                  :name name
-                                                  :value (getf record (make-keyword name))
-                                                  :disabled (not enabled-p)))
-                                 '(tx-date description account))
-                         (list
-                          (make-instance 'textbox
-                                         :name 'amount
-                                         :value (fmt-amount (getf record :amount))
-                                         :disabled (not enabled-p)))))))
+  (let ((record (record row))
+        (table (collection row)))
+    (mapcar (textbox-maker record enabled-p)
+            `(tx-date
+              (company :href ,(company/tx :company-id (getf record :company-id)
+                                          :tx-id (key row)))
+              (description :href ,(apply #'invoice/details (role table) (kind table)
+                                         :tx-id (key row) (filter table)))
+              account
+              (amount :format-fn ,#'fmt-amount)))))
 
 (defmethod controls ((row invoice-tx-row) controls-p)
   (let* ((tx-id (key row))

@@ -312,11 +312,9 @@
 #cheque-table td:nth-child(2), #cheque-table th:nth-child(2)
 {
     width: 80px;
-    text-align: right;
 }
 #cheque-table td:nth-child(2) input {
     width: 70px;
-    text-align: right;
 }
 
 #cheque-table td:nth-child(5), #cheque-table th:nth-child(5)

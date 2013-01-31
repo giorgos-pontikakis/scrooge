@@ -135,25 +135,13 @@
 
 (defmethod payload ((row libtx-row) enabled-p)
   (let ((record (record row)))
-    (list (make-instance 'textbox
-                         :name 'tx-date
-                         :value (getf record :tx-date)
-                         :disabled (not enabled-p))
-          (html ()
-            (:a :href (company/details :company-id (getf record :company-id))
-              (str (getf record :company))))
-          (make-instance 'textbox
-                         :name 'description
-                         :value (getf record :description)
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'temtx-title
-                         :value (getf record :temtx-title)
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'amount
-                         :value (fmt-amount (getf record :amount))
-                         :disabled (not enabled-p)))))
+    (mapcar (textbox-maker record enabled-p)
+            `((tx-date :css-class ,(if enabled-p "datepicker" nil))
+              (company :href ,(company/details :company-id (getf record :company-id)))
+              (description :href ,(libtx/details (role (collection row))
+                                                 :tx-id (key row)))
+              temtx-title
+              (amount :format-fn ,#'fmt-amount)))))
 
 (defmethod controls ((row libtx-row) controls-p)
   (let* ((tx-id (key row))
