@@ -300,9 +300,7 @@
             (:body
               (:div :id "container" :class "container_12"
                 (:div :class "grid_12"
-                  (:a :id "back"
-                    :href (family-url 'company/tx :system :filter)
-                    "« Επιστροφή")
+                  (back (family-url 'company/tx :system :filter))
                   (:div :id "company-tx-window" :class "window"
                     (:div :class "title"
                       (:h1 (str (string-upcase-gr

@@ -289,9 +289,7 @@
           (:body
             (:div :id "container" :class "container_12"
               (:div :class "grid_12"
-                (:a :id "back"
-                  :href (family-url 'company/cheque :system :filter)
-                  "« Επιστροφή")
+                (back (family-url 'company/cheque :system :filter))
                 (:div :class "window"
                   (:div :class "title"
                     (:h1 (str (string-upcase-gr

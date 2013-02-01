@@ -512,9 +512,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (:div :class "grid_12"
-              (:a :id "back"
-                :href (family-url 'company :system :filter)
-                "« Επιστροφή")
+              (back (family-url 'company :system :filter))
               (:div :id "company-window" :class "window"
                 (:div :class "title"
                   (:h2 (str (conc (if (string= (val subset) "debit") "Χρεωστικές" "Πιστωτικές")
@@ -549,6 +547,40 @@
             (header 'main)
             (main-navbar 'company)
             (company-top-actions :details)
+            (company-tabs (val company-id) filter 'data
+                          (html ()
+                            (:div :class "grid_6 alpha"
+                              (:div :id "company-window" :class "window"
+                                (:div :class "title" "Στοιχεία")
+                                (actions company-form :filter filter)
+                                (display company-form)))
+                            (:div :class "grid_6 omega"
+                              (:div :id "contact-window" :class "window"
+                                (:div :class "title" "Επαφές")
+                                (actions contact-table)
+                                (display contact-table)))))
+            (footer)))))))
+
+(defpage company-page company/details/print ("company/details/print")
+    ((company-id integer chk-company-id t)
+     (search     string)
+     (subset     string  chk-subset))
+  (with-view-page
+    (let* ((filter (params->filter))
+           (company-form (make-instance 'company-form
+                                        :op :details
+                                        :cancel-url (apply #'company
+                                                           :company-id (val company-id)
+                                                           filter)))
+           (contact-table (make-instance 'contact-table
+                                         :op :catalogue
+                                         :company-id (val company-id))))
+      (with-document ()
+        (:head
+          (:title "Εταιρία » Λεπτομέρειες » Στοιχεία » Εκτύπωση")
+          (print-headers))
+        (:body
+          (:div :id "container" :class "container_12"
             (company-tabs (val company-id) filter 'data
                           (html ()
                             (:div :class "grid_6 alpha"

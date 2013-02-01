@@ -13,6 +13,12 @@
   (with-html
     (:div :class "clear" "")))
 
+(defun back (href)
+  (with-html
+    (:a :id "back"
+      :href href
+      "« Επιστροφή")))
+
 
 ;;; ------------------------------------------------------------
 ;;; HTML Head
