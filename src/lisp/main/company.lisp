@@ -151,20 +151,23 @@
 ;;; ------------------------------------------------------------
 
 (defun company-top-actions (op)
-  (top-actions-area
-   (make-instance 'scrooge-menu
-                  :spec (make-menu-spec
-                         `(:catalogue ,(family-url 'company :system :filter)
-                           :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
-                           :print ,(family-url 'company/print :system :filter)))
-                  :css-class "hmenu"
-                  :disabled (case op
-                              (:catalogue '(:catalogue))
-                              ((:create :update :delete) '(:create :print))))
-   (searchbox (family-url-fn 'actions/company/search)
-              (family-url-fn 'company :system)
-              (family-params 'company :filter)
-              "ac-company")))
+  (let ((print-url (case op
+                     (:details 'company/details/print)
+                     (:catalogue 'company/print))))
+   (top-actions-area
+    (make-instance 'scrooge-menu
+                   :spec (make-menu-spec
+                          `(:catalogue ,(family-url 'company :system :filter)
+                            :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
+                            :print ,(family-url print-url :system :filter)))
+                   :css-class "hmenu"
+                   :disabled (case op
+                               (:catalogue '(:catalogue))
+                               ((:create :update :delete) '(:create :print))))
+    (searchbox (family-url-fn 'actions/company/search)
+               (family-url-fn 'company :system)
+               (family-params 'company :filter)
+               "ac-company"))))
 
 (defun company-tabs (company-id filter active content)
   (declare (ignore filter))
@@ -543,6 +546,7 @@
           (:title "Εταιρία » Λεπτομέρειες » Στοιχεία")
           (main-headers))
         (:body
+
           (:div :id "container" :class "container_12"
             (header 'main)
             (main-navbar 'company)
@@ -581,6 +585,8 @@
           (print-headers))
         (:body
           (:div :id "container" :class "container_12"
+            (:div :class "grid_12"
+              (back (family-url 'company/details :system :filter)))
             (company-tabs (val company-id) filter 'data
                           (html ()
                             (:div :class "grid_6 alpha"
