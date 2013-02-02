@@ -115,7 +115,7 @@
 
 (defmethod family-url ((page-name null) &rest group-names)
   (declare (ignore page-name group-names))
-  (error "FAMILY-URL: Page not found."))
+  nil)
 
 
 

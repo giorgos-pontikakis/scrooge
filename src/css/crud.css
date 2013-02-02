@@ -8,6 +8,9 @@
     line-height: 22px;
 }
 
+.crud-tree span {
+    display: inline;
+}
 
 .crud-tree a {
     color: #018;

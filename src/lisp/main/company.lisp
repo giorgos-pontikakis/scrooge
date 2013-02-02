@@ -154,20 +154,20 @@
   (let ((print-url (case op
                      (:details 'company/details/print)
                      (:catalogue 'company/print))))
-   (top-actions-area
-    (make-instance 'scrooge-menu
-                   :spec (make-menu-spec
-                          `(:catalogue ,(family-url 'company :system :filter)
-                            :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
-                            :print ,(family-url print-url :system :filter)))
-                   :css-class "hmenu"
-                   :disabled (case op
-                               (:catalogue '(:catalogue))
-                               ((:create :update :delete) '(:create :print))))
-    (searchbox (family-url-fn 'actions/company/search)
-               (family-url-fn 'company :system)
-               (family-params 'company :filter)
-               "ac-company"))))
+    (top-actions-area
+     (make-instance 'scrooge-menu
+                    :spec (make-menu-spec
+                           `(:catalogue ,(family-url 'company :system :filter)
+                             :create (,(family-url 'company/create :filter) "Νέα Εταιρία")
+                             :print ,(family-url print-url :system :filter)))
+                    :css-class "hmenu"
+                    :disabled (case op
+                                (:catalogue '(:catalogue))
+                                ((:create :update :delete) '(:create :print))))
+     (searchbox (family-url-fn 'actions/company/search)
+                (family-url-fn 'company :system)
+                (family-params 'company :filter)
+                "ac-company"))))
 
 (defun company-tabs (company-id filter active content)
   (declare (ignore filter))
