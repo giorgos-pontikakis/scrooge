@@ -279,29 +279,23 @@
                             " "
                             common-styles)))
       (label name label)
-      (if disabled
-          (if href
-              (with-html
-                (:a :href href :class all-styles
-                  (str (lisp->html value))))
-              (with-html
-                (:p :class all-styles
-                  (str (lisp->html value)))))
-          (input-text name
-                      :value value
-                      :disabled disabled
-                      :css-class all-styles)))))
+      (display (make-instance 'textbox
+                              :name name
+                              :value value
+                              :href href
+                              :css-class all-styles)))))
 
 
-;;; payload
+;;; textbox-maker
 
 (defun textbox-maker (record enabled-p)
-  (lambda (arg)
-    (destructuring-bind (name &key href format-fn css-class) (ensure-list arg)
+  (lambda (arglist)
+    (destructuring-bind (name &key href format-fn css-class (disabled (not enabled-p)))
+        (ensure-list arglist)
       (make-instance 'textbox
                      :name name
                      :css-class css-class
                      :value (getf record (make-keyword name))
-                     :disabled (not enabled-p)
+                     :disabled disabled
                      :href href
                      :format-fn format-fn))))

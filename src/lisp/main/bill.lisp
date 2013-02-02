@@ -94,10 +94,9 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row bill-row) enabled-p)
-  (let ((record (record row)))
-    (mapcar (textbox-maker record enabled-p)
-            '((tag :css-class "tag")
-              (amount :css-class "amount")))))
+  (mapcar (textbox-maker (record row) enabled-p)
+          '((tag :css-class "tag")
+            (amount :css-class "amount"))))
 
 (defmethod controls ((row bill-row) enabled-p)
   (let ((table (collection row))

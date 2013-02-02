@@ -205,41 +205,18 @@
   (simple-controls row controls-p #'tx :tx-id))
 
 (defmethod payload ((row tx-row) enabled-p)
-  (let ((record (record row))
-        (css-class '(tx-date "datepicker"
-                     company "ac-company"
-                     non-chq-debit-account "ac-non-chq-account"
-                     non-chq-credit-account "ac-non-chq-account")))
-    (list* (make-instance 'textbox
-                          :name 'tx-date
-                          :value (or (getf record :tx-date) (today))
-                          :disabled (not enabled-p)
-                          :css-class (if enabled-p (getf css-class 'tx-date) nil))
-           (make-instance 'textbox
-                          :name 'company
-                          :value (getf record :company)
-                          :disabled (not enabled-p)
-                          :css-class (if enabled-p (getf css-class 'company) nil)
-                          :href (company/tx :company-id (getf record :company-id)
-                                            :tx-id (getf record :id)))
-           (make-instance 'textbox
-                          :name 'description
-                          :value (getf record :description)
-                          :disabled (not enabled-p))
-           (append (mapcar (lambda (name id)
-                             (make-instance 'textbox
-                                            :name name
-                                            :value (getf record (make-keyword name))
-                                            :disabled (not enabled-p)
-                                            :css-class (if enabled-p (getf css-class name) nil)
-                                            :href (account/tx :account-id (getf record (make-keyword id))
-                                                              :tx-id (getf record :id))))
-                           '(non-chq-debit-account non-chq-credit-account)
-                           '(non-chq-debit-account-id non-chq-credit-account-id))
-                   (list (make-instance 'textbox
-                                        :name 'amount
-                                        :value (fmt-amount (getf record :amount))
-                                        :disabled (not enabled-p)))))))
+  (let ((record (record row)))
+    (mapcar (textbox-maker record enabled-p)
+            `((tx-date :css-class ,(if enabled-p "datepicker" nil))
+              (company :css-class ,(if enabled-p "ac-company" nil))
+              description
+              (non-chq-debit-account :href ,(account/tx :account-id (getf record :non-chq-debit-account-id)
+                                                        :tx-id (getf record :id))
+                                     :css-class ,(if enabled-p "ac-non-chq-account" nil))
+              (non-chq-credit-account :href ,(account/tx :account-id (getf record :non-chq-credit-account-id)
+                                                         :tx-id (getf record :id))
+                                      :css-class ,(if enabled-p "ac-non-chq-account" nil))
+              (amount :format-fn ,#'fmt-amount)))))
 
 
 ;;; paginator

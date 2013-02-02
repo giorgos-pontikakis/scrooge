@@ -100,10 +100,9 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
-  (let ((record (record row)))
-    (mapcar (textbox-maker record enabled-p)
-            '((tag :css-class "tag")
-              (phone :css-class "phone")))))
+  (mapcar (textbox-maker (record row) enabled-p)
+          '((tag :css-class "tag")
+            (phone :css-class "phone"))))
 
 (defmethod controls ((row contact-row) enabled-p)
   (let ((table (collection row))

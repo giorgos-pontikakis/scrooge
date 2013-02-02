@@ -59,6 +59,15 @@ receivables"
                                    (:not (:= company.revenues-account-id tx.credit-account-id)))))))
       (query (sql-compile sql) :column))))
 
+(defun txs-with-wrong-temtx-id ()
+  (with-db ()
+    (query (:select '*
+            :from 'tx
+            :where (:not (:= (:get-temtx 'tx.debit-account-id 'tx.credit-account-id)
+                             'temtx-id)))
+           :plists)))
+
+
 
 ;;; CORRECTIVE ACTIONS
 

@@ -183,30 +183,12 @@
                                       "credit")))
                         (invoice role kind :tx-id (getf record :id))))
                      (t nil))))
-    (list (make-instance 'textbox
-                         :name 'tx-date
-                         :value (getf record :tx-date)
-                         :disabled (not enabled-p)
-                         :css-class (if enabled-p "datepicker" nil))
-          (make-instance 'textbox
-                         :name 'description
-                         :value (getf record :description)
-                         :disabled (not enabled-p)
-                         :href href)
-          (make-instance 'textbox
-                         :name 'debit-amount
-                         :value (fmt-amount (getf record :debit-amount))
-                         :disabled (or (not (getf record :debit-amount))
-                                       (not enabled-p)))
-          (make-instance 'textbox
-                         :name 'credit-amount
-                         :value (fmt-amount (getf record :credit-amount))
-                         :disabled (or (not (getf record :credit-amount))
-                                       (not enabled-p)))
-          (make-instance 'textbox
-                         :name 'total
-                         :value (fmt-amount (getf record :total))
-                         :disabled t))))
+    (mapcar (textbox-maker record enabled-p)
+            `((tx-date :css-class ,(if enabled-p "datepicker" nil))
+              (description :href ,href)
+              (debit-amount :format-fn ,#'fmt-amount)
+              (credit-amount :format-fn ,#'fmt-amount)
+              (total :disabled t :format-fn ,#'fmt-amount)))))
 
 
 

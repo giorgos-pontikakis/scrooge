@@ -127,25 +127,11 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((row company-cheque-row) enabled-p)
-  (let ((record (record row)))
-    (list (make-instance 'textbox
-                         :name 'serial
-                         :value (getf record :serial)
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'bank
-                         :value (getf record :bank)
-                         :css-class "ac-bank"
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'due-date
-                         :value (getf record :due-date)
-                         :css-class (if enabled-p "datepicker" nil)
-                         :disabled (not enabled-p))
-          (make-instance 'textbox
-                         :name 'amount
-                         :value (fmt-amount (getf record :amount))
-                         :disabled (not enabled-p)))))
+  (mapcar (textbox-maker (record row) enabled-p)
+          `(serial
+            (bank :css-class "ac-bank")
+            (datepicker :css-class ,(if enabled-p "datepicker" nil))
+            (amount :format-fn #'fmt-amount))))
 
 (defmethod controls ((row company-cheque-row) controls-p)
   (let* ((cheque-id (key row))
