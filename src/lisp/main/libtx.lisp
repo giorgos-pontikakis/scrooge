@@ -97,6 +97,7 @@
          (filter (filter tbl))
          (hrefs (if tx-id
                     (list :details (apply #'libtx/details role :tx-id tx-id filter)
+                          :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
                           :delete (apply #'libtx/delete role :tx-id tx-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
@@ -137,7 +138,8 @@
   (let ((record (record row)))
     (mapcar (textbox-maker record enabled-p)
             `((tx-date :css-class ,(if enabled-p "datepicker" nil))
-              (company :href ,(company/details :company-id (getf record :company-id)))
+              (company :href ,(company/tx :company-id (getf record :company-id)
+                                          :tx-id (key row)))
               (description :href ,(libtx/details (role (collection row))
                                                  :tx-id (key row)))
               temtx-title
@@ -221,7 +223,8 @@
                                                :default-value (today))
             (display ldfn 'company "Εταιρία"
                      :enabled-styles "ac-company"
-                     :href (company/details :company-id (getf record :company-id))
+                     :href (company/tx :company-id (getf record :company-id)
+                                       :tx-id (key form))
                      :common-styles "company")
             (display ldfn 'description "Περιγραφή"
                      :common-styles "description")

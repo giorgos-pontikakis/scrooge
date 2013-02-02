@@ -144,6 +144,7 @@
          (filter (filter tbl))
          (hrefs (if tx-id
                     (list :details (apply #'invoice/details role kind :tx-id tx-id filter)
+                          :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
                           :delete (apply #'invoice/delete role kind :tx-id tx-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
@@ -281,7 +282,7 @@
 
 (defclass invoice-form (tx-form)
   ((role :accessor role :initarg :role)
-   (kind      :accessor kind      :initarg :kind)))
+   (kind :accessor kind :initarg :kind)))
 
 (defmethod display ((form invoice-form) &key styles)
   (let* ((role (role form))
@@ -310,7 +311,8 @@
                                                 :default-value (today))
             (display ldfn 'company "Εταιρία"
                      :enabled-styles "ac-company"
-                     :href (company/details :company-id (getf record :company-id))
+                     :href (company/tx :company-id (getf record :company-id)
+                                       :tx-id (key form))
                      :common-styles "company")
             (display ldfn 'description "Περιγραφή"
                      :common-styles "description")
@@ -335,6 +337,7 @@
          (role (role form))
          (kind (kind form))
          (hrefs (list :update (apply #'invoice/update role kind :tx-id tx-id filter)
+                      :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
                       :delete (apply #'invoice/delete role kind :tx-id tx-id filter))))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))
@@ -369,17 +372,11 @@
 ;;; VIEW
 ;;; ----------------------------------------------------------------------
 
-(defun invoice-kind (dao)
-  (if (or (member (debit-account-id dao) *expense-accounts*)
-          (member (credit-account-id dao) *revenue-accounts*))
+(defun invoice-kind (record)
+  (if (or (member (getf record :debit-account-id) *expense-accounts*)
+          (member (getf record :credit-account-id) *revenue-accounts*))
       "debit"
       "credit"))
-
-(defun invoice-role (dao)
-  (if (or (member (debit-account-id dao) *expense-accounts*)
-          (member (credit-account-id dao) *expense-accounts*))
-      "customer"
-      "supplier"))
 
 (defpage invoice-page invoice (("invoice/"
                                 (role "(customer|supplier)") "/"
@@ -402,8 +399,8 @@
       ;; if tx-id exists and is not found among records, ignore search term
       (when (and (val tx-id)
                  (not (find (val tx-id) (rows invoice-tx-table) :key #'key)))
-        (let ((tx (get-dao 'tx (val tx-id))))
-          (see-other (invoice (invoice-role tx) (invoice-kind tx)
+        (let ((tx (query (:select '* :from 'tx :where (:= 'tx.id tx-id)) :plist)))
+          (see-other (invoice (tx-role tx) (invoice-kind tx)
                               :tx-id (val tx-id)))))
       (with-document ()
         (:head

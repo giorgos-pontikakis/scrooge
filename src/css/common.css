@@ -144,6 +144,9 @@ select:disabled {
     background: transparent url(/scrooge/img/arrow_down.png) no-repeat 5px center;
 }
 
+.journal {
+    background: transparent url(/scrooge/img/book_go.png) no-repeat 5px center;
+}
 
 
 /* ---------------------------------------------------------------------- */

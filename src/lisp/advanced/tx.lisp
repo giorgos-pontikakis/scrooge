@@ -81,6 +81,7 @@
         ((tx-referenced-p tx-id) :tx-referenced)))
 
 
+
 ;;; ----------------------------------------------------------------------
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
@@ -208,7 +209,8 @@
   (let ((record (record row)))
     (mapcar (textbox-maker record enabled-p)
             `((tx-date :css-class ,(if enabled-p "datepicker" nil))
-              (company :css-class ,(if enabled-p "ac-company" nil))
+              (company :css-class ,(if enabled-p "ac-company" nil)
+                       :href ,(company/tx :company-id (getf record :company-id) :tx-id (key row)))
               description
               (non-chq-debit-account :href ,(account/tx :account-id (getf record :non-chq-debit-account-id)
                                                         :tx-id (getf record :id))
@@ -226,6 +228,18 @@
 
 (defmethod target-url ((pg tx-paginator) start)
   (apply #'tx :start start (filter (table pg))))
+
+
+
+;;; ----------------------------------------------------------------------
+;;; Utilities
+;;; ----------------------------------------------------------------------
+
+(defun tx-role (record)
+  (if (or (member (getf record :debit-account-id) *expense-accounts*)
+          (member (getf record :credit-account-id) *expense-accounts*))
+      "supplier"
+      "customer"))
 
 
 

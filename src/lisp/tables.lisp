@@ -77,6 +77,10 @@
   (with-db ()
     (account-id (get-dao 'account-role (string-downcase role)))))
 
+(defmethod account-id ((role null))
+  (declare (ignore role))
+  nil)
+
 (defclass account ()
   ((id         :col-type string  :reader   account-id)
    (title      :col-type string  :accessor title      :initarg :title)
