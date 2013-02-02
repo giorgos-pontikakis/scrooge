@@ -213,20 +213,21 @@
                                                  (:= 'customer-p customer-p)))
                            :plists)))
     (with-html
-      (:div :id "ci-data-form" :class "data-form"
+      (:div :id "split-data-form" :class "data-form"
         (:div :class "grid_6 alpha"
           (:div :class "left-column"
             (:h3 "Στοιχεία Συναλλαγής")
             (display ldfn 'tx-date "Ημερομηνία":enabled-styles "datepicker"
                                                :default-value (today))
-            (display ldfn 'description "Περιγραφή"
-                     :common-styles "description")
             (display ldfn 'company "Εταιρία"
                      :enabled-styles "ac-company"
                      :href (company/details :company-id (getf record :company-id))
                      :common-styles "company")
+            (display ldfn 'description "Περιγραφή"
+                     :common-styles "description")
             (display ldfn 'amount "Ποσό"
-                     :common-styles "amount")
+                     :common-styles "amount"
+                     :format-fn #'fmt-amount)
             (unless disabled
               (htm (:div :class "data-form-buttons"
                      (ok-button :body (if (eql (op form) :update)

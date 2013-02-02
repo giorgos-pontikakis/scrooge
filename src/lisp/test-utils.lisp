@@ -68,6 +68,64 @@ receivables"
            :plists)))
 
 
+;;; TX INFO
+
+(defun normally-handled-section-for-temtx (temtx-id)
+  (with-db ()
+    (let* ((temtx (get-dao 'temtx temtx-id))
+           (debit-account-id (debit-account-id temtx))
+           (credit-account-id (credit-account-id temtx))
+           (normally-handled-by (cond
+                                  ;; cash
+                                  ((or (and (eql debit-account-id (account-id 'cash-account))
+                                            (or (member credit-account-id *revenue-accounts*)
+                                                (member credit-account-id *receivable-accounts*)))
+                                       (and (eql credit-account-id (account-id 'cash-account))
+                                            (or (member debit-account-id *payable-accounts*)
+                                                (member debit-account-id *expense-accounts*))))
+                                   :cash)
+                                  ;; cheques
+                                  ((intersection (list (account-id 'cheque-receivable-account)
+                                                       (account-id 'cheque-payable-account))
+                                                 (list debit-account-id credit-account-id))
+                                   :cheques)
+                                  ;; invoices
+                                  ((or (and (member debit-account-id *receivable-accounts*)
+                                            (member credit-account-id *revenue-accounts*))
+                                       (and (member debit-account-id *expense-accounts*)
+                                            (member credit-account-id *payable-accounts*))
+                                       (and (member debit-account-id *revenue-accounts*)
+                                            (member credit-account-id *receivable-accounts*))
+                                       (and (member debit-account-id *payable-accounts*)
+                                            (member credit-account-id *expense-accounts*)))
+                                   :invoices))))
+      (if (lib-p temtx)
+          (values :libtx normally-handled-by)
+          (values normally-handled-by normally-handled-by)))))
+
+(defun handler-label (temtx-id)
+  (multiple-value-bind (active normal) (normally-handled-section-for-temtx temtx-id)
+    (if (eql active :libtx)
+        (case normal
+          (:cash "Βιβλιοθήκη (αντί για Μετρητά)")
+          (:cheque "Βιβλιοθήκη (αντί για Επιταγές)")
+          (:invoice "Βιβλιοθήκη (αντί για Χρεωπιστώσεις)"))
+        (case active
+          (:cash "Μετρητά")
+          (:cheque "Επιταγές")
+          (:invoice "Χρεωπιστώσεις")
+          ((nil) "Χωρίς αντιστοίχιση")))))
+
+(defun unhandled-transactions(with-db ()
+   (let ((all-txs (query (:select '* :from 'tx) :plists)))
+     (loop for tx in all-txs
+           for temtx-id = (getf tx :temtx-id)
+           unless (normally-handled-section-for-temtx temtx-id)
+             collect (list (getf tx :id)
+                           (getf tx :description)
+                           (title (get-dao 'company (getf tx :company-id))))))))
+
+
 
 ;;; CORRECTIVE ACTIONS
 

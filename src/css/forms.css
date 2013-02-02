@@ -95,7 +95,7 @@
     display: inline;
 }
 
-.data-form p, .data-form a {
+.data-form p, .data-form a, .data-form span {
     display: block;
     padding: 3px 0px;
     font-size: 13px;

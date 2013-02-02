@@ -246,33 +246,34 @@
 }
 
 
+
 /* ---------------------------------------------------------------------- */
-/* ci (Cash-Invoice) data-form additional styles  */
+/* Split data-form additional styles  */
 /* ---------------------------------------------------------------------- */
 
-#ci-data-form h3 {
+#split-data-form h3 {
     margin-top: 10px;
 }
 
-#ci-data-form li.selected {
+#split-data-form li.selected {
     background-color: transparent;
 }
 
-#ci-data-form input.datepicker {
+#split-data-form input.datepicker {
     width: 80px;
 }
 
-#ci-data-form input.description,
-#ci-data-form input.company {
+#split-data-form input.description,
+#split-data-form input.company {
     width: 350px;
 }
 
-#ci-data-form input.amount {
+#split-data-form input.amount {
     width: 55px;
     text-align: right;
 }
 
-#ci-data-form .left-column {
+#split-data-form .left-column {
     margin-left: 30px;
 }
 

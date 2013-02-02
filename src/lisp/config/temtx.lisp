@@ -145,31 +145,6 @@
       nil
       :unknown-temtx-sign))
 
-;; (defun chk-lib-p (boolean debit-account-id credit-account-id)
-;;   (if boolean
-;;       (cond
-;;         ;; cash
-;;         ((or (and (eql debit-account-id (account-id 'cash-account))
-;;                   (or (member credit-account-id *revenue-accounts*)
-;;                       (member credit-account-id *receivable-accounts*)))
-;;              (and (eql credit-account-id (account-id 'cash-account))
-;;                   (or (member debit-account-id *payable-accounts*)
-;;                       (member debit-account-id *expense-accounts*))))
-;;          :temtx-handled-by-cash)
-;;         ;; cheques
-;;         ((intersection (list (account-id 'cheque-receivable-account)
-;;                              (account-id 'cheque-payable-account))
-;;                        (list debit-account-id credit-account-id))
-;;          :temtx-handled-by-cheques)
-;;         ;; invoices
-;;         ((or (and (member debit-account-id *receivable-accounts*)
-;;                   (member credit-account-id *revenue-accounts*))
-;;              (and (member debit-account-id *expense-accounts*)
-;;                   (member credit-account-id *payable-accounts*)))
-;;          :temtx-handled-by-invoices))
-;;       ;;
-;;       nil))
-
 
 
 ;;; ------------------------------------------------------------

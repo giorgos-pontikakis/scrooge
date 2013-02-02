@@ -268,7 +268,7 @@
 ;;; label-input-text for forms
 
 (defun label-datum (disabled record styles)
-  (html (name label &key href default-value enabled-styles disabled-styles common-styles)
+  (html (name label &key href default-value enabled-styles disabled-styles common-styles format-fn)
     (let ((value (or (getf record (make-keyword name))
                      default-value))
           (all-styles (conc (getf styles (make-keyword name))
@@ -279,11 +279,12 @@
                             " "
                             common-styles)))
       (label name label)
-      (display (make-instance 'textbox
-                              :name name
-                              :value value
-                              :href href
-                              :css-class all-styles)))))
+      (display (make-instance 'textbox :name name
+                                       :value value
+                                       :href href
+                                       :disabled disabled
+                                       :css-class all-styles
+                                       :format-fn format-fn)))))
 
 
 ;;; textbox-maker
@@ -292,10 +293,9 @@
   (lambda (arglist)
     (destructuring-bind (name &key href format-fn css-class (disabled (not enabled-p)))
         (ensure-list arglist)
-      (make-instance 'textbox
-                     :name name
-                     :css-class css-class
-                     :value (getf record (make-keyword name))
-                     :disabled disabled
-                     :href href
-                     :format-fn format-fn))))
+      (make-instance 'textbox :name name
+                              :css-class css-class
+                              :value (getf record (make-keyword name))
+                              :disabled disabled
+                              :href href
+                              :format-fn format-fn))))
