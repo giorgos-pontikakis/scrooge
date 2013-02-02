@@ -116,14 +116,15 @@ receivables"
           (:invoice "Χρεωπιστώσεις")
           ((nil) "Χωρίς αντιστοίχιση")))))
 
-(defun unhandled-transactions(with-db ()
-   (let ((all-txs (query (:select '* :from 'tx) :plists)))
-     (loop for tx in all-txs
-           for temtx-id = (getf tx :temtx-id)
-           unless (normally-handled-section-for-temtx temtx-id)
-             collect (list (getf tx :id)
-                           (getf tx :description)
-                           (title (get-dao 'company (getf tx :company-id))))))))
+(defun unhandled-transactions ()
+  (with-db ()
+    (let ((all-txs (query (:select '* :from 'tx) :plists)))
+      (loop for tx in all-txs
+            for temtx-id = (getf tx :temtx-id)
+            unless (normally-handled-section-for-temtx temtx-id)
+              collect (list (getf tx :id)
+                            (getf tx :description)
+                            (title (get-dao 'company (getf tx :company-id))))))))
 
 
 
