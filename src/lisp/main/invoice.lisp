@@ -402,6 +402,7 @@
         (let ((tx (query (:select '* :from 'tx :where (:= 'tx.id tx-id)) :plist)))
           (see-other (invoice (tx-role tx) (invoice-kind tx)
                               :tx-id (val tx-id)))))
+      ;; otherwise continue as usually
       (with-document ()
         (:head
           (:title (str page-title))
