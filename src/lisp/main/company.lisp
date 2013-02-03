@@ -573,6 +573,7 @@
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
                                         :op :details
+                                        :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))

@@ -276,8 +276,8 @@
 
 (defmethod initialize-instance :after ((table project-table) &key)
   (if (getf (filter table) :cstate)
-      (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "" ""))
-      (setf (header-labels table) '("" "Περιγραφή" "Εταιρία" "Τιμή" "Κατάσταση" "" ""))))
+      (setf (header-labels table) '("" "Εταιρία" "Περιγραφή" "Τιμή" "" ""))
+      (setf (header-labels table) '("" "Εταιρία" "Περιγραφή" "Τιμή" "Κατάσταση" "" ""))))
 
 (defmethod get-records ((table project-table))
   (let* ((search (getf (filter table) :search))
@@ -305,15 +305,15 @@
                                         `(:where (:and ,@where-terms)))
                                 base-query))
            (final-query `(:order-by ,composite-query
-                                    (:desc
-                                     ,(cond ((member cstate
-                                                     (list "quoted" nil) :test #'string=)
-                                             'quote-date)
-                                            ((string= cstate "ongoing")
-                                             'start-date)
-                                            ((member cstate
-                                                     (list "finished" "archived") :test #'string=)
-                                             'end-date))))))
+                                    company (:desc
+                                             ,(cond ((member cstate
+                                                             (list "quoted" nil) :test #'string=)
+                                                     'quote-date)
+                                                    ((string= cstate "ongoing")
+                                                     'start-date)
+                                                    ((member cstate
+                                                             (list "finished" "archived") :test #'string=)
+                                                     'end-date))))))
       (query (sql-compile final-query)
              :plists))))
 
@@ -355,10 +355,10 @@
 (defmethod payload ((row project-row) enabled-p)
   (let* ((record (record row))
          (head (mapcar (textbox-maker record enabled-p)
-                       `((description :href ,(apply #'project/details
+                       `((company :href ,(company/details :company-id (getf record :company-id)))
+                         (description :href ,(apply #'project/details
                                                     :project-id (key row)
                                                     (filter (collection row))))
-                         (company :href ,(company/details :company-id (getf record :company-id)))
                          (price :format-fn ,#'(lambda (arg) (fmt-amount arg 0)))))))
     (if (getf (filter (collection row)) :cstate)
         head

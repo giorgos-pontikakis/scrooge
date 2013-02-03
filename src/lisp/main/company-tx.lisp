@@ -100,7 +100,8 @@
          (hrefs (if (and tx-id (not (tx-referenced-p tx-id)))
                     (list :update (apply #'company/tx/update :company-id company-id
                                                              :tx-id tx-id
-                                                             filter))
+                                                             filter)
+                          :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal"))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))

@@ -176,7 +176,8 @@
     (when (and until (not (eql until :null)))
       (push `(:<= tx-date ,until) where))
     (let ((sql `(:order-by (,@base-query :where (:and t ,@where))
-                           (:desc tx-date) non-chq-debit-account non-chq-credit-account company description)))
+                           (:desc tx-date) non-chq-debit-account non-chq-credit-account
+                           company description)))
       (query (sql-compile sql)
              :plists))))
 
@@ -212,10 +213,12 @@
               (company :css-class ,(if enabled-p "ac-company" nil)
                        :href ,(company/tx :company-id (getf record :company-id) :tx-id (key row)))
               description
-              (non-chq-debit-account :href ,(account/tx :account-id (getf record :non-chq-debit-account-id)
+              (non-chq-debit-account :href ,(account/tx :account-id (getf record
+                                                                          :non-chq-debit-account-id)
                                                         :tx-id (getf record :id))
                                      :css-class ,(if enabled-p "ac-non-chq-account" nil))
-              (non-chq-credit-account :href ,(account/tx :account-id (getf record :non-chq-credit-account-id)
+              (non-chq-credit-account :href ,(account/tx :account-id (getf record
+                                                                           :non-chq-credit-account-id)
                                                          :tx-id (getf record :id))
                                       :css-class ,(if enabled-p "ac-non-chq-account" nil))
               (amount :format-fn ,#'fmt-amount)))))
