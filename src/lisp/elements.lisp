@@ -299,3 +299,54 @@
                               :disabled disabled
                               :href href
                               :format-fn format-fn))))
+
+
+
+;;; APP-SECTION
+
+(defun app-section (temtx-id)
+  (with-db ()
+    (let* ((temtx (get-dao 'temtx temtx-id))
+           (db-id (debit-account-id temtx))
+           (cr-id (credit-account-id temtx))
+           (cash-id (account-id 'cash-account))
+           (normal-section (cond
+                             ;; cash
+                             ((or (and (eql db-id cash-id)
+                                       (or (member cr-id *revenue-accounts*)
+                                           (member cr-id *receivable-accounts*)))
+                                  (and (eql cr-id cash-id)
+                                       (or (member db-id *payable-accounts*)
+                                           (member db-id *expense-accounts*))))
+                              :cash)
+                             ;; cheques
+                             ((intersection (list (account-id 'cheque-receivable-account)
+                                                  (account-id 'cheque-payable-account))
+                                            (list db-id cr-id))
+                              :cheque)
+                             ;; invoices
+                             ((or (and (member db-id *receivable-accounts*)
+                                       (member cr-id *revenue-accounts*))
+                                  (and (member db-id *expense-accounts*)
+                                       (member cr-id *payable-accounts*))
+                                  (and (member db-id *revenue-accounts*)
+                                       (member cr-id *receivable-accounts*))
+                                  (and (member db-id *payable-accounts*)
+                                       (member cr-id *expense-accounts*)))
+                              :invoice))))
+      (if (lib-p temtx)
+          (values :libtx normal-section)
+          (values normal-section normal-section)))))
+
+(defun app-section-label (temtx-id)
+  (multiple-value-bind (active normal) (app-section temtx-id)
+    (if (eql active :libtx)
+        (case normal
+          (:cash "Βιβλιοθήκη (αντί για Μετρητά)")
+          (:cheque "Βιβλιοθήκη (αντί για Επιταγές)")
+          (:invoice "Βιβλιοθήκη (αντί για Χρεωπιστώσεις)"))
+        (case active
+          (:cash "Μετρητά")
+          (:cheque "Επιταγές")
+          (:invoice "Χρεωπιστώσεις")
+          ((nil) "Χωρίς αντιστοίχιση")))))
