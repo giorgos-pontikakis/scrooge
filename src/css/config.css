@@ -41,6 +41,10 @@
     text-align: center;
 }
 
+#temtx-table select {
+    text-align: center;
+}
+
 .chequing {
     font-style: italic;
 }

@@ -221,6 +221,15 @@
                                 :active role
                                 :id "cheque-role-navbar"))))
 
+(defmethod extra-info ((table temtx-table))
+  (with-html
+    (:div :class "window-footer"
+      (:ul :class "notes"
+        (:li "Χ: Χρέωση")
+        (:li "Π: Πίστωση")
+        (:li "Χ+Π: Χρέωση και Πίστωση")
+        (:li "—: Ούτε Χρέωση, ούτε Πίστωση")))))
+
 
 ;;; rows
 
@@ -252,10 +261,10 @@
                          :disabled disabled)
           (make-instance 'dropdown
                          :name 'sign
-                         :value-label-alist '((+1 . "Χρέωση")
-                                              (-1 . "Πίστωση")
-                                              (0  . "Πίστωση και Χρέωση")
-                                              (:null . "Ούτε πίστωση, ούτε χρέωση"))
+                         :value-label-alist '((+1 . "Χ")
+                                              (-1 . "Π")
+                                              (0  . "Χ+Π")
+                                              (:null . "—"))
                          :selected (getf record :sign)
                          :disabled disabled)
           (make-instance 'input-checkbox
@@ -315,7 +324,8 @@
               (:div :class "window"
                 (:div :class "title" "Κατάλογος")
                 (actions temtx-table)
-                (display temtx-table)))
+                (display temtx-table)
+                (extra-info temtx-table)))
             (footer)))))))
 
 
@@ -356,7 +366,8 @@
                 (actions temtx-table)
                 (notifications)
                 (with-form (actions/config/temtx/create role)
-                  (display temtx-table :payload (params->payload)))))))))))
+                  (display temtx-table :payload (params->payload)))
+                (extra-info temtx-table)))))))))
 
 (defpage temtx-page actions/config/temtx/create
     (("actions/config/temtx/" (role "(customer|supplier)") "/create") :request-type :post)
@@ -429,7 +440,8 @@
                 (actions temtx-table)
                 (notifications)
                 (with-form (actions/config/temtx/update role :temtx-id (val temtx-id))
-                  (display temtx-table :payload (params->payload)))))
+                  (display temtx-table :payload (params->payload)))
+                (extra-info temtx-table)))
             (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update
@@ -492,7 +504,8 @@
                 (:div :class "title" "Διαγραφή")
                 (actions temtx-table)
                 (with-form (actions/config/temtx/delete role :temtx-id (val temtx-id))
-                  (display temtx-table))))
+                  (display temtx-table))
+                (extra-info temtx-table)))
             (footer)))))))
 
 (defpage temtx-page actions/config/temtx/delete
