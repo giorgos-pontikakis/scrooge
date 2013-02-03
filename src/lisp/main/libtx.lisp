@@ -97,7 +97,7 @@
          (filter (filter tbl))
          (hrefs (if tx-id
                     (list :details (apply #'libtx/details role :tx-id tx-id filter)
-                          :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
+                          :journal (list (tx :tx-id tx-id) "Καθολικό" "journal")
                           :delete (apply #'libtx/delete role :tx-id tx-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
@@ -254,7 +254,7 @@
   (let* ((tx-id (key form))
          (role (role form))
          (hrefs (list :update (apply #'libtx/update role :tx-id tx-id filter)
-                      :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
+                      :journal (list (tx :tx-id tx-id) "Καθολικό" "journal")
                       :delete (apply #'libtx/delete role :tx-id tx-id filter))))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))

@@ -101,7 +101,7 @@
                     (list :update (apply #'company/tx/update :company-id company-id
                                                              :tx-id tx-id
                                                              filter)
-                          :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal"))
+                          :journal (list (tx :tx-id tx-id) "Καθολικό" "journal"))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions tbl))))
@@ -161,39 +161,6 @@
                                           :tx-id tx-id
                                           (filter table))))
         (list nil nil))))
-
-;; (defmethod payload ((row company-tx-row) enabled-p)
-;;   (let* ((record (record row))
-;;          (cash-account-id (account-id 'cash-account))
-;;          (cheque-account-ids (list (account-id 'cheque-receivable-account)
-;;                                    (account-id 'cheque-payable-account)))
-;;          (tx-account-ids (list (getf record :debit-account-id)
-;;                                (getf record :credit-account-id)))
-;;          (role (if (getf record :customer-p) "customer" "supplier"))
-
-;;          (href (cond ((getf record :lib-p)
-;;                       (libtx/details role :tx-id (getf record :id)))
-;;                      ((member cash-account-id tx-account-ids)
-;;                       (cash/details role :tx-id (getf record :id)))
-;;                      ((intersection cheque-account-ids tx-account-ids)
-;;                       (cheque role :cheque-id (getf record :cheque-id)))
-;;                      ((intersection (revenues/expenses-set role) tx-account-ids)
-;;                       (let ((kind (if (member (getf record :credit-account-id)
-;;                                               (revenues/expenses-set role))
-;;                                       "debit"
-;;                                       "credit")))
-;;                         (invoice/details role kind :tx-id (getf record :id))))
-;;                      (t nil))))
-;;     (mapcar (textbox-maker record enabled-p)
-;;             `((tx-date :css-class ,(if enabled-p "datepicker" nil))
-;;               (description :href ,href)
-;;               (debit-amount :format-fn ,#'fmt-amount
-;;                             :disabled ,(or (not (getf record :debit-amount))
-;;                                            (not enabled-p)))
-;;               (credit-amount :format-fn ,#'fmt-amount
-;;                              :disabled ,(or (not (getf record :credit-amount))
-;;                                             (not enabled-p)))
-;;               (total :disabled t :format-fn ,#'fmt-amount)))))
 
 (defmethod payload ((row company-tx-row) enabled-p)
   (let* ((record (record row))

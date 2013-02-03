@@ -144,7 +144,7 @@
          (filter (filter tbl))
          (hrefs (if tx-id
                     (list :details (apply #'invoice/details role kind :tx-id tx-id filter)
-                          :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
+                          :journal (list (tx :tx-id tx-id) "Καθολικό" "journal")
                           :delete (apply #'invoice/delete role kind :tx-id tx-id filter))
                     nil)))
     (actions-menu (make-menu-spec hrefs)
@@ -337,7 +337,7 @@
          (role (role form))
          (kind (kind form))
          (hrefs (list :update (apply #'invoice/update role kind :tx-id tx-id filter)
-                      :goto-tx (list (tx :tx-id tx-id) "Καθολικό" "journal")
+                      :journal (list (tx :tx-id tx-id) "Καθολικό" "journal")
                       :delete (apply #'invoice/delete role kind :tx-id tx-id filter))))
     (actions-menu (make-menu-spec hrefs)
                   (disabled-actions form))))

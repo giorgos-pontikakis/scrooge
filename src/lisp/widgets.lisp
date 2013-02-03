@@ -32,7 +32,7 @@
 (defmethod disabled-actions ((tbl scrooge-table) &key)
   (ecase (op tbl)
     (:catalogue '())
-    ((:create :update :delete) '(:details :create :update :delete))))
+    ((:create :update :delete) '(:details :create :update :delete :journal))))
 
 
 ;;; crud rows with records being daos
@@ -220,7 +220,7 @@
 (defmethod disabled-actions ((form crud-form) &key)
   (ecase (op form)
     (:details '())
-    ((:create :update :delete) '(:update :delete))))
+    ((:create :update :delete) '(:update :delete :journal))))
 
 
 
@@ -273,35 +273,3 @@
                                           :css-disabled css-disabled)
                                     :on-values-p t)))
     (display (apply #'make-instance 'scrooge-menu :spec spec initargs))))
-
-
-
-;; ;;; ----------------------------------------------------------------------
-;; ;;; Account-RO (read only) tree
-;; ;;; ----------------------------------------------------------------------
-
-;; (defclass account-ro-tree (account-crud-tree)
-;;   ((op :initform :read))
-;;   (:default-initargs :item-class 'account-ro-node))
-
-;; (defclass account-ro-node (account-crud-node)
-;;   ())
-
-;; (defmethod selector ((node account-ro-node) enabled-p)
-;;   (let ((id (key node)))
-;;     (html ()
-;;       (:a :href
-;;           (if enabled-p
-;;               (account/overview)
-;;               (account/overview :id id))
-;;           (selector-img enabled-p)))))
-
-;; (defmethod payload ((node account-ro-node) enabled-p)
-;;   (make-instance 'textbox
-;;                  :name 'title
-;;                  :value (getf (record node) :title)
-;;                  :disabled (not enabled-p)))
-
-;; (defmethod controls ((node account-ro-node) enabled-p)
-;;   (declare (ignore node enabled-p))
-;;   (list nil nil))
