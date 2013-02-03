@@ -327,7 +327,7 @@
                      (cancel-button (cancel-url form)
                                     :body "Άκυρο"))))))
         (:div :class "grid_5 omega"
-          (:h3 (str (conc "Λογαριασμός " (if customer-p "χρέωσης" "πίστωσης"))))
+          (:h3 (str (conc "Λογαριασμός " (if (debit-invoice-p kind) "χρέωσης" "πίστωσης"))))
           ;; Display the tree. If needed, preselect the first account of the tree.
           (display tree))
         (clear)))))
