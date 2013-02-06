@@ -290,7 +290,6 @@
          (customer-p (customer-p role))
          (disabled (eql (op form) :details))
          (record (record form))
-         (ldfn (label-datum disabled record styles))
          (root-key (revenues/expenses-root role))
          (tree (make-instance 'radio-account-tree
                               :css-class "crud-tree company-dependent"
@@ -305,27 +304,7 @@
     (with-html
       (:div :id "split-data-form" :class "data-form"
         (:div :class "grid_6 alpha"
-          (:div :class "left-column"
-            (:h3 "Στοιχεία Συναλλαγής")
-            (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
-                                                :default-value (today))
-            (display ldfn 'company "Εταιρία"
-                     :enabled-styles "ac-company"
-                     :href (company/tx :company-id (getf record :company-id)
-                                       :tx-id (key form))
-                     :common-styles "company")
-            (display ldfn 'description "Περιγραφή"
-                     :common-styles "description")
-            (display ldfn 'amount "Ποσό"
-                     :common-styles "amount"
-                     :format-fn #'fmt-amount)
-            (unless disabled
-              (htm (:div :class "data-form-buttons"
-                     (ok-button :body (if (eql (op form) :update)
-                                          "Ανανέωση"
-                                          "Δημιουργία"))
-                     (cancel-button (cancel-url form)
-                                    :body "Άκυρο"))))))
+          (left-column form styles disabled))
         (:div :class "grid_5 omega"
           (:h3 (str (conc "Λογαριασμός " (if (debit-invoice-p kind) "χρέωσης" "πίστωσης"))))
           ;; Display the tree. If needed, preselect the first account of the tree.

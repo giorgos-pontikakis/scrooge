@@ -264,7 +264,8 @@
 }
 
 #split-data-form input.description,
-#split-data-form input.company {
+#split-data-form input.company,
+#split-data-form input.project {
     width: 350px;
 }
 

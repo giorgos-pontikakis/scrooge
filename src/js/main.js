@@ -4,6 +4,8 @@ $(document).ready(function () {
   selectableRows();
   autoSelectAccount();
   settingsUI();
+  var selectedTreeInput = $(".company-dependent input[type=radio][checked]");
+  maybeHideProject(selectedTreeInput);
 });
 
 function settingsUI () {
@@ -97,6 +99,7 @@ function selectableRows () {
     var companyInp = $(".data-form input.ac-company");
     e.stopPropagation();
     highlightCRUDTreeLeaf(this);
+    maybeHideProject(this);
     companyInp.unbind("blur");
   });
 
@@ -106,6 +109,34 @@ function autoSelectAccount () {
   var companyInp = $(".data-form input.ac-company");
   companyInp.bind("autocompleteclose", clickAccount);
   companyInp.bind("blur", clickAccount);
+
+}
+
+function maybeHideProject (item) {
+  var accID = parseInt($(item).attr('value'));
+  var projectLabel = $(".data-form label[for=project]");
+  var projectInput = $(".data-form select[name=project]");
+  if (accID === accounts.project) {
+    projectLabel.show();
+    projectInput.show();
+    loadDropdown();
+  } else {
+    projectLabel.hide();
+    projectInput.hide();
+  }
+}
+
+function loadDropdown () {
+  var url = "/scrooge/autocomplete/project?company-title=" + $('.data-form .company').val();
+  $.ajax({url: url,
+          datatype: "html",
+          success: function (data) {
+            $('select').html(data);
+          },
+          error: function () {
+            $('select').hide();
+          }
+         });
 }
 
 function clickAccount () {

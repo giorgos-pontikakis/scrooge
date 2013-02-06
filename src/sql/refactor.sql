@@ -96,3 +96,7 @@ alter table cheque_event drop column to_state_id;
 alter table cheque_event add constraint cheque_event_cheque_stran_id_fkey
 foreign key (cheque_stran_id)
 references cheque_stran(id);
+
+
+insert into account_role (id, account_id, description, rank)
+       values ('project-account', 8, 'Λογαριασμός Έργων', 8);

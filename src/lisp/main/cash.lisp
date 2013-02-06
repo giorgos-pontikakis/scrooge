@@ -258,7 +258,6 @@
   (let* ((customer-p (customer-p (role form)))
          (disabled (eql (op form) :details))
          (record (record form))
-         (ldfn (label-datum disabled record styles))
          (revenues/expenses-root-key (revenues/expenses-root (role form)))
          (receivable/payable-root-key (receivable/payable-root (role form)))
          (selected-key (or (getf record :account-id)
@@ -269,46 +268,26 @@
     (with-html
       (:div :id "split-data-form" :class "data-form"
         (:div :class "grid_6 alpha"
-          (:div :class "left-column"
-            (:h3 "Στοιχεία Συναλλαγής")
-            (display ldfn 'tx-date "Ημερομηνία":enabled-styles "datepicker"
-                                               :default-value (today))
-            (display ldfn 'company "Εταιρία"
-                     :enabled-styles "ac-company"
-                     :href (company/tx :company-id (getf record :company-id)
-                                       :tx-id (key form))
-                     :common-styles "company")
-            (display ldfn 'description "Περιγραφή"
-                     :common-styles "description")
-            (display ldfn 'amount "Ποσό"
-                     :common-styles "amount"
-                     :format-fn #'fmt-amount)
-            (unless disabled
-              (htm (:div :class "data-form-buttons"
-                     (ok-button :body (if (eql (op form) :update)
-                                          "Ανανέωση"
-                                          "Δημιουργία"))
-                     (cancel-button (cancel-url form)
-                                    :body "Άκυρο"))))))
-        (htm (:div :class "grid_5 omega"
-               (:h3 (str (conc "Λογαριασμός " (if customer-p "πίστωσης" "χρέωσης"))))
-               ;;
-               (:div :class "hidden-when-immediate-tx-only"
-                 (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
-                 (display (make-instance 'radio-account-tree
-                                         :disabled disabled
-                                         :root-key receivable/payable-root-key
-                                         :debit-p customer-p
-                                         :selected-key selected-key)))
-               ;;
-               (:div :class "company-dependent"
-                 (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                 (if customer-p "εσόδων" "εξόδων"))))
-                 (display (make-instance 'radio-account-tree
-                                         :disabled disabled
-                                         :root-key revenues/expenses-root-key
-                                         :debit-p (not customer-p)
-                                         :selected-key selected-key)))))
+          (left-column form styles disabled))
+        (:div :class "grid_5 omega"
+          (:h3 (str (conc "Λογαριασμός " (if customer-p "πίστωσης" "χρέωσης"))))
+          ;;
+          (:div :class "hidden-when-immediate-tx-only"
+            (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
+            (display (make-instance 'radio-account-tree
+                                    :disabled disabled
+                                    :root-key receivable/payable-root-key
+                                    :debit-p customer-p
+                                    :selected-key selected-key)))
+          ;;
+          (:div :class "company-dependent"
+            (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
+                            (if customer-p "εσόδων" "εξόδων"))))
+            (display (make-instance 'radio-account-tree
+                                    :disabled disabled
+                                    :root-key revenues/expenses-root-key
+                                    :debit-p (not customer-p)
+                                    :selected-key selected-key))))
         (clear)))))
 
 (defmethod actions ((form cash-form) &key filter)

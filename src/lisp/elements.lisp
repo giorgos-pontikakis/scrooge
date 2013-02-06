@@ -18,6 +18,7 @@
     (:a :id "back" :href href "« Επιστροφή")))
 
 
+
 ;;; ------------------------------------------------------------
 ;;; HTML Head
 ;;; ------------------------------------------------------------
@@ -36,6 +37,11 @@
 (defun jquery-autocomplete ()
   (js (url 'js "main.js"))
   (css (url 'lib "jquery/jquery-ui-1.8.9.custom/css/custom-theme/jquery-ui-1.8.9.custom.css")))
+
+(defun js-globals ()
+  (with-html
+    (:script :type "text/javascript"
+      "var accounts = {}; accounts.project = " (str (account-id 'project-account)))))
 
 (defun error-headers ()
   (favicon)
@@ -73,7 +79,8 @@
   (jquery)
   (jquery-ui)
   (jquery-autocomplete)
-  (css (url 'css "main.css")))
+  (css (url 'css "main.css"))
+  (js-globals))
 
 (defun advanced-headers ()
   (global-headers)
@@ -350,3 +357,37 @@
           (:cheque "Επιταγές")
           (:invoice "Χρεωπιστώσεις")
           ((nil) "Χωρίς αντιστοίχιση")))))
+
+
+
+;;; left-column
+
+(defun left-column (form styles disabled)
+  (let* ((record (record form))
+         (ldfn (label-datum disabled record styles)))
+    (with-html
+      (:div :class "left-column"
+        (:h3 "Στοιχεία Συναλλαγής")
+        (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
+                                            :default-value (today))
+        (display ldfn 'company "Εταιρία"
+                 :enabled-styles "ac-company"
+                 :href (company/tx :company-id (getf record :company-id)
+                                   :tx-id (key form))
+                 :common-styles "company")
+        (display ldfn 'description "Περιγραφή"
+                 :common-styles "description")
+        (display ldfn 'amount "Ποσό"
+                 :common-styles "amount"
+                 :format-fn #'fmt-amount)
+        (label 'project "Έργο")
+        (dropdown 'project '((1 . "alpha")
+                             (2 . "beta")
+                             (3 . "gamma")))
+        (unless disabled
+          (htm (:div :class "data-form-buttons"
+                 (ok-button :body (if (eql (op form) :update)
+                                      "Ανανέωση"
+                                      "Δημιουργία"))
+                 (cancel-button (cancel-url form)
+                                :body "Άκυρο"))))))))

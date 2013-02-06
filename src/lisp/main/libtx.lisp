@@ -208,7 +208,6 @@
   (let* ((customer-p (customer-p (role form)))
          (disabled (eql (op form) :details))
          (record (record form))
-         (ldfn (label-datum disabled record styles))
          (lib-temtx (query (:select 'id 'title
                                     :from 'temtx
                                     :where (:and (:= 'lib-p t)
@@ -217,37 +216,17 @@
     (with-html
       (:div :id "split-data-form" :class "data-form"
         (:div :class "grid_6 alpha"
-          (:div :class "left-column"
-            (:h3 "Στοιχεία Συναλλαγής")
-            (display ldfn 'tx-date "Ημερομηνία":enabled-styles "datepicker"
-                                               :default-value (today))
-            (display ldfn 'company "Εταιρία"
-                     :enabled-styles "ac-company"
-                     :href (company/tx :company-id (getf record :company-id)
-                                       :tx-id (key form))
-                     :common-styles "company")
-            (display ldfn 'description "Περιγραφή"
-                     :common-styles "description")
-            (display ldfn 'amount "Ποσό"
-                     :common-styles "amount"
-                     :format-fn #'fmt-amount)
-            (unless disabled
-              (htm (:div :class "data-form-buttons"
-                     (ok-button :body (if (eql (op form) :update)
-                                          "Ανανέωση"
-                                          "Δημιουργία"))
-                     (cancel-button (cancel-url form)
-                                    :body "Άκυρο"))))))
-        (htm (:div :class "grid_5 omega"
-               (:h3 "Βιβλιοθήκη προτύπων")
-               (:ul (loop for i in lib-temtx
-                          do (htm (:li (:input :type "radio"
-                                         :name 'temtx-id
-                                         :checked (eql (getf i :id)
-                                                       (getf record :temtx-id))
-                                         :disabled disabled
-                                         :value (getf i :id)
-                                         (str (getf i :title)))))))))
+          (left-column form styles disabled))
+        (:div :class "grid_5 omega"
+          (:h3 "Βιβλιοθήκη προτύπων")
+          (:ul (loop for i in lib-temtx
+                     do (htm (:li (:input :type "radio"
+                                    :name 'temtx-id
+                                    :checked (eql (getf i :id)
+                                                  (getf record :temtx-id))
+                                    :disabled disabled
+                                    :value (getf i :id)
+                                    (str (getf i :title))))))))
         (clear)))))
 
 (defmethod actions ((form libtx-form) &key filter)
