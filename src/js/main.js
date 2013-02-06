@@ -118,12 +118,12 @@ function loadDropdown () {
   $.ajax({url: url,
           datatype: "html",
           success: function (data) {
-            $("#project-area").show();
+            $("#project-group").show();
             $('#project-picker').html(data);
             $('#project-picker').show();
           },
           error: function () {
-            $('#project-area').hide();
+            $('#project-group').hide();
           }
          });
 }
@@ -155,10 +155,10 @@ function highlightCRUDTreeLeaf (item) {
 
 function maybeHideProject (item) {
   var accID = parseInt($(item).attr('value'));
-  var projectArea = $("#project-area");
+  var projectGroup = $("#project-group");
   if (accID === accounts.project) {
     loadDropdown();
   } else {
-    projectArea.hide();
+    projectGroup.hide();
   }
 }

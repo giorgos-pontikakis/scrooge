@@ -380,7 +380,7 @@
         (display ldfn 'amount "Ποσό"
                  :common-styles "amount"
                  :format-fn #'fmt-amount)
-        (:div :id "project-area"
+        (:div :id "project-group"
           (label 'project "Έργο")
           (:div :id "project-picker" ""))
         (unless disabled
