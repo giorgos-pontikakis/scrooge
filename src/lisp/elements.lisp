@@ -381,9 +381,8 @@
                  :common-styles "amount"
                  :format-fn #'fmt-amount)
         (label 'project "Έργο")
-        (dropdown 'project '((1 . "alpha")
-                             (2 . "beta")
-                             (3 . "gamma")))
+        (:div :id "project-picker"
+          "")
         (unless disabled
           (htm (:div :class "data-form-buttons"
                  (ok-button :body (if (eql (op form) :update)

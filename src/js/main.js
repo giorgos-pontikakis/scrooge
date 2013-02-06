@@ -45,11 +45,11 @@ function applyAutocomplete () {
     $(".ac-" + id).autocomplete(options);
   }
 
-  var autocompleteAccountIDs = [["revenues", "revenues-root-account"],
-                                ["expenses", "expenses-root-account"]];
-  for (var i = 0; i < autocompleteAccountIDs.length; i++) {
-    id = autocompleteAccountIDs[i][0];
-    root = autocompleteAccountIDs[i][1];
+  var acAccountIDs = [["revenues", "revenues-root-account"],
+                      ["expenses", "expenses-root-account"]];
+  for (var i = 0; i < acAccountIDs.length; i++) {
+    id = acAccountIDs[i][0];
+    root = acAccountIDs[i][1];
     options.source = "/scrooge/autocomplete/accounts?root=" + root;
     $(".ac-" + id).autocomplete(options);
   }
@@ -115,14 +115,14 @@ function autoSelectAccount () {
 function maybeHideProject (item) {
   var accID = parseInt($(item).attr('value'));
   var projectLabel = $(".data-form label[for=project]");
-  var projectInput = $(".data-form select[name=project]");
+  var projectArea = $("#project.area");
   if (accID === accounts.project) {
     projectLabel.show();
-    projectInput.show();
+    projectArea.show();
     loadDropdown();
   } else {
     projectLabel.hide();
-    projectInput.hide();
+    projectArea.hide();
   }
 }
 
@@ -131,10 +131,11 @@ function loadDropdown () {
   $.ajax({url: url,
           datatype: "html",
           success: function (data) {
-            $('select').html(data);
+            $('#project-picker').html(data);
+            $('#project-picker').show();
           },
           error: function () {
-            $('select').hide();
+            $('#project-picker').hide();
           }
          });
 }

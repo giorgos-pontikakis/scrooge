@@ -17,7 +17,6 @@
                ;; -- Here come the pages! --
                (:file "elements")
                (:file "auth")
-               (:file "root")
                ;; section roots
                (:file "config/config")
                (:file "main/main")
@@ -44,4 +43,6 @@
                (:file "main/cheque")
                (:file "main/libtx")
                (:file "main/company-tx")
-               (:file "main/company-cheque")))
+               (:file "main/company-cheque")
+               ;; root
+               (:file "root")))

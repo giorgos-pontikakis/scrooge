@@ -78,6 +78,11 @@
                                                                  (val state)
                                                                  "ongoing")))))
            (results (query (sql-compile sql))))
-      (with-html-output (*standard-output* nil :indent nil :prologue nil)
-        (loop for (id description) in results
-              do (htm (:option :value id (str description))))))))
+      (if results
+          (with-html
+            (:select
+             (loop for (id description) in results
+                   do (htm (:option :value id (str description))))))
+          (with-html
+            (:p "Δεν υπάρχει ενεργό έργο για αυτή την εταίρια."
+              (:a :href "#" "Δημιουργία")))))))
