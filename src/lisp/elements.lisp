@@ -380,9 +380,9 @@
         (display ldfn 'amount "Ποσό"
                  :common-styles "amount"
                  :format-fn #'fmt-amount)
-        (label 'project "Έργο")
-        (:div :id "project-picker"
-          "")
+        (:div :id "project-area"
+          (label 'project "Έργο")
+          (:div :id "project-picker" ""))
         (unless disabled
           (htm (:div :class "data-form-buttons"
                  (ok-button :body (if (eql (op form) :update)

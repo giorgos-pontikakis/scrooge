@@ -84,5 +84,5 @@
              (loop for (id description) in results
                    do (htm (:option :value id (str description))))))
           (with-html
-            (:p "Δεν υπάρχει ενεργό έργο για αυτή την εταίρια."
-              (:a :href "#" "Δημιουργία")))))))
+            (:p "Δεν υπάρχει ενεργό για αυτή την εταίρια. "
+              (:a :href "#" "Δημιουργία »")))))))

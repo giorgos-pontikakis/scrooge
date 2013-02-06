@@ -13,8 +13,9 @@ function settingsUI () {
   $('form').submit(function(){
     $('[type="submit"]', this).attr("disabled", "disabled");
   });
-  // Disable spellchecking on textareas
+  // Disable spellchecking and autocomplete
   $('textarea').attr('spellcheck',false);
+  $('form').attr('autocomplete','off');
 }
 
 function applyDatepicker () {
@@ -112,30 +113,17 @@ function autoSelectAccount () {
 
 }
 
-function maybeHideProject (item) {
-  var accID = parseInt($(item).attr('value'));
-  var projectLabel = $(".data-form label[for=project]");
-  var projectArea = $("#project.area");
-  if (accID === accounts.project) {
-    projectLabel.show();
-    projectArea.show();
-    loadDropdown();
-  } else {
-    projectLabel.hide();
-    projectArea.hide();
-  }
-}
-
 function loadDropdown () {
   var url = "/scrooge/autocomplete/project?company-title=" + $('.data-form .company').val();
   $.ajax({url: url,
           datatype: "html",
           success: function (data) {
+            $("#project-area").show();
             $('#project-picker').html(data);
             $('#project-picker').show();
           },
           error: function () {
-            $('#project-picker').hide();
+            $('#project-area').hide();
           }
          });
 }
@@ -156,10 +144,21 @@ function clickAccount () {
     var jq = ".company-dependent input[type=radio][value=" + accountID +  "]";
     $(jq).attr('checked', true);
     highlightCRUDTreeLeaf(jq);
+    maybeHideProject(jq);
   });
 }
 
 function highlightCRUDTreeLeaf (item) {
   $(".crud-tree li.selected").removeClass("selected");
   $(item).parent().parent().parent().addClass("selected");
+}
+
+function maybeHideProject (item) {
+  var accID = parseInt($(item).attr('value'));
+  var projectArea = $("#project-area");
+  if (accID === accounts.project) {
+    loadDropdown();
+  } else {
+    projectArea.hide();
+  }
 }
