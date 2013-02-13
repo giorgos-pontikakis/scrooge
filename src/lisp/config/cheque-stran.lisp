@@ -87,59 +87,33 @@
 
 ;;; post checks
 
-(defun cheque-stran-from/to/role-exists-p/create (from-state-id to-state-id role)
+(defun cheque-stran-from/to/role-exists-p (from-state-id to-state-id role
+                                           &optional cheque-stran-id)
   (if (or (null from-state-id) (null to-state-id))
       nil
-      (with-db ()
-        (query (:select 1 :from 'cheque-stran
-                :where (:and (:= 'from-state-id from-state-id)
-                             (:= 'to-state-id to-state-id)
-                             (:= 'customer-p (customer-p role))))
-               :plists))))
-
-(defun cheque-stran-from/to/role-exists-p/update (from-state-id to-state-id role cheque-stran-id)
-  (if (or (null from-state-id) (null to-state-id))
-      nil
-      (with-db ()
-        (query (:select 1 :from 'cheque-stran
-                :where (:and (:= 'from-state-id from-state-id)
-                             (:= 'to-state-id to-state-id)
-                             (:= 'customer-p (customer-p role))
-                             (:not (:= 'id cheque-stran-id))))
-               :plists))))
-
-(defun chk-cheque-stran-from/to/payable-exists/create (from-state-id to-state-id role)
-  (if (cheque-stran-from/to/role-exists-p/create from-state-id to-state-id role)
-      :cheque-stran-from/to/payable-exists
-      nil))
-
-(defun chk-cheque-stran-from/to/payable-exists/update (from-state-id to-state-id role cheque-stran-id)
-  (if (cheque-stran-from/to/role-exists-p/update from-state-id to-state-id role cheque-stran-id)
-      :cheque-stran-from/to/payable-exists
-      nil))
+      (let ((sql `(:select 1 :from cheque-stran
+                   :where (:and (:= from-state-id ,from-state-id)
+                                (:= to-state-id ,to-state-id)
+                                (:= customer-p ,(customer-p role))
+                                ,(if cheque-stran-id
+                                     `(:not (:= id ,cheque-stran-id))
+                                     t)))))
+        (with-db ()
+          (query (sql-compile sql))))))
 
 (defun check-cheque-stran-parameters (from-state-id to-state-id role temtx &optional cheque-stran-id)
-  (if cheque-stran-id
-      (validate-parameters (lambda (from to)
-                             (chk-cheque-stran-from/to/payable-exists/update from
-                                                                             to
-                                                                             role
-                                                                             (val cheque-stran-id)))
-                           from-state-id to-state-id)
-      (validate-parameters (lambda (from to)
-                             (chk-cheque-stran-from/to/payable-exists/create from
-                                                                             to
-                                                                             role))
-                           from-state-id to-state-id))
-  (validate-parameters (lambda (from to)
-                         (if (string= from to)
-                             :cheque-stran-from-to-equal
-                             nil))
-                       from-state-id to-state-id)
+  (let ((from (val from-state-id))
+        (to (val to-state-id)))
+    (validate-parameters (lambda (from to)
+                           (cond
+                             ((cheque-stran-from/to/role-exists-p from to role cheque-stran-id)
+                              :cheque-stran-from/to/payable-exists)
+                             ((string= from to)
+                              :cheque-stran-from-to-equal)))
+                         from to))
   (validate-parameters (lambda (temtx)
                          (chk-temtx-chq-title temtx (customer-p role)))
-                       temtx)
-  nil)
+                       temtx))
 
 
 

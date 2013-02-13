@@ -71,23 +71,24 @@
                (not (eql credit-account-id (credit-account-id temtx-dao)))
                (not (eql propagated-p (propagated-p temtx-dao))))))))
 
-(defun temtx-basic-constraint-conflicts (debit-account credit-account propagated-p &optional temtx-id)
-  (let ((debit-account-id (account-id debit-account))
-        (credit-account-id (account-id credit-account)))
-    (cond ((temtx-conflict-account-ids debit-account-id
-                                       credit-account-id
-                                       propagated-p
-                                       temtx-id)
-           :temtx-basic-constraint-conflicts)
-          ((ref-temtx-changed-accounts-p debit-account-id
-                                         credit-account-id
-                                         propagated-p
-                                         temtx-id)
-           :temtx-referenced))))
+(defun temtx-basic-constraint-conflicts (&optional temtx-id)
+  #'(lambda (debit-account credit-account propagated-p)
+      (let ((debit-account-id (account-id (val debit-account)))
+            (credit-account-id (account-id (val credit-account))))
+        (cond ((temtx-conflict-account-ids debit-account-id
+                                           credit-account-id
+                                           (val propagated-p)
+                                           temtx-id)
+               :temtx-basic-constraint-conflicts)
+              ((ref-temtx-changed-accounts-p debit-account-id
+                                             credit-account-id
+                                             (val propagated-p)
+                                             temtx-id)
+               :temtx-referenced)))))
 
 (defun temtx-referenced-p (temtx-id)
-  (or (referenced-by temtx-id 'cheque-stran 'temtx-id)
-      (referenced-by temtx-id 'tx 'temtx-id)))
+  (or (referenced-by (val temtx-id) 'cheque-stran 'temtx-id)
+      (referenced-by (val temtx-id) 'tx 'temtx-id)))
 
 (flet ((temtx-title-existence-query (title customer-p id force-chequing-p)
          (let ((temtx-table (if force-chequing-p 'temtx-chq 'temtx)))
@@ -134,11 +135,12 @@
         (t
          :temtx-title-unknown)))
 
-(defun chk-temtx-title/create-update (title customer-p &optional temtx-id)
-  (cond ((eql title :null)
-         :temtx-title-null)
-        ((temtx-title-exists-p title customer-p temtx-id)
-         :temtx-title-exists)))
+(defun chk-temtx-title/create-update (customer-p &optional temtx-id)
+  #'(lambda (title)
+      (cond ((eql (val title) :null)
+             :temtx-title-null)
+            ((temtx-title-exists-p (val title) customer-p temtx-id)
+             :temtx-title-exists))))
 
 (defun chk-sign (integer)
   (if (member integer '(-1 0 1 :null))
@@ -192,12 +194,12 @@
                              'temtx.sign 'temtx.propagated-p 'temtx.lib-p
                              (:as 'debit-account.title 'debit-account)
                              (:as 'credit-account.title 'credit-account)
-                     :from 'temtx
-                     :inner-join (:as 'account 'debit-account)
-                     :on (:= 'debit-account-id 'debit-account.id)
-                     :inner-join (:as 'account 'credit-account)
-                     :on (:= 'credit-account-id 'credit-account.id)
-                     :where (:= 'temtx.customer-p (customer-p (role table))))
+                             :from 'temtx
+                             :inner-join (:as 'account 'debit-account)
+                             :on (:= 'debit-account-id 'debit-account.id)
+                             :inner-join (:as 'account 'credit-account)
+                             :on (:= 'credit-account-id 'credit-account.id)
+                             :where (:= 'temtx.customer-p (customer-p (role table))))
                     (:desc 'customer-p) (:desc 'temtx.sign) 'temtx.title)
          :plists))
 
@@ -341,10 +343,9 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (lambda (title)
-                         (chk-temtx-title/create-update title (customer-p role)))
+  (validate-parameters (chk-temtx-title/create-update (customer-p role))
                        title)
-  (validate-parameters #'temtx-basic-constraint-conflicts
+  (validate-parameters (temtx-basic-constraint-conflicts)
                        debit-account credit-account propagated-p)
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
@@ -377,10 +378,9 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (lambda (title)
-                         (chk-temtx-title/create-update title (customer-p role)))
+  (validate-parameters (chk-temtx-title/create-update (customer-p role))
                        title)
-  (validate-parameters #'temtx-basic-constraint-conflicts
+  (validate-parameters (temtx-basic-constraint-conflicts)
                        debit-account credit-account propagated-p)
   (with-controller-page (config/temtx/create role)
     (let* ((debit-account-id (account-id (val debit-account)))
@@ -410,15 +410,10 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (lambda (title)
-                         (chk-temtx-title/create-update title (customer-p role) (val temtx-id)))
+  (validate-parameters (chk-temtx-title/create-update (customer-p role) (val temtx-id))
                        title)
-  (validate-parameters (lambda (debit-account credit-account)
-                         (temtx-basic-constraint-conflicts debit-account
-                                                           credit-account
-                                                           (val propagated-p)
-                                                           (val temtx-id)))
-                       debit-account credit-account)
+  (validate-parameters (temtx-basic-constraint-conflicts (val temtx-id))
+                       debit-account credit-account propagated-p)
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :role role
@@ -453,15 +448,10 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (lambda (title)
-                         (chk-temtx-title/create-update title (customer-p role) (val temtx-id)))
+  (validate-parameters (chk-temtx-title/create-update (customer-p role) (val temtx-id))
                        title)
-  (validate-parameters (lambda (debit-account credit-account)
-                         (temtx-basic-constraint-conflicts debit-account
-                                                           credit-account
-                                                           (val propagated-p)
-                                                           (val temtx-id)))
-                       debit-account credit-account)
+  (validate-parameters (temtx-basic-constraint-conflicts (val temtx-id))
+                       debit-account credit-account propagated-p)
   (with-controller-page (config/temtx/update role)
     (let ((debit-account-id (account-id (val debit-account)))
           (credit-account-id (account-id (val credit-account))))

@@ -10,7 +10,7 @@
   ()
   (:default-initargs
    :parameter-groups '(:system (tx-id)
-                       :payload (tx-date company description amount account-id)
+                       :payload (tx-date company description amount account-id project-id)
                        :filter (search since until))))
 
 (defclass invoice-page (auth-regex-page invoice-family)
@@ -39,6 +39,9 @@
       (account-id
        (:account-id-null
         "Δεν έχετε επιλέξει λογαριασμό"))
+      (project-id
+       (:project-id-null
+        "Δεν έχετε επιλέξει έργο."))
       (tx-date
        (:parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
@@ -445,7 +448,8 @@
      (account-id  integer chk-account-id)
      (search      string)
      (since       date)
-     (until       date))
+     (until       date)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
   (with-view-page
@@ -488,7 +492,8 @@
      (account-id  integer chk-account-id         t)
      (search      string)
      (since       date)
-     (until       date))
+     (until       date)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
   (with-controller-page (invoice/create role kind)
@@ -522,7 +527,8 @@
      (account-id  integer chk-account-id)
      (search      string)
      (since       date)
-     (until       date))
+     (until       date)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
   (with-view-page
@@ -570,7 +576,8 @@
      (account-id  integer chk-account-id)
      (search      string)
      (since       date)
-     (until       date))
+     (until       date)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role) company)
   (check-invoice-accounts)
   (with-controller-page (invoice/update role kind)

@@ -87,19 +87,14 @@
                              (:= 'to-state-id to-state-id)))
                :plists))))
 
-(defun chk-project-stran-from/to (from-state-id to-state-id)
-  (if (project-stran-from/to-exists-p from-state-id to-state-id)
-      :project-stran-from/to-exists
-      nil))
-
 (defun check-project-stran-parameters (from-state-id to-state-id)
-  (validate-parameters (lambda (from to)
-                         (chk-project-stran-from/to from to))
-                       from-state-id to-state-id)
-  (validate-parameters (lambda (from to)
-                         (if (string= from to)
-                             :project-stran-from-to-equal
-                             nil))
+  (validate-parameters (lambda (from-state-id to-state-id)
+                         (let ((from (val from-state-id))
+                               (to (val to-state-id)))
+                           (cond ((project-stran-from/to-exists-p from to)
+                                  :project-stran-from/to-exists)
+                                 ((string= from to)
+                                  :project-stran-from-to-equal))))
                        from-state-id to-state-id)
   nil)
 

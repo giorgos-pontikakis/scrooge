@@ -147,19 +147,19 @@
                                (:as company.title company) company-id
                                (:as cheque-state.description state-description)
                                due-date cheque.amount cheque.customer-p cheque-event.tx-id
-                               :from cheque
-                               :left-join bank
-                               :on (:= bank.id cheque.bank-id)
-                               :inner-join company
-                               :on (:= company.id cheque.company-id)
-                               :inner-join cheque-state
-                               :on (:= cheque-state.id cheque.state-id)
-                               ;; join event and stran table to get the last tx-id
-                               ;; needed for the link from cheque payload to company/tx
-                               :inner-join cheque-event
-                               :on (:= cheque-event.cheque-id cheque.id)
-                               :inner-join cheque-stran
-                               :on (:= cheque-event.cheque-stran-id cheque-stran.id)))
+                       :from cheque
+                       :left-join bank
+                       :on (:= bank.id cheque.bank-id)
+                       :inner-join company
+                       :on (:= company.id cheque.company-id)
+                       :inner-join cheque-state
+                       :on (:= cheque-state.id cheque.state-id)
+                       ;; join event and stran table to get the last tx-id
+                       ;; needed for the link from cheque payload to company/tx
+                       :inner-join cheque-event
+                       :on (:= cheque-event.cheque-id cheque.id)
+                       :inner-join cheque-stran
+                       :on (:= cheque-event.cheque-stran-id cheque-stran.id)))
          (sort-order (if (string= cstate *default-cheque-state-id*)
                          '(due-date company)
                          '((:desc 'due-date) company)))

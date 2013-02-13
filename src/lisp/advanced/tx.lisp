@@ -62,10 +62,11 @@
 (define-existence-predicate* tx-description-exists-p tx description id)
 
 (defun check-temtx-existence (debit-account credit-account)
-  (let ((temtx-exists-p (with-db ()
-                          (query (:select (:not (:is-null (:get-temtx (account-id debit-account)
-                                                                      (account-id credit-account)))))
-                                 :single!))))
+  (let ((temtx-exists-p
+          (with-db ()
+            (query (:select (:not (:is-null (:get-temtx (account-id (val debit-account))
+                                                        (account-id (val credit-account))))))
+                   :single!))))
     (if temtx-exists-p nil :unknown-temtx-for-account-pair)))
 
 (defun tx-referenced-p (tx-id)
@@ -79,6 +80,18 @@
 (defun chk-tx-id/ref (tx-id)
   (cond ((chk-tx-id tx-id))
         ((tx-referenced-p tx-id) :tx-referenced)))
+
+(defun chk-tx-project-id-fn (account-id)
+  #'(lambda (project-id)
+      (if (eql account-id (account-id 'project-account))
+          (cond ((not (suppliedp project-id))
+                 :project-id-not-supplied)
+                ((eql (val project-id) :null)
+                 :project-id-null)
+                ((and (val project-id)
+                      (not (project-id-exists-p (val project-id))))
+                 :project-id-unknown))
+          nil)))
 
 
 
@@ -116,14 +129,14 @@
                     'tx.debit-account-id
                     'tx.credit-account-id
                     'amount 'company-id 'temtx-id
-                    :from 'tx
-                    :left-join 'company
-                    :on (:= 'tx.company-id 'company.id)
-                    :left-join (:as 'account 'non-chq-debit-account)
-                    :on (:= 'non-chq-debit-account.id 'debit-account-id)
-                    :left-join (:as 'account 'non-chq-credit-account)
-                    :on (:= 'non-chq-credit-account.id 'credit-account-id)
-                    :where (:= 'tx.id tx-id))
+            :from 'tx
+            :left-join 'company
+            :on (:= 'tx.company-id 'company.id)
+            :left-join (:as 'account 'non-chq-debit-account)
+            :on (:= 'non-chq-debit-account.id 'debit-account-id)
+            :left-join (:as 'account 'non-chq-credit-account)
+            :on (:= 'non-chq-credit-account.id 'credit-account-id)
+            :where (:= 'tx.id tx-id))
            :plist)
     nil))
 

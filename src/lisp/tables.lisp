@@ -79,7 +79,7 @@
 
 (defmethod account-id ((role null))
   (declare (ignore role))
-  nil)
+  (error "Unknown account role."))
 
 (defclass account ()
   ((id         :col-type string  :reader   account-id)

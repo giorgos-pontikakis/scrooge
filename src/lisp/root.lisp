@@ -80,7 +80,7 @@
            (results (query (sql-compile sql))))
       (if results
           (with-html
-            (:select
+            (:select :name "project-id"
              (loop for (id description) in results
                    do (htm (:option :value id (str description))))))
           (with-html

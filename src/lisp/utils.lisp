@@ -119,21 +119,22 @@ id, i.e. all records of the subtree with root specified by the given id."
 
 (defun chk-tx-constraints-fn (role &optional cash-tx-p)
   #'(lambda (company-title)
-      (with-db ()
-        (let ((tx-constraints
-                (query (:select 'immediate-tx-only-p 'revenues-account-id 'expenses-account-id
-                        :from 'company
-                        :where (:= 'title company-title))
-                       :plist)))
-          (cond ((and (not cash-tx-p)
-                      (getf tx-constraints :immediate-tx-only-p))
-                 :company-immediate-tx-only)
-                ((and (eql (getf tx-constraints :revenues-account-id) :null)
-                      (customer-p role))
-                 :company-supplier-only)
-                ((and (eql (getf tx-constraints :expenses-account-id) :null)
-                      (not (customer-p role)))
-                 :company-customer-only))))))
+      (when (suppliedp company-title)
+        (with-db ()
+          (let ((tx-constraints
+                  (query (:select 'immediate-tx-only-p 'revenues-account-id 'expenses-account-id
+                          :from 'company
+                          :where (:= 'title (val company-title)))
+                         :plist)))
+            (cond ((and (not cash-tx-p)
+                        (getf tx-constraints :immediate-tx-only-p))
+                   :company-immediate-tx-only)
+                  ((and (eql (getf tx-constraints :revenues-account-id) :null)
+                        (customer-p role))
+                   :company-supplier-only)
+                  ((and (eql (getf tx-constraints :expenses-account-id) :null)
+                        (not (customer-p role)))
+                   :company-customer-only)))))))
 
 
 

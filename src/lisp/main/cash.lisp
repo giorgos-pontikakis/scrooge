@@ -10,7 +10,7 @@
   ()
   (:default-initargs
    :parameter-groups '(:system (tx-id)
-                       :payload (tx-date description company amount account-id)
+                       :payload (tx-date description company amount account-id project-id)
                        :filter (search since until))))
 
 (defclass cash-page (auth-regex-page cash-family)
@@ -37,6 +37,13 @@
       (account-id
        (:account-id-null
         "Δεν έχετε επιλέξει λογαριασμό"))
+      (project-id
+       (:project-id-null
+        "Το έργο για τη συναλλαγή είναι κενό.")
+       (:project-id-not-supplied
+        "Δεν έχετε επιλέξει έργο.")
+       (:project-id-unknown
+        "Άγνωστο αναγνωριστικό έργου."))
       (tx-date
        (:parse-error
         "Η ημερομηνία της συναλλαγής είναι άκυρη"))))))
@@ -416,8 +423,10 @@
      (account-id  integer chk-account-id)
      (search      string)
      (since       date)
-     (until       date))
+     (until       date)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (chk-tx-project-id-fn (val account-id)) project-id)
   (check-cash-accounts)
   (with-view-page
     (let* ((filter (params->filter))
@@ -457,8 +466,10 @@
      (account-id  integer chk-account-id t)
      (search      string)
      (since       date)
-     (until       date))
+     (until       date)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (chk-tx-project-id-fn (val account-id)) project-id)
   (check-cash-accounts)
   (with-controller-page (cash/create role)
     (let* ((company-id (company-id (val company)))
@@ -491,8 +502,10 @@
      (description string)
      (company     string  chk-company-title)
      (amount      float   chk-amount)
-     (account-id  integer chk-account-id))
+     (account-id  integer chk-account-id)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (chk-tx-project-id-fn (val account-id)) project-id)
   (check-cash-accounts)
   (with-view-page
     (let* ((filter (params->filter))
@@ -537,8 +550,10 @@
      (description string)
      (company     string  chk-company-title)
      (amount      float   chk-amount)
-     (account-id  integer chk-account-id))
+     (account-id  integer chk-account-id t)
+     (project-id  integer))
   (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (chk-tx-project-id-fn (val account-id)) project-id)
   (check-cash-accounts)
   (with-controller-page (cash/update role)
     (let ((company-id (company-id (val company)))
