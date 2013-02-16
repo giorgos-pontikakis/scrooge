@@ -61,7 +61,7 @@
 (define-existence-predicate tx-id-exists-p tx id)
 (define-existence-predicate* tx-description-exists-p tx description id)
 
-(defun check-temtx-existence (debit-account credit-account)
+(defun chk-temtx-existence (debit-account credit-account)
   (let ((temtx-exists-p
           (with-db ()
             (query (:select (:not (:is-null (:get-temtx (account-id (val debit-account))
@@ -72,6 +72,9 @@
 (defun tx-referenced-p (tx-id)
   (referenced-by tx-id 'cheque-event 'tx-id))
 
+(defun chk-tx-references (tx-id)
+  (if (tx-referenced-p tx-id) :tx-referenced nil))
+
 (defun chk-tx-id (tx-id)
   (if (tx-id-exists-p tx-id)
       nil
@@ -81,7 +84,7 @@
   (cond ((chk-tx-id tx-id))
         ((tx-referenced-p tx-id) :tx-referenced)))
 
-(defun chk-tx-project-id-fn (account-id)
+(defun tx-project-constraints-chker (account-id)
   #'(lambda (project-id)
       (if (eql account-id (account-id 'project-account))
           (cond ((not (suppliedp project-id))
@@ -309,8 +312,8 @@
      (amount                 float  chk-amount)
      (non-chq-debit-account  string chk-non-chq-account-title)
      (non-chq-credit-account string chk-non-chq-account-title))
-  ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
+  ;; post-validation - prevent update for non-existent temtx
+  (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -348,8 +351,8 @@
      (amount                 float  chk-amount)
      (non-chq-debit-account  string chk-non-chq-account-title)
      (non-chq-credit-account string chk-non-chq-account-title))
-  ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
+  ;; post-validation - prevent update for non-existent temtx
+  (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
   (with-controller-page (tx/create)
     (let* ((company-id (company-id (val company)))
            (debit-account-id (account-id (val non-chq-debit-account)))
@@ -381,9 +384,9 @@
      (amount                 float   chk-amount)
      (non-chq-debit-account  string  chk-non-chq-account-title)
      (non-chq-credit-account string  chk-non-chq-account-title))
-  ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
-  (validate-parameters #'tx-referenced-p tx-id)
+  ;; post-validation - prevent update for non-existent temtx or if tx is referenced
+  (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
+  (validate-parameters #'chk-tx-references tx-id)
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
@@ -424,9 +427,9 @@
      (amount                 float   chk-amount)
      (non-chq-debit-account  string  chk-non-chq-account-title)
      (non-chq-credit-account string  chk-non-chq-account-title))
-  ;; post-validation - prevent update for unknown temtx of if tx is referenced
-  (validate-parameters #'check-temtx-existence non-chq-debit-account non-chq-credit-account)
-  (validate-parameters #'tx-referenced-p tx-id)
+  ;; post-validation - prevent update for non-existent temtx or if tx is referenced
+  (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
+  (validate-parameters #'chk-tx-references tx-id)
   (with-controller-page (tx/update)
     (let ((company-id (company-id (val company)))
           (debit-account-id (account-id (val non-chq-debit-account)))
@@ -454,7 +457,7 @@
      (search string))
   ;; post validation - prevent delete if automatically created
   (with-db ()
-    (validate-parameters #'tx-referenced-p tx-id))
+    (validate-parameters #'chk-tx-references tx-id))
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table

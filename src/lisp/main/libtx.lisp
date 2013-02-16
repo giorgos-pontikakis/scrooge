@@ -354,7 +354,7 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (tx-company-constraints-chker role t) company)
   (with-view-page
     (let* ((filter (params->filter))
            (libtx-form (make-instance 'libtx-form
@@ -394,7 +394,7 @@
      (search      string)
      (since       date)
      (until       date))
-  (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (tx-company-constraints-chker role t) company)
   (with-controller-page (libtx/create role :temtx-id (if (suppliedp temtx-id) (val temtx-id) :null))
     (let* ((company-id (company-id (val company)))
            (temtx (get-dao 'temtx (val temtx-id)))
@@ -426,7 +426,7 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (temtx-id    integer chk-temtx-id))
-  (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (tx-company-constraints-chker role t) company)
   (with-view-page
     (let* ((filter (params->filter))
            (libtx-form (make-instance 'libtx-form
@@ -471,7 +471,7 @@
      (company     string  chk-company-title)
      (amount      float   chk-amount)
      (temtx-id    integer chk-temtx-id t))
-  (validate-parameters (chk-tx-constraints-fn role t) company)
+  (validate-parameters (tx-company-constraints-chker role t) company)
   (with-controller-page (libtx/update role :temtx-id (if (suppliedp temtx-id) (val temtx-id) :null))
     (let ((company-id (company-id (val company)))
           (temtx (get-dao 'temtx (val temtx-id))))

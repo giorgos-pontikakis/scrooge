@@ -29,19 +29,20 @@
                (:file "config/role")
                (:file "config/temtx")
                (:file "config/cheque-stran")
-               ;; basics
+               ;; company & project
                (:file "main/company")
-               (:file "main/contact")
                (:file "main/project")
-               (:file "main/bill")
-               ;; tx basics
+               ;; tx
                (:file "advanced/tx")
                (:file "advanced/account")
-               ;; tx details
+               ;; abstractions on txs
                (:file "main/cash")
                (:file "main/invoice")
                (:file "main/cheque")
                (:file "main/libtx")
+               ;; company & project extras
+               (:file "main/contact")
+               (:file "main/bill")
                (:file "main/company-tx")
                (:file "main/company-cheque")
                ;; root

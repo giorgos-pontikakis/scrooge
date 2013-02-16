@@ -101,19 +101,13 @@
         (with-db ()
           (query (sql-compile sql))))))
 
-(defun check-cheque-stran-parameters (from-state-id to-state-id role temtx &optional cheque-stran-id)
-  (let ((from (val from-state-id))
-        (to (val to-state-id)))
-    (validate-parameters (lambda (from to)
-                           (cond
-                             ((cheque-stran-from/to/role-exists-p from to role cheque-stran-id)
-                              :cheque-stran-from/to/payable-exists)
-                             ((string= from to)
-                              :cheque-stran-from-to-equal)))
-                         from to))
-  (validate-parameters (lambda (temtx)
-                         (chk-temtx-chq-title temtx (customer-p role)))
-                       temtx))
+(defun cheque-stran-chker (role &optional cheque-stran-id)
+  #'(lambda (from to)
+      (cond
+        ((cheque-stran-from/to/role-exists-p from to role cheque-stran-id)
+         :cheque-stran-from/to/payable-exists)
+        ((string= from to)
+         :cheque-stran-from-to-equal))))
 
 
 
@@ -251,7 +245,8 @@
      (from-state-id string chk-cheque-state-id*)
      (to-state-id   string chk-cheque-state-id)
      (temtx         string))
-  (check-cheque-stran-parameters from-state-id to-state-id role temtx)
+  (validate-parameters (cheque-stran-chker role) (val from-state-id) (val to-state-id))
+  (validate-parameters (temtx-chq-title-chker (customer-p role)) temtx)
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :role role
@@ -280,7 +275,8 @@
      (from-state-id string chk-cheque-state-id*)
      (to-state-id   string chk-cheque-state-id)
      (temtx         string))
-  (check-cheque-stran-parameters from-state-id to-state-id role temtx)
+  (validate-parameters (cheque-stran-chker role) (val from-state-id) (val to-state-id))
+  (validate-parameters (temtx-chq-title-chker (customer-p role)) temtx)
   (with-controller-page (config/cheque-stran/create role)
     (let* ((temtx-id (temtx-id (val temtx)))
            (new-cheque-stran (make-instance 'cheque-stran
@@ -305,7 +301,9 @@
      (from-state-id   string  chk-cheque-state-id*)
      (to-state-id     string  chk-cheque-state-id)
      (temtx           string))
-  (check-cheque-stran-parameters from-state-id to-state-id role temtx cheque-stran-id)
+  (validate-parameters (cheque-stran-chker role (val cheque-stran-id))
+                       (val from-state-id) (val to-state-id))
+  (validate-parameters (temtx-chq-title-chker (customer-p role)) temtx)
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
                                              :role role
@@ -340,7 +338,9 @@
      (from-state-id   string  chk-cheque-state-id*)
      (to-state-id     string  chk-cheque-state-id)
      (temtx           string))
-  (check-cheque-stran-parameters from-state-id to-state-id role temtx cheque-stran-id)
+  (validate-parameters (cheque-stran-chker role (val cheque-stran-id))
+                       (val from-state-id) (val to-state-id))
+  (validate-parameters (temtx-chq-title-chker (customer-p role)) temtx)
   (with-controller-page (config/cheque-stran/update role)
     (let ((temtx-id (temtx-id (val temtx))))
       (execute (:update 'cheque-stran :set

@@ -401,7 +401,7 @@
      (cstate   string chk-cheque-state-id)
      (since    date   chk-date)
      (until    date   chk-date))
-  (validate-parameters (chk-tx-constraints-fn role) company)
+  (validate-parameters (tx-company-constraints-chker role) company)
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
@@ -444,7 +444,7 @@
      (company  string chk-company-title   t)
      (due-date date   chk-date            t)
      (amount   float  chk-amount          t))
-  (validate-parameters (chk-tx-constraints-fn role) company)
+  (validate-parameters (tx-company-constraints-chker role) company)
   (check-cheque-accounts)
   (with-controller-page (cheque/create role)
     (let ((new-cheque (make-instance 'cheque
@@ -476,7 +476,7 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
-  (validate-parameters (chk-tx-constraints-fn role) company)
+  (validate-parameters (tx-company-constraints-chker role) company)
   (check-cheque-accounts)
   (with-view-page
     (let* ((filter (params->filter))
@@ -523,7 +523,7 @@
      (cstate    string  chk-cheque-state-id)
      (since     date    chk-date)
      (until     date    chk-date))
-  (validate-parameters (chk-tx-constraints-fn role) company)
+  (validate-parameters (tx-company-constraints-chker role) company)
   (check-cheque-accounts)
   (with-controller-page (cheque/update role)
     (let* ((cheque-dao (get-dao 'cheque (val cheque-id)))
