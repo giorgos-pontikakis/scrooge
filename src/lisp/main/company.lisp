@@ -357,8 +357,7 @@
   (with-html
     (:div :class "window-footer"
       (:h4 "Σύνολο: " (str (fmt-amount (reduce #'+
-                                               (mapcar #'(lambda (rec)
-                                                           (getf rec :balance 0))
+                                               (mapcar (getfer :balance 0)
                                                        (records table)))))))))
 
 (defmethod actions ((tbl company-table) &key)

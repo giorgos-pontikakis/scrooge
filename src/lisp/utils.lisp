@@ -58,12 +58,10 @@ id, i.e. all records of the subtree with root specified by the given id."
   (dfs (lambda (head)
          (children-records records
                            (getf head key)))
-       (find id records :key (lambda (row)
-                               (getf row :id)))))
+       (find id records :key (getfer :id))))
 
 (defun subtree-record-ids (records id &key (key :id))
-  (mapcar #'(lambda (rec)
-              (getf rec key))
+  (mapcar (getfer key)
           (subtree-records records id :key key)))
 
 
@@ -168,6 +166,6 @@ id, i.e. all records of the subtree with root specified by the given id."
                   (cadr list)))
           lists))
 
-(defun getf-fn (key &optional default)
-  (lambda (item)
-    (getf item key default)))
+(defun getfer (indicator &optional default)
+  #'(lambda (place)
+      (getf place indicator default)))

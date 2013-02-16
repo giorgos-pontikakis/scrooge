@@ -174,8 +174,8 @@ receivables"
     (let ((records (records (make-instance 'company-table :filter (list :subset subset)
                                                           :op :catalogue))))
       (float (reduce #'+
-                     (mapcar (lambda (rec)
-                               (getf rec :balance 0)) records))))))
+                     (mapcar (getfer :balance 0)
+                             records))))))
 
 (defun sum-error ()
   (- (account-balance (account-id 'receivable-root-account))
