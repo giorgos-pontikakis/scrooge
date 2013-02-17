@@ -27,7 +27,7 @@
 
 ;;; table
 
-(defclass bill-table (ranked-table-mixin scrooge-table)
+(defclass bill-table (ranked-table-mixin scrooge-crud-table/plist)
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (project-id     :accessor project-id :initarg :project-id))
@@ -81,7 +81,7 @@
 
 ;;; rows
 
-(defclass bill-row (scrooge-row/plist)
+(defclass bill-row (scrooge-row)
   ())
 
 (defmethod selector ((row bill-row) selected-p)

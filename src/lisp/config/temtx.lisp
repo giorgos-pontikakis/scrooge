@@ -178,7 +178,7 @@
 
 ;;; table
 
-(defclass temtx-table (scrooge-table)
+(defclass temtx-table (scrooge-crud-table/plist)
   ((header-labels :initform '("" "<br />Περιγραφή"
                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
                               "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση" "Βιβλιοθήκη" "" ""))
@@ -236,7 +236,7 @@
 
 ;;; rows
 
-(defclass temtx-row (scrooge-row/plist)
+(defclass temtx-row (scrooge-row)
   ())
 
 (defmethod selector ((row temtx-row) selected-p)

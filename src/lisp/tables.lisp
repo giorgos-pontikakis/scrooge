@@ -25,7 +25,6 @@
   (:metaclass dao-class)
   (:keys username))
 
-
 (defclass bank ()
   ((id    :col-type integer :reader   bank-id)
    (title :col-type string  :accessor title   :initarg :title))

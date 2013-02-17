@@ -55,7 +55,7 @@ the given id."
 (defun subtree-records (records id &key (key :id))
   "From a set of records, collect all descendants of the record with the given
 id, i.e. all records of the subtree with root specified by the given id."
-  (dfs (lambda (head)
+  (dft (lambda (head)
          (children-records records
                            (getf head key)))
        (find id records :key (getfer :id))))
@@ -148,18 +148,6 @@ id, i.e. all records of the subtree with root specified by the given id."
         amount
         (format nil format-control amount))))
 
-(defun dfs (expander-fn root)
-  "Depth first search"
-  (labels ((dfs-aux (expanded fringe)
-             (if (null fringe)
-                 expanded
-                 (let ((head (first fringe))
-                       (tail (rest fringe)))
-                   (dfs-aux (list* head expanded)
-                            (append (funcall expander-fn head)
-                                    tail))))))
-    (dfs-aux nil (list root))))
-
 (defun lists->alist (lists)
   (mapcar (lambda (list)
             (cons (car list)
@@ -169,3 +157,7 @@ id, i.e. all records of the subtree with root specified by the given id."
 (defun getfer (indicator &optional default)
   #'(lambda (place)
       (getf place indicator default)))
+
+(defun key-getter (collection)
+  #'(lambda (rec)
+      (get-key collection rec)))

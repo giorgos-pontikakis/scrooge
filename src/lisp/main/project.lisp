@@ -267,7 +267,7 @@
 
 ;;; table
 
-(defclass project-table (scrooge-table)
+(defclass project-table (scrooge-crud-table/plist)
   ((header-labels :accessor header-labels                                                                                :initarg :header-labels)
    (paginator     :initform (make-instance 'project-paginator
                                            :id "project-paginator"
@@ -343,7 +343,7 @@
 
 ;;; rows
 
-(defclass project-row (scrooge-row/plist)
+(defclass project-row (scrooge-row)
   ())
 
 (defmethod selector ((row project-row) selected-p)

@@ -7,10 +7,10 @@
 
 ;;; config crud table and row classes
 
-(defclass config-table (scrooge-table)
+(defclass config-table (scrooge-crud-table/obj)
   ())
 
-(defclass config-row (scrooge-row/obj)
+(defclass config-row (scrooge-row)
   ())
 
 (defmethod payload ((row config-row) enabled-p)

@@ -21,6 +21,7 @@
   (:documentation "Display extra info for the widget, e.g. sums for a table"))
 
 
+
 ;;; ----------------------------------------------------------------------
 ;;; Tables
 ;;; ----------------------------------------------------------------------
@@ -35,31 +36,49 @@
     ((:create :update :delete) '(:details :create :update :delete :journal))))
 
 
-;;; crud rows with records being daos
+;;; CRUD table with records being daos
 
-(defclass scrooge-row/obj (crud-row/obj)
-  ()
-  (:default-initargs :css-selected "selected"
-                     :css-selector "selector"
-                     :css-payload "payload"
-                     :css-controls "controls"))
+(defclass scrooge-crud-table/obj (scrooge-table record/obj-mixin)
+  ())
 
-(defmethod key ((item scrooge-row/obj))
-  (handler-case (slot-value (record item) 'id)
+(defmethod get-key ((table scrooge-crud-table/obj) record)
+  (declare (ignore table))
+  (handler-case (slot-value record 'id)
     (unbound-slot () nil)))
 
 
-;;; rows with records being plists
+;;; CRUD table with records being plists
 
-(defclass scrooge-row/plist (crud-row/plist)
+(defclass scrooge-crud-table/plist (scrooge-table record/plist-mixin)
+  ())
+
+(defmethod get-key ((table scrooge-crud-table/plist) record)
+  (declare (ignore table))
+  (getf record :id))
+
+
+;;; Ranked table mixin
+
+(defclass ranked-table-mixin (scrooge-table-mixin)
+  ())
+
+(defmethod disabled-actions ((tbl ranked-table-mixin) &key key)
+  (ecase (op tbl)
+    (:catalogue (if key
+                    nil
+                    '(:update :delete :rank-up :rank-down)))
+    ((:create :update :delete) '(:create :update :delete :rank-up :rank-down))))
+
+
+;;; Rows
+
+(defclass scrooge-row (crud-row)
   ()
   (:default-initargs :css-selected "selected"
                      :css-selector "selector"
                      :css-payload "payload"
                      :css-controls "controls"))
 
-(defmethod key ((item scrooge-row/plist))
-  (getf (record item) :id))
 
 
 ;;; paginator
@@ -91,17 +110,6 @@
                      (img "resultset_next.png")))
               (img "resultset_last.png")))))))
 
-;;; table mixins
-
-(defclass ranked-table-mixin ()
-  ())
-
-(defmethod disabled-actions ((tbl ranked-table-mixin) &key key)
-  (ecase (op tbl)
-    (:catalogue (if key
-                    nil
-                    '(:update :delete :rank-up :rank-down)))
-    ((:create :update :delete) '(:create :update :delete :rank-up :rank-down))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -110,43 +118,48 @@
 
 (defclass scrooge-tree (crud-tree)
   ((root-parent-key :allocation :class :initform :null))
-  (:default-initargs :css-class "crud-tree" :root-key nil))
+  (:default-initargs :css-class "crud-tree"
+                     :root-key nil))
 
+;;; CRUD tree with records being daos
 
-;;; crud tree with records being daos
+(defclass scrooge-crud-tree/obj (scrooge-tree record/obj-mixin)
+  ())
 
-(defclass scrooge-node/obj (crud-node/obj)
-  ()
-  (:default-initargs :css-selected "selected"
-                     :css-selector "selector"
-                     :css-payload "payload"
-                     :css-controls "controls"
-                     :css-indent "indent"))
-
-(defmethod key ((item scrooge-row/obj))
-  (handler-case (slot-value (record item) 'id)
+(defmethod get-key ((tree scrooge-crud-tree/obj) record)
+  (declare (ignore tree))
+  (handler-case (slot-value record 'id)
     (unbound-slot () nil)))
 
-(defmethod parent-key ((item scrooge-row/obj))
-  (handler-case (slot-value (record item) 'parent-id)
+(defmethod parent-get-key ((tree scrooge-crud-tree/obj) record)
+  (declare (ignore tree))
+  (handler-case (slot-value record 'parent-id)
     (unbound-slot () nil)))
 
 
 ;;; crud tree with records being plists
 
-(defclass scrooge-node/plist (crud-node/plist)
+(defclass scrooge-crud-tree/plist (scrooge-tree record/plist-mixin)
+  ())
+
+(defmethod get-key ((tree scrooge-crud-tree/plist) record)
+  (declare (ignore tree))
+  (getf record :id))
+
+(defmethod get-parent-key ((tree scrooge-crud-tree/plist) record)
+  (declare (ignore tree))
+  (getf record :parent-id))
+
+
+;;; Nodes
+
+(defclass scrooge-node (crud-node)
   ()
   (:default-initargs :css-selected "selected"
                      :css-selector "selector"
                      :css-payload "payload"
                      :css-controls "controls"
                      :css-indent "indent"))
-
-(defmethod key ((item scrooge-node/plist))
-  (getf (record item) :id))
-
-(defmethod parent-key ((item scrooge-node/plist))
-  (getf (record item) :parent-id))
 
 
 

@@ -117,7 +117,7 @@
 
 ;;; table
 
-(defclass cheque-stran-table (scrooge-table)
+(defclass cheque-stran-table (scrooge-crud-table/plist)
   ((role :accessor role :initarg :role)
    (header-labels :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
@@ -155,7 +155,7 @@
 
 ;;; rows
 
-(defclass cheque-stran-row (scrooge-row/plist)
+(defclass cheque-stran-row (scrooge-row)
   ())
 
 (defmethod selector ((row cheque-stran-row) enabled-p)

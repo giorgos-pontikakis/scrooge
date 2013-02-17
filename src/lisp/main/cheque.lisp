@@ -195,7 +195,7 @@
 
 ;;; table
 
-(defclass cheque-table (scrooge-table)
+(defclass cheque-table (scrooge-crud-table/plist)
   ((role :accessor role :initarg :role)
    (paginator :accessor paginator :initarg :paginator)
    (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
@@ -250,7 +250,7 @@
 
 ;;; rows
 
-(defclass cheque-row (scrooge-row/plist)
+(defclass cheque-row (scrooge-row)
   ())
 
 (defmethod selector ((row cheque-row) selected-p)

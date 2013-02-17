@@ -295,7 +295,7 @@
 
 ;;; table
 
-(defclass company-table (scrooge-table)
+(defclass company-table (scrooge-crud-table/plist)
   ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Ισοζύγιο" "" ""))
    (paginator      :initarg :paginator))
   (:default-initargs :item-class 'company-row
@@ -396,7 +396,7 @@
 
 ;;; rows
 
-(defclass company-row (scrooge-row/plist)
+(defclass company-row (scrooge-row)
   ())
 
 (defmethod selector ((row company-row) selected-p)
@@ -433,11 +433,12 @@
      (subset string chk-subset))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'company-table :op :catalogue
-                                                     :filter filter))))
-      (if (single-item-list-p rows)
+           (company-table (make-instance 'company-table :op :catalogue
+                                                        :filter filter))
+           (records (records company-table)))
+      (if (single-item-list-p records)
           (see-other (apply #'company/details
-                            :company-id (key (first rows))
+                            :company-id (get-key company-table (first records))
                             filter))
           (see-other (apply #'company filter))))))
 
@@ -474,7 +475,8 @@
                                          :start-index (val start))))
       ;; if company-id exists and is not found among records, ignore search term
       (when (and (val company-id)
-                 (not (find (val company-id) (rows company-table) :key #'key)))
+                 (not (find (val company-id) (records company-table)
+                            :key (key-getter company-table))))
         (see-other (company :company-id (val company-id))))
       (with-document ()
         (:head

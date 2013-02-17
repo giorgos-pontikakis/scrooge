@@ -151,7 +151,7 @@
 
 ;;; table
 
-(defclass tx-table (scrooge-table)
+(defclass tx-table (scrooge-crud-table/plist)
   ((header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
                               "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
    (paginator :initform (make-instance 'tx-paginator
@@ -213,7 +213,7 @@
 
 ;;; rows
 
-(defclass tx-row (scrooge-row/plist)
+(defclass tx-row (scrooge-row)
   ())
 
 (defmethod selector ((row tx-row) selected-p)

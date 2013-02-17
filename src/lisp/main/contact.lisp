@@ -24,7 +24,7 @@
 
 ;;; table
 
-(defclass contact-table (ranked-table-mixin scrooge-table)
+(defclass contact-table (ranked-table-mixin scrooge-crud-table/plist)
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))
@@ -87,7 +87,7 @@
 
 ;;; rows
 
-(defclass contact-row (scrooge-row/plist)
+(defclass contact-row (scrooge-row)
   ())
 
 (defmethod selector ((row contact-row) selected-p)
