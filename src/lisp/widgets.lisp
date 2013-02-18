@@ -59,7 +59,7 @@
 
 ;;; Ranked table mixin
 
-(defclass ranked-table-mixin (scrooge-table-mixin)
+(defclass ranked-table-mixin ()
   ())
 
 (defmethod disabled-actions ((tbl ranked-table-mixin) &key key)
@@ -91,24 +91,23 @@
 
 (defmethod display ((pg paginator) &key (start 0))
   (let* ((delta (delta pg))
-         (len (length (rows (table pg))))
+         (len (length (records (table pg))))
          (prev (previous-page-start pg start))
          (next (next-page-start pg start)))
-    (when (rows (table pg))
-      (with-html
-        (:div :class (css-class pg)
-          (fmt "Εγγραφές ~A–~A από ~A"
-               (1+ start)
-               (min (+ start delta) len)
-               len)
-          (if prev
-              (htm (:a :href (target-url pg prev)
-                     (img "resultset_previous.png")))
-              (img "resultset_first.png"))
-          (if next
-              (htm (:a :href (target-url pg next)
-                     (img "resultset_next.png")))
-              (img "resultset_last.png")))))))
+    (with-html
+      (:div :class (css-class pg)
+        (fmt "Εγγραφές ~A–~A από ~A"
+             (1+ start)
+             (min (+ start delta) len)
+             len)
+        (if prev
+            (htm (:a :href (target-url pg prev)
+                   (img "resultset_previous.png")))
+            (img "resultset_first.png"))
+        (if next
+            (htm (:a :href (target-url pg next)
+                   (img "resultset_next.png")))
+            (img "resultset_last.png"))))))
 
 
 

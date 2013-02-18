@@ -239,11 +239,11 @@
         (:div :class "form-group"
           (label 'notes "Σημειώσεις")
           (:textarea :name 'notes :disabled disabled
-            (str (lisp->html (or (getf record :notes) :null))))))
-      (:div :class "data-form-buttons"
+            (str (lisp->html (or (getf record :notes) :null)))))
+        (:div :class "data-form-buttons"
         (unless disabled
           (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-          (cancel-button (cancel-url form) :body "Άκυρο"))))))
+          (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
 (defmethod get-record ((form company-form))
   (let ((company-id (key form)))
@@ -354,11 +354,12 @@
              :plists))))
 
 (defmethod extra-info ((table company-table))
-  (with-html
-    (:div :class "window-footer"
-      (:h4 "Σύνολο: " (str (fmt-amount (reduce #'+
-                                               (mapcar (getfer :balance 0)
-                                                       (records table)))))))))
+  (when (rows table)
+    (with-html
+      (:div :class "window-footer"
+        (:h4 "Σύνολο: " (str (fmt-amount (reduce #'+
+                                                 (mapcar (getfer :balance 0)
+                                                         (records table))))))))))
 
 (defmethod actions ((tbl company-table) &key)
   (let* ((company-id (selected-key tbl))
