@@ -70,8 +70,9 @@
    (credits :accessor credits
             :initform nil)))
 
-(defmethod initialize-instance :after ((tree balance-account-tree) &key)
-  (set-balance tree))
+(defmethod display ((tree balance-account-tree) &key payload hide-root-p)
+  (set-balance tree)
+  (call-next-method))
 
 (defgeneric set-balance (balance-account-tree-or-node)
   (:documentation "Recursively transverse the account tree or subtree
@@ -248,7 +249,7 @@
 
 ;;; row
 
-(defclass account-tx-row (scrooge-row/plist)
+(defclass account-tx-row (scrooge-row)
   ())
 
 (defmethod selector ((row account-tx-row) selected-p)

@@ -126,7 +126,7 @@
 
 ;;; tree
 
-(defclass account-tree (scrooge-tree)
+(defclass account-tree (scrooge-crud-tree/plist)
   ((debit-p :accessor debit-p
             :initarg :debit-p
             :initform (error "While making an account-tree instance, debit-p slot is unbound")))
@@ -159,7 +159,7 @@
 
 ;;; nodes
 
-(defclass account-node (scrooge-node/plist)
+(defclass account-node (scrooge-node)
   ((record-class :allocation :class :initform 'account)))
 
 (defmethod selector ((node account-node) selected-p)

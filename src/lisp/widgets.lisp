@@ -130,7 +130,7 @@
   (handler-case (slot-value record 'id)
     (unbound-slot () nil)))
 
-(defmethod parent-get-key ((tree scrooge-crud-tree/obj) record)
+(defmethod get-parent-key ((tree scrooge-crud-tree/obj) record)
   (declare (ignore tree))
   (handler-case (slot-value record 'parent-id)
     (unbound-slot () nil)))
