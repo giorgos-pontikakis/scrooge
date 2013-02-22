@@ -72,7 +72,7 @@
 
 (defmethod display ((tree balance-account-tree) &key payload hide-root-p)
   (set-balance tree)
-  (call-next-method))
+  (call-next-method tree :payload payload :hide-root-p hide-root-p))
 
 (defgeneric set-balance (balance-account-tree-or-node)
   (:documentation "Recursively transverse the account tree or subtree

@@ -268,19 +268,19 @@
         nil)))
 
 (defmethod actions ((form company-form) &key filter)
-  nil(let* ((company-id (key form))
-            (spec (if company-id
-                      `(:update ,(apply #'company/update :company-id company-id filter)
-                        :delete ,(if (company-referenced-p company-id)
-                                     nil
-                                     (apply #'company/delete :company-id company-id filter))
-                        :create-project (,(project/create
-                                           :company (title (get-dao 'company company-id)))
-                                         "Νέο Έργο"
-                                         "create"))
-                      nil)))
-       (actions-menu (make-menu-spec spec)
-                     (disabled-actions form))))
+  (let* ((company-id (key form))
+         (spec (if company-id
+                   `(:update ,(apply #'company/update :company-id company-id filter)
+                     :delete ,(if (company-referenced-p company-id)
+                                  nil
+                                  (apply #'company/delete :company-id company-id filter))
+                     :create-project (,(project/create
+                                        :company (title (get-dao 'company company-id)))
+                                      "Νέο Έργο"
+                                      "create"))
+                   nil)))
+    (actions-menu (make-menu-spec spec)
+                  (disabled-actions form))))
 
 (defmethod disabled-actions ((form company-form) &key)
   (ecase (op form)

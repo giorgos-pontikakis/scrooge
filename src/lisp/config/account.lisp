@@ -12,8 +12,6 @@
                                          :payload (title chequing-p)
                                          :filter (debit-p))))
 
-
-
 (defclass account-page (auth-dynamic-page account-family)
   ((messages
     :allocation :class
