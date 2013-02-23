@@ -5,10 +5,10 @@
 ;;; Widget prototol
 ;;; ----------------------------------------------------------------------
 
-(defgeneric actions (widget &key)
+(defgeneric actions (widget &key &allow-other-keys)
   (:documentation "Prints the html for the actions of the widget"))
 
-(defgeneric disabled-actions (widget &key)
+(defgeneric disabled-actions (widget &key &allow-other-keys)
   (:documentation "Returns a list of the disabled actions of the widget"))
 
 (defgeneric get-record (widget)

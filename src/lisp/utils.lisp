@@ -111,9 +111,7 @@ id, i.e. all records of the subtree with root specified by the given id."
         ((non-positive-real-p float)
          :non-positive-amount)
         ((> float 9999999)
-         :amount-overflow)
-        (t
-         nil)))
+         :amount-overflow)))
 
 (defun tx-company-constraints-chker (role &optional cash-tx-p)
   #'(lambda (company-title)
