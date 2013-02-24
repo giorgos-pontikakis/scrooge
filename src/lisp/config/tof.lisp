@@ -74,7 +74,8 @@
 ;;; table
 
 (defclass tof-table (config-table tof-family)
-  ((header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
+  ((record-class  :allocation :class :initform 'tof)
+   (header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
    (paginator     :initform (make-instance 'tof-paginator
                                            :id "tof-paginator"
                                            :css-class "paginator")))
@@ -100,7 +101,7 @@
 ;; rows
 
 (defclass tof-row (config-row)
-  ((record-class :allocation :class :initform 'tof)))
+  ())
 
 (defmethod selector ((row tof-row) enabled-p)
   (simple-selector row enabled-p #'config/tof :tof-id))

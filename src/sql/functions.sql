@@ -181,7 +181,7 @@ execute procedure temtx_update_guard();
 create or replace view temtx_chq as
 select temtx.id, temtx.title, temtx.debit_account_id,
        temtx.credit_account_id, temtx.customer_p,
-       temtx.propagated_p, temtx.sign
+       temtx.propagated_p, temtx.sign, temtx.lib_p
 from temtx
 inner join account as debit_account
 on debit_account.id = temtx.debit_account_id

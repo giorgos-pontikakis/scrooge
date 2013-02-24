@@ -125,7 +125,8 @@
 ;;; tree
 
 (defclass account-tree (scrooge-crud-tree/plist)
-  ((debit-p :accessor debit-p
+  ((record-class :allocation :class :initform 'account)
+   (debit-p :accessor debit-p
             :initarg :debit-p
             :initform (error "While making an account-tree instance, debit-p slot is unbound")))
   (:default-initargs :item-class 'account-node))
@@ -158,7 +159,7 @@
 ;;; nodes
 
 (defclass account-node (scrooge-node)
-  ((record-class :allocation :class :initform 'account)))
+  ())
 
 (defmethod selector ((node account-node) selected-p)
   (let ((account-id (key node)))

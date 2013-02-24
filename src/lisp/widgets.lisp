@@ -38,7 +38,7 @@
 
 ;;; CRUD table with records being daos
 
-(defclass scrooge-crud-table/obj (scrooge-table record/obj-mixin)
+(defclass scrooge-crud-table/obj (scrooge-table)
   ())
 
 (defmethod get-key ((table scrooge-crud-table/obj) record)
@@ -49,7 +49,7 @@
 
 ;;; CRUD table with records being plists
 
-(defclass scrooge-crud-table/plist (scrooge-table record/plist-mixin)
+(defclass scrooge-crud-table/plist (scrooge-table)
   ())
 
 (defmethod get-key ((table scrooge-crud-table/plist) record)
@@ -220,10 +220,8 @@
     (setf (slot-value form 'record) (get-record form))))
 
 (defmethod display :before ((form crud-form) &key payload)
-  (when (eql (op form) :create)
-    (setf (record form) (create-record form payload)))
-  (when (eql (op form) :update)
-    (update-record form payload)))
+  (when (member (op form) '(:create :update))
+    (setf (record form) (merge-record-payload (record form) payload))))
 
 (defmethod actions ((form crud-form) &key)
   (declare (ignore form))

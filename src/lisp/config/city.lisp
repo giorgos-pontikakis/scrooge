@@ -74,8 +74,9 @@
 ;;; table
 
 (defclass city-table (config-table city-family)
-  ((header-labels :initform '("" "Ονομασία πόλης" "" ""))
-   (paginator     :initform (make-instance 'city-paginator
+  ((record-class  :allocation :class :initform 'city)
+   (header-labels :initform   '("" "Ονομασία πόλης" "" ""))
+   (paginator     :initform   (make-instance 'city-paginator
                                            :id "city-paginator"
                                            :css-class "paginator")))
   (:default-initargs :id "config-table"
@@ -100,7 +101,7 @@
 ;;; rows
 
 (defclass city-row (config-row)
-  ((record-class :allocation :class :initform 'city)))
+  ())
 
 (defmethod selector ((row city-row) enabled-p)
   (simple-selector row enabled-p #'config/city :city-id))

@@ -59,8 +59,7 @@
   ()
   (:default-initargs :item-class 'balance-account-node))
 
-(defclass balance-account-node (account-node)
-  ((record-class :allocation :class :initform 'account)
+(defclass balance-account-node (account-node) (
    (cumul-balance :accessor cumul-balance
                   :initform nil)
    (balance :accessor balance

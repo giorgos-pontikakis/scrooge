@@ -74,7 +74,8 @@
 ;;; table
 
 (defclass bank-table (config-table bank-family)
-  ((header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
+  ((record-class  :allocation :class :initform 'bank)
+   (header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
    (paginator     :initform (make-instance 'bank-paginator
                                            :id "bank-paginator"
                                            :css-class "paginator")))
@@ -100,7 +101,7 @@
 ;;; rows
 
 (defclass bank-row (config-row)
-  ((record-class :allocation :class :initform 'bank)))
+  ())
 
 (defmethod selector ((row bank-row) selected-p)
   (simple-selector row selected-p #'config/bank :bank-id))
