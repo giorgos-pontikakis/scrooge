@@ -189,7 +189,7 @@
 ;;; Project form
 ;;; ------------------------------------------------------------
 
-(defclass project-form (crud-form/plist)
+(defclass project-form (crud-form)
   ())
 
 (defmethod display ((form project-form) &key styles)

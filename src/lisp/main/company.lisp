@@ -198,7 +198,7 @@
 ;;; Company form
 ;;; ------------------------------------------------------------
 
-(defclass company-form (crud-form/plist company-family)
+(defclass company-form (crud-form company-family)
   ())
 
 (defmethod display ((form company-form) &key styles)

@@ -41,10 +41,17 @@
 (defclass scrooge-crud-table/obj (scrooge-table)
   ())
 
+;;; get-key should be just like merge-record-payload. I should not
+;;; have any dependencies on /obj or /plist class mixins in scrooge
+
 (defmethod get-key ((table scrooge-crud-table/obj) record)
   (declare (ignore table))
   (handler-case (slot-value record 'id)
     (unbound-slot () nil)))
+
+(defmethod get-key ((table scrooge-crud-table/obj) (record null))
+  (declare (ignore table))
+  nil)
 
 
 ;;; CRUD table with records being plists
@@ -198,19 +205,14 @@
 ;;; Data Forms
 ;;; ------------------------------------------------------------
 
-(defclass crud-form (widget)
-  ((op         :accessor op         :initarg :op)
-   (key        :accessor key        :initarg :key)
-   (filter     :accessor filter     :initarg :filter)
-   (cancel-url :accessor cancel-url :initarg :cancel-url)
-   (record     :accessor record     :initarg :record))
+(defclass crud-form (widget record-mixin)
+  ((op           :accessor op           :initarg :op)
+   (key          :accessor key          :initarg :key)
+   (filter       :accessor filter       :initarg :filter)
+   (cancel-url   :accessor cancel-url   :initarg :cancel-url)
+   (record       :accessor record       :initarg :record)
+   (record-class :reader   record-class))
   (:default-initargs :key nil))
-
-(defclass crud-form/plist (crud-form record/plist-mixin)
-  ())
-
-(defclass crud-form/obj (crud-form record/obj-mixin)
-  ())
 
 (defmethod initialize-instance :after ((form crud-form) &key)
   (when (and (eql (op form) :create)
@@ -221,7 +223,7 @@
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (member (op form) '(:create :update))
-    (setf (record form) (merge-record-payload (record form) payload))))
+    (setf (record form) (merge-record-payload form (record form) payload))))
 
 (defmethod actions ((form crud-form) &key)
   (declare (ignore form))

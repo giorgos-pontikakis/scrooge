@@ -119,7 +119,7 @@
 ;;; TX form
 ;;; ----------------------------------------------------------------------
 
-(defclass tx-form (crud-form/plist)
+(defclass tx-form (crud-form)
   ())
 
 (defmethod get-record ((form tx-form))
