@@ -354,7 +354,7 @@
              :plists))))
 
 (defmethod extra-info ((table company-table))
-  (when (rows table)
+  (when (records table)
     (with-html
       (:div :class "window-footer"
         (:h4 "Σύνολο: " (str (fmt-amount (reduce #'+

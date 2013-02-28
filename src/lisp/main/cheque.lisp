@@ -328,12 +328,12 @@
      (until  date   chk-date))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'cheque-table :op :catalogue
-                                                    :role role
-                                                    :filter filter))))
-      (if (single-item-list-p rows)
+           (records (records (make-instance 'cheque-table :op :catalogue
+                                                          :role role
+                                                          :filter filter))))
+      (if (single-item-list-p records)
           (see-other (apply #'cheque role
-                            :cheque-id (key (first rows))
+                            :cheque-id (get-key (first records))
                             filter))
           (see-other (apply #'cheque role filter))))))
 
@@ -363,7 +363,7 @@
                                         :start-index (val start))))
       ;; if cheque-id exists and is not found among records, ignore search term
       (when (and (val cheque-id)
-                 (not (find (val cheque-id) (rows cheque-table) :key #'key)))
+                 (not (find (val cheque-id) (records cheque-table) :key #'get-key)))
         (let ((dao (get-dao 'cheque (val cheque-id))))
           (see-other (cheque (if (customer-p dao) "customer" "supplier")
                              :cheque-id (val cheque-id)

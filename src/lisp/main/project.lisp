@@ -385,11 +385,11 @@
      (cstate string  chk-project-state-id))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'project-table :op :catalogue
-                                                     :filter filter))))
-      (if (single-item-list-p rows)
+           (records (records (make-instance 'project-table :op :catalogue
+                                                           :filter filter))))
+      (if (single-item-list-p records)
           (see-other (apply #'project/details
-                            :project-id (key (first rows))
+                            :project-id (get-key (first search))
                             filter))
           (see-other (apply #'project filter))))))
 
@@ -413,7 +413,7 @@
                                          :start-index (val start))))
       ;; if project-id exists and is not found among records, ignore search term
       (when (and (val project-id)
-                 (not (find (val project-id) (rows project-table) :key #'key)))
+                 (not (find (val project-id) (records project-table) :key #'get-key)))
         (see-other (project :project-id (val project-id)
                             :cstate (state-id (get-dao 'project (val project-id))))))
       (with-document ()

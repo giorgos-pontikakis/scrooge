@@ -338,13 +338,13 @@
      (until  string))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'invoice-tx-table :op :catalogue
-                                                        :role role
-                                                        :kind kind
-                                                        :filter filter))))
-      (if (single-item-list-p rows)
+           (records (records (make-instance 'invoice-tx-table :op :catalogue
+                                                              :role role
+                                                              :kind kind
+                                                              :filter filter))))
+      (if (single-item-list-p records)
           (see-other (apply #'invoice/details role kind
-                            :tx-id (key (first rows))
+                            :tx-id (get-key (first records))
                             filter))
           (see-other (apply #'invoice role kind filter))))))
 
@@ -380,7 +380,7 @@
                                                               :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
       (when (and (val tx-id)
-                 (not (find (val tx-id) (rows invoice-tx-table) :key #'key)))
+                 (not (find (val tx-id) (records invoice-tx-table) :key #'get-key)))
         (let ((tx (query (:select '* :from 'tx :where (:= 'tx.id tx-id)) :plist)))
           (see-other (invoice (tx-role tx) (invoice-kind tx)
                               :tx-id (val tx-id)))))

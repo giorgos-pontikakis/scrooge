@@ -251,12 +251,12 @@
      (until date))
   (with-db ()
     (let* ((filter (params->filter))
-           (rows (rows (make-instance 'libtx-table :op :catalogue
+           (records (records (make-instance 'libtx-table :op :catalogue
                                                    :role role
                                                    :filter filter))))
-      (if (single-item-list-p rows)
+      (if (single-item-list-p records)
           (see-other (apply #'libtx/details role
-                            :tx-id (key (first rows))
+                            :tx-id (get-key (first records))
                             filter))
           (see-other (apply #'libtx role filter))))))
 
@@ -283,7 +283,7 @@
                                        :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
       (when (and (val tx-id)
-                 (not (find (val tx-id) (rows libtx-table) :key #'key)))
+                 (not (find (val tx-id) (records libtx-table) :key #'get-key)))
         (let ((tx (get-dao 'tx (val tx-id))))
           (see-other (libtx (cond ((eql (debit-account-id tx) (account-id 'libtx-account))
                                    "customer")
