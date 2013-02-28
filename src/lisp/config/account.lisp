@@ -218,7 +218,7 @@
 (defmethod get-record ((form account-form))
   (if (key form)
       (get-dao 'account (key form))
-      (make-instance 'account)))
+      (make-record (record-class form))))
 
 
 

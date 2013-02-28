@@ -265,7 +265,7 @@
                         :on (:= 'company.expenses-account-id 'expenses-account.id)
                         :where (:= 'company.id company-id))
                :plist)
-        nil)))
+        (make-record (record-class form)))))
 
 (defmethod actions ((form company-form) &key filter)
   (let* ((company-id (key form))

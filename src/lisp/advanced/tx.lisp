@@ -141,7 +141,7 @@
             :on (:= 'non-chq-credit-account.id 'credit-account-id)
             :where (:= 'tx.id tx-id))
            :plist)
-    nil))
+    (make-record (record-class form))))
 
 
 

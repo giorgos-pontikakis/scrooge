@@ -246,7 +246,7 @@
                 :on (:= 'project.company-id 'company.id)
                 :where (:= 'project.id project-id))
                :plist))
-      nil))
+      (make-record (record-class form))))
 
 (defmethod actions ((form project-form) &key filter)
   (let* ((project-id (key form))
