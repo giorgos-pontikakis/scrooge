@@ -119,7 +119,7 @@
 
 ;;; table
 
-(defclass project-stran-table (scrooge-crud-table/plist)
+(defclass project-stran-table (scrooge-crud-table)
   ((header-labels  :initform '("" "<br />Περιγραφή"
                                "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
                                " Πρότυπη<br />Συναλλαγή"))

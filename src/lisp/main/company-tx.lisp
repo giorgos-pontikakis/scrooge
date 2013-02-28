@@ -133,7 +133,7 @@
 
 ;;; rows
 
-(defclass company-tx-row (scrooge-row/plist)
+(defclass company-tx-row (scrooge-row)
   ())
 
 (defmethod selector ((row company-tx-row) selected-p)

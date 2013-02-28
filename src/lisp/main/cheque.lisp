@@ -195,7 +195,7 @@
 
 ;;; table
 
-(defclass cheque-table (scrooge-crud-table/plist)
+(defclass cheque-table (scrooge-crud-table)
   ((role :accessor role :initarg :role)
    (paginator :accessor paginator :initarg :paginator)
    (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"

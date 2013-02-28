@@ -267,7 +267,7 @@
 
 ;;; table
 
-(defclass project-table (scrooge-crud-table/plist)
+(defclass project-table (scrooge-crud-table)
   ((header-labels :accessor header-labels                                                                                :initarg :header-labels)
    (paginator     :initform (make-instance 'project-paginator
                                            :id "project-paginator"

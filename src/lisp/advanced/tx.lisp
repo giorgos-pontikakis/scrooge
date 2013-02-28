@@ -151,7 +151,7 @@
 
 ;;; table
 
-(defclass tx-table (scrooge-crud-table/plist)
+(defclass tx-table (scrooge-crud-table)
   ((header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
                               "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
    (paginator :initform (make-instance 'tx-paginator

@@ -155,7 +155,3 @@ id, i.e. all records of the subtree with root specified by the given id."
 (defun getfer (indicator &optional default)
   #'(lambda (place)
       (getf place indicator default)))
-
-(defun key-getter (collection)
-  #'(lambda (rec)
-      (get-key collection rec)))

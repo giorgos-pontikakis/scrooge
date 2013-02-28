@@ -27,7 +27,7 @@
 
 ;;; table
 
-(defclass bill-table (ranked-table-mixin scrooge-crud-table/plist)
+(defclass bill-table (ranked-table-mixin scrooge-crud-table)
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (project-id     :accessor project-id :initarg :project-id))

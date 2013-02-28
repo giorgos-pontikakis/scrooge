@@ -124,7 +124,7 @@
 
 ;;; tree
 
-(defclass account-tree (scrooge-crud-tree/plist)
+(defclass account-tree (scrooge-crud-tree)
   ((record-class :allocation :class :initform 'account)
    (debit-p :accessor debit-p
             :initarg :debit-p
@@ -191,7 +191,7 @@
 ;;; Account form
 ;;; ------------------------------------------------------------
 
-(defclass account-form (crud-form/obj)
+(defclass account-form (crud-form)
   ((record-class :allocation :class :initform 'account)))
 
 (defmethod display ((form account-form) &key styles)
@@ -218,7 +218,7 @@
 (defmethod get-record ((form account-form))
   (if (key form)
       (get-dao 'account (key form))
-      nil))
+      (make-instance 'account)))
 
 
 

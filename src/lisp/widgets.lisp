@@ -23,45 +23,49 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; Tables
+;;; Records
 ;;; ----------------------------------------------------------------------
 
-(defclass scrooge-table (crud-table)
-  ()
-  (:default-initargs :css-class "crud-table crud-table-full"))
+(defmethod get-key ((record standard-object))
+  (if (slot-exists-p record 'id)
+      (if (slot-boundp record 'id)
+          (slot-value record 'id)
+          nil)
+      (error "Slot ID does not exist for record ~A" record)))
 
-(defmethod disabled-actions ((tbl scrooge-table) &key)
-  (ecase (op tbl)
-    (:catalogue '())
-    ((:create :update :delete) '(:details :create :update :delete :journal))))
+(defmethod get-key ((record list))
+  (getf record :id))
 
-
-;;; CRUD table with records being daos
-
-(defclass scrooge-crud-table/obj (scrooge-table)
-  ())
-
-;;; get-key should be just like merge-record-payload. I should not
-;;; have any dependencies on /obj or /plist class mixins in scrooge
-
-(defmethod get-key ((table scrooge-crud-table/obj) record)
-  (declare (ignore table))
-  (handler-case (slot-value record 'id)
-    (unbound-slot () nil)))
-
-(defmethod get-key ((table scrooge-crud-table/obj) (record null))
-  (declare (ignore table))
+(defmethod get-key ((record null))
   nil)
 
 
-;;; CRUD table with records being plists
+(defmethod get-parent-key ((record standard-object))
+  (if (slot-exists-p record 'parent-id)
+      (if (slot-boundp record 'parent-id)
+          (slot-value record 'parent-id)
+          nil)
+      (error "Slot ID does not exist for record ~A" record)))
 
-(defclass scrooge-crud-table/plist (scrooge-table)
-  ())
+(defmethod get-parent-key ((record list))
+  (getf record :parent-id))
 
-(defmethod get-key ((table scrooge-crud-table/plist) record)
-  (declare (ignore table))
-  (getf record :id))
+(defmethod get-parent-key ((record null))
+  nil)
+
+
+;;; ----------------------------------------------------------------------
+;;; Tables
+;;; ----------------------------------------------------------------------
+
+(defclass scrooge-crud-table (crud-table)
+  ()
+  (:default-initargs :css-class "crud-table crud-table-full"))
+
+(defmethod disabled-actions ((tbl scrooge-crud-table) &key)
+  (ecase (op tbl)
+    (:catalogue '())
+    ((:create :update :delete) '(:details :create :update :delete :journal))))
 
 
 ;;; Ranked table mixin
@@ -85,7 +89,6 @@
                      :css-selector "selector"
                      :css-payload "payload"
                      :css-controls "controls"))
-
 
 
 ;;; paginator
@@ -122,42 +125,10 @@
 ;;; Trees
 ;;; ----------------------------------------------------------------------
 
-(defclass scrooge-tree (crud-tree)
+(defclass scrooge-crud-tree (crud-tree)
   ((root-parent-key :allocation :class :initform :null))
   (:default-initargs :css-class "crud-tree"
                      :root-key nil))
-
-;;; CRUD tree with records being daos
-
-(defclass scrooge-crud-tree/obj (scrooge-tree record/obj-mixin)
-  ())
-
-(defmethod get-key ((tree scrooge-crud-tree/obj) record)
-  (declare (ignore tree))
-  (handler-case (slot-value record 'id)
-    (unbound-slot () nil)))
-
-(defmethod get-parent-key ((tree scrooge-crud-tree/obj) record)
-  (declare (ignore tree))
-  (handler-case (slot-value record 'parent-id)
-    (unbound-slot () nil)))
-
-
-;;; crud tree with records being plists
-
-(defclass scrooge-crud-tree/plist (scrooge-tree record/plist-mixin)
-  ())
-
-(defmethod get-key ((tree scrooge-crud-tree/plist) record)
-  (declare (ignore tree))
-  (getf record :id))
-
-(defmethod get-parent-key ((tree scrooge-crud-tree/plist) record)
-  (declare (ignore tree))
-  (getf record :parent-id))
-
-
-;;; Nodes
 
 (defclass scrooge-node (crud-node)
   ()
@@ -205,7 +176,7 @@
 ;;; Data Forms
 ;;; ------------------------------------------------------------
 
-(defclass crud-form (widget record-mixin)
+(defclass crud-form (widget)
   ((op           :accessor op           :initarg :op)
    (key          :accessor key          :initarg :key)
    (filter       :accessor filter       :initarg :filter)
@@ -223,7 +194,7 @@
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (member (op form) '(:create :update))
-    (setf (record form) (merge-record-payload form (record form) payload))))
+    (setf (record form) (merge-record-payload (record form) payload))))
 
 (defmethod actions ((form crud-form) &key)
   (declare (ignore form))

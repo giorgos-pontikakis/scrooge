@@ -117,7 +117,7 @@
 
 ;;; table
 
-(defclass cheque-stran-table (scrooge-crud-table/plist)
+(defclass cheque-stran-table (scrooge-crud-table)
   ((role :accessor role :initarg :role)
    (header-labels :initform '("" "<br />Περιγραφή"
                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"

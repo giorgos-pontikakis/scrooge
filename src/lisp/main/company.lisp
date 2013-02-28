@@ -295,7 +295,7 @@
 
 ;;; table
 
-(defclass company-table (scrooge-crud-table/plist)
+(defclass company-table (scrooge-crud-table)
   ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Ισοζύγιο" "" ""))
    (paginator      :initarg :paginator))
   (:default-initargs :item-class 'company-row
@@ -439,7 +439,7 @@
            (records (records company-table)))
       (if (single-item-list-p records)
           (see-other (apply #'company/details
-                            :company-id (get-key company-table (first records))
+                            :company-id (get-key (first records))
                             filter))
           (see-other (apply #'company filter))))))
 
@@ -477,7 +477,7 @@
       ;; if company-id exists and is not found among records, ignore search term
       (when (and (val company-id)
                  (not (find (val company-id) (records company-table)
-                            :key (key-getter company-table))))
+                            :key #'get-key)))
         (see-other (company :company-id (val company-id))))
       (with-document ()
         (:head

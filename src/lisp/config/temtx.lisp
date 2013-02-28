@@ -181,7 +181,7 @@
 
 ;;; table
 
-(defclass temtx-table (scrooge-crud-table/plist)
+(defclass temtx-table (scrooge-crud-table)
   ((header-labels :initform '("" "<br />Περιγραφή"
                               "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
                               "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση" "Βιβλιοθήκη" "" ""))

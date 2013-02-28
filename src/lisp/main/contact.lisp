@@ -24,7 +24,7 @@
 
 ;;; table
 
-(defclass contact-table (ranked-table-mixin scrooge-crud-table/plist)
+(defclass contact-table (ranked-table-mixin scrooge-crud-table)
   ((header-labels  :initform nil)
    (paginator      :initform nil)
    (company-id     :accessor company-id :initarg :company-id))

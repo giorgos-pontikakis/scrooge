@@ -40,7 +40,7 @@
 
 ;;; table
 
-(defclass account-role-table (scrooge-crud-table/plist)
+(defclass account-role-table (scrooge-crud-table)
   ((header-labels :initform '("" "Ρόλος" "Λογαριασμός"))
    (paginator     :initform nil))
   (:default-initargs :item-class 'account-role-row :id "account-role-table"))
