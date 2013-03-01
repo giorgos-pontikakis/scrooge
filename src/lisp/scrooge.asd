@@ -1,5 +1,17 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
 
+(defpackage :scrooge-asd
+  (:use :cl :asdf))
+
+(in-package :scrooge-asd)
+
+(defvar *scrooge-version* "0.9.0"
+  "A string denoting the current version of Scrooge.  Used
+for diagnostic output.")
+
+(export '*scrooge-version*)
+
+
 (in-package :cl-user)
 
 (asdf:defsystem :scrooge
