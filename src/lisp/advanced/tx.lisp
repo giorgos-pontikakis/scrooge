@@ -84,18 +84,6 @@
   (cond ((chk-tx-id tx-id))
         ((tx-referenced-p tx-id) :tx-referenced)))
 
-(defun tx-project-constraints-chker (account-id)
-  #'(lambda (project-id)
-      (if (eql account-id (account-id 'project-account))
-          (cond ((not (suppliedp project-id))
-                 :project-id-not-supplied)
-                ((eql (val project-id) :null)
-                 :project-id-null)
-                ((and (val project-id)
-                      (not (project-id-exists-p (val project-id))))
-                 :project-id-unknown))
-          nil)))
-
 
 
 ;;; ----------------------------------------------------------------------

@@ -54,6 +54,7 @@
   nil)
 
 
+
 ;;; ----------------------------------------------------------------------
 ;;; Tables
 ;;; ----------------------------------------------------------------------
@@ -194,7 +195,7 @@
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (member (op form) '(:create :update))
-    (setf (record form) (merge-record-payload (record form) payload))))
+    (setf (record form) (update-record (record form) payload))))
 
 (defmethod actions ((form crud-form) &key)
   (declare (ignore form))

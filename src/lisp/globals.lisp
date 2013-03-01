@@ -69,5 +69,25 @@
       (setf *receivable-accounts* (set-accounts-subtree 'receivable-root-account))
       (setf *payable-accounts* (set-accounts-subtree 'payable-root-account)))))
 
+
 ;;; initialization of account sets
+
 (update-account-globals)
+
+
+;;; accessor functions
+
+(defun revenues/expenses-root (role)
+  (if (customer-p role)
+      (account-id 'revenues-root-account)
+      (account-id 'expenses-root-account)))
+
+(defun receivable/payable-root (role)
+  (if (customer-p role)
+      (account-id 'receivable-root-account)
+      (account-id 'payable-root-account)))
+
+(defun revenues/expenses-set (role)
+  (if (customer-p role)
+      *revenue-accounts*
+      *expense-accounts*))

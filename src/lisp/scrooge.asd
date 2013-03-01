@@ -9,13 +9,14 @@
                (:file "utils")
                (:file "tables")
                (:file "init")
-               (:file "globals")
-               (:file "sql")
-               (:file "family")
-               (:file "widgets")
                (:file "errors")
-               ;; -- Here come the pages! --
+               (:file "globals")
+               (:file "checks")
+               (:file "family")
+               (:file "app")
                (:file "elements")
+               (:file "widgets")
+               ;; -- Here come the pages! --
                (:file "auth")
                ;; section roots
                (:file "config/config")
