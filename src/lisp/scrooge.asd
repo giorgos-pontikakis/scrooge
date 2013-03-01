@@ -13,7 +13,8 @@
                (:file "globals")
                (:file "checks")
                (:file "family")
-               (:file "app")
+               (:file "ranks")
+               (:file "calc")
                (:file "elements")
                (:file "widgets")
                ;; -- Here come the pages! --

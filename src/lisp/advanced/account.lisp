@@ -1,7 +1,6 @@
 (in-package :scrooge)
 
 
-
 ;;; ----------------------------------------------------------------------
 ;;; Page family
 ;;; ----------------------------------------------------------------------
@@ -15,37 +14,6 @@
 
 (defclass account-tx-page (auth-dynamic-page account-tx-family)
   ())
-
-
-
-;;; ------------------------------------------------------------
-;;; Account sums
-;;; ------------------------------------------------------------
-
-(defun account-sums-sql (account-id direction since until)
-  (with-db ()
-    (let* ((column (ecase direction
-                     (debit 'debit-account-id)
-                     (credit 'credit-account-id)))
-           (sql `(:select (coalesce (sum tx.amount) 0)
-                  :from tx
-                  :where (:and (:= ,column ,account-id)
-                               ,(if (and since (not (eql since :null)))
-                                    `(:<= ,since tx-date)
-                                    t)
-                               ,(if (and until (not (eql until :null)))
-                                    `(:<= tx-date ,until)
-                                    t)))))
-      (query (sql-compile sql)
-             :single))))
-
-(defun account-sums (account-node since until)
-  (let ((debits (account-sums-sql (key account-node) 'debit since  until))
-        (credits (account-sums-sql (key account-node) 'credit since until))
-        (sign (if (debit-p (collection account-node)) 1 -1)))
-    (values (* sign (- debits credits))
-            (float debits)
-            (float credits))))
 
 
 
