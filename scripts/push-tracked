@@ -56,7 +56,7 @@ case $# in
                 get_branch $i
                 if [[ $branch == 'master' || $branch == "${project_branch}" ]]
                 then
-                    echo Repository at $HOME/$i at correct branch
+                    echo Repository at $HOME/$i at correct branch \($branch\)
                 else
                     echo ABORT: Repository at $HOME/$i at incorrect branch
                     exit 100
