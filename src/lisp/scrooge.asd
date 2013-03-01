@@ -1,9 +1,11 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
 
-(defpackage :scrooge-asd
+(in-package :cl-user)
+
+(defpackage :scrooge-asdf
   (:use :cl :asdf))
 
-(in-package :scrooge-asd)
+(in-package :scrooge-asdf)
 
 (defvar *scrooge-version* "0.9.0"
   "A string denoting the current version of Scrooge.  Used
@@ -11,12 +13,10 @@ for diagnostic output.")
 
 (export '*scrooge-version*)
 
-
-(in-package :cl-user)
-
-(asdf:defsystem :scrooge
-  :depends-on ("ironclad" "lisputils" "veil" "bricks" "mortar" "json")
+(defsystem :scrooge
+  :version #.*scrooge-version*
   :serial t
+  :depends-on ("ironclad" "lisputils" "veil" "bricks" "mortar" "json")
   :components ((:file "package")
                (:file "utils")
                (:file "tables")
@@ -61,3 +61,10 @@ for diagnostic output.")
                (:file "main/company-cheque")
                ;; root
                (:file "root")))
+
+(defsystem :scrooge-test
+  :depends-on (:scrooge :hu.dwim.stefil :drakma)
+  :components ((:module "test"
+                :serial t
+                :components ((:file "tests")
+                             (:file "test-utils")))))
