@@ -125,11 +125,11 @@
 ;;; tree
 
 (defclass account-tree (scrooge-crud-tree)
-  ((record-class :allocation :class :initform 'account)
-   (debit-p :accessor debit-p
+  ((debit-p :accessor debit-p
             :initarg :debit-p
             :initform (error "While making an account-tree instance, debit-p slot is unbound")))
-  (:default-initargs :item-class 'account-node))
+  (:default-initargs :record-class 'cons
+                     :item-class 'account-node))
 
 (defmethod get-records ((tree account-tree))
   (query (:select 'id 'title 'parent-id 'chequing-p 'debit-p
@@ -192,7 +192,8 @@
 ;;; ------------------------------------------------------------
 
 (defclass account-form (crud-form)
-  ((record-class :allocation :class :initform 'account)))
+  ()
+  (:default-initargs :record-class 'account))
 
 (defmethod display ((form account-form) &key styles)
   (let* ((record (record form))
@@ -216,9 +217,7 @@
         (cancel-button (cancel-url form) :body "Άκυρο")))))
 
 (defmethod get-record ((form account-form))
-  (if (key form)
-      (get-dao 'account (key form))
-      (make-record (record-class form))))
+  (get-dao 'account (key form)))
 
 
 

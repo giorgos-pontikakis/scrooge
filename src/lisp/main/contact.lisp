@@ -25,13 +25,13 @@
 ;;; table
 
 (defclass contact-table (ranked-table-mixin scrooge-crud-table)
-  ((header-labels  :initform nil)
-   (paginator      :initform nil)
-   (company-id     :accessor company-id :initarg :company-id))
-  (:default-initargs :item-class 'contact-row
+  ((company-id :accessor company-id :initarg :company-id))
+  (:default-initargs :record-class 'cons
+                     :item-class 'contact-row
+                     :create-pos :last
                      :id "contact-table"
                      :css-class "crud-table crud-table-half"
-                     :create-pos :last))
+                     :header-labels nil))
 
 (defmethod get-records ((table contact-table))
   (query (:order-by (:select 'id 'tag 'phone 'rank

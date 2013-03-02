@@ -120,11 +120,12 @@
 ;;; table
 
 (defclass project-stran-table (scrooge-crud-table)
-  ((header-labels  :initform '("" "<br />Περιγραφή"
-                               "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
-                               " Πρότυπη<br />Συναλλαγή"))
-   (paginator      :initform nil))
-  (:default-initargs :item-class 'project-stran-row))
+  ()
+  (:default-initargs :record-class 'cons
+                     :item-class 'project-stran-row
+                     :header-labels '("" "<br />Περιγραφή"
+                                      "Αρχική<br />Κατάσταση" "Τελική<br />Κατάσταση"
+                                      " Πρότυπη<br />Συναλλαγή")))
 
 (defmethod get-records ((table project-stran-table))
   (query (:order-by (:select 'project-stran.project-stran-id 'project-stran.title

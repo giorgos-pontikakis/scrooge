@@ -82,12 +82,12 @@
 ;;; table
 
 (defclass cash-tx-table (tx-table)
-  ((role :accessor role
-         :initarg :role)
-   (paginator     :initform (make-instance 'cash-paginator
-                                           :css-class "paginator"))
-   (header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" "")))
-  (:default-initargs :item-class 'cash-tx-row :id "cash-tx-table"))
+  ((role :accessor role :initarg :role))
+  (:default-initargs :item-class 'cash-tx-row
+                     :id "cash-tx-table"
+                     :paginator (make-instance 'cash-paginator)
+                     :header-labels '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
+                                      "Λογαριασμός" "Ποσό" "" "")))
 
 (defmethod get-records ((table cash-tx-table))
   (flet ((account-filter (role)

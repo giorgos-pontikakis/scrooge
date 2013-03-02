@@ -34,15 +34,12 @@
 ;;; table
 
 (defclass company-cheque-table (cheque-table)
-  ((header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
-                              "Ημερομηνία<br />λήξης" "<br />Ποσό"))
-   (company-id    :accessor company-id
-                  :initarg :company-id))
+  ((company-id :accessor company-id :initarg :company-id))
   (:default-initargs :item-class 'company-cheque-row
                      :id "company-cheque-table"
-                     :paginator (make-instance 'company-cheque-paginator
-                                               :id "cheque-paginator"
-                                               :css-class "paginator")))
+                     :paginator (make-instance 'company-cheque-paginator)
+                     :header-labels '("" "Σειριακός<br />Αριθμός" "<br />Τράπεζα"
+                                      "Ημερομηνία<br />λήξης" "<br />Ποσό")))
 
 (defmethod get-records ((table company-cheque-table))
   (get-cheque-records table (company-id table)))
@@ -130,8 +127,8 @@
   (mapcar (textbox-maker (record row) enabled-p)
           `(serial
             (bank :css-class "ac-bank")
-            (datepicker :css-class ,(if enabled-p "datepicker" nil))
-            (amount :format-fn #'fmt-amount))))
+            (due-date :css-class ,(if enabled-p "datepicker" nil))
+            (amount :format-fn ,#'fmt-amount))))
 
 (defmethod controls ((row company-cheque-row) controls-p)
   (let* ((cheque-id (key row))

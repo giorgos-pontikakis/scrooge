@@ -74,13 +74,12 @@
 ;;; table
 
 (defclass city-table (config-table city-family)
-  ((record-class  :allocation :class :initform 'city)
-   (header-labels :initform   '("" "Ονομασία πόλης" "" ""))
-   (paginator     :initform   (make-instance 'city-paginator
-                                           :id "city-paginator"
-                                           :css-class "paginator")))
-  (:default-initargs :id "config-table"
-                     :item-class 'city-row))
+  ()
+  (:default-initargs :record-class 'city
+                     :item-class 'city-row
+                     :paginator (make-instance 'city-paginator)
+                     :id "config-table"
+                     :header-labels '("" "Ονομασία πόλης" "" "")))
 
 (defmethod get-records ((table city-table))
   (config-data 'city (getf (filter table) :search)))

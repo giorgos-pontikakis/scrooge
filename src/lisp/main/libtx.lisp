@@ -50,12 +50,11 @@
 ;;; table
 
 (defclass libtx-table (tx-table)
-  ((role :accessor role
-         :initarg :role)
-   (paginator     :initform (make-instance 'libtx-paginator
-                                           :css-class "paginator"))
-   (header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Πρότυπο" "Ποσό" "" "")))
-  (:default-initargs :item-class 'libtx-row :id "libtx-table"))
+  ((role :accessor role :initarg :role))
+  (:default-initargs :item-class 'libtx-row
+                     :id "libtx-table"
+                     :paginator (make-instance 'libtx-paginator)
+                     :header-labels '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Πρότυπο" "Ποσό" "" "")))
 
 (defmethod get-records ((table libtx-table))
   (let* ((search (getf (filter table) :search))

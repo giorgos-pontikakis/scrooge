@@ -74,13 +74,12 @@
 ;;; table
 
 (defclass bank-table (config-table bank-family)
-  ((record-class  :allocation :class :initform 'bank)
-   (header-labels :initform '("" "Ονομασία τράπεζας" "" ""))
-   (paginator     :initform (make-instance 'bank-paginator
-                                           :id "bank-paginator"
-                                           :css-class "paginator")))
-  (:default-initargs :id "config-table"
-                     :item-class 'bank-row))
+  ()
+  (:default-initargs :record-class 'bank
+                     :item-class 'bank-row
+                     :id "config-table"
+                     :paginator (make-instance 'bank-paginator)
+                     :header-labels '("" "Ονομασία τράπεζας" "" "")))
 
 (defmethod get-records ((table bank-table))
   (config-data 'bank (getf (filter table) :search)))

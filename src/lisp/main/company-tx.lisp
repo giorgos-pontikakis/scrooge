@@ -80,18 +80,14 @@
 ;;; table
 
 (defclass company-tx-table (tx-table)
-  ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" ""))
-   (paginator     :initarg :paginator)
-   (company-id    :accessor company-id
-                  :initarg :company-id)
-   (debit-sum     :initarg :debit-sum  :reader debit-sum)
-   (credit-sum    :initarg :credit-sum :reader credit-sum)
-   (total         :initarg :total      :reader total))
+  ((company-id    :accessor company-id :initarg :company-id)
+   (debit-sum     :reader   debit-sum  :initarg :debit-sum)
+   (credit-sum    :reader   credit-sum :initarg :credit-sum)
+   (total         :reader   total      :initarg :total))
   (:default-initargs :item-class 'company-tx-row
                      :id "company-tx-table"
-                     :paginator (make-instance 'company-tx-paginator
-                                               :id "company-tx-paginator"
-                                               :css-class "paginator")))
+                     :paginator (make-instance 'company-tx-paginator)
+                     :header-labels '("" "Ημερομηνία" "Περιγραφή" "Χρέωση" "Πίστωση" "Υπόλοιπο" "")))
 
 (defmethod actions ((tbl company-tx-table) &key)
   (let* ((company-id (company-id tbl))

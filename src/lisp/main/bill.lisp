@@ -28,13 +28,13 @@
 ;;; table
 
 (defclass bill-table (ranked-table-mixin scrooge-crud-table)
-  ((header-labels  :initform nil)
-   (paginator      :initform nil)
-   (project-id     :accessor project-id :initarg :project-id))
-  (:default-initargs :item-class 'bill-row
+  ((project-id :reader project-id :initarg :project-id))
+  (:default-initargs :record-class 'cons
+                     :item-class 'bill-row
+                     :create-pos :last
                      :id "bill-table"
                      :css-class "crud-table crud-table-half"
-                     :create-pos :last))
+                     :header-labels nil))
 
 (defmethod get-records ((table bill-table))
   (query (:order-by (:select 'id 'tag 'amount 'rank

@@ -74,13 +74,12 @@
 ;;; table
 
 (defclass tof-table (config-table tof-family)
-  ((record-class  :allocation :class :initform 'tof)
-   (header-labels :initform '("" "Ονομασία Δ.Ο.Υ." "" ""))
-   (paginator     :initform (make-instance 'tof-paginator
-                                           :id "tof-paginator"
-                                           :css-class "paginator")))
-  (:default-initargs :id "config-table"
-                     :item-class 'tof-row))
+  ()
+  (:default-initargs :record-class 'tof
+                     :item-class 'tof-row
+                     :paginator (make-instance 'tof-paginator)
+                     :id "config-table"
+                     :header-labels '("" "Ονομασία Δ.Ο.Υ." "" "")))
 
 (defmethod get-records ((table tof-table))
   (config-data 'tof (getf (filter table) :search)))

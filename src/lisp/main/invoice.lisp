@@ -81,12 +81,13 @@
 ;;; table
 
 (defclass invoice-tx-table (tx-table)
-  ((header-labels  :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή" "Λογαριασμός" "Ποσό" "" ""))
-   (kind :accessor kind :initarg :kind)
-   (role :accessor role :initarg :role)
-   (paginator :initform (make-instance 'invoice-paginator
-                                       :css-class "paginator")))
-  (:default-initargs :item-class 'invoice-tx-row :id "invoice-tx-table"))
+  ((kind :accessor kind :initarg :kind)
+   (role :accessor role :initarg :role))
+  (:default-initargs :item-class 'invoice-tx-row
+                     :id "invoice-tx-table"
+                     :paginator (make-instance 'invoice-paginator)
+                     :header-labels '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
+                                      "Λογαριασμός" "Ποσό" "" "")))
 
 (defmethod get-records ((table invoice-tx-table))
   (labels ((invoice-receivable/payable-account (kind)

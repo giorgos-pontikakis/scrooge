@@ -33,9 +33,10 @@
 ;;; radio-account-tree
 
 (defclass radio-account-tree (account-tree)
-  ((op       :accessor op       :initform :catalogue)
-   (disabled :accessor disabled :initarg :disabled))
-  (:default-initargs :item-class 'radio-account-node :disabled nil))
+  ((disabled :accessor disabled :initarg :disabled))
+  (:default-initargs :item-class 'radio-account-node
+                     :op :catalogue
+                     :disabled nil))
 
 (defclass radio-account-node (account-node)
   ())

@@ -27,15 +27,11 @@
   ()
   (:default-initargs :item-class 'balance-account-node))
 
-(defclass balance-account-node (account-node) (
-   (cumul-balance :accessor cumul-balance
-                  :initform nil)
-   (balance :accessor balance
-            :initform nil)
-   (debits :accessor debits
-           :initform nil)
-   (credits :accessor credits
-            :initform nil)))
+(defclass balance-account-node (account-node)
+  ((cumul-balance :accessor cumul-balance :initform nil)
+   (balance       :accessor balance       :initform nil)
+   (debits        :accessor debits        :initform nil)
+   (credits       :accessor credits       :initform nil)))
 
 (defmethod display ((tree balance-account-tree) &key payload hide-root-p)
   (set-balance tree)
@@ -151,14 +147,11 @@
 ;;; table
 
 (defclass account-tx-table (tx-table)
-  ((header-labels :initform '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση"))
-   (paginator :initform (make-instance 'account-tx-paginator
-                                       :id "tx-paginator"
-                                       :css-class "paginator"))
-   (account-id :accessor account-id
-               :initarg :account-id))
+  ((account-id :accessor account-id :initarg :account-id))
   (:default-initargs :item-class 'account-tx-row
-                     :id "account-tx-table"))
+                     :id "account-tx-table"
+                     :paginator (make-instance 'account-tx-paginator)
+                     :header-labels '("" "Ημερομηνία" "Περιγραφή" "Εταιρία" "Χρέωση" "Πίστωση")))
 
 (defmethod get-records ((table account-tx-table))
   (let* ((account-id (account-id table))

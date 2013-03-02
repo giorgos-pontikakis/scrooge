@@ -97,7 +97,6 @@
 (defclass scrooge-paginator (paginator)
   ()
   (:default-initargs :delta 15
-                     :id "paginator"
                      :css-class "paginator"))
 
 (defmethod display ((pg paginator) &key (start 0))
@@ -183,7 +182,7 @@
    (filter       :accessor filter       :initarg :filter)
    (cancel-url   :accessor cancel-url   :initarg :cancel-url)
    (record       :accessor record       :initarg :record)
-   (record-class :reader   record-class))
+   (record-class :accessor record-class :initarg :record-class))
   (:default-initargs :key nil))
 
 (defmethod initialize-instance :after ((form crud-form) &key)
@@ -191,7 +190,9 @@
              (key form))
     (error "Contradiction in crud-form initialization. Slot OP is :create and slot KEY is not null"))
   (unless (slot-boundp form 'record)
-    (setf (slot-value form 'record) (get-record form))))
+    (setf (slot-value form 'record) (if (key form)
+                                        (get-record form)
+                                        (make-record (record-class form))))))
 
 (defmethod display :before ((form crud-form) &key payload)
   (when (member (op form) '(:create :update))

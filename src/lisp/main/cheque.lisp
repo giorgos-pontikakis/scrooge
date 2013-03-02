@@ -196,16 +196,14 @@
 ;;; table
 
 (defclass cheque-table (scrooge-crud-table)
-  ((role :accessor role :initarg :role)
-   (paginator :accessor paginator :initarg :paginator)
-   (header-labels :initform '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
-                              "Ημερομηνία<br />λήξης" "<br />Ποσό")))
-  (:default-initargs :item-class 'cheque-row
-                     :id "cheque-table"
+  ((role :accessor role :initarg :role))
+  (:default-initargs :record-class 'cons
+                     :item-class 'cheque-row
                      :role nil
-                     :paginator (make-instance 'cheque-paginator
-                                               :id "cheque-paginator"
-                                               :css-class "paginator")))
+                     :paginator (make-instance 'cheque-paginator)
+                     :id "cheque-table"
+                     :header-labels '("" "Σειριακός<br />Αριθμός" "<br />Εταιρία" "<br />Τράπεζα"
+                                      "Ημερομηνία<br />λήξης" "<br />Ποσό")))
 
 (defmethod get-records ((table cheque-table))
   (get-cheque-records table))

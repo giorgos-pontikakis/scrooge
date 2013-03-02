@@ -181,8 +181,8 @@
                  (navbar
                   `((data ,(family-url 'company/details :system :filter) "Στοιχεία")
                     (tx ,(family-url 'company/tx :system :filter) "Συναλλαγές")
-                    (cheque ,(apply #'company/cheque "customer"
-                                    (family-params 'company/cheque :system :filter))
+                    (cheque ,(apply #'company/cheque "customer" :cstate "pending"
+                                    (family-params 'company/cheque :system))
                             "Επιταγές"))
                   :css-class "hnavbar grid_5 prefix_7"
                   :active active
@@ -199,7 +199,8 @@
 ;;; ------------------------------------------------------------
 
 (defclass company-form (crud-form company-family)
-  ())
+  ()
+  (:default-initargs :record-class 'cons))
 
 (defmethod display ((form company-form) &key styles)
   (let* ((disabled (eql (op form) :details))
@@ -247,25 +248,24 @@
 
 (defmethod get-record ((form company-form))
   (let ((company-id (key form)))
-    (if company-id
-        (query (:select 'company.title 'occupation
-                        'tin (:as 'tof.title 'tof)
-                        'address (:as 'city.title 'city)
-                        'zipcode 'pobox 'notes 'immediate-tx-only-p
-                        (:as 'revenues-account.title 'revenues-account)
-                        (:as 'expenses-account.title 'expenses-account)
-                        :from 'company
-                        :left-join 'city
-                        :on (:= 'company.city-id 'city.id)
-                        :left-join 'tof
-                        :on (:= 'company.tof-id 'tof.id)
-                        :left-join (:as 'account 'revenues-account)
-                        :on (:= 'company.revenues-account-id 'revenues-account.id)
-                        :left-join (:as 'account 'expenses-account)
-                        :on (:= 'company.expenses-account-id 'expenses-account.id)
-                        :where (:= 'company.id company-id))
-               :plist)
-        (make-record (record-class form)))))
+    (query (:select 'company.title 'occupation
+                    'tin (:as 'tof.title 'tof)
+                    'address (:as 'city.title 'city)
+                    'zipcode 'pobox 'notes 'immediate-tx-only-p
+                    (:as 'revenues-account.title 'revenues-account)
+                    (:as 'expenses-account.title 'expenses-account)
+                    :from 'company
+                    :left-join 'city
+                    :on (:= 'company.city-id 'city.id)
+                    :left-join 'tof
+                    :on (:= 'company.tof-id 'tof.id)
+                    :left-join (:as 'account 'revenues-account)
+                    :on (:= 'company.revenues-account-id 'revenues-account.id)
+                    :left-join (:as 'account 'expenses-account)
+                    :on (:= 'company.expenses-account-id 'expenses-account.id)
+                    :where (:= 'company.id company-id))
+           :plist)))
+
 
 (defmethod actions ((form company-form) &key filter)
   (let* ((company-id (key form))
@@ -296,13 +296,12 @@
 ;;; table
 
 (defclass company-table (scrooge-crud-table)
-  ((header-labels  :initform '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Ισοζύγιο" "" ""))
-   (paginator      :initarg :paginator))
-  (:default-initargs :item-class 'company-row
+  ()
+  (:default-initargs :record-class 'cons
+                     :item-class 'company-row
+                     :paginator (make-instance 'company-paginator)
                      :id "company-table"
-                     :paginator (make-instance 'company-paginator
-                                               :id "company-paginator"
-                                               :css-class "paginator")))
+                     :header-labels '("" "Επωνυμία" "Α.Φ.Μ." "Δ.Ο.Υ." "Ισοζύγιο" "" "")))
 
 (defmethod get-records ((table company-table))
   (let* ((search (getf (filter table) :search))

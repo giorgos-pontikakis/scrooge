@@ -108,10 +108,11 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass tx-form (crud-form)
-  ())
+  ()
+  (:default-initargs :record-class 'cons))
 
 (defmethod get-record ((form tx-form))
-  (if-let (tx-id (key form))
+  (let ((tx-id (key form)))
     (query (:select 'tx.id 'tx-date
                     (:as 'company.title 'company)
                     'description
@@ -120,16 +121,15 @@
                     'tx.debit-account-id
                     'tx.credit-account-id
                     'amount 'company-id 'temtx-id
-            :from 'tx
-            :left-join 'company
-            :on (:= 'tx.company-id 'company.id)
-            :left-join (:as 'account 'non-chq-debit-account)
-            :on (:= 'non-chq-debit-account.id 'debit-account-id)
-            :left-join (:as 'account 'non-chq-credit-account)
-            :on (:= 'non-chq-credit-account.id 'credit-account-id)
-            :where (:= 'tx.id tx-id))
-           :plist)
-    (make-record (record-class form))))
+                    :from 'tx
+                    :left-join 'company
+                    :on (:= 'tx.company-id 'company.id)
+                    :left-join (:as 'account 'non-chq-debit-account)
+                    :on (:= 'non-chq-debit-account.id 'debit-account-id)
+                    :left-join (:as 'account 'non-chq-credit-account)
+                    :on (:= 'non-chq-credit-account.id 'credit-account-id)
+                    :where (:= 'tx.id tx-id))
+           :plist)))
 
 
 
@@ -140,12 +140,13 @@
 ;;; table
 
 (defclass tx-table (scrooge-crud-table)
-  ((header-labels :initform '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
-                              "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" ""))
-   (paginator :initform (make-instance 'tx-paginator
-                                       :id "tx-paginator"
-                                       :css-class "paginator")))
-  (:default-initargs :item-class 'tx-row :id "tx-table"))
+  ()
+  (:default-initargs :record-class 'cons
+                     :item-class 'tx-row
+                     :paginator (make-instance 'tx-paginator)
+                     :id "tx-table"
+                     :header-labels '("" "Ημερομηνία" "Εταιρία" "Περιγραφή"
+                                      "Λ. Χρέωσης" "Λ. Πίστωσης" "Ποσό" "" "")))
 
 (defmethod get-records ((table tx-table))
   (let* ((search (getf (filter table) :search))

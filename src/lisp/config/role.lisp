@@ -41,9 +41,11 @@
 ;;; table
 
 (defclass account-role-table (scrooge-crud-table)
-  ((header-labels :initform '("" "Ρόλος" "Λογαριασμός"))
-   (paginator     :initform nil))
-  (:default-initargs :item-class 'account-role-row :id "account-role-table"))
+  ()
+  (:default-initargs :record-class 'cons
+                     :item-class 'account-role-row
+                     :id "account-role-table"
+                     :header-labels '("" "Ρόλος" "Λογαριασμός")))
 
 (defmethod get-records ((table account-role-table))
   (query (:order-by (:select 'account-role.id (:as 'account.title 'account) 'description 'rank

@@ -80,12 +80,12 @@
           (cond ((temtx-conflict-account-ids debit-account-id
                                              credit-account-id
                                              (val propagated-p)
-                                             (val temtx-id))
+                                             temtx-id)
                  :temtx-basic-constraint-violation)
                 ((ref-temtx-changed-accounts-p debit-account-id
                                                credit-account-id
                                                (val propagated-p)
-                                               (val temtx-id))
+                                               temtx-id)
                  :temtx-referenced))))))
 
 (defun temtx-referenced-p (temtx-id)
@@ -131,19 +131,20 @@
 
 (defun temtx-chq-title-chker (customer-p)
   #'(lambda (title)
-      (cond ((temtx-chq-title-exists-p title customer-p)
-             nil)
-            ((eql title :null)
-             :temtx-title-null)
-            (t
-             :temtx-title-unknown))))
+      (when (suppliedp title)
+        (cond ((temtx-chq-title-exists-p (val title) customer-p)
+               nil)
+              ((eql (val title) :null)
+               :temtx-title-null)
+              (t
+               :temtx-title-unknown)))))
 
-(defun temtx-title/create-update-chker (customer-p &optional temtx-id)
+(defun temtx-title-create/update-chker (customer-p &optional temtx-id)
   #'(lambda (title)
       (when (suppliedp title)
         (cond ((eql (val title) :null)
                :temtx-title-null)
-              ((temtx-title-exists-p (val title) customer-p (val temtx-id))
+              ((temtx-title-exists-p (val title) customer-p temtx-id)
                :temtx-title-exists)))))
 
 (defun chk-sign (integer)
@@ -182,16 +183,15 @@
 ;;; table
 
 (defclass temtx-table (scrooge-crud-table)
-  ((header-labels :initform '("" "<br />Περιγραφή"
-                              "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
-                              "Πρόσημο<br />Εταιρικής Συναλλαγής" "Διάδοση" "Βιβλιοθήκη" "" ""))
-   (paginator :accessor paginator :initarg :paginator)
-   (role :accessor role :initarg :role))
-  (:default-initargs :id "temtx-table"
+  ((role :accessor role :initarg :role))
+  (:default-initargs :record-class 'cons
                      :item-class 'temtx-row
-                     :paginator (make-instance 'temtx-paginator
-                                               :id "temtx-paginator"
-                                               :css-class "paginator")))
+                     :paginator (make-instance 'temtx-paginator)
+                     :id "temtx-table"
+                     :header-labels '("" "<br />Περιγραφή"
+                                      "Λογαριασμός<br />Χρέωσης" "Λογαριασμός<br />Πίστωσης"
+                                      "Πρόσημο<br />Εταιρικής Συναλλαγής"
+                                      "Διάδοση" "Βιβλιοθήκη" "" "")))
 
 (defmethod get-records ((table temtx-table))
   (query (:order-by (:select 'temtx.id 'temtx.title 'temtx.customer-p
@@ -347,7 +347,7 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (temtx-title/create-update-chker (customer-p role))
+  (validate-parameters (temtx-title-create/update-chker (customer-p role))
                        title)
   (validate-parameters (temtx-constraints-chker)
                        debit-account credit-account propagated-p)
@@ -382,7 +382,7 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (temtx-title/create-update-chker (customer-p role))
+  (validate-parameters (temtx-title-create/update-chker (customer-p role))
                        title)
   (validate-parameters (temtx-constraints-chker)
                        debit-account credit-account propagated-p)
@@ -414,9 +414,9 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (temtx-title/create-update-chker (customer-p role) temtx-id)
+  (validate-parameters (temtx-title-create/update-chker (customer-p role) (val temtx-id))
                        title)
-  (validate-parameters (temtx-constraints-chker temtx-id)
+  (validate-parameters (temtx-constraints-chker (val temtx-id))
                        debit-account credit-account propagated-p)
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
@@ -452,9 +452,9 @@
      (propagated-p   boolean)
      (lib-p          boolean)
      (title          string))
-  (validate-parameters (temtx-title/create-update-chker (customer-p role) temtx-id)
+  (validate-parameters (temtx-title-create/update-chker (customer-p role) (val temtx-id))
                        title)
-  (validate-parameters (temtx-constraints-chker temtx-id)
+  (validate-parameters (temtx-constraints-chker (val temtx-id))
                        debit-account credit-account propagated-p)
   (with-controller-page (config/temtx/update role)
     (let ((debit-account-id (account-id (val debit-account)))

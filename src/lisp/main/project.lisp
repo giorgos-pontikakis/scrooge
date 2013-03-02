@@ -190,7 +190,8 @@
 ;;; ------------------------------------------------------------
 
 (defclass project-form (crud-form)
-  ())
+  ()
+  (:default-initargs :record-class 'cons))
 
 (defmethod display ((form project-form) &key styles)
   (let* ((disabled (eql (op form) :details))
@@ -236,17 +237,15 @@
           (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
 (defmethod get-record ((form project-form))
-  (if (key form)
-      (let ((project-id (key form)))
-        (query (:select 'project.id (:as 'company.title 'company) 'company-id
-                        'description 'state-id 'quote-date
-                        'start-date 'end-date 'price 'vat 'project.notes
-                :from 'project
-                :left-join 'company
-                :on (:= 'project.company-id 'company.id)
-                :where (:= 'project.id project-id))
-               :plist))
-      (make-record (record-class form))))
+  (let ((project-id (key form)))
+    (query (:select 'project.id (:as 'company.title 'company) 'company-id
+                    'description 'state-id 'quote-date
+                    'start-date 'end-date 'price 'vat 'project.notes
+                    :from 'project
+                    :left-join 'company
+                    :on (:= 'project.company-id 'company.id)
+                    :where (:= 'project.id project-id))
+           :plist)))
 
 (defmethod actions ((form project-form) &key filter)
   (let* ((project-id (key form))
@@ -268,11 +267,11 @@
 ;;; table
 
 (defclass project-table (scrooge-crud-table)
-  ((header-labels :accessor header-labels                                                                                :initarg :header-labels)
-   (paginator     :initform (make-instance 'project-paginator
-                                           :id "project-paginator"
-                                           :css-class "paginator")))
-  (:default-initargs :item-class 'project-row :id "project-table"))
+  ()
+  (:default-initargs :record-class 'cons
+                     :item-class 'project-row
+                     :paginator (make-instance 'project-paginator)
+                     :id "project-table"))
 
 (defmethod initialize-instance :after ((table project-table) &key)
   (if (getf (filter table) :cstate)
