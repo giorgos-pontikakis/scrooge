@@ -67,7 +67,7 @@ case $# in
         push_git_repository () {
 
             get_branch $project_root
-            git push $repository $branch:$branch
+            git push --tags $repository $branch:$branch
 
             for i in $deps
             do
@@ -75,7 +75,7 @@ case $# in
                 get_branch $i
                 echo
                 echo Attempting to push repo at $HOME/$i
-                if $(git push $repository $branch:$branch)
+                if $(git push --tags $repository $branch:$branch)
                 then
                     echo Pushed repository at $HOME/$i to $repository
                 else

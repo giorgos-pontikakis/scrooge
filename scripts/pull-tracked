@@ -75,7 +75,7 @@ case $# in
                 get_branch $i
                 echo
                 echo Attempting to pull repo at $HOME/$i
-                git pull $repository $branch
+                git pull --tags $repository $branch
             done
         }
 
