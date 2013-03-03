@@ -7,16 +7,25 @@
 
 (in-package :scrooge-asdf)
 
+
 (defvar *scrooge-version* "1.0.1"
   "A string denoting the current version of Scrooge.  Used
 for diagnostic output.")
 
 (export '*scrooge-version*)
 
+
 (defsystem :scrooge
   :version #.*scrooge-version*
   :serial t
-  :depends-on ("ironclad" "lisputils" "veil" "bricks" "mortar" "json")
+  ;;
+  :depends-on ("ironclad"
+               (:version "json" "1.0.0")
+               (:version "lisputils" "1.0.0")
+               (:version "veil" "1.0.0")
+               (:version "mortar" "1.0.0")
+               (:version "bricks" "1.0.2"))
+  ;;
   :components ((:file "package")
                (:file "utils")
                (:file "tables")
@@ -61,6 +70,7 @@ for diagnostic output.")
                (:file "main/company-cheque")
                ;; root
                (:file "root")))
+
 
 (defsystem :scrooge-test
   :depends-on (:scrooge :hu.dwim.stefil :drakma)
