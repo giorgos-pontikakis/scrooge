@@ -71,7 +71,6 @@
                ;; root
                (:file "root")))
 
-
 (defsystem :scrooge-test
   :depends-on (:scrooge :hu.dwim.stefil :drakma)
   :components ((:module "test"
@@ -79,9 +78,24 @@
                 :components ((:file "tests")
                              (:file "test-utils")))))
 
-(defun deps ()
+(load-system :trivial-shell)
+
+(use-package :trivial-shell)
+
+(defun dep-versions ()
   (mapcar (lambda (sys)
-            (let ((ver (slot-value (asdf:find-system sys) 'asdf:version)))
+            (let ((ver (component-version (asdf:find-system sys))))
               (format t "~A: ~A~&" sys ver)
               (list :version sys ver)))
           (list "json" "lisputils" "veil" "mortar" "bricks")))
+
+(defun dep-branches ()
+  (mapc (lambda (sys)
+            (let ((path (component-pathname (asdf:find-system sys))))
+              (princ "SYSTEM: ")
+              (princ sys)
+              (terpri)
+              (princ (shell-command (format nil "cd ~A; git status" path)))
+              (terpri)))
+          (list "json" "lisputils" "veil" "mortar" "bricks"))
+  (values))
