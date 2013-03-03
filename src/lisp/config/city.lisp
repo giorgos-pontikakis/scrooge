@@ -7,7 +7,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass city-family (config-family)
-  ((ac-class :accessor ac-class :initform "ac-city"))
+  ()
   (:default-initargs :parameter-groups '(:system (city-id)
                                          :payload (title)
                                          :filter (search))))

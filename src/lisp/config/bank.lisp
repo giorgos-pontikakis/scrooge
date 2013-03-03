@@ -7,7 +7,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass bank-family (config-family)
-  ((ac-class :accessor ac-class :initform "ac-bank"))
+  ()
   (:default-initargs :parameter-groups '(:system (bank-id)
                                          :payload (title)
                                          :filter (search))))

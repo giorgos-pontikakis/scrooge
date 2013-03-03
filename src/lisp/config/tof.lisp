@@ -7,7 +7,7 @@
 ;;; ------------------------------------------------------------
 
 (defclass tof-family (config-family)
-  ((ac-class :accessor ac-class :initform "ac-tof"))
+  ()
   (:default-initargs :parameter-groups '(:system (tof-id)
                                          :payload (title)
                                          :filter (search))))
