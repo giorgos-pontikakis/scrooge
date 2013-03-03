@@ -311,7 +311,9 @@
                                (:as tof.title tof)
                                address occupation
                                (:as city.title city-name)
-                               (:as (:select (company-balance company.id)) balance)  ;; SQL function
+                               ,@(if (string= subset "debit")
+                                    '((:as (:select (company-balance company.id)) balance))
+                                    nil) ;; SQL function
                                :distinct
                        :from company
                        :left-join city
@@ -394,6 +396,7 @@
     (filter-area (filter-navbar filter-spec
                                 :active (getf (filter tbl) :subset)))))
 
+
 ;;; rows
 
 (defclass company-row (scrooge-row)
@@ -412,6 +415,22 @@
             tin
             tof
             (balance :format-fn ,(compose #'fmt-amount #'abs)))))
+
+(defmethod display ((table company-table) &key payload)
+  (unless (member (getf (filter table) :subset) (list "credit" "debit") :test #'string=)
+    (let* ((keys (mapcar #'key (rows table)))
+           (balances (query (:select 'id
+                                     (:as (:select (:company-balance 'id)) 'balance)
+                                     :from 'company
+                                     :where (:in 'id (:set keys)))
+                            :plists)))
+      (mapc (lambda (row)
+              (let ((balance (getf (find (getf (record row) :id) balances :key (getfer :id))
+                                   :balance)))
+                (setf (record row)
+                      (nconc (list :balance balance) (record row)))))
+            (rows table))))
+  (call-next-method table :payload payload))
 
 
 ;;; paginator
