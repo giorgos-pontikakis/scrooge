@@ -9,7 +9,7 @@
 (in-package :scrooge-asdf)
 
 
-(defvar *scrooge-version* "1.0.2"
+(defvar *scrooge-version* "1.0.3"
   "A string denoting the current version of Scrooge.")
 
 (export '*scrooge-version*)
