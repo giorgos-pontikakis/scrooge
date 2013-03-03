@@ -11,4 +11,4 @@
 ;; see asdf system definition in scrooge.asd
 
 (defparameter scrooge::*scrooge-version*
-  #.scrooge-asdf::*scrooge-version*)
+  #.scrooge-asdf:*scrooge-version*)

@@ -3,14 +3,14 @@
 (in-package :cl-user)
 
 (defpackage :scrooge-asdf
-  (:use :cl :asdf))
+  (:use :cl :asdf)
+  (:export :deps :*scrooge-version*))
 
 (in-package :scrooge-asdf)
 
 
-(defvar *scrooge-version* "1.0.1"
-  "A string denoting the current version of Scrooge.  Used
-for diagnostic output.")
+(defvar *scrooge-version* "1.0.2"
+  "A string denoting the current version of Scrooge.")
 
 (export '*scrooge-version*)
 
@@ -23,7 +23,7 @@ for diagnostic output.")
                (:version "json" "1.0.0")
                (:version "lisputils" "1.0.0")
                (:version "veil" "1.0.0")
-               (:version "mortar" "1.0.0")
+               (:version "mortar" "1.0.1")
                (:version "bricks" "1.0.2"))
   ;;
   :components ((:file "package")
@@ -78,3 +78,10 @@ for diagnostic output.")
                 :serial t
                 :components ((:file "tests")
                              (:file "test-utils")))))
+
+(defun deps ()
+  (mapcar (lambda (sys)
+            (let ((ver (slot-value (asdf:find-system sys) 'asdf:version)))
+              (format t "~A: ~A~&" sys ver)
+              (list :version sys ver)))
+          (list "json" "lisputils" "veil" "mortar" "bricks")))
