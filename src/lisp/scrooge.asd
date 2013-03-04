@@ -4,7 +4,10 @@
 
 (defpackage :scrooge-asdf
   (:use :cl :asdf)
-  (:export :deps :*scrooge-version*))
+  (:export
+   :*scrooge-version*
+   :status
+   :versions))
 
 (in-package :scrooge-asdf)
 
@@ -22,9 +25,7 @@
   :depends-on ("ironclad"
                (:version "json" "1.0.0")
                (:version "lisputils" "1.0.0")
-               (:version "veil" "1.0.0")
-               (:version "mortar" "1.0.1")
-               (:version "bricks" "1.0.2"))
+               (:version "mortar" "1.0.2"))
   ;;
   :components ((:file "package")
                (:file "utils")
@@ -82,14 +83,14 @@
 
 (use-package :trivial-shell)
 
-(defun dep-versions ()
+(defun versions ()
   (mapcar (lambda (sys)
             (let ((ver (component-version (asdf:find-system sys))))
               (format t "~A: ~A~&" sys ver)
               (list :version sys ver)))
           (list "json" "lisputils" "veil" "mortar" "bricks")))
 
-(defun dep-branches ()
+(defun status ()
   (mapc (lambda (sys)
             (let ((path (component-pathname (asdf:find-system sys))))
               (princ "SYSTEM: ")
@@ -99,3 +100,22 @@
               (terpri)))
           (list "json" "lisputils" "veil" "mortar" "bricks"))
   (values))
+
+
+(defun versioned-compile-dependencies (system-spec)
+  (let ((op 'compile-op)
+        (system-name (if (and (listp system-spec) (eql (first system-spec) :version))
+                         (progn
+                           (check-dependency-versions system-spec)
+                           (second system-spec))
+                         system-spec)))
+    (rest (assoc op (component-depends-on op (find-system system-name))))))
+
+(defun check-dependency-versions (system-spec)
+  (let* ((dep-name (second system-spec))
+         (actual-version (component-version (find-system dep-name)))
+         (needed-version (third system-spec)))
+    (format t "~&System ~A needs version ~A. " dep-name needed-version)
+    (if (string-equal actual-version needed-version)
+        (format t "OK.")
+        (format t "It is at version ~A." actual-version))))
