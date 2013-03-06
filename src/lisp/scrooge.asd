@@ -3,7 +3,7 @@
 (in-package :cl-user)
 
 (defpackage :scrooge-asdf
-  (:use :cl :asdf)
+  (:use :cl :cl-user :asdf)
   (:export
    :*scrooge-version*
    :status
@@ -16,7 +16,6 @@
   "A string denoting the current version of Scrooge.")
 
 (export '*scrooge-version*)
-
 
 (defsystem :scrooge
   :version #.*scrooge-version*
@@ -79,20 +78,27 @@
                 :components ((:file "tests")
                              (:file "test-utils")))))
 
+
 (load-system :trivial-shell)
-
 (use-package :trivial-shell)
+(use-package :asdf)
 
-(defun versions ()
-  (mapcar (lambda (sys)
-            (let ((ver (component-version (asdf:find-system sys))))
-              (format t "~A: ~A~&" sys ver)
-              (list :version sys ver)))
-          (list "json" "lisputils" "veil" "mortar" "bricks")))
+(defun versions (&optional (system-name "scrooge"))
+  (let* ((systems (mapcar #'second
+                          (remove-if #'atom
+                                     (cdr (assoc 'compile-op
+                                                 (component-depends-on 'compile-op
+                                                                       (find-system system-name)))))))
+         (max-length (reduce #'max (mapcar #'length systems))))
+    (mapcar (lambda (name)
+              (let ((ver (component-version (find-system name))))
+                (format t "~A:~vT~A~&" name (+ max-length 2) ver)
+                (list :version name ver)))
+            systems)))
 
 (defun status ()
   (mapc (lambda (sys)
-            (let ((path (component-pathname (asdf:find-system sys))))
+            (let ((path (component-pathname (find-system sys))))
               (princ "SYSTEM: ")
               (princ sys)
               (terpri)
@@ -100,22 +106,3 @@
               (terpri)))
           (list "json" "lisputils" "veil" "mortar" "bricks"))
   (values))
-
-
-(defun versioned-compile-dependencies (system-spec)
-  (let ((op 'compile-op)
-        (system-name (if (and (listp system-spec) (eql (first system-spec) :version))
-                         (progn
-                           (check-dependency-versions system-spec)
-                           (second system-spec))
-                         system-spec)))
-    (rest (assoc op (component-depends-on op (find-system system-name))))))
-
-(defun check-dependency-versions (system-spec)
-  (let* ((dep-name (second system-spec))
-         (actual-version (component-version (find-system dep-name)))
-         (needed-version (third system-spec)))
-    (format t "~&System ~A needs version ~A. " dep-name needed-version)
-    (if (string-equal actual-version needed-version)
-        (format t "OK.")
-        (format t "It is at version ~A." actual-version))))
