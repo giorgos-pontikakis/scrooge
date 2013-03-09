@@ -198,7 +198,7 @@
 ;;; Company form
 ;;; ------------------------------------------------------------
 
-(defclass company-form (crud-form company-family)
+(defclass company-form (scrooge-crud-form company-family)
   ()
   (:default-initargs :record-class 'cons))
 

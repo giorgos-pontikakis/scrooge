@@ -11,9 +11,6 @@
 (defgeneric disabled-actions (widget &key &allow-other-keys)
   (:documentation "Returns a list of the disabled actions of the widget"))
 
-(defgeneric get-record (widget)
-  (:documentation "Returs a record of the widget"))
-
 (defgeneric filters (collection)
   (:documentation "Returns the filter linke of a collection widget"))
 
@@ -176,33 +173,15 @@
 ;;; Data Forms
 ;;; ------------------------------------------------------------
 
-(defclass crud-form (widget)
-  ((op           :accessor op           :initarg :op)
-   (key          :accessor key          :initarg :key)
-   (filter       :accessor filter       :initarg :filter)
-   (cancel-url   :accessor cancel-url   :initarg :cancel-url)
-   (record       :accessor record       :initarg :record)
-   (record-class :accessor record-class :initarg :record-class))
-  (:default-initargs :key nil))
+(defclass scrooge-crud-form (crud-form)
+  ((filter     :accessor filter     :initarg :filter)
+   (cancel-url :accessor cancel-url :initarg :cancel-url)))
 
-(defmethod initialize-instance :after ((form crud-form) &key)
-  (when (and (eql (op form) :create)
-             (key form))
-    (error "Contradiction in crud-form initialization. Slot OP is :create and slot KEY is not null"))
-  (unless (slot-boundp form 'record)
-    (setf (slot-value form 'record) (if (key form)
-                                        (get-record form)
-                                        (make-record (record-class form))))))
-
-(defmethod display :before ((form crud-form) &key payload)
-  (when (member (op form) '(:create :update))
-    (setf (record form) (update-record (record form) payload))))
-
-(defmethod actions ((form crud-form) &key)
+(defmethod actions ((form scrooge-crud-form) &key)
   (declare (ignore form))
   (actions-menu nil))
 
-(defmethod disabled-actions ((form crud-form) &key)
+(defmethod disabled-actions ((form scrooge-crud-form) &key)
   (ecase (op form)
     (:details '())
     ((:create :update :delete) '(:update :delete :journal))))

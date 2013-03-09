@@ -191,7 +191,7 @@
 ;;; Account form
 ;;; ------------------------------------------------------------
 
-(defclass account-form (crud-form)
+(defclass account-form (scrooge-crud-form)
   ()
   (:default-initargs :record-class 'account))
 

@@ -107,7 +107,7 @@
 ;;; TX form
 ;;; ----------------------------------------------------------------------
 
-(defclass tx-form (crud-form)
+(defclass tx-form (scrooge-crud-form)
   ()
   (:default-initargs :record-class 'cons))
 

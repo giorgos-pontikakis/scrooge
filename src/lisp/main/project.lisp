@@ -189,7 +189,7 @@
 ;;; Project form
 ;;; ------------------------------------------------------------
 
-(defclass project-form (crud-form)
+(defclass project-form (scrooge-crud-form)
   ()
   (:default-initargs :record-class 'cons))
 
