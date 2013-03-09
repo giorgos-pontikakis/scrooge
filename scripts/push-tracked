@@ -67,7 +67,8 @@ case $# in
         push_git_repository () {
 
             get_branch $project_root
-            git push --tags $repository $branch:$branch
+            git push --tags
+            git push $repository $branch:$branch
 
             for i in $deps
             do

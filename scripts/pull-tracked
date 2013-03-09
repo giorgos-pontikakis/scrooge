@@ -67,7 +67,9 @@ case $# in
         pull_git_repository () {
 
             get_branch $project_root
-            git pull $repository $branch
+            git fetch
+            git fetch --tags
+            git merge $repository $branch
 
             for i in $deps
             do
@@ -75,7 +77,9 @@ case $# in
                 get_branch $i
                 echo
                 echo Attempting to pull repo at $HOME/$i
-                git pull --tags $repository $branch
+                git fetch
+                git fetch --tags
+                git merge --tags $repository $branch
             done
         }
 
