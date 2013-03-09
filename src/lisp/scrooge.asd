@@ -12,7 +12,7 @@
 (in-package :scrooge-asdf)
 
 
-(defvar *scrooge-version* "1.0.3"
+(defvar *scrooge-version* "1.1.0"
   "A string denoting the current version of Scrooge.")
 
 (export '*scrooge-version*)
@@ -24,7 +24,9 @@
   :depends-on ("ironclad"
                (:version "json" "1.0.0")
                (:version "lisputils" "1.0.0")
-               (:version "mortar" "1.0.2"))
+               (:version "veil" "1.0.0")
+               (:version "mortar" "1.0.2")
+               (:version "bricks" "1.1.0"))
   ;;
   :components ((:file "package")
                (:file "utils")
