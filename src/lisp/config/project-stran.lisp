@@ -194,6 +194,7 @@
   (with-view-page
     (let ((project-stran-table (make-instance 'project-stran-table
                                               :op :catalogue
+                                              :selected-key (val project-stran-id)
                                               :id "project-stran-table")))
       (with-document ()
         (:head
@@ -207,8 +208,7 @@
               (:div :id "project-stran-window" :class "window"
                 (:div :class "title" "Κατάλογος")
                 (project-stran-actions :catalogue (val project-stran-id))
-                (display project-stran-table
-                         :key (val project-stran-id))))
+                (display project-stran-table)))
             (footer)))))))
 
 
@@ -276,7 +276,9 @@
   (check-project-stran-parameters from-state-id to-state-id)
   (with-view-page
     (let* ((op :update)
-           (project-stran-table (make-instance 'project-stran-table :op op)))
+           (project-stran-table (make-instance 'project-stran-table
+                                               :op op
+                                               :selected-key (val project-stran-id))))
       (with-document ()
         (:head
           (:title "Μεταπτώσεις Έργων » Επεξεργασία")
@@ -291,8 +293,7 @@
                 (project-stran-actions op (val project-stran-id))
                 (notifications)
                 (with-form (actions/config/project-stran/update :project-stran-id (val project-stran-id))
-                  (display project-stran-table :key (val project-stran-id)
-                                               :payload (params->payload)))))
+                  (display project-stran-table :payload (params->payload)))))
             (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/update
@@ -324,7 +325,9 @@
     ((project-stran-id integer chk-project-stran-id t))
   (with-view-page
     (let* ((op :delete)
-           (project-stran-table (make-instance 'project-stran-table :op op)))
+           (project-stran-table (make-instance 'project-stran-table
+                                               :op op
+                                               :selected-key (val project-stran-id))))
       (with-document ()
         (:head
           (:title "Μεταπτώσεις Έργων » Διαγραφή")
@@ -338,8 +341,7 @@
                 (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")
                 (project-stran-actions op (val project-stran-id))
                 (with-form (actions/config/project-stran/delete :project-stran-id (val project-stran-id))
-                  (display project-stran-table
-                           :key (val project-stran-id)))))
+                  (display project-stran-table))))
             (footer)))))))
 
 (defpage project-stran-page actions/config/project-stran/delete

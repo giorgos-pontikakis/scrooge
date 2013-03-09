@@ -267,8 +267,7 @@
                 (actions bank-table)
                 (with-form (actions/config/bank/delete :bank-id (val bank-id)
                                                        :search (val search))
-                  (display bank-table
-                           :key (val bank-id)))))
+                  (display bank-table))))
             (footer)))))))
 
 (defpage bank-page actions/config/bank/delete ("actions/config/bank/delete" :request-type :post)

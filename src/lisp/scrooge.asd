@@ -104,5 +104,5 @@
               (terpri)
               (princ (shell-command (format nil "cd ~A; git status" path)))
               (terpri)))
-          (list "json" "lisputils" "veil" "mortar" "bricks"))
+          (list "scrooge" "json" "lisputils" "veil" "mortar" "bricks"))
   (values))

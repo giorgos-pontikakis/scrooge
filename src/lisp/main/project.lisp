@@ -412,7 +412,7 @@
                                          :start-index (val start))))
       ;; if project-id exists and is not found among records, ignore search term
       (when (and (val project-id)
-                 (not (find (val project-id) (records project-table) :key #'get-key)))
+                 (not (find-record project-table (val project-id))))
         (see-other (project :project-id (val project-id)
                             :cstate (state-id (get-dao 'project (val project-id))))))
       (with-document ()

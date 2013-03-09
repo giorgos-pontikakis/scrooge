@@ -361,7 +361,7 @@
                                         :start-index (val start))))
       ;; if cheque-id exists and is not found among records, ignore search term
       (when (and (val cheque-id)
-                 (not (find (val cheque-id) (records cheque-table) :key #'get-key)))
+                 (not (find-record cheque-table (val cheque-id))))
         (let ((dao (get-dao 'cheque (val cheque-id))))
           (see-other (cheque (if (customer-p dao) "customer" "supplier")
                              :cheque-id (val cheque-id)

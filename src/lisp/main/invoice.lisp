@@ -381,7 +381,7 @@
                                                               :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
       (when (and (val tx-id)
-                 (not (find (val tx-id) (records invoice-tx-table) :key #'get-key)))
+                 (not (find-record invoice-tx-table (val tx-id))))
         (let ((tx (query (:select '* :from 'tx :where (:= 'tx.id tx-id)) :plist)))
           (see-other (invoice (tx-role tx) (invoice-kind tx)
                               :tx-id (val tx-id)))))

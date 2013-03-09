@@ -352,7 +352,7 @@
                                          :start-index (val start))))
       ;; if tx-id exists and is not found among records, ignore search term
       (when (and (val tx-id)
-                 (not (find (val tx-id) (records cash-tx-table) :key #'get-key)))
+                 (not (find-record cash-tx-table (val tx-id))))
         (let ((tx (get-dao 'tx (val tx-id))))
           (see-other (cash (cond ((eql (debit-account-id tx) (account-id 'cash-account))
                                   "customer")
