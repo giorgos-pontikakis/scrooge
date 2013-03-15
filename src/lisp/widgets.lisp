@@ -12,7 +12,7 @@
   (:documentation "Returns a list of the disabled actions of the widget"))
 
 (defgeneric filters (collection)
-  (:documentation "Returns the filter linke of a collection widget"))
+  (:documentation "Returns the filter links of a collection widget"))
 
 (defgeneric extra-info (widget)
   (:documentation "Display extra info for the widget, e.g. sums for a table"))
@@ -57,8 +57,8 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-crud-table (crud-table)
-  ()
-  (:default-initargs :css-class "crud-table crud-table-full"))
+  ((filter :accessor filter :initarg :filter))
+  (:default-initargs :filter nil :css-class "crud-table crud-table-full"))
 
 (defmethod disabled-actions ((tbl scrooge-crud-table) &key)
   (ecase (op tbl)
@@ -123,8 +123,10 @@
 ;;; ----------------------------------------------------------------------
 
 (defclass scrooge-crud-tree (crud-tree)
-  ((root-parent-key :allocation :class :initform :null))
-  (:default-initargs :css-class "crud-tree"
+  ((filter :accessor filter :initarg :filter)
+   (root-parent-key :allocation :class :initform :null))
+  (:default-initargs :filter nil
+                     :css-class "crud-tree"
                      :root-key nil))
 
 (defclass scrooge-node (crud-node)
@@ -185,39 +187,6 @@
   (ecase (op form)
     (:details '())
     ((:create :update :delete) '(:update :delete :journal))))
-
-
-
-;;; ------------------------------------------------------------
-;;; selector and controls for crud collections
-;;; ------------------------------------------------------------
-
-(defun simple-selector (row selected-p url-fn id-key)
-  (let* ((id (key row))
-         (table (collection row))
-         (filter (filter table))
-         (start (page-start (paginator table) (index row) (start-index table))))
-    (html ()
-      (:a :id id
-        :href (if selected-p
-                  (apply url-fn :start start filter)
-                  (apply url-fn
-                         id-key
-                         id
-                         filter))
-        (selector-img selected-p)))))
-
-(defun simple-controls (row enabled-p url-fn id-key)
-  (let ((id (key row))
-        (table (collection row)))
-    (if enabled-p
-        (list (make-instance 'ok-button)
-              (make-instance 'cancel-button
-                             :href (apply url-fn
-                                          id-key
-                                          id
-                                          (filter table))))
-        (list nil nil))))
 
 
 

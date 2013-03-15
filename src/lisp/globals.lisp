@@ -36,11 +36,12 @@
 
 
 ;;; debit/credit account roots
-(with-db ()
-  (defparameter *debit-accounts-root-id*
+(defparameter *debit-accounts-root-id*
+  (with-db ()
     (select-dao-unique 'account (:and (:is-null 'parent-id)
-                                      (:= 'debit-p t))))
-  (defparameter *credit-accounts-root-id*
+                                      (:= 'debit-p t)))))
+(defparameter *credit-accounts-root-id*
+  (with-db ()
     (select-dao-unique 'account (:and (:is-null 'parent-id)
                                       (:= 'debit-p nil)))))
 
