@@ -41,8 +41,7 @@
                (:file "widgets")
                (:file "elements")
                ;; -- Here come the pages! --
-               ;; root
-               (:file "root")
+               ;; auth
                (:file "auth")
                ;; section roots
                (:file "config/config")
@@ -72,7 +71,8 @@
                (:file "main/bill")
                (:file "main/company-tx")
                (:file "main/company-cheque")
-               ))
+               ;; api
+               (:file "root")))
 
 (defsystem :scrooge-test
   :depends-on (:scrooge :hu.dwim.stefil :drakma)
