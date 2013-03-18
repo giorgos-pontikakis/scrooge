@@ -1,105 +1,106 @@
 * ΔΙΑΧΩΡΙΣΜΟΣ ΣΥΝΑΛΛΑΓΩΝ ΠΕΛΑΤΗ - ΠΡΟΜΗΘΕΥΤΗ
 
-** Θεωρία
+*** Θεωρία
 
-Οι ξεχωριστοί λογαριασμοί (accounts) των πελατών μπορούν να εννοηθούν
-ως υπολογαριασμοί (sub-accounts) των τρεχουσών απαιτήσεων
-(receivable-account-root) και γι' αυτό είναι συνήθως χρεωστικοί στο
-ισοζύγιό τους.
+    Οι ξεχωριστοί λογαριασμοί (accounts) των πελατών μπορούν να εννοηθούν
+    ως υπολογαριασμοί (sub-accounts) των τρεχουσών απαιτήσεων
+    (receivable-account-root) και γι' αυτό είναι συνήθως χρεωστικοί στο
+    ισοζύγιό τους.
 
-Αντιθέτως, οι ξεχωριστοί λογαριασμοί (accounts) των προμηθευτών
-μπορούν να εννοηθούν ως υπολογαριασμοί (sub-accounts) των τρεχουσών
-υποχρεώσεων (payable-account-root) και γι' αυτό είναι συνήθως
-πιστωτικοί στο ισοζύγιό τους.
+    Αντιθέτως, οι ξεχωριστοί λογαριασμοί (accounts) των προμηθευτών
+    μπορούν να εννοηθούν ως υπολογαριασμοί (sub-accounts) των τρεχουσών
+    υποχρεώσεων (payable-account-root) και γι' αυτό είναι συνήθως
+    πιστωτικοί στο ισοζύγιό τους.
 
-Επομένως μπορώ να σχηματίσω ένα virtual λογαριασμό για κάθε εταιρία
-και να καταχωρώ τις συναλλαγές ως πιστωτικές ή χρεωστικές σύμφωνα με
-την κατεύθυνσή τους (από πελάτη ή προς προμηθευτή). Δηλαδή, για κάθε
-συναλλαγή κατά την οποία θα χρέωνα (ή θα πίστωνα) το λογαριασμό
-υποχρεώσεων ή απαιτήσεων, τώρα θα χρεώσω (ή θα πιστώσω) τον virtual
-λογαριασμό της εταιρίας. Αν το ισοζύγιο είναι χρεωστικό, η εταιρία
-έχει τρέχοντα ρόλο πελάτη δηλαδή μας χρωστάει, ενώ αν είναι πιστωτικό
-έχει τρέχοντα ρόλο προμηθευτή δηλαδή της χρωστάμε.
+    Επομένως μπορώ να σχηματίσω ένα virtual λογαριασμό για κάθε εταιρία
+    και να καταχωρώ τις συναλλαγές ως πιστωτικές ή χρεωστικές σύμφωνα με
+    την κατεύθυνσή τους (από πελάτη ή προς προμηθευτή). Δηλαδή, για κάθε
+    συναλλαγή κατά την οποία θα χρέωνα (ή θα πίστωνα) το λογαριασμό
+    υποχρεώσεων ή απαιτήσεων, τώρα θα χρεώσω (ή θα πιστώσω) τον virtual
+    λογαριασμό της εταιρίας. Αν το ισοζύγιο είναι χρεωστικό, η εταιρία
+    έχει τρέχοντα ρόλο πελάτη δηλαδή μας χρωστάει, ενώ αν είναι πιστωτικό
+    έχει τρέχοντα ρόλο προμηθευτή δηλαδή της χρωστάμε.
 
-Οι λογαριασμοί των εισπρακτέων ή πληρωτέων επιταγών μπορούν να
-θεωρηθούν ως υπολογαριασμοί του λογαριασμού τρεχουσών απαιτήσεων ή
-τρεχουσών υποχρεώσεων αντιστοίχως. Το ίδιο συμβαίνει και με τους
-λογαριασμούς υπολοίπων από μεταφορά (από προηγούμενα έτη).
+    Οι λογαριασμοί των εισπρακτέων ή πληρωτέων επιταγών μπορούν να
+    θεωρηθούν ως υπολογαριασμοί του λογαριασμού τρεχουσών απαιτήσεων ή
+    τρεχουσών υποχρεώσεων αντιστοίχως. Το ίδιο συμβαίνει και με τους
+    λογαριασμούς υπολοίπων από μεταφορά (από προηγούμενα έτη).
 
-Επομένως, αν μια συναλλαγή πελάτη χρεώνει τον λογαριασμό τρεχουσών
-απαιτήσεων είναι χρεωστική για την εταιρία και αν τον πιστώνει είναι
-πιστωτική. Το /ίδιο/ συμβαίνει και με τον λογαριασμό τρεχουσών
-υποχρεώσεων. Αλλά:
+    Επομένως, αν μια συναλλαγή πελάτη χρεώνει τον λογαριασμό τρεχουσών
+    απαιτήσεων είναι χρεωστική για την εταιρία και αν τον πιστώνει είναι
+    πιστωτική. Το /ίδιο/ συμβαίνει και με τον λογαριασμό τρεχουσών
+    υποχρεώσεων. Αλλά:
 
-- Ο χρήστης μπορεί να επιλέξει π.χ. οι λογαριασμοί επιταγών να μην
-  είναι υπολογαριασμοί των αντίστοιχων λογαριασμών απαιτήσεων ή
-  υποχρεώσεων.
+    - Ο χρήστης μπορεί να επιλέξει π.χ. οι λογαριασμοί επιταγών να μην
+      είναι υπολογαριασμοί των αντίστοιχων λογαριασμών απαιτήσεων ή
+      υποχρεώσεων.
 
-- Υπάρχουν cash συναλλαγές που είναι debit+credit. Γενικά δεν μπορώ
-  (και δε φαίνεται να υπάρχει γενικώς ένας αλγόριθμος με τον οποίο να
-  μπορώ να καθορίσω το πρόσημο της συναλλαγής (δηλαδή χρεωστική ή
-  πιστωτική) σε συνάρτηση με (α) το λογαριασμό χρέωσης ή πίστωσης και
-  (β) την κατεύθυνσή της (από πελάτη ή προς προμηθευτή).
+    - Υπάρχουν cash συναλλαγές που είναι debit+credit. Γενικά δεν
+      μπορώ (και δε φαίνεται να υπάρχει γενικώς ένας αλγόριθμος με τον
+      οποίο να μπορώ να καθορίσω το πρόσημο της συναλλαγής (δηλαδή
+      χρεωστική ή πιστωτική) σε συνάρτηση με (α) το λογαριασμό χρέωσης
+      ή πίστωσης και (β) την κατεύθυνσή της (από πελάτη ή προς
+      προμηθευτή).
 
-- Ακόμη και αν βρω ένα περίπλοκο αλγόριθμο που τώρα δουλεύει, μπορεί
-  στο μέλλον να προκύψουν συναλλαγές που δεν έχει λάβει υπ' όψιν ο
-  αλγόριθμος. Θα προτιμούσα να μη πειράζω source code και πάλι σε αυτή
-  την περίπτωση.
+    - Ακόμη και αν βρω ένα περίπλοκο αλγόριθμο που τώρα δουλεύει,
+      μπορεί στο μέλλον να προκύψουν συναλλαγές που δεν έχει λάβει υπ'
+      όψιν ο αλγόριθμος. Θα προτιμούσα να μη πειράζω source code και
+      πάλι σε αυτή την περίπτωση.
 
-Επομένως κάθε συναλλαγή θα πρέπει να έχει ξεχωριστή καταχώρηση από τον
-χρήστη στα πρότυπα συναλλαγών (temtx - template transaction).
+    Επομένως κάθε συναλλαγή θα πρέπει να έχει ξεχωριστή καταχώρηση από τον
+    χρήστη στα πρότυπα συναλλαγών (temtx - template transaction).
 
-** Πίνακας συνηθισμένων συναλλαγών
+*** Πίνακας συνηθισμένων συναλλαγών
 
-|----+----------------------------------+----------------------------+--------------------------|
-|    | ΣΥΝΑΛΛΑΓΗ                        | ΠΕΛΑΤΗΣ (CUSTOMER)         | ΠΡΟΜΗΘΕΥΤΗΣ (SUPPLIER)   |
-|----+----------------------------------+----------------------------+--------------------------|
-|  1 | έκδοση χρεωστικού τιμολογίου     | debit receivable-accounts  | debit expense-accounts   |
-|    | (invoice-debits)                 | credit revenue-accounts    | credit payable-accounts  |
-|    |                                  | (company debit)            | (company credit)         |
-|    |                                  |                            |                          |
-|  2 | έκδοση πιστωτικού τιμολογίου     | debit revenue-accounts     | debit payable-accounts   |
-|    | (invoice-credits)                | credit receivable-accounts | credit expense-accounts  |
-|    |                                  | (company credit)           | (company debit)          |
-|    |                                  |                            |                          |
-|  3 | διαγραφή χρέους                  | debit expenses:bad-debts   | debit revenues:bad-debts |
-|    | (bad-debt)                       | credit receivable-accounts | credit payable-accounts  |
-|    |                                  | (company credit)           | (company debit)          |
-|----+----------------------------------+----------------------------+--------------------------|
-|  4 | πληρωμή μετρητοίς (έναντι)       | debit cash                 | debit payable-accounts   |
-|    | (cash-against)                   | credit receivable-accounts | credit cash              |
-|    |                                  | (company credit)           | (company debit)          |
-|    |                                  |                            |                          |
-|  5 | πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                 | debit expense-accounts   |
-|    | (cash-direct)                    | credit revenue-accounts    | credit cash              |
-|    |                                  | (company debit+credit)     | (company debit+credit)   |
-|    |                                  |                            |                          |
-|  6 | επιστροφή μετρητών (απ' ευθείας) | debit revenue-accounts     | debit cash               |
-|    | (cash-return)                    | credit cash                | credit expense-accounts  |
-|    |                                  | (company debit+credit)     | (company debit+credit)   |
-|----+----------------------------------+----------------------------+--------------------------|
-|  7 | έκδοση επιταγής (έναντι)         | debit cheques-receivable   | debit payable-accounts   |
-|    | (cheque-issue)                   | credit receivable-accounts | credit cheques-payable   |
-|    |                                  | (company credit)           | (company debit)          |
-|    |                                  |                            |                          |
-|  8 | είσπραξη επιταγής                | debit cash                 | debit cheques-payable    |
-|    | (cheque-redemption)              | credit cheques-receivable  | credit cash              |
-|    |                                  | (company debit+credit)     | (company debit+credit)   |
-|    |                                  |                            |                          |
-|  9 | σφράγισμα/επιστροφή επιταγής     | debit receivable-accounts  | debit cheques-payable    |
-|    | (cheque-bounce)                  | credit cheques-receivable  | credit payable-accounts  |
-|    |                                  | (company debit)            | (company credit)         |
-|----+----------------------------------+----------------------------+--------------------------|
-| 10 | μεταφορά χρεωστικού υπολοίπου    | debit transf.-receivables  | debit transf.-payables   |
-|    |                                  | credit revenue-accounts    | credit expense-accounts  |
-|    |                                  | (company debit)            | (company credit)         |
-|    |                                  |                            |                          |
-| 11 | μεταφορά πιστωτικού υπολοίπου    | debit revenue-accounts     | debit expense-accounts   |
-|    |                                  | credit transf.-receivables | credit transf.-payables  |
-|    |                                  | (company credit)           | (company debit)          |
-|----+----------------------------------+----------------------------+--------------------------|
+    |----+----------------------------------+----------------------------+--------------------------|
+    |    | ΣΥΝΑΛΛΑΓΗ                        | ΠΕΛΑΤΗΣ (CUSTOMER)         | ΠΡΟΜΗΘΕΥΤΗΣ (SUPPLIER)   |
+    |----+----------------------------------+----------------------------+--------------------------|
+    |  1 | έκδοση χρεωστικού τιμολογίου     | debit receivable-accounts  | debit expense-accounts   |
+    |    | (invoice-debits)                 | credit revenue-accounts    | credit payable-accounts  |
+    |    |                                  | (company debit)            | (company credit)         |
+    |    |                                  |                            |                          |
+    |  2 | έκδοση πιστωτικού τιμολογίου     | debit revenue-accounts     | debit payable-accounts   |
+    |    | (invoice-credits)                | credit receivable-accounts | credit expense-accounts  |
+    |    |                                  | (company credit)           | (company debit)          |
+    |    |                                  |                            |                          |
+    |  3 | διαγραφή χρέους                  | debit expenses:bad-debts   | debit revenues:bad-debts |
+    |    | (bad-debt)                       | credit receivable-accounts | credit payable-accounts  |
+    |    |                                  | (company credit)           | (company debit)          |
+    |----+----------------------------------+----------------------------+--------------------------|
+    |  4 | πληρωμή μετρητοίς (έναντι)       | debit cash                 | debit payable-accounts   |
+    |    | (cash-against)                   | credit receivable-accounts | credit cash              |
+    |    |                                  | (company credit)           | (company debit)          |
+    |    |                                  |                            |                          |
+    |  5 | πληρωμή μετρητοίς (απ' ευθείας)  | debit cash                 | debit expense-accounts   |
+    |    | (cash-direct)                    | credit revenue-accounts    | credit cash              |
+    |    |                                  | (company debit+credit)     | (company debit+credit)   |
+    |    |                                  |                            |                          |
+    |  6 | επιστροφή μετρητών (απ' ευθείας) | debit revenue-accounts     | debit cash               |
+    |    | (cash-return)                    | credit cash                | credit expense-accounts  |
+    |    |                                  | (company debit+credit)     | (company debit+credit)   |
+    |----+----------------------------------+----------------------------+--------------------------|
+    |  7 | έκδοση επιταγής (έναντι)         | debit cheques-receivable   | debit payable-accounts   |
+    |    | (cheque-issue)                   | credit receivable-accounts | credit cheques-payable   |
+    |    |                                  | (company credit)           | (company debit)          |
+    |    |                                  |                            |                          |
+    |  8 | είσπραξη επιταγής                | debit cash                 | debit cheques-payable    |
+    |    | (cheque-redemption)              | credit cheques-receivable  | credit cash              |
+    |    |                                  | (company debit+credit)     | (company debit+credit)   |
+    |    |                                  |                            |                          |
+    |  9 | σφράγισμα/επιστροφή επιταγής     | debit receivable-accounts  | debit cheques-payable    |
+    |    | (cheque-bounce)                  | credit cheques-receivable  | credit payable-accounts  |
+    |    |                                  | (company debit)            | (company credit)         |
+    |----+----------------------------------+----------------------------+--------------------------|
+    | 10 | μεταφορά χρεωστικού υπολοίπου    | debit transf.-receivables  | debit transf.-payables   |
+    |    |                                  | credit revenue-accounts    | credit expense-accounts  |
+    |    |                                  | (company debit)            | (company credit)         |
+    |    |                                  |                            |                          |
+    | 11 | μεταφορά πιστωτικού υπολοίπου    | debit revenue-accounts     | debit expense-accounts   |
+    |    |                                  | credit transf.-receivables | credit transf.-payables  |
+    |    |                                  | (company credit)           | (company debit)          |
+    |----+----------------------------------+----------------------------+--------------------------|
 
-*** Εμφάνιση
+***** Εμφάνιση
 
 - όταν μια επιταγή εισπράττεται (συναλλαγή 8), αντί να εμφανίζεται
   διπλή χρέωση/πίστωση στο λογαριασμό της εταιρίας, εμφανίζεται μόνο η
@@ -109,104 +110,107 @@
 
 * ΣΥΝΑΛΛΑΓΕΣ
 
-** Table & user-interface account constraints
+*** Table & user-interface account constraints
 
-Οι συναλλαγές μπορούν να είναι είτε αυτόματες είτε μη αυτόματες. Στον
-πίνακα tx της βάσης δεδομένων καταγράφονται όλες οι συναλλαγές, αλλά
-από το user interface μπορώ να δώ όλες τις συναλλαγές αλλά να δεν
-μπορώ να τροποποιήσω μόνο τις αυτόματες.
+    Οι συναλλαγές μπορούν να είναι είτε αυτόματες είτε μη αυτόματες.
+    Στον πίνακα tx της βάσης δεδομένων καταγράφονται όλες οι
+    συναλλαγές, αλλά από το user interface μπορώ να δώ όλες τις
+    συναλλαγές αλλά να δεν μπορώ να τροποποιήσω μόνο τις αυτόματες.
 
-Αυτόματες συναλλαγές είναι αυτές που αναφέρονται σε κάποιο cheque
-event. Κατά συνέπεια, οι συναλλαγές που μπορεί να τροποποιήσει ο
-χρήστης δεν μπορεί να αναφέρονται σε chequing-account ενώ αυτές που
-γράφονται στο table μπορούν.
+    Αυτόματες συναλλαγές είναι αυτές που αναφέρονται σε κάποιο cheque
+    event. Κατά συνέπεια, οι συναλλαγές που μπορεί να τροποποιήσει ο
+    χρήστης δεν μπορεί να αναφέρονται σε chequing-account ενώ αυτές
+    που γράφονται στο table μπορούν.
 
-** Cheques - Tx consistensy
-Now, this is ensured in code in tables.lisp as around methods
+*** Cheques - Tx consistensy
 
-*** Cheque Insert
-- Automatically insert the cheque event and the cheque tx
+    Now, this is ensured in code in tables.lisp as around methods
 
-*** Cheque Update
-- When a state change occurs, insert a corresponding tx and
-  cheque-event
-- Trigger on cheque updates to change the amount and company-id of all
-  corresponding txs
+***** Cheque Insert
 
-*** Cheque delete
-- Delete all corresponding txs
-- Delete all corresponding events
+      - Automatically insert the cheque event and the cheque tx
+
+***** Cheque Update
+
+      - When a state change occurs, insert a corresponding tx and
+        cheque-event
+      - Trigger on cheque updates to change the amount and company-id
+        of all corresponding txs
+
+***** Cheque delete
+      - Delete all corresponding txs
+      - Delete all corresponding events
 
 * ΠΡΟΤΥΠΑ ΣΥΝΑΛΛΑΓΩΝ
 
-** DONE unknown temtx
-πρέπει να απαγορεύεται στον χρήστη να γίνουν συναλλαγές άγνωστου
-προτύπου, δηλαδή κάθε συναλλαγή που καταγράφεται θα πρέπει να
-αντιστοιχεί σε κάποιο πρότυπο.
+*** DONE unknown temtx
+    πρέπει να απαγορεύεται στον χρήστη να γίνουν συναλλαγές άγνωστου
+    προτύπου, δηλαδή κάθε συναλλαγή που καταγράφεται θα πρέπει να
+    αντιστοιχεί σε κάποιο πρότυπο.
 
-Εντός της βάσης δεδομένων, αυτό διασφαλίζεται με το trigger
-generate_temtx_id.
+    Εντός της βάσης δεδομένων, αυτό διασφαλίζεται με το trigger
+    generate_temtx_id.
 
-** Explicit-implicit temtx
-Το πρότυπο αυτό θα μπορεί να είναι ορισμένο από το χρήστη είτε ρητά
-(explicit temtx) είτε υπόρρητα (implicit temtx).
+*** Explicit-implicit temtx
+    Το πρότυπο αυτό θα μπορεί να είναι ορισμένο από το χρήστη είτε ρητά
+    (explicit temtx) είτε υπόρρητα (implicit temtx).
 
-*** Explicit temtx
-Το πρότυπο έχει καθοριστεί ακριβώς για αυτές τις συναλλαγές.
+***** Explicit temtx
+      Το πρότυπο έχει καθοριστεί ακριβώς για αυτές τις συναλλαγές.
 
-*** Implicit temtx
-Το προτυπο έχει καθοριστεί για συναλλαγές-γονείς.
+***** Implicit temtx
+      Το προτυπο έχει καθοριστεί για συναλλαγές-γονείς.
 
-** Explicit-Implicit Temtx Constraints
-Όταν ορίζουμε ότι το πρότυπο διαδίδεται στα παιδιά του, τότε το
-πρότυπο ισχύει και για κάθε ζεύγος λογαριασμών που είναι descendants
-των λογαριασμών του προτύπου.
+*** Explicit-Implicit Temtx Constraints
+    Όταν ορίζουμε ότι το πρότυπο διαδίδεται στα παιδιά του, τότε το
+    πρότυπο ισχύει και για κάθε ζεύγος λογαριασμών που είναι descendants
+    των λογαριασμών του προτύπου.
 
-Όταν το πρότυπο δεν διαδίδεται, ισχύει μόνο για συναλλαγές με
-ζεύγος λογαριασμών ακριβώς ίδιο με το ζεύγος λογαριασμών του προτύπου.
+    Όταν το πρότυπο δεν διαδίδεται, ισχύει μόνο για συναλλαγές με
+    ζεύγος λογαριασμών ακριβώς ίδιο με το ζεύγος λογαριασμών του προτύπου.
 
-Τα πρότυπα που διαδίδονται πρέπει να υπακούν στο Basic Constraint for
-Propagated Temtx.
+    Τα πρότυπα που διαδίδονται πρέπει να υπακούν στο Basic Constraint for
+    Propagated Temtx.
 
-** Basic Constraint for Propagated Temtx
-Μπορεί να δημιουργηθεί πρότυπο Τ(da,ca) με λογαριασμούς da και ca μόνο
-όταν ισχύει ένα από τα παρακάτω:
-1. δεν υπάρχει άλλο πρότυπο Τ'(da', ca') που και οι δύο da', ca'
-   βρίσκονται στο ιδίο account tree
-2. υπάρχει άλλο πρότυπο, T'(da', ca'), όπου οι da' και ca' είναι και
-   οι δύο parents/children των da και ca αντιστοίχως.
-3. υπάρχει άλλο πρότυπο, T'(da', ca'), όπου μόνο ένας από τους da' και
-   ca' είναι parent/child των da και ca αντιστοίχως ενώ ο άλλος
-   ταυτίζεται.
-Δηλαδή:
-+ δεν ταυτίζονται και οι δύο (da=da' and ca=ca') ΚΑΙ
-  - ή τουλάχιστον ένας λογαριασμός δεν ανήκει στο αντίστοιχο σύνολο
-   (lineage U descendants)
-  - ή και οι δύο ανήκουν στο αντίστοιχο σύνολο lineage
-  - ή και οι δύο ανήκουν στο αντίστοιχο σύνολο descendants
+*** Basic Constraint for Propagated Temtx
+    Μπορεί να δημιουργηθεί πρότυπο Τ(da,ca) με λογαριασμούς da και ca μόνο
+    όταν ισχύει ένα από τα παρακάτω:
+    1. δεν υπάρχει άλλο πρότυπο Τ'(da', ca') που και οι δύο da', ca'
+       βρίσκονται στο ιδίο account tree
+    2. υπάρχει άλλο πρότυπο, T'(da', ca'), όπου οι da' και ca' είναι και
+       οι δύο parents/children των da και ca αντιστοίχως.
+    3. υπάρχει άλλο πρότυπο, T'(da', ca'), όπου μόνο ένας από τους da' και
+       ca' είναι parent/child των da και ca αντιστοίχως ενώ ο άλλος
+       ταυτίζεται.
+        Δηλαδή:
+    + δεν ταυτίζονται και οι δύο (da=da' and ca=ca') ΚΑΙ
+      - ή τουλάχιστον ένας λογαριασμός δεν ανήκει στο αντίστοιχο σύνολο
+        (lineage U descendants)
+      - ή και οι δύο ανήκουν στο αντίστοιχο σύνολο lineage
+      - ή και οι δύο ανήκουν στο αντίστοιχο σύνολο descendants
 
-** Basic Constraint for Propagated Temtx as a conflict
-Αντίστροφη διατύπωση: Δεν μπορεί να δημιουργηθεί πρότυπο T(da, ca)
-όταν υπάρχει πρότυπο T'(da', ca') τέτοιο ώστε
-- ταυτίζονται και οι δύο (da=da' and ca=ca') ή
-- ο da ανήκει στο da.lineage και ο ca στο ca.descendants ή
-- ο ca ανήκει στο calineage και ο da στο da.descendants
+*** Basic Constraint for Propagated Temtx as a conflict
+    Αντίστροφη διατύπωση: Δεν μπορεί να δημιουργηθεί πρότυπο T(da, ca)
+    όταν υπάρχει πρότυπο T'(da', ca') τέτοιο ώστε
+    - ταυτίζονται και οι δύο (da=da' and ca=ca') ή
+    - ο da ανήκει στο da.lineage και ο ca στο ca.descendants ή
+    - ο ca ανήκει στο calineage και ο da στο da.descendants
 
-** Temtx - delete
-Αν καταγραφούν συναλλαγές για κάποιο πρότυπο, θα πρέπει το πρότυπο
-να μην είναι πλέον deletable.
+*** Temtx - delete
+    Αν καταγραφούν συναλλαγές για κάποιο πρότυπο, θα πρέπει το πρότυπο
+    να μην είναι πλέον deletable.
 
-** Temtx - update
-Θα πρέπει να μην μπορεί να αλλάξει το πρότυπο αν έχει συναλλαγές που
-αναφέρονται σε αυτό. Εντός της βάσης δεδομένων αυτό διασφαλίζεται με
-το trigger temtx_update_guard
+*** Temtx - update
+    Θα πρέπει να μην μπορεί να αλλάξει το πρότυπο αν έχει συναλλαγές που
+    αναφέρονται σε αυτό. Εντός της βάσης δεδομένων αυτό διασφαλίζεται με
+    το trigger temtx_update_guard
 
-** Accounts - delete
-Δεν πρέπει να μπορούν να διαγραφούν λογαριασμοί (accounts) τα οποία
-είναι referenced από πρότυπα συναλλαγών (και κατά συνέπεια από
-συναλλαγές).
+*** Accounts - delete
+    Δεν πρέπει να μπορούν να διαγραφούν λογαριασμοί (accounts) τα οποία
+    είναι referenced από πρότυπα συναλλαγών (και κατά συνέπεια από
+    συναλλαγές).
 
-** TODO Accounts - move
+*** TODO Accounts - move
 - Τα accounts θα πρέπει να μπορούν να μετακινηθούν εύκολα αλλά μόνο
   εντός του κυρίως δένδρου τους. Το μόνο που αλλάζει είναι το
   parent_id. Προϋπόθεση είναι να ικανοποιείται το Temtx Basic Constraint.
