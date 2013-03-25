@@ -492,10 +492,9 @@
                                          :selected-key (val company-id)
                                          :filter filter
                                          :start-index (val start))))
-      ;; if company-id exists and is not found among records, ignore search term
-      (when (and (val company-id)
-                 (not (find-record company-table (val company-id))))
-        (see-other (company :company-id (val company-id))))
+      (maybe-abort-on-incompatible-id company-table
+                                      (val company-id)
+                                      (company :company-id (val company-id)))
       (with-document ()
         (:head
           (:title "Εταιρίες » Κατάλογος")

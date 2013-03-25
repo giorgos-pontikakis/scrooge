@@ -350,17 +350,11 @@
                                          :selected-key (val tx-id)
                                          :filter filter
                                          :start-index (val start))))
-      ;; if tx-id exists and is not found among records, ignore search term
-      (when (and (val tx-id)
-                 (not (find-record cash-tx-table (val tx-id))))
-        (let ((tx (get-dao 'tx (val tx-id))))
-          (see-other (cash (cond ((eql (debit-account-id tx) (account-id 'cash-account))
-                                  "customer")
-                                 ((eql (credit-account-id tx) (account-id 'cash-account))
-                                  "supplier")
-                                 (t (error 'bad-request-error)))
-                           :tx-id (val tx-id)))))
-      ;; otherwise continue as usually
+      (let ((tx (get-dao-plist 'tx (val tx-id))))
+        (maybe-abort-on-incompatible-id cash-tx-table
+                                        (val tx-id)
+                                        (cash (tx-role tx)
+                                              :tx-id (val tx-id))))
       (with-document ()
         (:head
           (:title (str page-title))

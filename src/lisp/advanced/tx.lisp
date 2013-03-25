@@ -243,11 +243,18 @@
 ;;; Utilities
 ;;; ----------------------------------------------------------------------
 
-(defun tx-role (record)
-  (if (or (member (getf record :debit-account-id) *expense-accounts*)
-          (member (getf record :credit-account-id) *expense-accounts*))
-      "supplier"
-      "customer"))
+(defmethod customer-p ((tx-dao tx))
+  (with-db ()
+    (customer-p (get-dao 'temtx (temtx-id tx-dao)))))
+
+(defmethod customer-p ((record list))
+  (or (member (getf record :debit-account-id) *revenue-accounts*)
+      (member (getf record :credit-account-id) *revenue-accounts*)
+      (eql (getf record :debit-account-id) (account-id 'cash-account))
+      (eql (getf record :debit-account-id) (account-id 'libtx-account))))
+
+(defun tx-role (tx)
+  (if (customer-p tx) "customer" "supplier"))
 
 
 

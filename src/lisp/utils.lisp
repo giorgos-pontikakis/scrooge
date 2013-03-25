@@ -27,6 +27,14 @@
 
 ;;; SQL UTILITIES
 
+(defun get-dao-plist (type &rest args)
+  (with-db ()
+    (query (sql-compile `(:select * :from ,type :where (:and ,@(mapcar (lambda (key val)
+                                                                         (list := key val))
+                                                                       (dao-keys type)
+                                                                       args))))
+           :plist)))
+
 (defun ilike (filter)
   (if (or (null filter)
           (eq filter :null))

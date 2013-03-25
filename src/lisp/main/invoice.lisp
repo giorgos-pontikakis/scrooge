@@ -379,13 +379,11 @@
                                                               :selected-key (val tx-id)
                                                               :filter filter
                                                               :start-index (val start))))
-      ;; if tx-id exists and is not found among records, ignore search term
-      (when (and (val tx-id)
-                 (not (find-record invoice-tx-table (val tx-id))))
-        (let ((tx (query (:select '* :from 'tx :where (:= 'tx.id tx-id)) :plist)))
-          (see-other (invoice (tx-role tx) (invoice-kind tx)
-                              :tx-id (val tx-id)))))
-      ;; otherwise continue as usually
+      (let ((tx (get-dao-plist 'tx (val tx-id))))
+        (maybe-abort-on-incompatible-id invoice-tx-table
+                                        (val tx-id)
+                                        (invoice (tx-role tx) (invoice-kind tx)
+                                                 :tx-id (val tx-id))))
       (with-document ()
         (:head
           (:title (str page-title))

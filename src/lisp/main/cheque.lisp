@@ -359,13 +359,12 @@
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start))))
-      ;; if cheque-id exists and is not found among records, ignore search term
-      (when (and (val cheque-id)
-                 (not (find-record cheque-table (val cheque-id))))
-        (let ((dao (get-dao 'cheque (val cheque-id))))
-          (see-other (cheque (if (customer-p dao) "customer" "supplier")
-                             :cheque-id (val cheque-id)
-                             :cstate (state-id dao)))))
+      (let ((dao (get-dao 'cheque (val cheque-id))))
+        (maybe-abort-on-incompatible-id cheque-table
+                                        (val cheque-id)
+                                        (cheque (if (customer-p dao) "customer" "supplier")
+                                                :cheque-id (val cheque-id)
+                                                :cstate (state-id dao))))
       (with-document ()
         (:head
           (:title (str page-title))

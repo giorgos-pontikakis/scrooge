@@ -107,6 +107,15 @@
                                 :body "Άκυρο"))))))))
 
 
+;;; search term
+
+(defun maybe-abort-on-incompatible-id (table id abort-url)
+  ;; if id is non-null and is not found among the table records, go to
+  ;; abort-url
+  (when (and id (not (find-record table id)))
+    (see-other abort-url)))
+
+
 
 ;;; ----------------------------------------------------------------------
 ;;; Widgets
