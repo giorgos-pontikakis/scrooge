@@ -69,7 +69,7 @@ case $# in
             get_branch $project_root
             git fetch
             git fetch --tags
-            git merge $repository $branch
+            git merge $repository/$branch
 
             for i in $deps
             do
