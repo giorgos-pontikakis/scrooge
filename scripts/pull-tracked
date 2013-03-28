@@ -79,7 +79,7 @@ case $# in
                 echo Attempting to pull repo at $HOME/$i
                 git fetch
                 git fetch --tags
-                git merge --tags $repository $branch
+                git merge $repository $branch
             done
         }
 
