@@ -492,9 +492,10 @@
                                          :selected-key (val company-id)
                                          :filter filter
                                          :start-index (val start))))
-      (maybe-abort-on-incompatible-id company-table
-                                      (val company-id)
-                                      (company :company-id (val company-id)))
+      (when-let (id (val company-id))
+        (maybe-abort-on-incompatible-id company-table
+                                        id
+                                        (company :company-id id)))
       (with-document ()
         (:head
           (:title "Εταιρίες » Κατάλογος")

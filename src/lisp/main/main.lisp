@@ -111,8 +111,8 @@
 
 (defun maybe-abort-on-incompatible-id (table id abort-url)
   ;; if id is non-null and is not found among the table records, go to
-  ;; abort-url
-  (when (and id (not (find-record table id)))
+  ;; abort-url. It is assumed that id is not null.
+  (when (not (find-record table id))
     (see-other abort-url)))
 
 

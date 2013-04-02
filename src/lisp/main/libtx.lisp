@@ -280,11 +280,12 @@
                                        :selected-key (val tx-id)
                                        :filter filter
                                        :start-index (val start))))
-      (let ((tx (get-dao-plist 'tx (val tx-id))))
-        (maybe-abort-on-incompatible-id libtx-table
-                                        (val tx-id)
-                                        (libtx (tx-role tx)
-                                               :tx-id (val tx-id))))
+      (when-let (id (val tx-id))
+        (let ((tx (get-dao-plist 'tx id)))
+          (maybe-abort-on-incompatible-id libtx-table
+                                          id
+                                          (libtx (tx-role tx)
+                                                 :tx-id id))))
       (with-document ()
         (:head
           (:title (str page-title))

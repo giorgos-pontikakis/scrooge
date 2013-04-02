@@ -410,10 +410,12 @@
                                          :selected-key (val project-id)
                                          :filter filter
                                          :start-index (val start))))
-      (maybe-abort-on-incompatible-id project-table
-                                      (val project-id)
-                                      (project :project-id (val project-id)
-                                               :cstate (state-id (get-dao 'project (val project-id)))))
+      (when-let (id (val project-id))
+        (let ((project (get-dao 'project id)))
+          (maybe-abort-on-incompatible-id project-table
+                                          id
+                                          (project :project-id id
+                                                   :cstate (state-id project)))))
       (with-document ()
         (:head
           (:title "Έργα » Κατάλογος")

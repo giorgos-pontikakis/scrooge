@@ -350,11 +350,12 @@
                                          :selected-key (val tx-id)
                                          :filter filter
                                          :start-index (val start))))
-      (let ((tx (get-dao-plist 'tx (val tx-id))))
-        (maybe-abort-on-incompatible-id cash-tx-table
-                                        (val tx-id)
-                                        (cash (tx-role tx)
-                                              :tx-id (val tx-id))))
+      (when-let (id (val tx-id))
+        (let ((tx (get-dao-plist 'tx id)))
+          (maybe-abort-on-incompatible-id cash-tx-table
+                                          id
+                                          (cash (tx-role tx)
+                                                :tx-id id))))
       (with-document ()
         (:head
           (:title (str page-title))
