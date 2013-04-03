@@ -359,13 +359,9 @@
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start))))
-      (when-let (id (val cheque-id))
-        (let ((cheque (get-dao 'cheque id)))
-          (maybe-abort-on-incompatible-id cheque-table
-                                          id
-                                          (cheque (if (customer-p cheque) "customer" "supplier")
-                                                  :cheque-id id
-                                                  :cstate (state-id cheque)))))
+      (check-id-inclusion cheque-table
+                          (val cheque-id)
+                          (apply #'cheque role filter))
       (with-document ()
         (:head
           (:title (str page-title))

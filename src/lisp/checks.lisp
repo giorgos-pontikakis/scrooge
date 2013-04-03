@@ -83,3 +83,13 @@
                   ((and (eql (getf constraints :expenses-account-id) :null)
                         (not (customer-p role)))
                    :company-customer-only)))))))
+
+
+
+;;; CHECK FOR ID CONSTRAINTS
+
+(defun check-id-inclusion (table id abort-url)
+  ;; if id is non-null and is not found among the table records, go to
+  ;; abort-url, because id is probably wrong.
+  (when (and id (not (find-record table id)))
+    (see-other abort-url)))

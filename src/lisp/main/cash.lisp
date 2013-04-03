@@ -350,12 +350,9 @@
                                          :selected-key (val tx-id)
                                          :filter filter
                                          :start-index (val start))))
-      (when-let (id (val tx-id))
-        (let ((tx (get-dao-plist 'tx id)))
-          (maybe-abort-on-incompatible-id cash-tx-table
-                                          id
-                                          (cash (tx-role tx)
-                                                :tx-id id))))
+      (check-id-inclusion cash-tx-table
+                          (val tx-id)
+                          (apply #'cash role filter))
       (with-document ()
         (:head
           (:title (str page-title))

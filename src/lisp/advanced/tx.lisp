@@ -250,8 +250,7 @@
 (defmethod customer-p ((record list))
   (or (member (getf record :debit-account-id) *revenue-accounts*)
       (member (getf record :credit-account-id) *revenue-accounts*)
-      (eql (getf record :debit-account-id) (account-id 'cash-account))
-      (eql (getf record :debit-account-id) (account-id 'libtx-account))))
+      (eql (getf record :debit-account-id) (account-id 'cash-account))))
 
 (defun tx-role (tx)
   (if (customer-p tx) "customer" "supplier"))
