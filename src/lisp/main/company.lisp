@@ -306,14 +306,16 @@
 (defmethod get-records ((table company-table))
   (let* ((search (getf (filter table) :search))
          (subset (getf (filter table) :subset))
+         (subset-dc-p (and subset
+                           (member subset (list "credit" "debit") :test #'string=)))
          (ilike-term (ilike search))
          (base-query `(:select company.id company.title tin
                                (:as tof.title tof)
                                address occupation
                                (:as city.title city-name)
-                               ,@(if (string= subset "debit")
-                                    '((:as (:select (company-balance company.id)) balance))
-                                    nil) ;; SQL function
+                               ,@(if subset-dc-p
+                                     '((:as (:select (company-balance company.id)) balance))
+                                     nil) ;; SQL function
                                :distinct
                        :from company
                        :left-join city
@@ -341,7 +343,7 @@
         ((string= subset "projects")
          (push `(:= project.state-id "ongoing")
                where))
-        ((member subset (list "credit" "debit") :test #'string=)
+        (subset-dc-p
          (if (string= subset "debit")
              (progn (push `(:< ,*company-tx-significant-amount* (company-balance company.id))
                           where)
