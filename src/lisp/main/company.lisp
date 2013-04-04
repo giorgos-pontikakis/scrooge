@@ -674,7 +674,7 @@
                                               :request-type :post)
     ((search              string)
      (subset              string  chk-subset)
-     (title               string  chk-company-title/create)
+     (title               string  chk-company-title/create t)
      (occupation          string)
      (tof                 string  chk-tof-title)
      (tin                 string  chk-tin/create)

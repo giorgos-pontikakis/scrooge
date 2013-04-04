@@ -83,8 +83,9 @@
       (if results
           (with-html
             (:select :name "project-id"
-             (loop for (id description) in results
-                   do (htm (:option :value id (str description))))))
+                     (loop for (id description) in results
+                           do (htm (:option :value id (str description))))))
           (with-html
+            (:input :type "hidden" :name "project-id" :value +html-null+)
             (:p "Δεν υπάρχει ενεργό για αυτή την εταίρια. "
-              (:a :href "#" "Νέο έργο »")))))))
+              (:a :href (project/create :company (val company-title)) "Νέο έργο »")))))))

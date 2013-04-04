@@ -32,10 +32,11 @@
 
 (defun params->plist (fn params)
   (mapcan (lambda (param)
-            (if-let (value (funcall fn param))
-              (list (parameter-key (attributes param))
-                    value)
-              nil))
+            (let ((value (funcall fn param)))
+              (if (or value (requiredp (attributes param)))
+                  (list (parameter-key (attributes param))
+                        value)
+                  nil)))
           params))
 
 (defun params->values (group-name &key (fn #'val) (page *page*) (parameters *parameters*))
