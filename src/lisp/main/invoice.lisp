@@ -525,7 +525,7 @@
      (search      string)
      (since       date)
      (until       date)
-     (project-id  integer))
+     (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
   (with-view-page
@@ -574,7 +574,7 @@
      (search      string)
      (since       date)
      (until       date)
-     (project-id  integer))
+     (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
   (with-controller-page (invoice/update role kind)
