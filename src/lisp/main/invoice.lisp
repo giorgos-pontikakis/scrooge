@@ -493,7 +493,7 @@
      (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
-  0(with-controller-page (invoice/create role kind)
+  (with-controller-page (invoice/create role kind)
     (let* ((company-id (company-id (val company)))
            (debit-account-id (invoice-debit-account-id role kind (val account-id)))
            (credit-account-id (invoice-credit-account-id role kind (val account-id)))
