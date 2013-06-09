@@ -202,19 +202,21 @@
                                    nil)))
     (with-html
       (:div :id "config-account-data-form" :class "data-form"
-        (:div :class "data-form-title"
-          (label 'title "Τίτλος")
-          (input-text 'title
-                      :value (title record)
-                      :css-class (getf styles :title)))
-        (input-checkbox 'chequing-p t "Λογαριασμός επιταγών"
-                        :css-class "inline"
-                        :checked (chequing-p record)
-                        :disabled account-referenced-p
-                        :readonly account-referenced-p))
+            (:div :class "data-form-title"
+                  (:label "Τίτλος"
+                          (obj 'input-text
+                               :value (title record)
+                               :css-class (getf styles :title))))
+            (obj 'input-checkbox :name 'chequing-p
+                                 :value t
+                                 :body "Λογαριασμός επιταγών"
+                                 :css-class "inline"
+                                 :checked (chequing-p record)
+                                 :disabled account-referenced-p
+                                 :readonly account-referenced-p))
       (:div :class "data-form-buttons"
-        (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-        (cancel-button (cancel-url form) :body "Άκυρο")))))
+            (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+            (cancel-button (cancel-url form) :body "Άκυρο")))))
 
 (defmethod get-record ((form account-form))
   (get-dao 'account (key form)))
@@ -235,7 +237,7 @@
       (:body
         (:div :id "container" :class "container_12"
           (header 'config)
-          (config-navbar 'account)
+          (navbar 'config 'account)
           (mapc (lambda (debit-p div-id window-title)
                   (let ((account-tree (make-instance 'account-tree
                                                      :op :catalogue
@@ -275,7 +277,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'account)
+            (navbar 'config 'account)
             (:div :class "grid_12"
               (:div :class "window"
                 (:div :class "title" "Λογαριασμός » Δημιουργία")
@@ -330,7 +332,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'account)
+            (navbar 'config 'account)
             (:div :class "grid_12"
               (:div :class "window"
                 (:div :class "title" "Λογαριασμός » Επεξεργασία")
@@ -371,7 +373,7 @@
       (:body
         (:div :id "container" :class "container_12"
           (header 'config)
-          (config-navbar 'account)
+          (navbar 'config 'account)
           (mapc (lambda (debit-p div-id window-title)
                   (let ((account-tree (make-instance 'account-tree
                                                      :op :delete

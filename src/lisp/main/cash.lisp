@@ -360,7 +360,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'cash)
+            (navbar 'main 'cash)
             (cash-top-actions :catalogue)
             (filters cash-tx-table)
             (:div :class "grid_12"
@@ -391,7 +391,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'cash)
+            (navbar 'main 'cash)
             (cash-top-actions :details)
             (:div :class "grid_12"
               (:div :id "cash-window" :class "window"
@@ -434,7 +434,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'cash)
+            (navbar 'main 'cash)
             (cash-top-actions :create)
             (:div :class "grid_12"
               (:div :id "cash-window" :class "window"
@@ -516,7 +516,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'cash)
+            (navbar 'main 'cash)
             (cash-top-actions :update)
             (:div :class "grid_12"
               (:div :id "cash-window" :class "window"
@@ -589,7 +589,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'cash)
+            (navbar 'main 'cash)
             (cash-top-actions :delete)
             (filters cash-tx-table)
             (:div :class "grid_12"

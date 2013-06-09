@@ -166,7 +166,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :details)
             (project-tabs (val project-id)
                           (html ()
@@ -235,7 +235,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :details)
             (project-tabs (val project-id)
                           (html ()
@@ -299,7 +299,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :details)
             (project-tabs (val project-id)
                           (html ()

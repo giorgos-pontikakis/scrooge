@@ -389,7 +389,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'invoice)
+            (navbar 'main 'invoice)
             (invoice-top-actions :catalogue)
             (filters invoice-tx-table)
             (:div :class "grid_12"
@@ -422,7 +422,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'invoice)
+            (navbar 'main 'invoice)
             (invoice-top-actions :details)
             (:div :class "grid_12"
               (:div :id "invoice-window" :class "window"
@@ -464,7 +464,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'invoice)
+            (navbar 'main 'invoice)
             (invoice-top-actions :create)
             (:div :class "grid_12"
               (:div :class "window"
@@ -546,7 +546,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'invoice)
+            (navbar 'main 'invoice)
             (invoice-top-actions :update)
             (:div :class "grid_12"
               (:div :id "invoice-window" :class "window"
@@ -621,7 +621,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'invoice)
+            (navbar 'main 'invoice)
             (invoice-top-actions :delete)
             (filters invoice-tx-table)
             (:div :class "grid_12"

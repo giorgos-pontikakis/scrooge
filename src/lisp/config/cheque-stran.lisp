@@ -222,7 +222,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'cheque-stran)
+            (navbar 'config 'cheque-stran)
             (cheque-stran-top-actions :catalogue)
             (filters cheque-stran-table)
             (:div :class "grid_12"
@@ -259,7 +259,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'cheque-stran)
+            (navbar 'config 'cheque-stran)
             (cheque-stran-top-actions :create)
             (filters cheque-stran-table)
             (:div :class "grid_12"
@@ -320,7 +320,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'cheque-stran)
+            (navbar 'config 'cheque-stran)
             (cheque-stran-top-actions :update)
             (filters cheque-stran-table)
             (:div :class "grid_12"
@@ -377,7 +377,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'cheque-stran)
+            (navbar 'config 'cheque-stran)
             (cheque-stran-top-actions :delete)
             (filters cheque-stran-table)
             (:div :class "grid_12"

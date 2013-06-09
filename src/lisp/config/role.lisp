@@ -112,7 +112,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'account-role)
+            (navbar 'config 'account-role)
             (:div :class "grid_12"
               (:div :id "bank-window" :class "window"
                 (:div :class "title" "Κατάλογος")
@@ -140,7 +140,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'account-role)
+            (navbar 'config 'account-role)
             (:div :class "grid_12"
               (:div :id "account-role-window" :class "window"
                 (:div :class "title" "Επεξεργασία")

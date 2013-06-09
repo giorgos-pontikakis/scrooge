@@ -323,7 +323,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'temtx)
+            (navbar 'config 'temtx)
             (temtx-top-actions :catalogue)
             (filters temtx-table)
             (:div :class "grid_12"
@@ -362,7 +362,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'temtx)
+            (navbar 'config 'temtx)
             (temtx-top-actions :create)
             (filters temtx-table)
             (:div :class "grid_12"
@@ -430,7 +430,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'temtx)
+            (navbar 'config 'temtx)
             (temtx-top-actions :update)
             (filters temtx-table)
             (:div :class "grid_12"
@@ -490,7 +490,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'temtx)
+            (navbar 'config 'temtx)
             (temtx-top-actions :delete)
             (filters temtx-table)
             (:div :class "grid_12"

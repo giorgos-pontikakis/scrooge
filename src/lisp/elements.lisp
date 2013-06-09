@@ -41,7 +41,7 @@
 (defun js-globals ()
   (with-html
     (:script :type "text/javascript"
-      "var accounts = {}; accounts.project = " (str (account-id 'project-account)))))
+             "var accounts = {}; accounts.project = " (str (account-id 'project-account)))))
 
 (defun error-headers ()
   (favicon)
@@ -114,50 +114,50 @@
 (defun header (&optional active-menu)
   (with-html
     (:div :id "header"
-      (header-menu active-menu)
-      (system-menu)
-      (:div :class "clear" ""))))
+          (header-menu active-menu)
+          (system-menu)
+          (:div :class "clear" ""))))
 
 (defun header-menu (active-tag)
   (with-html
     (:div :class "grid_8"
-      (logo)
-      (navbar `((main ,(company) "Συναλλαγές")
-                (advanced ,(account) "Λογιστική")
-                (config ,(config/city) "Ρυθμίσεις"))
-              :id "header-menu"
-              :css-class "hnavbar"
-              :active active-tag))))
+          (logo)
+          (obj 'navbar :spec `((main ,(company) "Συναλλαγές")
+                               (advanced ,(account) "Λογιστική")
+                               (config ,(config/city) "Ρυθμίσεις"))
+                       :id "header-menu"
+                       :css-class "hnavbar"
+                       :active active-tag))))
 
 (defun footer ()
   (with-html
     (:div :id "footer" :class "grid_12"
-      (:p "Powered by lisp"))
+          (:p "Powered by lisp"))
     (:div :class "clear" "")))
 
 (defun print-pages-footer ()
   (with-html
     (:div :id "footer" :class "grid_12"
-      (:p (str (format-timestring t (now)
-                                  :format '(:day "/" :month "/" :year
-                                            ", "
-                                            (:hour 2) ":" :min)
-                                  :timezone +greek-zone+))))
+          (:p (str (format-timestring t (now)
+                                      :format '(:day "/" :month "/" :year
+                                                ", "
+                                                (:hour 2) ":" :min)
+                                      :timezone +greek-zone+))))
     (:div :class "clear" "")))
 
 (defun system-menu ()
   (with-html
     (:div :id "system-menu" :class "grid_4"
-      (:ul :class "hnavbar"
-        (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance))))
-        (:li (:a :href (logout) "Έξοδος"))))))
+          (:ul :class "hnavbar"
+               (:li (:span (fmt "~A@~A" (session-value 'user) (machine-instance))))
+               (:li (:a :href (logout) "Έξοδος"))))))
 
 (defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)
     (with-html
       (:div :class "notifications"
-        (messenger (messages page) parameters
-                   :css-class "msg-error")))))
+            (:obj 'messenger (messages page) parameters
+             :css-class "msg-error")))))
 
 
 
@@ -168,21 +168,21 @@
 (defun filter-area (&rest widgets)
   (with-html
     (:div :class "grid_12"
-      (:div :class "filter-area"
-        (display widgets)))))
+          (:div :class "filter-area"
+                (display widgets)))))
 
 (defun secondary-filter-area (&rest widgets)
   (with-html
     (:div :class "secondary-filter-area"
-      (display widgets))))
+          (display widgets))))
 
 (defun top-actions-area (actions search)
   (with-html ()
     (:div :class "grid_12 top-actions"
-      (:div :class "grid_8 alpha"
-        (display actions))
-      (:div :class "grid_4 omega"
-        (display search)))))
+          (:div :class "grid_8 alpha"
+                (display actions))
+          (:div :class "grid_4 omega"
+                (display search)))))
 
 
 ;;; actions menu
@@ -197,15 +197,15 @@
 (defmethod make-spec-line ((action symbol) (link string))
   (html ()
     (:a :href link
-      :class (string-downcase action)
-      (str (assoc-value *action-labels* action)))))
+        :class (string-downcase action)
+        (str (assoc-value *action-labels* action)))))
 
 (defmethod make-spec-line ((action symbol) (link list))
   (destructuring-bind (href label &optional css-class) link
     (html ()
       (:a :href href
-        :class (or css-class (string-downcase action))
-        (str label)))))
+          :class (or css-class (string-downcase action))
+          (str label)))))
 
 (defmethod make-spec-line ((action symbol) (link function))
   (declare (ignore action))
@@ -227,10 +227,11 @@
 (defun filter-navbar (spec &key active id)
   (html ()
     (:div :id id :class "filter-navbar"
-      (navbar spec
-              :css-class "hnavbar"
-              :active active
-              :test #'string-equal))))
+          (obj 'navbar
+               :spec spec
+               :css-class "hnavbar"
+               :active active
+               :test #'string-equal))))
 
 (defun searchbox (submit-fn cancel-fn filter &optional css-class)
   (let ((hidden (remove-from-plist filter :search))
@@ -239,37 +240,43 @@
                    :action (funcall submit-fn)
                    :body (html ()
                            (:div :id "searchbox" :class "inline-form"
-                             (:p :class "search"
-                               "Αναζήτηση: "
-                               (input-text 'search :id "search-input"
-                                                   :value term
-                                                   :css-class css-class)
-                               (:button :type "submit"
-                                 (img "magnifier.png"))
-                               (:a :class "cancel"
-                                 :href (apply cancel-fn hidden)
-                                 (img "cross.png")))))
+                                 (:p :class "search"
+                                     "Αναζήτηση: "
+                                     (obj 'input-text
+                                          :name 'search
+                                          :id "search-input"
+                                          :value term
+                                          :css-class css-class)
+                                     (:button :type "submit"
+                                              (img "magnifier.png"))
+                                     (:a :class "cancel"
+                                         :href (apply cancel-fn hidden)
+                                         (img "cross.png")))))
                    :hidden hidden)))
 
 (defun datebox (submit-fn filter)
   (let ((hidden (remove-from-plist filter :since :until)))
     (html ()
       (:div :id "datebox" :class "inline-form filter-navbar"
-        (form (funcall submit-fn)
-              (html ()
-                (:p
-                  (label 'since "Από: ")
-                  (input-text 'since :value (getf filter :since)
-                                     :css-class "datepicker")
-                  (label 'until "Εώς: " :id "until")
-                  (input-text 'until :value (getf filter :until)
-                                     :css-class "datepicker")
-                  (:button :type "submit"
-                    (img "tick.png"))
-                  (:a :class "cancel"
-                    :href (apply submit-fn hidden)
-                    (img "cross.png"))))
-              :hidden hidden)))))
+            (obj 'form :action (funcall submit-fn)
+                       :body (html ()
+                               (:p
+                                (:label "Από: "
+                                        (obj 'input-text
+                                             :name 'since
+                                             :value (getf filter :since)
+                                             :css-class "datepicker"))
+                                (:label  :id "until"
+                                         "Εώς: "
+                                         (:input-text :name 'until
+                                                      :value (getf filter :until)
+                                                      :css-class "datepicker"))
+                                (:button :type "submit"
+                                         (img "tick.png"))
+                                (:a :class "cancel"
+                                    :href (apply submit-fn hidden)
+                                    (img "cross.png"))))
+                       :hidden hidden)))))
 
 
 ;;; label-input-text for forms
@@ -285,13 +292,13 @@
                                 enabled-styles)
                             " "
                             common-styles)))
-      (label name label)
-      (display (make-instance 'textbox :name name
-                                       :value value
-                                       :href href
-                                       :disabled disabled
-                                       :css-class all-styles
-                                       :format-fn format-fn)))))
+      (htm (:label (str label)
+                   (obj 'textbox :name name
+                                 :value value
+                                 :href href
+                                 :disabled disabled
+                                 :css-class all-styles
+                                 :format-fn format-fn))))))
 
 
 ;;; textbox-maker
@@ -320,13 +327,13 @@
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
       (:a :id id
-        :href (if selected-p
-                  (apply url-fn :start start filter)
-                  (apply url-fn
-                         id-key
-                         id
-                         filter))
-        (selector-img selected-p)))))
+          :href (if selected-p
+                    (apply url-fn :start start filter)
+                    (apply url-fn
+                           id-key
+                           id
+                           filter))
+          (selector-img selected-p)))))
 
 (defun simple-controls (row enabled-p url-fn id-key)
   (let ((id (key row))
@@ -339,3 +346,6 @@
                                           id
                                           (filter table))))
         (list nil nil))))
+
+
+(defgeneric navbar (section active))

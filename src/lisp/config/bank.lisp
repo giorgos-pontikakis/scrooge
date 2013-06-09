@@ -141,7 +141,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'bank)
+            (navbar 'config 'bank)
             (bank-top-actions :catalogue)
             (:div :class "grid_12"
               (:div :id "bank-window" :class "window"
@@ -171,7 +171,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'bank)
+            (navbar 'config 'bank)
             (bank-top-actions :create)
             (:div :class "grid_12"
               (:div :id "bank-window" :class "window"
@@ -214,7 +214,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'bank)
+            (navbar 'config 'bank)
             (bank-top-actions :update)
             (:div :class "grid_12"
               (:div :id "bank-window" :class "window"
@@ -259,7 +259,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'bank)
+            (navbar 'config 'bank)
             (bank-top-actions :delete)
             (:div :class "grid_12"
               (:div :id "bank-window" :class "window"

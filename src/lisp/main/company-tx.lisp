@@ -229,7 +229,7 @@
             (:body
               (:div :id "container" :class "container_12"
                 (header 'main)
-                (main-navbar 'company)
+                (navbar 'main 'company)
                 (company-tx-top-actions :catalogue)
                 (company-tabs
                  (val company-id) filter 'tx
@@ -332,7 +332,7 @@
             (:body
               (:div :id "container" :class "container_12"
                 (header 'main)
-                (main-navbar 'company)
+                (navbar 'main 'company)
                 (company-tx-top-actions :update)
                 (company-tabs
                  (val company-id) filter 'tx

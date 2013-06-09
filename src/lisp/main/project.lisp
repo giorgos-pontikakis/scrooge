@@ -199,42 +199,44 @@
          (ldfn (label-datum disabled record styles)))
     (with-html
       (:div :class "data-form project-form"
-        (:div :class "data-form-title"
-          (display ldfn 'description "Περιγραφή")
-          (display ldfn 'company "Εταιρία"
-                   :enabled-styles "ac-company"
-                   :href (company/details :company-id (getf record :company-id))))
-        (:div :class "project-form-details"
-          (:fieldset
-            (:legend "Οικονομικά")
-            (:ul
-              (:li (label 'state-id "Κατάσταση")
-                (dropdown 'state-id *project-state-ids*
-                          :selected (or (getf record :state-id)
-                                        *default-project-state-id*)
-                          :disabled disabled))
-              (:li (display ldfn 'price "Τιμή"))
-              (:li (display ldfn 'vat "Φ.Π.Α.")))))
-        (:div :class "project-form-details"
-          (:fieldset
-            (:legend "Χρονοδιάγραμμα")
-            (:ul
-              (:li (display ldfn 'quote-date "Ημερομηνία προσφοράς"
-                            :enabled-styles "datepicker"
-                            :default-value (today)))
-              (:li (display ldfn 'start-date "Ημερομηνία έναρξης"
-                            :enabled-styles "datepicker"))
-              (:li (display ldfn 'end-date "Ημερομηνία ολοκλήρωσης"
-                            :enabled-styles "datepicker")))))
-        (clear)
-        (:div :id "project-notes"
-          (label 'notes "Σημειώσεις")
-          (:textarea :name 'notes :disabled disabled
-            (str (lisp->html (or (getf record :notes) :null))))))
+            (:div :class "data-form-title"
+                  (display ldfn 'description "Περιγραφή")
+                  (display ldfn 'company "Εταιρία"
+                           :enabled-styles "ac-company"
+                           :href (company/details :company-id (getf record :company-id))))
+            (:div :class "project-form-details"
+                  (:fieldset
+                   (:legend "Οικονομικά")
+                   (:ul
+                    (:li (:label "Κατάσταση"
+                                 (obj 'dropdown :name 'state-id
+                                                :value-label-alist *project-state-ids*
+                                                :selected (or (getf record :state-id)
+                                                              *default-project-state-id*)
+                                                :disabled disabled)))
+                    (:li (display ldfn 'price "Τιμή"))
+                    (:li (display ldfn 'vat "Φ.Π.Α.")))))
+            (:div :class "project-form-details"
+                  (:fieldset
+                   (:legend "Χρονοδιάγραμμα")
+                   (:ul
+                    (:li (display ldfn 'quote-date "Ημερομηνία προσφοράς"
+                                  :enabled-styles "datepicker"
+                                  :default-value (today)))
+                    (:li (display ldfn 'start-date "Ημερομηνία έναρξης"
+                                  :enabled-styles "datepicker"))
+                    (:li (display ldfn 'end-date "Ημερομηνία ολοκλήρωσης"
+                                  :enabled-styles "datepicker")))))
+            (clear)
+            (:div :id "project-notes"
+                  (:label "Σημειώσεις"
+                          (:textarea :name 'notes
+                                     :disabled disabled
+                                     (str (lisp->html (or (getf record :notes) :null)))))))
       (:div :class "data-form-buttons"
-        (unless disabled
-          (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-          (cancel-button (cancel-url form) :body "Άκυρο"))))))
+            (unless disabled
+              (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+              (cancel-button (cancel-url form) :body "Άκυρο"))))))
 
 (defmethod get-record ((form project-form))
   (let ((project-id (key form)))
@@ -420,7 +422,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :catalogue)
             (filters project-table)
             (:div :class "grid_12"
@@ -451,7 +453,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :details)
             (project-tabs (val project-id)
                           (html ()
@@ -497,7 +499,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :create)
             (project-tabs nil
                           (html ()
@@ -579,7 +581,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :update)
             (project-tabs (val project-id)
                           (html ()
@@ -654,7 +656,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'project)
+            (navbar 'main 'project)
             (project-top-actions :delete)
             (filters project-table)
             (:div :class "grid_12"

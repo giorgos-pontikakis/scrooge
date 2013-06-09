@@ -63,9 +63,10 @@
 /* data form */
 /* ---------------------------------------------------------------------- */
 
-.data-form span {
+.data-form label span {
     display: block;
-    padding: 3px 0px;
+    font-weight: normal;
+    padding: 4px 0px;
     font-size: 13px;
     min-height: 16px;
     margin-bottom: 10px;
@@ -91,6 +92,7 @@
 }
 
 .data-form input {
+    margin-top: 2px;
     margin-bottom: 10px;
 }
 

@@ -141,7 +141,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'tof)
+            (navbar 'config 'tof)
             (tof-top-actions :catalogue)
             (:div :class "grid_12"
               (:div :id "tof-window" :class "window"
@@ -171,7 +171,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'tof)
+            (navbar 'config 'tof)
             (tof-top-actions :create)
             (:div :class "grid_12"
               (:div :id "tof-window" :class "window"
@@ -214,7 +214,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'tof)
+            (navbar 'config 'tof)
             (tof-top-actions :update)
             (:div :class "grid_12"
               (:div :id "tof-window" :class "window"
@@ -259,7 +259,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'tof)
+            (navbar 'config 'tof)
             (tof-top-actions :delete)
             (:div :class "grid_12"
               (:div :id "tof-window" :class "window"

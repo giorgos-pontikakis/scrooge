@@ -216,7 +216,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-cheque-top-actions :catalogue)
             (company-tabs (val company-id) filter 'cheque
                           (html ()
@@ -333,7 +333,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-cheque-top-actions :create)
             (company-tabs
              (val company-id) filter 'cheque
@@ -421,7 +421,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-cheque-top-actions :update)
             (company-tabs
              (val company-id) filter 'cheque
@@ -506,7 +506,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-cheque-top-actions :delete)
             (company-tabs
              (val company-id) filter 'cheque

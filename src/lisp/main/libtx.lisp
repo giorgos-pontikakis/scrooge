@@ -290,7 +290,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'libtx)
+            (navbar 'main 'libtx)
             (libtx-top-actions :catalogue)
             (filters libtx-table)
             (:div :class "grid_12"
@@ -320,7 +320,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'libtx)
+            (navbar 'main 'libtx)
             (libtx-top-actions :details)
             (:div :class "grid_12"
               (:div :id "libtx-window" :class "window"
@@ -360,7 +360,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'libtx)
+            (navbar 'main 'libtx)
             (libtx-top-actions :create)
             (:div :class "grid_12"
               (:div :id "libtx-window" :class "window"
@@ -435,7 +435,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'libtx)
+            (navbar 'main 'libtx)
             (libtx-top-actions :update)
             (:div :class "grid_12"
               (:div :id "libtx-window" :class "window"
@@ -503,7 +503,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'libtx)
+            (navbar 'main 'libtx)
             (libtx-top-actions :delete)
             (filters libtx-table)
             (:div :class "grid_12"

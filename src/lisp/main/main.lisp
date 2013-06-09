@@ -5,24 +5,27 @@
 ;;; UI elements
 ;;; ----------------------------------------------------------------------
 
-(defun main-navbar (&optional active)
-  (with-html
-    (:div :class "grid_12"
-      (:div :class "section-navbar"
-        (navbar `((company ,(company)
-                           "Εταιρίες")
-                  (project ,(project :cstate "ongoing")
-                           "Έργα")
-                  (cash    ,(cash "customer")
-                           "Μετρητά")
-                  (cheque  ,(cheque "customer" :cstate "pending")
-                           "Επιταγές")
-                  (invoice ,(invoice "customer" "debit")
-                           "Χρεωπιστώσεις")
-                  (libtx   ,(libtx "customer")
-                           "Βιβλιοθήκη"))
-                :css-class "hnavbar"
-                :active active)))))
+(defmethod navbar ((section (eql 'main)) active)
+  (declare (ignore section))
+  (let ((spec  `((company ,(company)
+                          "Εταιρίες")
+                 (project ,(project :cstate "ongoing")
+                          "Έργα")
+                 (cash    ,(cash "customer")
+                          "Μετρητά")
+                 (cheque  ,(cheque "customer" :cstate "pending")
+                          "Επιταγές")
+                 (invoice ,(invoice "customer" "debit")
+                          "Χρεωπιστώσεις")
+                 (libtx   ,(libtx "customer")
+                          "Βιβλιοθήκη"))))
+    (with-html
+      (:div :class "grid_12"
+            (:div :class "section-navbar"
+                  (obj 'navbar
+                       :spec spec
+                       :css-class "hnavbar"
+                       :active active))))))
 
 
 ;;; app-section
@@ -82,29 +85,29 @@
          (ldfn (label-datum disabled record styles)))
     (with-html
       (:div :class "left-column"
-        (:h3 "Στοιχεία Συναλλαγής")
-        (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
-                                            :default-value (today))
-        (display ldfn 'company "Εταιρία"
-                 :enabled-styles "ac-company"
-                 :href (company/tx :company-id (getf record :company-id)
-                                   :tx-id (key form))
-                 :common-styles "company")
-        (display ldfn 'description "Περιγραφή"
-                 :common-styles "description")
-        (display ldfn 'amount "Ποσό"
-                 :common-styles "amount"
-                 :format-fn #'fmt-amount)
-        (:div :id "project-group"
-          (label 'project "Έργο")
-          (:div :id "project-picker" ""))
-        (unless disabled
-          (htm (:div :class "data-form-buttons"
-                 (ok-button :body (if (eql (op form) :update)
-                                      "Ανανέωση"
-                                      "Δημιουργία"))
-                 (cancel-button (cancel-url form)
-                                :body "Άκυρο"))))))))
+            (:h3 "Στοιχεία Συναλλαγής")
+            (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
+                                                :default-value (today))
+            (display ldfn 'company "Εταιρία"
+                     :enabled-styles "ac-company"
+                     :href (company/tx :company-id (getf record :company-id)
+                                       :tx-id (key form))
+                     :common-styles "company")
+            (display ldfn 'description "Περιγραφή"
+                     :common-styles "description")
+            (display ldfn 'amount "Ποσό"
+                     :common-styles "amount"
+                     :format-fn #'fmt-amount)
+            (:div :id "project-group"
+                  (:label "Έργο"
+                          (:div :id "project-picker" "")))
+            (unless disabled
+              (htm (:div :class "data-form-buttons"
+                         (ok-button :body (if (eql (op form) :update)
+                                              "Ανανέωση"
+                                              "Δημιουργία"))
+                         (cancel-button (cancel-url form)
+                                        :body "Άκυρο"))))))))
 
 
 
@@ -132,6 +135,7 @@
                  :checked selected-p))
 
 (defmethod payload ((node radio-account-node) enabled-p)
+  (declare (ignore enabled-p))
   (html ()
     (str (lisp->html (getf (record node) :title)))))
 

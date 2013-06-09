@@ -171,26 +171,29 @@
 
 (defun company-tabs (company-id filter active content)
   (declare (ignore filter))
-  (with-html
-    (:div :class "grid_12"
-      (:div :id "company-area"
-        (when company-id
-          (htm (:div :id "company-title"
-                 (:h2 :class "grid_12 alpha"
-                   (str (title (get-dao 'company company-id))))
-                 (navbar
-                  `((data ,(family-url 'company/details :system :filter) "Στοιχεία")
-                    (tx ,(family-url 'company/tx :system :filter) "Συναλλαγές")
-                    (cheque ,(apply #'company/cheque "customer" :cstate "pending"
-                                    (family-params 'company/cheque :system))
-                            "Επιταγές"))
-                  :css-class "hnavbar grid_5 prefix_7"
-                  :active active
-                  :id "company-tabs"
-                  :css-class "hnavbar")
-                 (clear))))
-        (display content)
-        (clear)))))
+  (let ((spec `((data ,(family-url 'company/details :system :filter)
+                      "Στοιχεία")
+                (tx ,(family-url 'company/tx :system :filter)
+                    "Συναλλαγές")
+                (cheque ,(apply #'company/cheque "customer" :cstate "pending"
+                                (family-params 'company/cheque :system))
+                        "Επιταγές"))))
+    (with-html
+      (:div :class "grid_12"
+            (:div :id "company-area"
+                  (when company-id
+                    (htm (:div :id "company-title"
+                               (:h2 :class "grid_12 alpha"
+                                    (str (title (get-dao 'company company-id))))
+                               (display
+                                (make-instance 'navbar :spec spec
+                                                       :css-class "hnavbar grid_5 prefix_7"
+                                                       :active active
+                                                       :id "company-tabs"
+                                                       :css-class "hnavbar"))
+                               (clear))))
+                  (display content)
+                  (clear))))))
 
 
 
@@ -208,43 +211,45 @@
          (ldfn (label-datum disabled record styles)))
     (with-html
       (:div :class "data-form company-form"
-        (:div :class "company-form-title"
-          (display ldfn 'title "Επωνυμία"))
-        (:div :class "form-group"
-          (display ldfn 'occupation "Επάγγελμα" :enabled-styles "ac-occupation")
-          (:div :id "tin"
-            (display ldfn 'tin "Α.Φ.Μ."))
-          (:div :id "tof"
-            (display ldfn 'tof "Δ.Ο.Υ." :enabled-styles "ac-tof"))
-          (clear))
-        (:div :class "form-group"
-          (display ldfn 'address "Διεύθυνση")
-          (display ldfn 'city "Πόλη" :enabled-styles "ac-city")
-          (:div :id "zipcode"
-            (display ldfn 'zipcode "Ταχυδρομικός κωδικός"))
-          (:div :id "pobox"
-            (display ldfn 'pobox "Ταχυδρομική θυρίδα"))
-          (clear))
-        (:div :class "form-group advanced"
-          (display ldfn 'revenues-account "Λογαριασμός εσόδων"
-                   :default-value (title (get-dao 'account (account-id 'revenues-root-account)))
-                   :enabled-styles "ac-revenues")
-          (display ldfn 'expenses-account "Λογαριασμός εξόδων"
-                   :default-value (title (get-dao 'account (account-id 'expenses-root-account)))
-                   :enabled-styles "ac-expenses")
-          (label 'immediate-tx-only-p "Τρόπος πληρωμής")
-          (dropdown 'immediate-tx-only-p  '((nil . "Μέσω ανοιχτού λογαριασμού")
-                                            (t . "Απ' ευθείας εξόφληση"))
-                    :disabled disabled
-                    :selected (getf record :immediate-tx-only-p nil)))
-        (:div :class "form-group"
-          (label 'notes "Σημειώσεις")
-          (:textarea :name 'notes :disabled disabled
-            (str (lisp->html (or (getf record :notes) :null)))))
-        (:div :class "data-form-buttons"
-        (unless disabled
-          (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
-          (cancel-button (cancel-url form) :body "Άκυρο")))))))
+            (:div :class "company-form-title"
+                  (display ldfn 'title "Επωνυμία"))
+            (:div :class "form-group"
+                  (display ldfn 'occupation "Επάγγελμα" :enabled-styles "ac-occupation")
+                  (:div :id "tin"
+                        (display ldfn 'tin "Α.Φ.Μ."))
+                  (:div :id "tof"
+                        (display ldfn 'tof "Δ.Ο.Υ." :enabled-styles "ac-tof"))
+                  (clear))
+            (:div :class "form-group"
+                  (display ldfn 'address "Διεύθυνση")
+                  (display ldfn 'city "Πόλη" :enabled-styles "ac-city")
+                  (:div :id "zipcode"
+                        (display ldfn 'zipcode "Ταχυδρομικός κωδικός"))
+                  (:div :id "pobox"
+                        (display ldfn 'pobox "Ταχυδρομική θυρίδα"))
+                  (clear))
+            (:div :class "form-group advanced"
+                  (display ldfn 'revenues-account "Λογαριασμός εσόδων"
+                           :default-value (title (get-dao 'account (account-id 'revenues-root-account)))
+                           :enabled-styles "ac-revenues")
+                  (display ldfn 'expenses-account "Λογαριασμός εξόδων"
+                           :default-value (title (get-dao 'account (account-id 'expenses-root-account)))
+                           :enabled-styles "ac-expenses")
+                  (:label "Τρόπος πληρωμής"
+                          (obj 'dropdown :name 'immediate-tx-only-p
+                                         :value-label-alist '((nil . "Μέσω ανοιχτού λογαριασμού")
+                                                              (t . "Απ' ευθείας εξόφληση"))
+                                         :disabled disabled
+                                         :selected (getf record :immediate-tx-only-p nil))))
+            (:div :class "form-group"
+                  (:label "Σημειώσεις"
+                          (:textarea :name 'notes
+                                     :disabled disabled
+                                     (str (lisp->html (or (getf record :notes) :null))))))
+            (:div :class "data-form-buttons"
+                  (unless disabled
+                    (ok-button :body (if (eql (op form) :update) "Ανανέωση" "Δημιουργία"))
+                    (cancel-button (cancel-url form) :body "Άκυρο")))))))
 
 (defmethod get-record ((form company-form))
   (let ((company-id (key form)))
@@ -504,7 +509,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-top-actions :catalogue)
             (filters company-table)
             (:div :class "grid_12"
@@ -569,7 +574,7 @@
 
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-top-actions :details)
             (company-tabs (val company-id) filter 'data
                           (html ()
@@ -655,7 +660,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-top-actions :create)
             (company-tabs nil filter 'data
                           (html ()
@@ -747,7 +752,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-top-actions :update)
             (company-tabs (val company-id) filter 'data
                           (html ()
@@ -828,7 +833,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'main)
-            (main-navbar 'company)
+            (navbar 'main 'company)
             (company-top-actions :delete)
             (filters company-table)
             (:div :class "grid_12"

@@ -28,16 +28,19 @@
 
 ;;; UI elements
 
-(defun config-navbar (&optional active)
-  (with-html
-    (:div :class "grid_12"
-      (:div :class "section-navbar"
-        (navbar `((city          ,(config/city)                      "Πόλεις")
-                  (bank          ,(config/bank)                      "Τράπεζες")
-                  (tof           ,(config/tof)                       "Δ.Ο.Υ.")
-                  (account       ,(config/account)                   "Λογαριασμοί")
-                  (account-role  ,(config/account-role)              "Ρόλοι Λογαριασμών")
-                  (temtx         ,(config/temtx "customer")          "Πρότυπα Συναλλαγών")
-                  (cheque-stran  ,(config/cheque-stran "customer") "Επιταγές"))
-                :css-class "hnavbar"
-                :active active)))))
+(defmethod navbar ((section (eql 'config)) active)
+  (declare (ignore section))
+  (let ((spec `((city         ,(config/city)                    "Πόλεις")
+                (bank         ,(config/bank)                    "Τράπεζες")
+                (tof          ,(config/tof)                     "Δ.Ο.Υ.")
+                (account      ,(config/account)                 "Λογαριασμοί")
+                (account-role ,(config/account-role)            "Ρόλοι Λογαριασμών")
+                (temtx        ,(config/temtx "customer")        "Πρότυπα Συναλλαγών")
+                (cheque-stran ,(config/cheque-stran "customer") "Επιταγές"))))
+    (with-html
+      (:div :class "grid_12"
+            (:div :class "section-navbar"
+                  (obj 'navbar
+                       :spec spec
+                       :css-class "hnavbar"
+                       :active active))))))

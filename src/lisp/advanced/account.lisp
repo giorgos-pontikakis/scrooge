@@ -85,6 +85,7 @@
         (selector-img selected-p)))))
 
 (defmethod payload ((node balance-account-node) enabled-p)
+  (declare (ignore enabled-p))
   (html ()
     (:a :href (apply #'account/tx :account-id (key node) (filter (collection node)))
       (str (getf (record node) :title)))
@@ -98,7 +99,7 @@
         " | Credits: " (str (fmt-amount (credits node)))))))
 
 (defmethod controls ((node balance-account-node) controls-p)
-  (declare (ignore node))
+  (declare (ignore node controls-p))
   (list nil nil))
 
 
@@ -120,7 +121,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
-            (advanced-navbar 'account)
+            (navbar 'advanced 'account)
             (top-actions-area (datebox #'account filter) nil)
             (loop for debit-p in '(t nil)
                   for div-id in '("debit-accounts" "credit-accounts")
@@ -285,7 +286,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
-            (advanced-navbar 'account)
+            (navbar 'advanced 'account)
             (top-actions-area
              (make-instance 'scrooge-menu
                             :spec (make-menu-spec

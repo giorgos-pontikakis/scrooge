@@ -203,7 +203,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'project-stran)
+            (navbar 'config 'project-stran)
             (:div :class "grid_12"
               (:div :id "project-stran-window" :class "window"
                 (:div :class "title" "Κατάλογος")
@@ -234,7 +234,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'project-stran)
+            (navbar 'config 'project-stran)
             (:div :class "grid_12"
               (:div :class "window"
                 (:div :class "title" "Δημιουργία")
@@ -286,7 +286,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'project-stran)
+            (navbar 'config 'project-stran)
             (:div :class "grid_12"
               (:div :id "project-stran-window" :class "window"
                 (:div :class "title" "Επεξεργασία")
@@ -335,7 +335,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'project-stran)
+            (navbar 'config 'project-stran)
             (:div :class "grid_12"
               (:div :id "project-stran-window" :class "window"
                 (:div :class "title" "Μεταπτώσεις Έργων » Διαγραφή")

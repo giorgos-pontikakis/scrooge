@@ -281,7 +281,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
-            (advanced-navbar 'tx)
+            (navbar 'advanced 'tx)
             (tx-top-actions :catalogue)
             (filters tx-table)
             (:div :class "grid_12"
@@ -321,7 +321,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
-            (advanced-navbar 'tx)
+            (navbar 'advanced 'tx)
             (tx-top-actions :create)
             (filters tx-table)
             (:div :class "grid_12"
@@ -395,7 +395,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
-            (advanced-navbar 'tx)
+            (navbar 'advanced 'tx)
             (tx-top-actions :update)
             (filters tx-table)
             (:div :class "grid_12"
@@ -466,7 +466,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'advanced)
-            (advanced-navbar 'tx)
+            (navbar 'advanced 'tx)
             (tx-top-actions :delete)
             (filters tx-table)
             (:div :class "grid_12"

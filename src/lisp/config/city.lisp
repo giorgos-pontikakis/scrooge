@@ -141,7 +141,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'city)
+            (navbar 'config 'city)
             (city-top-actions :catalogue)
             (:div :class "grid_12"
               (:div :id "city-window" :class "window"
@@ -172,7 +172,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'city)
+            (navbar 'config 'city)
             (city-top-actions :create)
             (:div :class "grid_12"
               (:div :id "city-window" :class "window"
@@ -215,7 +215,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'city)
+            (navbar 'config 'city)
             (city-top-actions :update)
             (:div :class "grid_12"
               (:div :id "city-window" :class "window"
@@ -260,7 +260,7 @@
         (:body
           (:div :id "container" :class "container_12"
             (header 'config)
-            (config-navbar 'city)
+            (navbar 'config 'city)
             (city-top-actions :delete)
             (:div :class "grid_12"
               (:div :id "city-window" :class "window"
