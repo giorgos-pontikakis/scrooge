@@ -162,10 +162,10 @@
          (table (collection row))
          (role (role table)))
     (html ()
-      (:a :href (if enabled-p
-                    (config/cheque-stran role)
-                    (config/cheque-stran role :cheque-stran-id cheque-stran-id))
-        (selector-img enabled-p)))))
+          (:a :href (if enabled-p
+                        (config/cheque-stran role)
+                        (config/cheque-stran role :cheque-stran-id cheque-stran-id))
+              (selector-img enabled-p)))))
 
 (defmethod payload ((row cheque-stran-row) enabled-p)
   (let ((record (record row))
@@ -206,31 +206,31 @@
 ;;; ------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran
-    (("config/cheque-stran/" (role "(customer|supplier)")))
-    ((start           integer)
-     (cheque-stran-id integer chk-cheque-stran-id))
+  (("config/cheque-stran/" (role "(customer|supplier)")))
+  ((start           integer)
+   (cheque-stran-id integer chk-cheque-stran-id))
   (with-view-page
-    (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :op :catalogue
-                                             :selected-key (val cheque-stran-id)
-                                             :id "cheque-stran-table"
-                                             :role role)))
-      (with-document ()
-        (:head
-          (:title "Μεταπτώσεις Επιταγών » Κατάλογος")
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'cheque-stran)
-            (cheque-stran-top-actions :catalogue)
-            (filters cheque-stran-table)
-            (:div :class "grid_12"
-              (:div :id "cheque-stran-window" :class "window"
-                (:div :class "title" "Κατάλογος")
-                (actions cheque-stran-table)
-                (display cheque-stran-table)))
-            (footer)))))))
+      (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                               :op :catalogue
+                                               :selected-key (val cheque-stran-id)
+                                               :id "cheque-stran-table"
+                                               :role role)))
+        (with-document ()
+          (:head
+           (:title "Μεταπτώσεις Επιταγών » Κατάλογος")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'cheque-stran)
+                 (cheque-stran-top-actions :catalogue)
+                 (filters cheque-stran-table)
+                 (:div :class "grid_12"
+                       (:div :id "cheque-stran-window" :class "window"
+                             (:div :class "title" "Κατάλογος")
+                             (actions cheque-stran-table)
+                             (display cheque-stran-table)))
+                 (footer)))))))
 
 
 
@@ -239,43 +239,43 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/create
-    (("config/cheque-stran/" (role "(customer|supplier)") "/create"))
-    ((title         string chk-cheque-stran-title/create)
-     (from-state-id string chk-cheque-state-id*)
-     (to-state-id   string chk-cheque-state-id)
-     (temtx         string))
+  (("config/cheque-stran/" (role "(customer|supplier)") "/create"))
+  ((title         string chk-cheque-stran-title/create)
+   (from-state-id string chk-cheque-state-id*)
+   (to-state-id   string chk-cheque-state-id)
+   (temtx         string))
   (validate-parameters (cheque-stran-chker role)
                        from-state-id to-state-id)
   (validate-parameters (temtx-chq-title-chker (customer-p role))
                        temtx)
   (with-view-page
-    (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :role role
-                                             :op :create)))
-      (with-document ()
-        (:head
-          (:title "Μεταπτώσεις Επιταγών » Δημιουργία")
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'cheque-stran)
-            (cheque-stran-top-actions :create)
-            (filters cheque-stran-table)
-            (:div :class "grid_12"
-              (:div :class "window"
-                (:div :class "title" "Δημιουργία")
-                (actions cheque-stran-table)
-                (notifications)
-                (with-form (actions/config/cheque-stran/create role)
-                  (display cheque-stran-table :payload (params->payload)))))))))))
+      (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                               :role role
+                                               :op :create)))
+        (with-document ()
+          (:head
+           (:title "Μεταπτώσεις Επιταγών » Δημιουργία")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'cheque-stran)
+                 (cheque-stran-top-actions :create)
+                 (filters cheque-stran-table)
+                 (:div :class "grid_12"
+                       (:div :class "window"
+                             (:div :class "title" "Δημιουργία")
+                             (actions cheque-stran-table)
+                             (notifications)
+                             (with-form (actions/config/cheque-stran/create role)
+                               (display cheque-stran-table :payload (params->payload)))))))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/create
-    (("actions/config/cheque-stran/" (role "(customer|supplier)") "/create") :request-type :post)
-    ((title         string chk-cheque-stran-title/create)
-     (from-state-id string chk-cheque-state-id*)
-     (to-state-id   string chk-cheque-state-id)
-     (temtx         string))
+  (("actions/config/cheque-stran/" (role "(customer|supplier)") "/create") :request-type :post)
+  ((title         string chk-cheque-stran-title/create)
+   (from-state-id string chk-cheque-state-id*)
+   (to-state-id   string chk-cheque-state-id)
+   (temtx         string))
   (validate-parameters (cheque-stran-chker role)
                        from-state-id to-state-id)
   (validate-parameters (temtx-chq-title-chker (customer-p role))
@@ -298,50 +298,50 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/update
-    (("config/cheque-stran/" (role "(customer|supplier)") "/update"))
-    ((cheque-stran-id integer chk-cheque-stran-id                                   t)
-     (title           string  (chk-cheque-stran-title/update title cheque-stran-id))
-     (from-state-id   string  chk-cheque-state-id*)
-     (to-state-id     string  chk-cheque-state-id)
-     (temtx           string))
+  (("config/cheque-stran/" (role "(customer|supplier)") "/update"))
+  ((cheque-stran-id integer chk-cheque-stran-id                                   t)
+   (title           string  (chk-cheque-stran-title/update title cheque-stran-id))
+   (from-state-id   string  chk-cheque-state-id*)
+   (to-state-id     string  chk-cheque-state-id)
+   (temtx           string))
   (validate-parameters (cheque-stran-chker role (val cheque-stran-id))
                        from-state-id to-state-id)
   (validate-parameters (temtx-chq-title-chker (customer-p role))
                        temtx)
   (with-view-page
-    (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :role role
-                                             :selected-key (val cheque-stran-id)
-                                             :op :update)))
-      (with-document ()
-        (:head
-          (:title "Μεταπτώσεις Επιταγών » Επεξεργασία")
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'cheque-stran)
-            (cheque-stran-top-actions :update)
-            (filters cheque-stran-table)
-            (:div :class "grid_12"
-              (:div :id "cheque-stran-window" :class "window"
-                (:div :class "title" "Επεξεργασία")
-                (actions cheque-stran-table)
-                (notifications)
-                (with-form
-                    (actions/config/cheque-stran/update role
-                                                        :cheque-stran-id (val cheque-stran-id))
-                  (display cheque-stran-table :payload (params->payload)))))
-            (footer)))))))
+      (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                               :role role
+                                               :selected-key (val cheque-stran-id)
+                                               :op :update)))
+        (with-document ()
+          (:head
+           (:title "Μεταπτώσεις Επιταγών » Επεξεργασία")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'cheque-stran)
+                 (cheque-stran-top-actions :update)
+                 (filters cheque-stran-table)
+                 (:div :class "grid_12"
+                       (:div :id "cheque-stran-window" :class "window"
+                             (:div :class "title" "Επεξεργασία")
+                             (actions cheque-stran-table)
+                             (notifications)
+                             (with-form
+                                 (actions/config/cheque-stran/update role
+                                                                     :cheque-stran-id (val cheque-stran-id))
+                               (display cheque-stran-table :payload (params->payload)))))
+                 (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/update
-    (("actions/config/cheque-stran/" (role "(customer|supplier)") "/update")
-     :request-type :post)
-    ((cheque-stran-id integer chk-cheque-stran-id                                   t)
-     (title           string  (chk-cheque-stran-title/update title cheque-stran-id))
-     (from-state-id   string  chk-cheque-state-id*)
-     (to-state-id     string  chk-cheque-state-id)
-     (temtx           string))
+  (("actions/config/cheque-stran/" (role "(customer|supplier)") "/update")
+   :request-type :post)
+  ((cheque-stran-id integer chk-cheque-stran-id                                   t)
+   (title           string  (chk-cheque-stran-title/update title cheque-stran-id))
+   (from-state-id   string  chk-cheque-state-id*)
+   (to-state-id     string  chk-cheque-state-id)
+   (temtx           string))
   (validate-parameters (cheque-stran-chker role (val cheque-stran-id))
                        from-state-id to-state-id)
   (validate-parameters (temtx-chq-title-chker (customer-p role))
@@ -363,37 +363,37 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cheque-stran-page config/cheque-stran/delete
-    (("config/cheque-stran/" (role "(customer|supplier)") "/delete"))
-    ((cheque-stran-id integer chk-cheque-stran-id t))
+  (("config/cheque-stran/" (role "(customer|supplier)") "/delete"))
+  ((cheque-stran-id integer chk-cheque-stran-id t))
   (with-view-page
-    (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :role role
-                                             :selected-key (val cheque-stran-id)
-                                             :op :delete)))
-      (with-document ()
-        (:head
-          (:title "Μεταπτώσεις Επιταγών » Διαγραφή")
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'cheque-stran)
-            (cheque-stran-top-actions :delete)
-            (filters cheque-stran-table)
-            (:div :class "grid_12"
-              (:div :id "cheque-stran-window" :class "window"
-                (:div :class "title" "Διαγραφή")
-                (actions cheque-stran-table)
-                (with-form
-                    (actions/config/cheque-stran/delete role
-                                                        :cheque-stran-id (val cheque-stran-id))
-                  (display cheque-stran-table))))
-            (footer)))))))
+      (let ((cheque-stran-table (make-instance 'cheque-stran-table
+                                               :role role
+                                               :selected-key (val cheque-stran-id)
+                                               :op :delete)))
+        (with-document ()
+          (:head
+           (:title "Μεταπτώσεις Επιταγών » Διαγραφή")
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'cheque-stran)
+                 (cheque-stran-top-actions :delete)
+                 (filters cheque-stran-table)
+                 (:div :class "grid_12"
+                       (:div :id "cheque-stran-window" :class "window"
+                             (:div :class "title" "Διαγραφή")
+                             (actions cheque-stran-table)
+                             (with-form
+                                 (actions/config/cheque-stran/delete role
+                                                                     :cheque-stran-id (val cheque-stran-id))
+                               (display cheque-stran-table))))
+                 (footer)))))))
 
 (defpage cheque-stran-page actions/config/cheque-stran/delete
-    (("actions/config/cheque-stran/" (role "(customer|supplier)") "/delete")
-     :request-type :post)
-    ((cheque-stran-id integer chk-cheque-stran-id t))
+  (("actions/config/cheque-stran/" (role "(customer|supplier)") "/delete")
+   :request-type :post)
+  ((cheque-stran-id integer chk-cheque-stran-id t))
   (with-controller-page (config/cheque-stran/delete role)
     (delete-dao (get-dao 'cheque-stran (val cheque-stran-id)))
     (see-other (config/cheque-stran role))))

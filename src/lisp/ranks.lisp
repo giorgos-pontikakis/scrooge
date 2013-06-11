@@ -39,9 +39,9 @@
 
 (defmethod higher-rank-daos ((dao bill))
   (select-dao 'bill
-      (:and (:not (:= 'id (bill-id dao)))
-            (:= 'project-id (project-id dao))
-            (:>= 'rank (rank dao)))))
+              (:and (:not (:= 'id (bill-id dao)))
+                    (:= 'project-id (project-id dao))
+                    (:>= 'rank (rank dao)))))
 
 (defmethod higher-rank-daos ((dao contact))
   (select-dao 'contact (:and (:not (:= 'id (contact-id dao)))

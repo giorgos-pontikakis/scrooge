@@ -114,14 +114,14 @@
          (role (role table))
          (start (start-index table)))
     (html ()
-      (:a :href (if selected-p
-                    (apply #'company/cheque role :start (page-start pg (index row) start)
-                                                 :company-id company-id
-                                                 filter)
-                    (apply #'company/cheque role :cheque-id cheque-id
-                                                 :company-id company-id
-                                                 filter))
-        (selector-img selected-p)))))
+          (:a :href (if selected-p
+                        (apply #'company/cheque role :start (page-start pg (index row) start)
+                                                     :company-id company-id
+                                                     filter)
+                        (apply #'company/cheque role :cheque-id cheque-id
+                                                     :company-id company-id
+                                                     filter))
+              (selector-img selected-p)))))
 
 (defmethod payload ((row company-cheque-row) enabled-p)
   (mapcar (textbox-maker (record row) enabled-p)
@@ -190,55 +190,55 @@
 
 (defpage company-cheque-page company/cheque (("company/cheque/"
                                               (role "(customer|supplier)")))
-    ((company-id integer chk-company-id t)
-     (cheque-id  integer chk-cheque-id)
-     (start      integer)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date)
-     (until      date)
-     (cstate     string  chk-cheque-state-id))
+  ((company-id integer chk-company-id t)
+   (cheque-id  integer chk-cheque-id)
+   (start      integer)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date)
+   (until      date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-view-page
-    (let* ((filter (params->filter))
-           (cheque-table (make-instance 'company-cheque-table
-                                        :op :catalogue
-                                        :selected-key (val cheque-id)
-                                        :filter filter
-                                        :start-index (val start)
-                                        :role role
-                                        :company-id (val company-id)))
-           (page-title (company-cheque-page-title role "Κατάλογος")))
-      (with-document ()
-        (:head
-          (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-cheque-top-actions :catalogue)
-            (company-tabs (val company-id) filter 'cheque
-                          (html ()
-                            (filters cheque-table)
-                            (:div :id "company-tx-window"
-                              (:div :class "window"
-                                (:div :class "title" (str page-title))
-                                (actions cheque-table)
-                                (display cheque-table)))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (cheque-table (make-instance 'company-cheque-table
+                                          :op :catalogue
+                                          :selected-key (val cheque-id)
+                                          :filter filter
+                                          :start-index (val start)
+                                          :role role
+                                          :company-id (val company-id)))
+             (page-title (company-cheque-page-title role "Κατάλογος")))
+        (with-document ()
+          (:head
+           (:title "Εταιρία » Λεπτομέρειες » Επιταγές")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-cheque-top-actions :catalogue)
+                 (company-tabs (val company-id) filter 'cheque
+                               (html ()
+                                     (filters cheque-table)
+                                     (:div :id "company-tx-window"
+                                           (:div :class "window"
+                                                 (:div :class "title" (str page-title))
+                                                 (actions cheque-table)
+                                                 (display cheque-table)))))
+                 (footer)))))))
 
 (defpage company-cheque-page company/cheque/print (("company/cheque/"
                                                     (role "(customer|supplier)")
                                                     "/print"))
-    ((company-id integer chk-company-id t)
-     (cheque-id  integer chk-cheque-id)
-     (start      integer)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date)
-     (until      date)
-     (cstate     string  chk-cheque-state-id))
+  ((company-id integer chk-company-id t)
+   (cheque-id  integer chk-cheque-id)
+   (start      integer)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date)
+   (until      date)
+   (cstate     string  chk-cheque-state-id))
   (flet ((cheque-state-label (cheque-state)
            (with-hashed-identity (:test #'equal)
              (case cheque-state
@@ -250,52 +250,52 @@
                ("stamped" "Σφραγισμένες")
                (t (error "CHEQUE-STATE-LABEL: Unknown cheque-state"))))))
     (with-view-page
-      (let* ((filter (params->filter))
-             (receivable-table (make-instance 'company-cheque-table
-                                              :op :catalogue
-                                              :selected-key nil
-                                              :filter filter
-                                              :start-index (val start)
-                                              :role "customer"
-                                              :company-id (val company-id)))
-             (payable-table (make-instance 'company-cheque-table
-                                           :op :catalogue
-                                           :selected-key nil
-                                           :filter filter
-                                           :start-index (val start)
-                                           :role "supplier"
-                                           :company-id (val company-id))))
-        (with-document ()
-          (:head
-            (:title "Εταιρία » Λεπτομέρειες » Επιταγές » Εκτύπωση")
-            (print-headers))
-          (:body
-            (:div :id "container" :class "container_12"
-              (:div :class "grid_12"
-                (back (family-url 'company/cheque :system :filter))
-                (:div :class "window"
-                  (:div :class "title"
-                    (:h1 (str (string-upcase-gr
-                               (title (get-dao 'company (val company-id))))))
-                    (:h2 :class "grid_7 alpha"
-                      (str (conc "Επιταγές: "
-                                 (cheque-state-label (val cstate)))))
-                    (:div :class "grid_4 omega"
-                      (display (datebox (family-url-fn 'company/cheque/print)
-                                        (family-params 'company/cheque/print
-                                                       :system
-                                                       :filter))))
-                    (clear)))
+        (let* ((filter (params->filter))
+               (receivable-table (make-instance 'company-cheque-table
+                                                :op :catalogue
+                                                :selected-key nil
+                                                :filter filter
+                                                :start-index (val start)
+                                                :role "customer"
+                                                :company-id (val company-id)))
+               (payable-table (make-instance 'company-cheque-table
+                                             :op :catalogue
+                                             :selected-key nil
+                                             :filter filter
+                                             :start-index (val start)
+                                             :role "supplier"
+                                             :company-id (val company-id))))
+          (with-document ()
+            (:head
+             (:title "Εταιρία » Λεπτομέρειες » Επιταγές » Εκτύπωση")
+             (print-headers))
+            (:body
+             (:div :id "container" :class "container_12"
+                   (:div :class "grid_12"
+                         (back (family-url 'company/cheque :system :filter))
+                         (:div :class "window"
+                               (:div :class "title"
+                                     (:h1 (str (string-upcase-gr
+                                                (title (get-dao 'company (val company-id))))))
+                                     (:h2 :class "grid_7 alpha"
+                                          (str (conc "Επιταγές: "
+                                                     (cheque-state-label (val cstate)))))
+                                     (:div :class "grid_4 omega"
+                                           (display (datebox (family-url-fn 'company/cheque/print)
+                                                             (family-params 'company/cheque/print
+                                                                            :system
+                                                                            :filter))))
+                                     (clear)))
 
-                (when (records receivable-table)
-                  (htm (:div :class "window"
-                         (:div (:div :class "title" "Επιταγές προς είσπραξη")
-                           (display receivable-table)))))
-                (when (records payable-table)
-                  (htm (:div :class "window"
-                         (:div (:div :class "title" "Επιταγές προς πληρωμή")
-                           (display payable-table)))))
-                (print-pages-footer)))))))))
+                         (when (records receivable-table)
+                           (htm (:div :class "window"
+                                      (:div (:div :class "title" "Επιταγές προς είσπραξη")
+                                            (display receivable-table)))))
+                         (when (records payable-table)
+                           (htm (:div :class "window"
+                                      (:div (:div :class "title" "Επιταγές προς πληρωμή")
+                                            (display payable-table)))))
+                         (print-pages-footer)))))))))
 
 
 
@@ -304,70 +304,70 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/create
-    (("company/cheque/" (role "(customer|supplier)") "/create"))
-    ((company-id integer chk-company-id    t)
-     (start      integer)
-     (bank       string  chk-bank-title)
-     (due-date   date    chk-date)
-     (amount     float   chk-amount)
-     (serial     string  chk-cheque-serial)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (cstate     string  chk-cheque-state-id))
+  (("company/cheque/" (role "(customer|supplier)") "/create"))
+  ((company-id integer chk-company-id    t)
+   (start      integer)
+   (bank       string  chk-bank-title)
+   (due-date   date    chk-date)
+   (amount     float   chk-amount)
+   (serial     string  chk-cheque-serial)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date    chk-date)
+   (until      date    chk-date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-view-page
-    (let* ((filter (params->filter))
-           (cheque-table (make-instance 'company-cheque-table
-                                        :op :create
-                                        :filter filter
-                                        :start-index (val start)
-                                        :role role
-                                        :company-id (val company-id)))
-           (page-title (company-cheque-page-title role "Δημιουργία")))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-cheque-top-actions :create)
-            (company-tabs
-             (val company-id) filter 'cheque
-             (html ()
-               (filters cheque-table)
-               (:div :id "company-tx-window"
-                 (:div :class "window"
-                   (:div :class "title" (str page-title))
-                   (actions cheque-table)
-                   (notifications)
-                   (with-form (actions/company/cheque/create role
-                                                             :company-id (val company-id)
-                                                             :search (val search)
-                                                             :cstate (val cstate)
-                                                             :subset (val subset)
-                                                             :start (val start)
-                                                             :since (val since)
-                                                             :until (val until))
-                     (display cheque-table :payload (params->payload)))))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (cheque-table (make-instance 'company-cheque-table
+                                          :op :create
+                                          :filter filter
+                                          :start-index (val start)
+                                          :role role
+                                          :company-id (val company-id)))
+             (page-title (company-cheque-page-title role "Δημιουργία")))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-cheque-top-actions :create)
+                 (company-tabs
+                  (val company-id) filter 'cheque
+                  (html ()
+                        (filters cheque-table)
+                        (:div :id "company-tx-window"
+                              (:div :class "window"
+                                    (:div :class "title" (str page-title))
+                                    (actions cheque-table)
+                                    (notifications)
+                                    (with-form (actions/company/cheque/create role
+                                                                              :company-id (val company-id)
+                                                                              :search (val search)
+                                                                              :cstate (val cstate)
+                                                                              :subset (val subset)
+                                                                              :start (val start)
+                                                                              :since (val since)
+                                                                              :until (val until))
+                                      (display cheque-table :payload (params->payload)))))))
+                 (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/create
-    (("actions/company/cheque/" (role "(customer|supplier)") "/create") :request-type :post)
-    ((company-id integer chk-company-id      t)
-     (start      integer)
-     (bank       string  chk-bank-title)
-     (due-date   date    chk-date            t)
-     (amount     float   chk-amount          t)
-     (serial     string  chk-cheque-serial)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (cstate     string  chk-cheque-state-id))
+  (("actions/company/cheque/" (role "(customer|supplier)") "/create") :request-type :post)
+  ((company-id integer chk-company-id      t)
+   (start      integer)
+   (bank       string  chk-bank-title)
+   (due-date   date    chk-date            t)
+   (amount     float   chk-amount          t)
+   (serial     string  chk-cheque-serial)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date    chk-date)
+   (until      date    chk-date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-controller-page (company/cheque/create role)
     (let ((new-cheque (make-instance 'cheque
@@ -390,74 +390,74 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/update
-    (("company/cheque/" (role "(customer|supplier)") "/update"))
-    ((company-id integer chk-company-id    t)
-     (cheque-id  integer chk-cheque-id     t)
-     (start      integer)
-     (bank       string  chk-bank-title)
-     (due-date   date    chk-date)
-     (amount     float   chk-amount)
-     (serial     string  chk-cheque-serial)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (cstate     string  chk-cheque-state-id))
+  (("company/cheque/" (role "(customer|supplier)") "/update"))
+  ((company-id integer chk-company-id    t)
+   (cheque-id  integer chk-cheque-id     t)
+   (start      integer)
+   (bank       string  chk-bank-title)
+   (due-date   date    chk-date)
+   (amount     float   chk-amount)
+   (serial     string  chk-cheque-serial)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date    chk-date)
+   (until      date    chk-date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-view-page
-    (let* ((filter (params->filter))
-           (cheque-table (make-instance 'company-cheque-table
-                                        :op :update
-                                        :selected-key (val cheque-id)
-                                        :role role
-                                        :filter filter
-                                        :start-index (val start)
-                                        :company-id (val company-id)))
-           (page-title (company-cheque-page-title role "Επεξεργασία")))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-cheque-top-actions :update)
-            (company-tabs
-             (val company-id) filter 'cheque
-             (html ()
-               (filters cheque-table)
-               (:div :id "company-tx-window"
-                 (:div :class "window"
-                   (:div :class "title" (str page-title))
-                   (actions cheque-table)
-                   (notifications)
-                   (with-form (actions/company/cheque/update role
-                                                             :company-id (val company-id)
-                                                             :cheque-id (val cheque-id)
-                                                             :search (val search)
-                                                             :cstate (val cstate)
-                                                             :subset (val subset)
-                                                             :start (val start)
-                                                             :since (val since)
-                                                             :until (val until))
-                     (display cheque-table :payload (params->payload)))))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (cheque-table (make-instance 'company-cheque-table
+                                          :op :update
+                                          :selected-key (val cheque-id)
+                                          :role role
+                                          :filter filter
+                                          :start-index (val start)
+                                          :company-id (val company-id)))
+             (page-title (company-cheque-page-title role "Επεξεργασία")))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-cheque-top-actions :update)
+                 (company-tabs
+                  (val company-id) filter 'cheque
+                  (html ()
+                        (filters cheque-table)
+                        (:div :id "company-tx-window"
+                              (:div :class "window"
+                                    (:div :class "title" (str page-title))
+                                    (actions cheque-table)
+                                    (notifications)
+                                    (with-form (actions/company/cheque/update role
+                                                                              :company-id (val company-id)
+                                                                              :cheque-id (val cheque-id)
+                                                                              :search (val search)
+                                                                              :cstate (val cstate)
+                                                                              :subset (val subset)
+                                                                              :start (val start)
+                                                                              :since (val since)
+                                                                              :until (val until))
+                                      (display cheque-table :payload (params->payload)))))))
+                 (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/update
-    (("actions/company/cheque/" (role "(customer|supplier)") "/update") :request-type :post)
-    ((company-id integer chk-company-id      t)
-     (cheque-id  integer chk-cheque-id       t)
-     (start      integer)
-     (bank       string  chk-bank-title)
-     (due-date   date    chk-date            t)
-     (amount     float   chk-amount          t)
-     (serial     string  chk-cheque-serial)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (cstate     string  chk-cheque-state-id))
+  (("actions/company/cheque/" (role "(customer|supplier)") "/update") :request-type :post)
+  ((company-id integer chk-company-id      t)
+   (cheque-id  integer chk-cheque-id       t)
+   (start      integer)
+   (bank       string  chk-bank-title)
+   (due-date   date    chk-date            t)
+   (amount     float   chk-amount          t)
+   (serial     string  chk-cheque-serial)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date    chk-date)
+   (until      date    chk-date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-controller-page (company/cheque/update role)
     (let ((cheque-dao (get-dao 'cheque (val cheque-id))))
@@ -479,67 +479,67 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage company-cheque-page company/cheque/delete
-    (("company/cheque/" (role "(customer|supplier)") "/delete"))
-    ((company-id integer chk-company-id    t)
-     (cheque-id  integer chk-cheque-id     t)
-     (start      integer)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (cstate     string  chk-cheque-state-id))
+  (("company/cheque/" (role "(customer|supplier)") "/delete"))
+  ((company-id integer chk-company-id    t)
+   (cheque-id  integer chk-cheque-id     t)
+   (start      integer)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date    chk-date)
+   (until      date    chk-date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-view-page
-    (let* ((filter (params->filter))
-           (cheque-table (make-instance 'company-cheque-table
-                                        :op :delete
-                                        :selected-key (val cheque-id)
-                                        :filter filter
-                                        :start-index (val start)
-                                        :role role
-                                        :company-id (val company-id)))
-           (page-title (company-cheque-page-title role "Διαγραφή")))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-cheque-top-actions :delete)
-            (company-tabs
-             (val company-id) filter 'cheque
-             (html ()
-               (:div :class "secondary-filter-area"
-                 (filters cheque-table))
-               (:div :id "company-tx-window"
-                 (:div :class "window"
-                   (:div :class "title" (str page-title))
-                   (actions cheque-table)
-                   (notifications)
-                   (with-form (actions/company/cheque/delete role
-                                                             :company-id (val company-id)
-                                                             :cheque-id (val cheque-id)
-                                                             :search (val search)
-                                                             :cstate (val cstate)
-                                                             :subset (val subset)
-                                                             :start (val start)
-                                                             :since (val since)
-                                                             :until (val until))
-                     (display cheque-table))))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (cheque-table (make-instance 'company-cheque-table
+                                          :op :delete
+                                          :selected-key (val cheque-id)
+                                          :filter filter
+                                          :start-index (val start)
+                                          :role role
+                                          :company-id (val company-id)))
+             (page-title (company-cheque-page-title role "Διαγραφή")))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-cheque-top-actions :delete)
+                 (company-tabs
+                  (val company-id) filter 'cheque
+                  (html ()
+                        (:div :class "secondary-filter-area"
+                              (filters cheque-table))
+                        (:div :id "company-tx-window"
+                              (:div :class "window"
+                                    (:div :class "title" (str page-title))
+                                    (actions cheque-table)
+                                    (notifications)
+                                    (with-form (actions/company/cheque/delete role
+                                                                              :company-id (val company-id)
+                                                                              :cheque-id (val cheque-id)
+                                                                              :search (val search)
+                                                                              :cstate (val cstate)
+                                                                              :subset (val subset)
+                                                                              :start (val start)
+                                                                              :since (val since)
+                                                                              :until (val until))
+                                      (display cheque-table))))))
+                 (footer)))))))
 
 (defpage company-cheque-page actions/company/cheque/delete
-    (("actions/company/cheque/" (role "(customer|supplier)") "/delete") :request-type :post)
-    ((company-id integer chk-company-id      t)
-     (cheque-id  integer chk-cheque-id       t)
-     (start      integer)
-     (search     string)
-     (subset     string  chk-subset)
-     (since      date    chk-date)
-     (until      date    chk-date)
-     (cstate     string  chk-cheque-state-id))
+  (("actions/company/cheque/" (role "(customer|supplier)") "/delete") :request-type :post)
+  ((company-id integer chk-company-id      t)
+   (cheque-id  integer chk-cheque-id       t)
+   (start      integer)
+   (search     string)
+   (subset     string  chk-subset)
+   (since      date    chk-date)
+   (until      date    chk-date)
+   (cstate     string  chk-cheque-state-id))
   (check-cheque-accounts)
   (with-controller-page (company/cheque/delete role)
     (delete-dao (get-dao 'cheque (val cheque-id)))

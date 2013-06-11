@@ -38,9 +38,9 @@
                 (temtx        ,(config/temtx "customer")        "Πρότυπα Συναλλαγών")
                 (cheque-stran ,(config/cheque-stran "customer") "Επιταγές"))))
     (with-html
-      (:div :class "grid_12"
-            (:div :class "section-navbar"
-                  (obj 'navbar
-                       :spec spec
-                       :css-class "hnavbar"
-                       :active active))))))
+        (:div :class "grid_12"
+              (:div :class "section-navbar"
+                    (obj 'navbar
+                         :spec spec
+                         :css-class "hnavbar"
+                         :active active))))))

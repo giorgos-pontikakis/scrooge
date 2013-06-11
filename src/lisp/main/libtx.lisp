@@ -128,10 +128,10 @@
          (role (role table))
          (start (start-index table)))
     (html ()
-      (:a :href (if selected-p
-                    (apply #'libtx role :start (page-start pg (index row) start) filter)
-                    (apply #'libtx role :tx-id tx-id filter))
-        (selector-img selected-p)))))
+          (:a :href (if selected-p
+                        (apply #'libtx role :start (page-start pg (index row) start) filter)
+                        (apply #'libtx role :tx-id tx-id filter))
+              (selector-img selected-p)))))
 
 (defmethod payload ((row libtx-row) enabled-p)
   (let ((record (record row)))
@@ -213,20 +213,20 @@
                                                  (:= 'customer-p customer-p)))
                            :plists)))
     (with-html
-      (:div :id "split-data-form" :class "data-form"
-        (:div :class "grid_6 alpha"
-          (left-column form styles disabled))
-        (:div :class "grid_5 omega"
-          (:h3 "Βιβλιοθήκη προτύπων")
-          (:ul (loop for i in lib-temtx
-                     do (htm (:li (:input :type "radio"
-                                    :name 'temtx-id
-                                    :checked (eql (getf i :id)
-                                                  (getf record :temtx-id))
-                                    :disabled disabled
-                                    :value (getf i :id)
-                                    (str (getf i :title))))))))
-        (clear)))))
+        (:div :id "split-data-form" :class "data-form"
+              (:div :class "grid_6 alpha"
+                    (left-column form styles disabled))
+              (:div :class "grid_5 omega"
+                    (:h3 "Βιβλιοθήκη προτύπων")
+                    (:ul (loop for i in lib-temtx
+                               do (htm (:li (:input :type "radio"
+                                                    :name 'temtx-id
+                                                    :checked (eql (getf i :id)
+                                                                  (getf record :temtx-id))
+                                                    :disabled disabled
+                                                    :value (getf i :id)
+                                                    (str (getf i :title))))))))
+              (clear)))))
 
 (defmethod actions ((form libtx-form) &key filter)
   (let* ((tx-id (key form))
@@ -244,15 +244,15 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage libtx-page actions/libtx/search
-    (("actions/libtx/" (role "(customer|supplier)") "/search") :request-type :get)
-    ((search string)
-     (since date)
-     (until date))
+  (("actions/libtx/" (role "(customer|supplier)") "/search") :request-type :get)
+  ((search string)
+   (since date)
+   (until date))
   (with-db ()
     (let* ((filter (params->filter))
            (records (records (make-instance 'libtx-table :op :catalogue
-                                                   :role role
-                                                   :filter filter))))
+                                                         :role role
+                                                         :filter filter))))
       (if (single-item-list-p records)
           (see-other (apply #'libtx/details role
                             :tx-id (get-key (first records))
@@ -266,68 +266,68 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage libtx-page libtx (("libtx/" (role "(customer|supplier)")))
-    ((tx-id  integer chk-tx-id)
-     (start  integer)
-     (search string)
-     (since  date)
-     (until  date))
+  ((tx-id  integer chk-tx-id)
+   (start  integer)
+   (search string)
+   (since  date)
+   (until  date))
   (with-view-page
-    (let* ((filter (params->filter))
-           (page-title (libtx-page-title role "Κατάλογος"))
-           (libtx-table (make-instance 'libtx-table
-                                       :role role
-                                       :op :catalogue
-                                       :selected-key (val tx-id)
-                                       :filter filter
-                                       :start-index (val start))))
-      (check-id-inclusion libtx-table
-                          (val tx-id)
-                          (apply #'libtx role filter))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'libtx)
-            (libtx-top-actions :catalogue)
-            (filters libtx-table)
-            (:div :class "grid_12"
-              (:div :class "window"
-                (:div :class "title" (str page-title))
-                (actions libtx-table)
-                (display libtx-table)))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (page-title (libtx-page-title role "Κατάλογος"))
+             (libtx-table (make-instance 'libtx-table
+                                         :role role
+                                         :op :catalogue
+                                         :selected-key (val tx-id)
+                                         :filter filter
+                                         :start-index (val start))))
+        (check-id-inclusion libtx-table
+                            (val tx-id)
+                            (apply #'libtx role filter))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'libtx)
+                 (libtx-top-actions :catalogue)
+                 (filters libtx-table)
+                 (:div :class "grid_12"
+                       (:div :class "window"
+                             (:div :class "title" (str page-title))
+                             (actions libtx-table)
+                             (display libtx-table)))
+                 (footer)))))))
 
 (defpage libtx-page libtx/details (("libtx/" (role "(customer|supplier)") "/details"))
-    ((tx-id  integer chk-tx-id t)
-     (search string)
-     (since  date)
-     (until  date))
+  ((tx-id  integer chk-tx-id t)
+   (search string)
+   (since  date)
+   (until  date))
   (with-view-page
-    (let* ((filter (params->filter))
-           (libtx-form (make-instance 'libtx-form
-                                      :role role
-                                      :op :details
-                                      :key (val tx-id)
-                                      :cancel-url (apply #'libtx role :tx-id (val tx-id) filter)))
-           (page-title (libtx-page-title role "Λεπτομέρειες")))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'libtx)
-            (libtx-top-actions :details)
-            (:div :class "grid_12"
-              (:div :id "libtx-window" :class "window"
-                (:div :class "title" "Λεπτομέρειες")
-                (actions libtx-form :filter filter)
-                (display libtx-form)))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (libtx-form (make-instance 'libtx-form
+                                        :role role
+                                        :op :details
+                                        :key (val tx-id)
+                                        :cancel-url (apply #'libtx role :tx-id (val tx-id) filter)))
+             (page-title (libtx-page-title role "Λεπτομέρειες")))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'libtx)
+                 (libtx-top-actions :details)
+                 (:div :class "grid_12"
+                       (:div :id "libtx-window" :class "window"
+                             (:div :class "title" "Λεπτομέρειες")
+                             (actions libtx-form :filter filter)
+                             (display libtx-form)))
+                 (footer)))))))
 
 
 
@@ -336,55 +336,55 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage libtx-page libtx/create
-    (("libtx/" (role "(customer|supplier)") "/create"))
-    ((tx-date     date)
-     (description string)
-     (company     string  chk-company-title)
-     (amount      float   chk-amount)
-     (temtx-id    integer chk-temtx-id)
-     (search      string)
-     (since       date)
-     (until       date))
+  (("libtx/" (role "(customer|supplier)") "/create"))
+  ((tx-date     date)
+   (description string)
+   (company     string  chk-company-title)
+   (amount      float   chk-amount)
+   (temtx-id    integer chk-temtx-id)
+   (search      string)
+   (since       date)
+   (until       date))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (with-view-page
-    (let* ((filter (params->filter))
-           (libtx-form (make-instance 'libtx-form
-                                      :role role
-                                      :op :create
-                                      :cancel-url (apply #'libtx role filter)))
-           (page-title (libtx-page-title role "Δημιουργία")))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'libtx)
-            (libtx-top-actions :create)
-            (:div :class "grid_12"
-              (:div :id "libtx-window" :class "window"
-                (:div :class "title" (str page-title))
-                (actions libtx-form :filter filter)
-                (notifications)
-                (with-form (actions/libtx/create role
-                                                 :search (val search)
-                                                 :since (val since)
-                                                 :until (val until))
-                  (display libtx-form :payload (params->payload)
-                                      :styles (params->styles)))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (libtx-form (make-instance 'libtx-form
+                                        :role role
+                                        :op :create
+                                        :cancel-url (apply #'libtx role filter)))
+             (page-title (libtx-page-title role "Δημιουργία")))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'libtx)
+                 (libtx-top-actions :create)
+                 (:div :class "grid_12"
+                       (:div :id "libtx-window" :class "window"
+                             (:div :class "title" (str page-title))
+                             (actions libtx-form :filter filter)
+                             (notifications)
+                             (with-form (actions/libtx/create role
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                               (display libtx-form :payload (params->payload)
+                                                   :styles (params->styles)))))
+                 (footer)))))))
 
 (defpage libtx-page actions/libtx/create
-    (("actions/libtx/" (role "(customer|supplier)") "/create") :request-type :post)
-    ((tx-date     date)
-     (description string)
-     (company     string  chk-company-title t)
-     (amount      float   chk-amount t)
-     (temtx-id    integer chk-temtx-id t)
-     (search      string)
-     (since       date)
-     (until       date))
+  (("actions/libtx/" (role "(customer|supplier)") "/create") :request-type :post)
+  ((tx-date     date)
+   (description string)
+   (company     string  chk-company-title t)
+   (amount      float   chk-amount t)
+   (temtx-id    integer chk-temtx-id t)
+   (search      string)
+   (since       date)
+   (until       date))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (with-controller-page (libtx/create role :temtx-id (if (suppliedp temtx-id) (val temtx-id) :null))
     (let* ((company-id (company-id (val company)))
@@ -407,61 +407,61 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage libtx-page libtx/update
-    (("libtx/" (role "(customer|supplier)") "/update"))
-    ((search      string)
-     (since       date)
-     (until       date)
-     (tx-id       integer chk-tx-id         t)
-     (tx-date     date)
-     (description string)
-     (company     string  chk-company-title)
-     (amount      float   chk-amount)
-     (temtx-id    integer chk-temtx-id))
+  (("libtx/" (role "(customer|supplier)") "/update"))
+  ((search      string)
+   (since       date)
+   (until       date)
+   (tx-id       integer chk-tx-id         t)
+   (tx-date     date)
+   (description string)
+   (company     string  chk-company-title)
+   (amount      float   chk-amount)
+   (temtx-id    integer chk-temtx-id))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (with-view-page
-    (let* ((filter (params->filter))
-           (libtx-form (make-instance 'libtx-form
-                                      :role role
-                                      :op :update
-                                      :key (val tx-id)
-                                      :cancel-url (apply #'libtx/details role
-                                                         :tx-id (val tx-id)
-                                                         filter)))
-           (page-title (libtx-page-title role "Επεξεργασία")))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'libtx)
-            (libtx-top-actions :update)
-            (:div :class "grid_12"
-              (:div :id "libtx-window" :class "window"
-                (:div :class "title" (str page-title))
-                (actions libtx-form :filter filter)
-                (notifications)
-                (with-form (actions/libtx/update role
-                                                 :tx-id (val tx-id)
-                                                 :search (val search)
-                                                 :since (val since)
-                                                 :until (val until))
-                  (display libtx-form :payload (params->payload)
-                                      :styles (params->styles)))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (libtx-form (make-instance 'libtx-form
+                                        :role role
+                                        :op :update
+                                        :key (val tx-id)
+                                        :cancel-url (apply #'libtx/details role
+                                                           :tx-id (val tx-id)
+                                                           filter)))
+             (page-title (libtx-page-title role "Επεξεργασία")))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'libtx)
+                 (libtx-top-actions :update)
+                 (:div :class "grid_12"
+                       (:div :id "libtx-window" :class "window"
+                             (:div :class "title" (str page-title))
+                             (actions libtx-form :filter filter)
+                             (notifications)
+                             (with-form (actions/libtx/update role
+                                                              :tx-id (val tx-id)
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                               (display libtx-form :payload (params->payload)
+                                                   :styles (params->styles)))))
+                 (footer)))))))
 
 (defpage libtx-page actions/libtx/update
-    (("actions/libtx/" (role "(customer|supplier)") "/update") :request-type :post)
-    ((search      string)
-     (since       date)
-     (until       date)
-     (tx-id       integer chk-tx-id         t)
-     (tx-date     date)
-     (description string)
-     (company     string  chk-company-title)
-     (amount      float   chk-amount)
-     (temtx-id    integer chk-temtx-id t))
+  (("actions/libtx/" (role "(customer|supplier)") "/update") :request-type :post)
+  ((search      string)
+   (since       date)
+   (until       date)
+   (tx-id       integer chk-tx-id         t)
+   (tx-date     date)
+   (description string)
+   (company     string  chk-company-title)
+   (amount      float   chk-amount)
+   (temtx-id    integer chk-temtx-id t))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (with-controller-page (libtx/update role :temtx-id (if (suppliedp temtx-id) (val temtx-id) :null))
     (let ((company-id (company-id (val company)))
@@ -483,47 +483,47 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage libtx-page libtx/delete
-    (("libtx/" (role "(customer|supplier)") "/delete"))
-    ((tx-id  integer chk-tx-id/ref t)
-     (search string)
-     (since  date)
-     (until  date))
+  (("libtx/" (role "(customer|supplier)") "/delete"))
+  ((tx-id  integer chk-tx-id/ref t)
+   (search string)
+   (since  date)
+   (until  date))
   (with-view-page
-    (let* ((filter (params->filter))
-           (page-title (libtx-page-title role "Διαγραφή"))
-           (libtx-table (make-instance 'libtx-table
-                                       :op :delete
-                                       :role role
-                                       :selected-key (val tx-id)
-                                       :filter filter)))
-      (with-document ()
-        (:head
-          (:title (str page-title))
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'libtx)
-            (libtx-top-actions :delete)
-            (filters libtx-table)
-            (:div :class "grid_12"
-              (:div :id "libtx-window" :class "window"
-                (:div :class "title" (str page-title))
-                (actions libtx-table)
-                (with-form (actions/libtx/delete role
-                                                 :tx-id (val tx-id)
-                                                 :search (val search)
-                                                 :since (val since)
-                                                 :until (val until))
-                  (display libtx-table))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (page-title (libtx-page-title role "Διαγραφή"))
+             (libtx-table (make-instance 'libtx-table
+                                         :op :delete
+                                         :role role
+                                         :selected-key (val tx-id)
+                                         :filter filter)))
+        (with-document ()
+          (:head
+           (:title (str page-title))
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'libtx)
+                 (libtx-top-actions :delete)
+                 (filters libtx-table)
+                 (:div :class "grid_12"
+                       (:div :id "libtx-window" :class "window"
+                             (:div :class "title" (str page-title))
+                             (actions libtx-table)
+                             (with-form (actions/libtx/delete role
+                                                              :tx-id (val tx-id)
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                               (display libtx-table))))
+                 (footer)))))))
 
 (defpage libtx-page actions/libtx/delete
-    (("actions/libtx/" (role "(customer|supplier)") "/delete") :request-type :post)
-    ((tx-id  integer chk-tx-id/ref t)
-     (search string)
-     (since  date)
-     (until  date))
+  (("actions/libtx/" (role "(customer|supplier)") "/delete") :request-type :post)
+  ((tx-id  integer chk-tx-id/ref t)
+   (search string)
+   (since  date)
+   (until  date))
   (with-controller-page (libtx/delete)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'libtx role (params->filter)))))

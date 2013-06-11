@@ -8,10 +8,10 @@
                    `(defmethod ,slot ,alternate-key-types
                       (with-db ()
                         (,slot (select-dao-unique
-                                   ',table
-                                   (:and ,@(mapcar (lambda (alternate-key)
-                                                     `(:= ',alternate-key ,alternate-key))
-                                                   (mapcar #'first alternate-key-types))))))))
+                                ',table
+                                (:and ,@(mapcar (lambda (alternate-key)
+                                                  `(:= ',alternate-key ,alternate-key))
+                                                (mapcar #'first alternate-key-types))))))))
                  slots))))
 
 
@@ -227,10 +227,10 @@
 
 (defmethod insert-dao :around ((dao cheque))
   (let* ((cheque-stran (select-dao-unique 'cheque-stran
-                           (:and (:= 'from-state-id "nil")
-                                 (:= 'customer-p (customer-p dao)))))
+                                          (:and (:= 'from-state-id "nil")
+                                                (:= 'customer-p (customer-p dao)))))
          (temtx (select-dao-unique 'temtx
-                    (:= 'id (temtx-id cheque-stran))))
+                                   (:= 'id (temtx-id cheque-stran))))
          (new-tx (make-instance 'tx
                                 :tx-date (today)
                                 :description (title cheque-stran)
@@ -252,11 +252,11 @@
   (with-transaction ()
     ;; In case of state change, insert a corresponding tx and cheque-event
     (when-let (cheque-stran (select-dao-unique 'cheque-stran
-                                (:and (:= 'customer-p (customer-p cheque-dao))
-                                      (:= 'from-state-id (old-state-id cheque-dao))
-                                      (:= 'to-state-id (state-id cheque-dao)))))
+                                               (:and (:= 'customer-p (customer-p cheque-dao))
+                                                     (:= 'from-state-id (old-state-id cheque-dao))
+                                                     (:= 'to-state-id (state-id cheque-dao)))))
       (let* ((temtx (select-dao-unique 'temtx
-                        (:= 'id (temtx-id cheque-stran))))
+                                       (:= 'id (temtx-id cheque-stran))))
              (new-tx (make-instance 'tx
                                     :tx-date (today)
                                     :description (title cheque-stran)

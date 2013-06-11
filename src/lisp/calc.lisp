@@ -19,17 +19,17 @@
                          tx.temtx-id
                          temtx.lib-p (:as cheque.id cheque-id)
                          temtx.debit-account-id temtx.credit-account-id
-                 :from tx
-                 :left-join cheque-event
-                 :on (:= cheque-event.tx-id tx.id)
-                 :left-join cheque
-                 :on (:= cheque.id cheque-event.cheque-id)
-                 :left-join cheque-stran
-                 :on (:= cheque-stran.id cheque-event.cheque-stran-id)
-                 :inner-join temtx
-                 :on (:= temtx.id tx.temtx-id)
-                 :where (:and (:= tx.company-id ,company-id)
-                              (:or ,@temtx-conditions)))
+                         :from tx
+                         :left-join cheque-event
+                         :on (:= cheque-event.tx-id tx.id)
+                         :left-join cheque
+                         :on (:= cheque.id cheque-event.cheque-id)
+                         :left-join cheque-stran
+                         :on (:= cheque-stran.id cheque-event.cheque-stran-id)
+                         :inner-join temtx
+                         :on (:= temtx.id tx.temtx-id)
+                         :where (:and (:= tx.company-id ,company-id)
+                                      (:or ,@temtx-conditions)))
                 tx-date tx.description)))
 
 (defun company-debits/credits-all (company-id roles)

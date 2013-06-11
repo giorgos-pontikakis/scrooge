@@ -229,12 +229,12 @@
 
 (defmethod extra-info ((table temtx-table))
   (with-html
-    (:div :class "window-footer"
-      (:ul :class "notes"
-        (:li "Χ: Χρέωση")
-        (:li "Π: Πίστωση")
-        (:li "Χ+Π: Χρέωση και Πίστωση")
-        (:li "—: Ούτε Χρέωση, ούτε Πίστωση")))))
+      (:div :class "window-footer"
+            (:ul :class "notes"
+                 (:li "Χ: Χρέωση")
+                 (:li "Π: Πίστωση")
+                 (:li "Χ+Π: Χρέωση και Πίστωση")
+                 (:li "—: Ούτε Χρέωση, ούτε Πίστωση")))))
 
 
 ;;; rows
@@ -307,32 +307,32 @@
 ;;; ------------------------------------------------------------
 
 (defpage temtx-page config/temtx (("config/temtx/" (role "(customer|supplier)")))
-    ((start    integer)
-     (temtx-id integer chk-temtx-id))
+  ((start    integer)
+   (temtx-id integer chk-temtx-id))
   (with-view-page
-    (let ((temtx-table (make-instance 'temtx-table
-                                      :role role
-                                      :op :catalogue
-                                      :selected-key (val temtx-id)
-                                      :start-index (val start)
-                                      :id "temtx-table")))
-      (with-document ()
-        (:head
-          (:title (str (temtx-page-title role "Κατάλογος")))
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'temtx)
-            (temtx-top-actions :catalogue)
-            (filters temtx-table)
-            (:div :class "grid_12"
-              (:div :class "window"
-                (:div :class "title" "Κατάλογος")
-                (actions temtx-table)
-                (display temtx-table)
-                (extra-info temtx-table)))
-            (footer)))))))
+      (let ((temtx-table (make-instance 'temtx-table
+                                        :role role
+                                        :op :catalogue
+                                        :selected-key (val temtx-id)
+                                        :start-index (val start)
+                                        :id "temtx-table")))
+        (with-document ()
+          (:head
+           (:title (str (temtx-page-title role "Κατάλογος")))
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'temtx)
+                 (temtx-top-actions :catalogue)
+                 (filters temtx-table)
+                 (:div :class "grid_12"
+                       (:div :class "window"
+                             (:div :class "title" "Κατάλογος")
+                             (actions temtx-table)
+                             (display temtx-table)
+                             (extra-info temtx-table)))
+                 (footer)))))))
 
 
 
@@ -341,47 +341,47 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/create (("config/temtx/" (role "(customer|supplier)") "/create"))
-    ((debit-account  string  chk-account-title)
-     (credit-account string  chk-account-title)
-     (sign           integer chk-sign)
-     (propagated-p   boolean)
-     (lib-p          boolean)
-     (title          string))
+  ((debit-account  string  chk-account-title)
+   (credit-account string  chk-account-title)
+   (sign           integer chk-sign)
+   (propagated-p   boolean)
+   (lib-p          boolean)
+   (title          string))
   (validate-parameters (temtx-title-create/update-chker (customer-p role))
                        title)
   (validate-parameters (temtx-constraints-chker)
                        debit-account credit-account propagated-p)
   (with-view-page
-    (let ((temtx-table (make-instance 'temtx-table
-                                      :role role
-                                      :op :create)))
-      (with-document ()
-        (:head
-          (:title (str (temtx-page-title role "Δημιουργία")))
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'temtx)
-            (temtx-top-actions :create)
-            (filters temtx-table)
-            (:div :class "grid_12"
-              (:div :class "window"
-                (:div :class "title" "Δημιουργία")
-                (actions temtx-table)
-                (notifications)
-                (with-form (actions/config/temtx/create role)
-                  (display temtx-table :payload (params->payload)))
-                (extra-info temtx-table)))))))))
+      (let ((temtx-table (make-instance 'temtx-table
+                                        :role role
+                                        :op :create)))
+        (with-document ()
+          (:head
+           (:title (str (temtx-page-title role "Δημιουργία")))
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'temtx)
+                 (temtx-top-actions :create)
+                 (filters temtx-table)
+                 (:div :class "grid_12"
+                       (:div :class "window"
+                             (:div :class "title" "Δημιουργία")
+                             (actions temtx-table)
+                             (notifications)
+                             (with-form (actions/config/temtx/create role)
+                               (display temtx-table :payload (params->payload)))
+                             (extra-info temtx-table)))))))))
 
 (defpage temtx-page actions/config/temtx/create
-    (("actions/config/temtx/" (role "(customer|supplier)") "/create") :request-type :post)
-    ((debit-account  string   chk-account-title)
-     (credit-account string   chk-account-title)
-     (sign           integer  chk-sign)
-     (propagated-p   boolean)
-     (lib-p          boolean)
-     (title          string))
+  (("actions/config/temtx/" (role "(customer|supplier)") "/create") :request-type :post)
+  ((debit-account  string   chk-account-title)
+   (credit-account string   chk-account-title)
+   (sign           integer  chk-sign)
+   (propagated-p   boolean)
+   (lib-p          boolean)
+   (title          string))
   (validate-parameters (temtx-title-create/update-chker (customer-p role))
                        title)
   (validate-parameters (temtx-constraints-chker)
@@ -407,51 +407,51 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/update (("config/temtx/" (role "(customer|supplier)") "/update"))
-    ((temtx-id       integer chk-temtx-id      t)
-     (debit-account  string  chk-account-title)
-     (credit-account string  chk-account-title)
-     (sign           integer chk-sign)
-     (propagated-p   boolean)
-     (lib-p          boolean)
-     (title          string))
+  ((temtx-id       integer chk-temtx-id      t)
+   (debit-account  string  chk-account-title)
+   (credit-account string  chk-account-title)
+   (sign           integer chk-sign)
+   (propagated-p   boolean)
+   (lib-p          boolean)
+   (title          string))
   (validate-parameters (temtx-title-create/update-chker (customer-p role) (val temtx-id))
                        title)
   (validate-parameters (temtx-constraints-chker (val temtx-id))
                        debit-account credit-account propagated-p)
   (with-view-page
-    (let ((temtx-table (make-instance 'temtx-table
-                                      :role role
-                                      :selected-key (val temtx-id)
-                                      :op :update)))
-      (with-document ()
-        (:head
-          (:title (str (temtx-page-title role "Επεξεργασία")))
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'temtx)
-            (temtx-top-actions :update)
-            (filters temtx-table)
-            (:div :class "grid_12"
-              (:div :class "window"
-                (:div :class "title" "Επεξεργασία")
-                (actions temtx-table)
-                (notifications)
-                (with-form (actions/config/temtx/update role :temtx-id (val temtx-id))
-                  (display temtx-table :payload (params->payload)))
-                (extra-info temtx-table)))
-            (footer)))))))
+      (let ((temtx-table (make-instance 'temtx-table
+                                        :role role
+                                        :selected-key (val temtx-id)
+                                        :op :update)))
+        (with-document ()
+          (:head
+           (:title (str (temtx-page-title role "Επεξεργασία")))
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'temtx)
+                 (temtx-top-actions :update)
+                 (filters temtx-table)
+                 (:div :class "grid_12"
+                       (:div :class "window"
+                             (:div :class "title" "Επεξεργασία")
+                             (actions temtx-table)
+                             (notifications)
+                             (with-form (actions/config/temtx/update role :temtx-id (val temtx-id))
+                               (display temtx-table :payload (params->payload)))
+                             (extra-info temtx-table)))
+                 (footer)))))))
 
 (defpage temtx-page actions/config/temtx/update
-    (("actions/config/temtx/" (role "(customer|supplier)") "/update") :request-type :post)
-    ((temtx-id       integer chk-temtx-id      t)
-     (debit-account  string  chk-account-title)
-     (credit-account string  chk-account-title)
-     (sign           integer chk-sign)
-     (propagated-p   boolean)
-     (lib-p          boolean)
-     (title          string))
+  (("actions/config/temtx/" (role "(customer|supplier)") "/update") :request-type :post)
+  ((temtx-id       integer chk-temtx-id      t)
+   (debit-account  string  chk-account-title)
+   (credit-account string  chk-account-title)
+   (sign           integer chk-sign)
+   (propagated-p   boolean)
+   (lib-p          boolean)
+   (title          string))
   (validate-parameters (temtx-title-create/update-chker (customer-p role) (val temtx-id))
                        title)
   (validate-parameters (temtx-constraints-chker (val temtx-id))
@@ -477,34 +477,34 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage temtx-page config/temtx/delete (("config/temtx/" (role "(customer|supplier)") "/delete"))
-    ((temtx-id integer chk-temtx-id/ref t))
+  ((temtx-id integer chk-temtx-id/ref t))
   (with-view-page
-    (let ((temtx-table (make-instance 'temtx-table
-                                      :role role
-                                      :selected-key (val temtx-id)
-                                      :op :delete)))
-      (with-document ()
-        (:head
-          (:title (str (temtx-page-title role "Διαγραφή")))
-          (config-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'config)
-            (navbar 'config 'temtx)
-            (temtx-top-actions :delete)
-            (filters temtx-table)
-            (:div :class "grid_12"
-              (:div :class "window"
-                (:div :class "title" "Διαγραφή")
-                (actions temtx-table)
-                (with-form (actions/config/temtx/delete role :temtx-id (val temtx-id))
-                  (display temtx-table))
-                (extra-info temtx-table)))
-            (footer)))))))
+      (let ((temtx-table (make-instance 'temtx-table
+                                        :role role
+                                        :selected-key (val temtx-id)
+                                        :op :delete)))
+        (with-document ()
+          (:head
+           (:title (str (temtx-page-title role "Διαγραφή")))
+           (config-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'config)
+                 (navbar 'config 'temtx)
+                 (temtx-top-actions :delete)
+                 (filters temtx-table)
+                 (:div :class "grid_12"
+                       (:div :class "window"
+                             (:div :class "title" "Διαγραφή")
+                             (actions temtx-table)
+                             (with-form (actions/config/temtx/delete role :temtx-id (val temtx-id))
+                               (display temtx-table))
+                             (extra-info temtx-table)))
+                 (footer)))))))
 
 (defpage temtx-page actions/config/temtx/delete
-    (("actions/config/temtx/" (role "(customer|supplier)") "/delete") :request-type :post)
-    ((temtx-id integer chk-temtx-id/ref t))
+  (("actions/config/temtx/" (role "(customer|supplier)") "/delete") :request-type :post)
+  ((temtx-id integer chk-temtx-id/ref t))
   (with-controller-page (config/temtx/delete role)
     (delete-dao (get-dao 'temtx (val temtx-id)))
     (see-other (config/temtx role))))

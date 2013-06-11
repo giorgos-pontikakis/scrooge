@@ -46,26 +46,26 @@
          (filter (filter tbl))
          (spec `((:create
                   ,(html ()
-                     (:a :class "create"
-                       :href (apply #'contact/create
-                                    :company-id company-id filter)
-                       "Νέα Επαφή")))
+                         (:a :class "create"
+                             :href (apply #'contact/create
+                                          :company-id company-id filter)
+                             "Νέα Επαφή")))
                  (:update
                   ,(html ()
-                     (:a :class "update"
-                       :href (apply #'contact/update
-                                    :company-id company-id
-                                    :contact-id contact-id
-                                    filter)
-                       "Επεξεργασία")))
+                         (:a :class "update"
+                             :href (apply #'contact/update
+                                          :company-id company-id
+                                          :contact-id contact-id
+                                          filter)
+                             "Επεξεργασία")))
                  (:delete
                   ,(html ()
-                     (:a :class "delete"
-                       :href (apply #'contact/delete
-                                    :company-id company-id
-                                    :contact-id contact-id
-                                    filter)
-                       "Διαγραφή")))
+                         (:a :class "delete"
+                             :href (apply #'contact/delete
+                                          :company-id company-id
+                                          :contact-id contact-id
+                                          filter)
+                             "Διαγραφή")))
                  (:rank-up
                   ,(make-instance 'form
                                   :action (action/contact/rank-dec)
@@ -94,10 +94,10 @@
   (let ((company-id (company-id (collection row)))
         (contact-id (key row)))
     (html ()
-      (:a :href (if selected-p
-                    (company/details :company-id company-id)
-                    (company/details :company-id company-id :contact-id contact-id))
-        (selector-img selected-p)))))
+          (:a :href (if selected-p
+                        (company/details :company-id company-id)
+                        (company/details :company-id company-id :contact-id contact-id))
+              (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
   (mapcar (textbox-maker (record row) enabled-p)
@@ -121,28 +121,28 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage contact-page action/contact/rank-inc ("action/contact/rank-inc" :request-type :post)
-    ((search     string)
-     (subset     string  chk-subset)
-     (cstate     string)
-     (company-id         integer chk-company-id                 t)
-     (contact-id integer (chk-contact-id company-id contact-id) t))
+  ((search     string)
+   (subset     string  chk-subset)
+   (cstate     string)
+   (company-id         integer chk-company-id                 t)
+   (contact-id integer (chk-contact-id company-id contact-id) t))
   (with-controller-page nil
     (swap-ranks (get-dao 'contact (val contact-id)) +1)
     (see-other (apply #'company/details :company-id (val company-id)
                                         :contact-id (val contact-id)
-                                        (params->filter)))))
+                      (params->filter)))))
 
 (defpage contact-page action/contact/rank-dec ("action/contact/rank-dec" :request-type :post)
-    ((search     string)
-     (subset     string  chk-subset)
-     (cstate     string)
-     (company-id         integer chk-company-id                 t)
-     (contact-id integer (chk-contact-id company-id contact-id) t))
+  ((search     string)
+   (subset     string  chk-subset)
+   (cstate     string)
+   (company-id         integer chk-company-id                 t)
+   (contact-id integer (chk-contact-id company-id contact-id) t))
   (with-controller-page nil
     (swap-ranks (get-dao 'contact (val contact-id)) -1)
     (see-other (apply #'company/details :company-id (val company-id)
                                         :contact-id (val contact-id)
-                                        (params->filter)))))
+                      (params->filter)))))
 
 
 
@@ -151,53 +151,53 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage contact-page contact/create ("company/details/contact/create")
-    ((search     string)
-     (subset     string  chk-subset)
-     (company-id integer chk-company-id t)
-     (tag        string)
-     (phone      string))
+  ((search     string)
+   (subset     string  chk-subset)
+   (company-id integer chk-company-id t)
+   (tag        string)
+   (phone      string))
   (with-view-page
-    (let* ((filter (params->filter))
-           (company-form (make-instance 'company-form
-                                        :op :details
-                                        :key (val company-id)
-                                        :cancel-url (apply #'company
-                                                           :company-id (val company-id)
-                                                           filter)))
-           (contact-table (make-instance 'contact-table
-                                         :op :create
-                                         :company-id (val company-id))))
-      (with-document ()
-        (:head
-          (:title "Επαφές » Δημιουργία")
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-top-actions :details)
-            (company-tabs (val company-id) filter 'details
-                          (html ()
-                            (:div :class "grid_6 alpha"
-                              (:div :id "company-window" :class "window"
-                                (:div :class "title" "Λεπτομέρειες")
-                                (actions company-form :filter filter)
-                                (display company-form)))
-                            (:div :class "grid_6 omega"
-                              (:div :company-id "contact-window" :class "window"
-                                (:div :class "title" "Δημιουργία")
-                                (actions contact-table)
-                                (with-form
-                                    (actions/contact/create :company-id (val company-id))
-                                  (display contact-table))))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (company-form (make-instance 'company-form
+                                          :op :details
+                                          :key (val company-id)
+                                          :cancel-url (apply #'company
+                                                             :company-id (val company-id)
+                                                             filter)))
+             (contact-table (make-instance 'contact-table
+                                           :op :create
+                                           :company-id (val company-id))))
+        (with-document ()
+          (:head
+           (:title "Επαφές » Δημιουργία")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-top-actions :details)
+                 (company-tabs (val company-id) filter 'details
+                               (html ()
+                                     (:div :class "grid_6 alpha"
+                                           (:div :id "company-window" :class "window"
+                                                 (:div :class "title" "Λεπτομέρειες")
+                                                 (actions company-form :filter filter)
+                                                 (display company-form)))
+                                     (:div :class "grid_6 omega"
+                                           (:div :company-id "contact-window" :class "window"
+                                                 (:div :class "title" "Δημιουργία")
+                                                 (actions contact-table)
+                                                 (with-form
+                                                     (actions/contact/create :company-id (val company-id))
+                                                   (display contact-table))))))
+                 (footer)))))))
 
 (defpage contact-page actions/contact/create ("actions/contact/create" :request-type :post)
-    ((search     string)
-     (subset     string  chk-subset)
-     (company-id integer chk-company-id)
-     (tag        string)
-     (phone      string))
+  ((search     string)
+   (subset     string  chk-subset)
+   (company-id integer chk-company-id)
+   (tag        string)
+   (phone      string))
   (with-controller-page (contact/create)
     (let ((new-contact (make-instance 'contact
                                       :company-id (val company-id)
@@ -216,58 +216,58 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage contact-page contact/update ("company/details/contact/update")
-    ((search     string)
-     (subset     string  chk-subset)
-     (company-id integer chk-company-id                         t)
-     (contact-id integer (chk-contact-id company-id contact-id) t)
-     (tag        string)
-     (phone      string))
+  ((search     string)
+   (subset     string  chk-subset)
+   (company-id integer chk-company-id                         t)
+   (contact-id integer (chk-contact-id company-id contact-id) t)
+   (tag        string)
+   (phone      string))
   (with-view-page
-    (let* ((filter (params->filter))
-           (company-form (make-instance 'company-form
-                                        :op :details
-                                        :key (val company-id)
-                                        :cancel-url (apply #'company
-                                                           :company-id (val company-id)
-                                                           filter)))
-           (contact-table (make-instance 'contact-table
-                                         :op :update
-                                         :selected-key (val contact-id)
-                                         :company-id (val company-id))))
-      (with-document ()
-        (:head
-          (:title "Επαφές » Επεξεργασία")
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-top-actions :details)
-            (company-tabs (val company-id) filter 'details
-                          (html ()
-                            (:div :class "grid_6 alpha"
-                              (:div :id "company-window" :class "window"
-                                (:div :class "title" "Λεπτομέρειες")
-                                (actions company-form :filter filter)
-                                (display company-form)))
-                            (:div :class "grid_6 omega"
-                              (:div :id "contact-window" :class "window"
-                                (:div :class "title" "Επεξεργασία")
-                                (actions contact-table)
-                                (with-form
-                                    (actions/contact/update :company-id (val company-id)
-                                                            :contact-id (val contact-id))
-                                  (display contact-table))))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (company-form (make-instance 'company-form
+                                          :op :details
+                                          :key (val company-id)
+                                          :cancel-url (apply #'company
+                                                             :company-id (val company-id)
+                                                             filter)))
+             (contact-table (make-instance 'contact-table
+                                           :op :update
+                                           :selected-key (val contact-id)
+                                           :company-id (val company-id))))
+        (with-document ()
+          (:head
+           (:title "Επαφές » Επεξεργασία")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-top-actions :details)
+                 (company-tabs (val company-id) filter 'details
+                               (html ()
+                                     (:div :class "grid_6 alpha"
+                                           (:div :id "company-window" :class "window"
+                                                 (:div :class "title" "Λεπτομέρειες")
+                                                 (actions company-form :filter filter)
+                                                 (display company-form)))
+                                     (:div :class "grid_6 omega"
+                                           (:div :id "contact-window" :class "window"
+                                                 (:div :class "title" "Επεξεργασία")
+                                                 (actions contact-table)
+                                                 (with-form
+                                                     (actions/contact/update :company-id (val company-id)
+                                                                             :contact-id (val contact-id))
+                                                   (display contact-table))))))
+                 (footer)))))))
 
 (defpage contact-page actions/contact/update ("actions/contact/update"
                                               :request-type :post)
-    ((search     string)
-     (subset     string  chk-subset)
-     (company-id integer chk-company-id                         t)
-     (contact-id integer (chk-contact-id company-id contact-id) t)
-     (tag        string)
-     (phone      string))
+  ((search     string)
+   (subset     string  chk-subset)
+   (company-id integer chk-company-id                         t)
+   (contact-id integer (chk-contact-id company-id contact-id) t)
+   (tag        string)
+   (phone      string))
   (with-controller-page (contact/update)
     (execute (:update 'contact :set
                       'tag (val tag)
@@ -283,54 +283,54 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage contact-page contact/delete ("company/details/contact/delete")
-    ((search     string)
-     (subset     string  chk-subset)
-     (company-id integer chk-company-id                         t)
-     (contact-id integer (chk-contact-id company-id contact-id) t))
+  ((search     string)
+   (subset     string  chk-subset)
+   (company-id integer chk-company-id                         t)
+   (contact-id integer (chk-contact-id company-id contact-id) t))
   (with-view-page
-    (let* ((filter (params->filter))
-           (company-form (make-instance 'company-form
-                                        :op :details
-                                        :key (val company-id)
-                                        :cancel-url (apply #'company
-                                                           :company-id (val company-id)
-                                                           filter)))
-           (contact-table (make-instance 'contact-table
-                                         :op :delete
-                                         :selected-key (val contact-id)
-                                         :company-id (val company-id))))
-      (with-document ()
-        (:head
-          (:title "Επαφές » Διαγραφή")
-          (main-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'main)
-            (navbar 'main 'company)
-            (company-top-actions :details)
-            (company-tabs (val company-id) filter 'details
-                          (html ()
-                            (:div :class "grid_6 alpha"
-                              (:div :id "company-window" :class "window"
-                                (:div :class "title" "Λεπτομέρειες")
-                                (actions company-form :filter filter)
-                                (display company-form)))
-                            (:div :class "grid_6 omega"
-                              (:div :id "contact-window" :class "window"
-                                (:div :class "title" "Διαγραφή")
-                                (actions contact-table)
-                                (with-form
-                                    (actions/contact/delete :company-id (val company-id)
-                                                            :contact-id (val contact-id))
-                                  (display contact-table))))))
-            (footer)))))))
+      (let* ((filter (params->filter))
+             (company-form (make-instance 'company-form
+                                          :op :details
+                                          :key (val company-id)
+                                          :cancel-url (apply #'company
+                                                             :company-id (val company-id)
+                                                             filter)))
+             (contact-table (make-instance 'contact-table
+                                           :op :delete
+                                           :selected-key (val contact-id)
+                                           :company-id (val company-id))))
+        (with-document ()
+          (:head
+           (:title "Επαφές » Διαγραφή")
+           (main-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'main)
+                 (navbar 'main 'company)
+                 (company-top-actions :details)
+                 (company-tabs (val company-id) filter 'details
+                               (html ()
+                                     (:div :class "grid_6 alpha"
+                                           (:div :id "company-window" :class "window"
+                                                 (:div :class "title" "Λεπτομέρειες")
+                                                 (actions company-form :filter filter)
+                                                 (display company-form)))
+                                     (:div :class "grid_6 omega"
+                                           (:div :id "contact-window" :class "window"
+                                                 (:div :class "title" "Διαγραφή")
+                                                 (actions contact-table)
+                                                 (with-form
+                                                     (actions/contact/delete :company-id (val company-id)
+                                                                             :contact-id (val contact-id))
+                                                   (display contact-table))))))
+                 (footer)))))))
 
 (defpage contact-page actions/contact/delete ("actions/contact/delete"
                                               :request-type :post)
-    ((search     string)
-     (subset     string  chk-subset)
-     (company-id integer chk-company-id                         t)
-     (contact-id integer (chk-contact-id company-id contact-id) t))
+  ((search     string)
+   (subset     string  chk-subset)
+   (company-id integer chk-company-id                         t)
+   (contact-id integer (chk-contact-id company-id contact-id) t))
   (with-controller-page (contact/delete)
     (with-transaction ()
       (let ((dao (get-dao 'contact (val contact-id))))

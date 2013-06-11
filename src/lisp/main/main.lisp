@@ -20,12 +20,12 @@
                  (libtx   ,(libtx "customer")
                           "Βιβλιοθήκη"))))
     (with-html
-      (:div :class "grid_12"
-            (:div :class "section-navbar"
-                  (obj 'navbar
-                       :spec spec
-                       :css-class "hnavbar"
-                       :active active))))))
+        (:div :class "grid_12"
+              (:div :class "section-navbar"
+                    (obj 'navbar
+                         :spec spec
+                         :css-class "hnavbar"
+                         :active active))))))
 
 
 ;;; app-section
@@ -84,30 +84,30 @@
   (let* ((record (record form))
          (ldfn (label-datum disabled record styles)))
     (with-html
-      (:div :class "left-column"
-            (:h3 "Στοιχεία Συναλλαγής")
-            (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
-                                                :default-value (today))
-            (display ldfn 'company "Εταιρία"
-                     :enabled-styles "ac-company"
-                     :href (company/tx :company-id (getf record :company-id)
-                                       :tx-id (key form))
-                     :common-styles "company")
-            (display ldfn 'description "Περιγραφή"
-                     :common-styles "description")
-            (display ldfn 'amount "Ποσό"
-                     :common-styles "amount"
-                     :format-fn #'fmt-amount)
-            (:div :id "project-group"
-                  (:label "Έργο"
-                          (:div :id "project-picker" "")))
-            (unless disabled
-              (htm (:div :class "data-form-buttons"
-                         (ok-button :body (if (eql (op form) :update)
-                                              "Ανανέωση"
-                                              "Δημιουργία"))
-                         (cancel-button (cancel-url form)
-                                        :body "Άκυρο"))))))))
+        (:div :class "left-column"
+              (:h3 "Στοιχεία Συναλλαγής")
+              (display ldfn 'tx-date "Ημερομηνία" :enabled-styles "datepicker"
+                                                  :default-value (today))
+              (display ldfn 'company "Εταιρία"
+                       :enabled-styles "ac-company"
+                       :href (company/tx :company-id (getf record :company-id)
+                                         :tx-id (key form))
+                       :common-styles "company")
+              (display ldfn 'description "Περιγραφή"
+                       :common-styles "description")
+              (display ldfn 'amount "Ποσό"
+                       :common-styles "amount"
+                       :format-fn #'fmt-amount)
+              (:div :id "project-group"
+                    (:label "Έργο"
+                            (:div :id "project-picker" "")))
+              (unless disabled
+                (htm (:div :class "data-form-buttons"
+                           (ok-button :body (if (eql (op form) :update)
+                                                "Ανανέωση"
+                                                "Δημιουργία"))
+                           (cancel-button (cancel-url form)
+                                          :body "Άκυρο"))))))))
 
 
 
@@ -137,7 +137,7 @@
 (defmethod payload ((node radio-account-node) enabled-p)
   (declare (ignore enabled-p))
   (html ()
-    (str (lisp->html (getf (record node) :title)))))
+        (str (lisp->html (getf (record node) :title)))))
 
 (defmethod controls ((node radio-account-node) controls-p)
   (declare (ignore controls-p))

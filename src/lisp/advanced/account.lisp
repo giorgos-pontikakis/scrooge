@@ -79,24 +79,24 @@
   (let ((filter (filter (collection node)))
         (account-id (key node)))
     (html ()
-      (:a :href (if selected-p
-                    (apply #'account filter)
-                    (apply #'account :account-id account-id filter))
-        (selector-img selected-p)))))
+          (:a :href (if selected-p
+                        (apply #'account filter)
+                        (apply #'account :account-id account-id filter))
+              (selector-img selected-p)))))
 
 (defmethod payload ((node balance-account-node) enabled-p)
   (declare (ignore enabled-p))
   (html ()
-    (:a :href (apply #'account/tx :account-id (key node) (filter (collection node)))
-      (str (getf (record node) :title)))
-    (:span :class (conc "balance-details "
-                        (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
-      " [" (str (fmt-amount (cumul-balance node))) "]")
-    (:ul
-      (:li :class "debits-credits"
-        "Balance: " (str (fmt-amount (balance node)))
-        " | Debits: " (str (fmt-amount (debits node)))
-        " | Credits: " (str (fmt-amount (credits node)))))))
+        (:a :href (apply #'account/tx :account-id (key node) (filter (collection node)))
+            (str (getf (record node) :title)))
+        (:span :class (conc "balance-details "
+                            (if (non-negative-real-p (cumul-balance node)) "pos" "neg"))
+               " [" (str (fmt-amount (cumul-balance node))) "]")
+        (:ul
+         (:li :class "debits-credits"
+              "Balance: " (str (fmt-amount (balance node)))
+              " | Debits: " (str (fmt-amount (debits node)))
+              " | Credits: " (str (fmt-amount (credits node)))))))
 
 (defmethod controls ((node balance-account-node) controls-p)
   (declare (ignore node controls-p))
@@ -109,35 +109,35 @@
 ;;; ------------------------------------------------------------
 
 (defpage account-tx-page account ("account")
-    ((account-id integer chk-account-id)
-     (since      date)
-     (until      date))
+  ((account-id integer chk-account-id)
+   (since      date)
+   (until      date))
   (with-view-page
-    (let ((filter (params->filter)))
-      (with-document ()
-        (:head
-          (:title "Λογαριασμοί")
-          (advanced-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'advanced)
-            (navbar 'advanced 'account)
-            (top-actions-area (datebox #'account filter) nil)
-            (loop for debit-p in '(t nil)
-                  for div-id in '("debit-accounts" "credit-accounts")
-                  for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
-                  for account-tree = (make-instance 'balance-account-tree
-                                                    :op :catalogue
-                                                    :selected-key (val account-id)
-                                                    :debit-p debit-p
-                                                    :filter filter)
-                  do (htm
-                      (:div :class "grid_6"
-                        (:div :id div-id :class "window"
-                          (:div :class "title" (str window-title))
-                          (actions account-tree)
-                          (display account-tree :hide-root-p t)))))
-            (footer)))))))
+      (let ((filter (params->filter)))
+        (with-document ()
+          (:head
+           (:title "Λογαριασμοί")
+           (advanced-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'advanced)
+                 (navbar 'advanced 'account)
+                 (top-actions-area (datebox #'account filter) nil)
+                 (loop for debit-p in '(t nil)
+                       for div-id in '("debit-accounts" "credit-accounts")
+                       for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
+                       for account-tree = (make-instance 'balance-account-tree
+                                                         :op :catalogue
+                                                         :selected-key (val account-id)
+                                                         :debit-p debit-p
+                                                         :filter filter)
+                       do (htm
+                           (:div :class "grid_6"
+                                 (:div :id div-id :class "window"
+                                       (:div :class "title" (str window-title))
+                                       (actions account-tree)
+                                       (display account-tree :hide-root-p t)))))
+                 (footer)))))))
 
 
 
@@ -167,9 +167,9 @@
                                debit-account-id
                                credit-account-id
                                amount
-                       :from tx
-                       :left-join company
-                       :on (:= company.id tx.company-id)))
+                               :from tx
+                               :left-join company
+                               :on (:= company.id tx.company-id)))
          (where nil)
          (where-base `(:or (:= ,account-id tx.debit-account-id)
                            (:= ,account-id tx.credit-account-id))))
@@ -202,10 +202,10 @@
             (progn (incf credit-sum amount)
                    (decf total amount)))))
     (with-html
-      (:div :class "window-footer"
-        (:h4 "Σύνολο Χρεώσεων: " (str (fmt-amount debit-sum)))
-        (:h4 "Σύνολο Πιστώσεων: " (str (fmt-amount credit-sum)))
-        (:h4 "Γενικό Σύνολο: " (str (fmt-amount total)))))))
+        (:div :class "window-footer"
+              (:h4 "Σύνολο Χρεώσεων: " (str (fmt-amount debit-sum)))
+              (:h4 "Σύνολο Πιστώσεων: " (str (fmt-amount credit-sum)))
+              (:h4 "Γενικό Σύνολο: " (str (fmt-amount total)))))))
 
 
 ;;; row
@@ -220,12 +220,12 @@
          (filter (filter table))
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
-      (:a :href (if selected-p
-                    (apply #'account/tx :account-id account-id
-                                        :start start filter)
-                    (apply #'account/tx :account-id account-id
-                                        :tx-id tx-id filter))
-        (selector-img selected-p)))))
+          (:a :href (if selected-p
+                        (apply #'account/tx :account-id account-id
+                                            :start start filter)
+                        (apply #'account/tx :account-id account-id
+                                            :tx-id tx-id filter))
+              (selector-img selected-p)))))
 
 (defmethod payload ((row account-tx-row) enabled-p)
   (let* ((record (record row))
@@ -264,43 +264,43 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage account-tx-page account/tx ("account/tx")
-    ((account-id integer chk-account-id t)
-     (tx-id      integer chk-tx-id)
-     (search     string)
-     (since      date)
-     (until      date)
-     (start      integer))
+  ((account-id integer chk-account-id t)
+   (tx-id      integer chk-tx-id)
+   (search     string)
+   (since      date)
+   (until      date)
+   (start      integer))
   (with-view-page
-    (let* ((account-title (with-db ()
-                            (title (get-dao 'account (val account-id)))))
-           (account-tx-table (make-instance 'account-tx-table
-                                            :op :catalogue
-                                            :account-id (val account-id)
-                                            :selected-key (val tx-id)
-                                            :filter (params->filter)
-                                            :start-index (val start))))
-      (with-document ()
-        (:head
-          (:title (str (conc "Λογαριασμοί » Συναλλαγές: " account-title)))
-          (advanced-headers))
-        (:body
-          (:div :id "container" :class "container_12"
-            (header 'advanced)
-            (navbar 'advanced 'account)
-            (top-actions-area
-             (make-instance 'scrooge-menu
-                            :spec (make-menu-spec
-                                   `(:catalogue ,(account :account-id (val account-id)
-                                                          :until (val until))))
-                            :css-class "hmenu"
-                            :disabled nil)
-             (searchbox (family-url-fn 'account/tx)
-                        (family-url-fn 'account/tx :system)
-                        (family-params 'account/tx :filter)
-                        "ac-company"))
-            (filters account-tx-table)
-            (:div :class "grid_12"
-              (:div :id "account-tx-window" :class "window"
-                (:div :class "title" (str account-title))
-                (display account-tx-table)
-                (extra-info account-tx-table)))))))))
+      (let* ((account-title (with-db ()
+                              (title (get-dao 'account (val account-id)))))
+             (account-tx-table (make-instance 'account-tx-table
+                                              :op :catalogue
+                                              :account-id (val account-id)
+                                              :selected-key (val tx-id)
+                                              :filter (params->filter)
+                                              :start-index (val start))))
+        (with-document ()
+          (:head
+           (:title (str (conc "Λογαριασμοί » Συναλλαγές: " account-title)))
+           (advanced-headers))
+          (:body
+           (:div :id "container" :class "container_12"
+                 (header 'advanced)
+                 (navbar 'advanced 'account)
+                 (top-actions-area
+                  (make-instance 'scrooge-menu
+                                 :spec (make-menu-spec
+                                        `(:catalogue ,(account :account-id (val account-id)
+                                                               :until (val until))))
+                                 :css-class "hmenu"
+                                 :disabled nil)
+                  (searchbox (family-url-fn 'account/tx)
+                             (family-url-fn 'account/tx :system)
+                             (family-params 'account/tx :filter)
+                             "ac-company"))
+                 (filters account-tx-table)
+                 (:div :class "grid_12"
+                       (:div :id "account-tx-window" :class "window"
+                             (:div :class "title" (str account-title))
+                             (display account-tx-table)
+                             (extra-info account-tx-table)))))))))
