@@ -73,10 +73,10 @@
 (defmethod selector ((row account-role-row) selected-p)
   (let ((account-role-id (key row)))
     (html ()
-          (:a :href (if selected-p
-                        (config/account-role)
-                        (config/account-role :account-role-id account-role-id))
-              (selector-img selected-p)))))
+      (:a :href (if selected-p
+                    (config/account-role)
+                    (config/account-role :account-role-id account-role-id))
+          (selector-img selected-p)))))
 
 (defmethod controls ((row account-role-row) controls-p)
   (simple-controls row controls-p #'config/account-role :account-role-id))
@@ -99,26 +99,26 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage account-role-page config/account-role ("config/account-role")
-  ((account-role-id string chk-account-role-id)
-   (account         string chk-account-title))
+    ((account-role-id string chk-account-role-id)
+     (account         string chk-account-title))
   (with-view-page
-      (let ((account-role-table (make-instance 'account-role-table
-                                               :op :catalogue
-                                               :selected-key (val account-role-id))))
-        (with-document ()
-          (:head
-           (:title "Ρόλοι λογαριασμών » Κατάλογος")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (navbar 'config 'account-role)
-                 (:div :class "grid_12"
-                       (:div :id "bank-window" :class "window"
-                             (:div :class "title" "Κατάλογος")
-                             (actions account-role-table)
-                             (display account-role-table)))
-                 (footer)))))))
+    (let ((account-role-table (make-instance 'account-role-table
+                                             :op :catalogue
+                                             :selected-key (val account-role-id))))
+      (with-document ()
+        (:head
+         (:title "Ρόλοι λογαριασμών » Κατάλογος")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (navbar 'config 'account-role)
+               (:div :class "grid_12"
+                     (:div :id "bank-window" :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (actions account-role-table)
+                           (display account-role-table)))
+               (footer)))))))
 
 
 
@@ -127,33 +127,33 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage account-role-page config/account-role/update ("config/account-role/update")
-  ((account-role-id string chk-account-role-id t)
-   (account         string chk-account-title))
+    ((account-role-id string chk-account-role-id t)
+     (account         string chk-account-title))
   (with-view-page
-      (let ((account-role-table (make-instance 'account-role-table
-                                               :op :update
-                                               :selected-key (val account-role-id))))
-        (with-document ()
-          (:head
-           (:title "Ρόλοι λογαριασμών » Επεξεργασία")
-           (config-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'config)
-                 (navbar 'config 'account-role)
-                 (:div :class "grid_12"
-                       (:div :id "account-role-window" :class "window"
-                             (:div :class "title" "Επεξεργασία")
-                             (actions account-role-table)
-                             (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
-                               (display account-role-table :payload (params->payload)
-                                                           :styles (params->styles)))))
-                 (footer)))))))
+    (let ((account-role-table (make-instance 'account-role-table
+                                             :op :update
+                                             :selected-key (val account-role-id))))
+      (with-document ()
+        (:head
+         (:title "Ρόλοι λογαριασμών » Επεξεργασία")
+         (config-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'config)
+               (navbar 'config 'account-role)
+               (:div :class "grid_12"
+                     (:div :id "account-role-window" :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (actions account-role-table)
+                           (with-form (actions/config/account-role/update :account-role-id (val account-role-id))
+                             (display account-role-table :payload (params->payload)
+                                                         :styles (params->styles)))))
+               (footer)))))))
 
 (defpage account-role-page actions/config/account-role/update
-  ("actions/config/account-role/update" :request-type :post)
-  ((account-role-id string chk-account-role-id t)
-   (account         string chk-account-title))
+    ("actions/config/account-role/update" :request-type :post)
+    ((account-role-id string chk-account-role-id t)
+     (account         string chk-account-title))
   (with-controller-page (config/account-role/update)
     (execute (:update 'account-role :set
                       :account-id (account-id (val account))

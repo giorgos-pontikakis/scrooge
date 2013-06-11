@@ -257,48 +257,48 @@
 (defun datebox (submit-fn filter)
   (let ((hidden (remove-from-plist filter :since :until)))
     (html ()
-          (:div :id "datebox" :class "inline-form filter-navbar"
-                (obj 'form :action (funcall submit-fn)
-                           :body (html ()
-                                       (:p
-                                        (:label "Από: "
-                                                (obj 'input-text
-                                                     :name 'since
-                                                     :value (getf filter :since)
-                                                     :css-class "datepicker"))
-                                        (:label  :id "until"
-                                                 "Εώς: "
-                                                 (:input-text :name 'until
-                                                              :value (getf filter :until)
-                                                              :css-class "datepicker"))
-                                        (:button :type "submit"
-                                                 (img "tick.png"))
-                                        (:a :class "cancel"
-                                            :href (apply submit-fn hidden)
-                                            (img "cross.png"))))
-                           :hidden hidden)))))
+      (:div :id "datebox" :class "inline-form filter-navbar"
+            (obj 'form :action (funcall submit-fn)
+                       :body (html ()
+                               (:p
+                                (:label "Από: "
+                                        (obj 'input-text
+                                             :name 'since
+                                             :value (getf filter :since)
+                                             :css-class "datepicker"))
+                                (:label  :id "until"
+                                         "Εώς: "
+                                         (:input-text :name 'until
+                                                      :value (getf filter :until)
+                                                      :css-class "datepicker"))
+                                (:button :type "submit"
+                                         (img "tick.png"))
+                                (:a :class "cancel"
+                                    :href (apply submit-fn hidden)
+                                    (img "cross.png"))))
+                       :hidden hidden)))))
 
 
 ;;; label-input-text for forms
 
 (defun label-datum (disabled record styles)
   (html (name label &key href default-value enabled-styles disabled-styles common-styles format-fn)
-        (let ((value (or (getf record (make-keyword name))
-                         default-value))
-              (all-styles (conc (getf styles (make-keyword name))
-                                " "
-                                (if disabled
-                                    disabled-styles
-                                    enabled-styles)
-                                " "
-                                common-styles)))
-          (htm (:label (str label)
-                       (obj 'textbox :name name
-                                     :value value
-                                     :href href
-                                     :disabled disabled
-                                     :css-class all-styles
-                                     :format-fn format-fn))))))
+    (let ((value (or (getf record (make-keyword name))
+                     default-value))
+          (all-styles (conc (getf styles (make-keyword name))
+                            " "
+                            (if disabled
+                                disabled-styles
+                                enabled-styles)
+                            " "
+                            common-styles)))
+      (htm (:label (str label)
+                   (obj 'textbox :name name
+                                 :value value
+                                 :href href
+                                 :disabled disabled
+                                 :css-class all-styles
+                                 :format-fn format-fn))))))
 
 
 ;;; textbox-maker
@@ -326,14 +326,14 @@
          (filter (filter table))
          (start (page-start (paginator table) (index row) (start-index table))))
     (html ()
-          (:a :id id
-              :href (if selected-p
-                        (apply url-fn :start start filter)
-                        (apply url-fn
-                               id-key
-                               id
-                               filter))
-              (selector-img selected-p)))))
+      (:a :id id
+          :href (if selected-p
+                    (apply url-fn :start start filter)
+                    (apply url-fn
+                           id-key
+                           id
+                           filter))
+          (selector-img selected-p)))))
 
 (defun simple-controls (row enabled-p url-fn id-key)
   (let ((id (key row))

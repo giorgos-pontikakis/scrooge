@@ -29,7 +29,7 @@
 ;;; ------------------------------------------------------------
 
 (defpage dynamic-page login ("login")
-  (user origin)
+    (user origin)
   (with-document ()
     (:head
      (login-headers)
@@ -53,9 +53,9 @@
                          (obj 'submit :body "Είσοδος"))))))))
 
 (defpage dynamic-page verify-login ("verify-login" :request-type :post)
-  ((user   string chk-user             t)
-   (pass   string (chk-pass user pass) t)
-   (target string))
+    ((user   string chk-user             t)
+     (pass   string (chk-pass user pass) t)
+     (target string))
   (if (and (validp user)
            (validp pass))
       (let ((login-time (get-universal-time)))

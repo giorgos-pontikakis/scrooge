@@ -262,34 +262,34 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx ("tx")
-  ((tx-id  integer chk-tx-id)
-   (search string)
-   (since  date)
-   (until  date)
-   (start  integer))
+    ((tx-id  integer chk-tx-id)
+     (search string)
+     (since  date)
+     (until  date)
+     (start  integer))
   (with-view-page
-      (let* ((filter (params->filter))
-             (tx-table (make-instance 'tx-table
-                                      :op :catalogue
-                                      :selected-key (val tx-id)
-                                      :filter filter
-                                      :start-index (val start))))
-        (with-document ()
-          (:head
-           (:title "Συναλλαγές")
-           (advanced-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'advanced)
-                 (navbar 'advanced 'tx)
-                 (tx-top-actions :catalogue)
-                 (filters tx-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" "Κατάλογος")
-                             (actions tx-table)
-                             (display tx-table)))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (tx-table (make-instance 'tx-table
+                                    :op :catalogue
+                                    :selected-key (val tx-id)
+                                    :filter filter
+                                    :start-index (val start))))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγές")
+         (advanced-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'advanced)
+               (navbar 'advanced 'tx)
+               (tx-top-actions :catalogue)
+               (filters tx-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Κατάλογος")
+                           (actions tx-table)
+                           (display tx-table)))
+               (footer)))))))
 
 
 
@@ -298,54 +298,54 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx/create ("tx/create")
-  ((search                 string)
-   (since                  date)
-   (until                  date)
-   (tx-date                date   chk-date)
-   (description            string)
-   (company                string chk-company-title)
-   (amount                 float  chk-amount)
-   (non-chq-debit-account  string chk-non-chq-account-title)
-   (non-chq-credit-account string chk-non-chq-account-title))
+    ((search                 string)
+     (since                  date)
+     (until                  date)
+     (tx-date                date   chk-date)
+     (description            string)
+     (company                string chk-company-title)
+     (amount                 float  chk-amount)
+     (non-chq-debit-account  string chk-non-chq-account-title)
+     (non-chq-credit-account string chk-non-chq-account-title))
   ;; post-validation - prevent update for non-existent temtx
   (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
   (with-view-page
-      (let* ((filter (params->filter))
-             (tx-table (make-instance 'tx-table
-                                      :op :create
-                                      :filter filter)))
-        (with-document ()
-          (:head
-           (:title "Συναλλαγές » Δημιουργία")
-           (advanced-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'advanced)
-                 (navbar 'advanced 'tx)
-                 (tx-top-actions :create)
-                 (filters tx-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" "Δημιουργία")
-                             (actions tx-table)
-                             (notifications)
-                             (with-form (actions/tx/create :search (val search)
-                                                           :since (val since)
-                                                           :until (val until))
-                               (display tx-table :payload (params->payload)))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (tx-table (make-instance 'tx-table
+                                    :op :create
+                                    :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγές » Δημιουργία")
+         (advanced-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'advanced)
+               (navbar 'advanced 'tx)
+               (tx-top-actions :create)
+               (filters tx-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Δημιουργία")
+                           (actions tx-table)
+                           (notifications)
+                           (with-form (actions/tx/create :search (val search)
+                                                         :since (val since)
+                                                         :until (val until))
+                             (display tx-table :payload (params->payload)))))
+               (footer)))))))
 
 (defpage tx-page actions/tx/create ("actions/tx/create"
                                     :request-type :post)
-  ((search                 string)
-   (since                  date)
-   (until                  date)
-   (tx-date                date   chk-date)
-   (description            string)
-   (company                string chk-company-title)
-   (amount                 float  chk-amount)
-   (non-chq-debit-account  string chk-non-chq-account-title)
-   (non-chq-credit-account string chk-non-chq-account-title))
+    ((search                 string)
+     (since                  date)
+     (until                  date)
+     (tx-date                date   chk-date)
+     (description            string)
+     (company                string chk-company-title)
+     (amount                 float  chk-amount)
+     (non-chq-debit-account  string chk-non-chq-account-title)
+     (non-chq-credit-account string chk-non-chq-account-title))
   ;; post-validation - prevent update for non-existent temtx
   (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
   (with-controller-page (tx/create)
@@ -369,59 +369,59 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage tx-page tx/update ("tx/update")
-  ((search                 string)
-   (tx-id                  integer chk-tx-id                 t)
-   (since                  date)
-   (until                  date)
-   (tx-date                date    chk-date)
-   (description            string)
-   (company                string  chk-company-title)
-   (amount                 float   chk-amount)
-   (non-chq-debit-account  string  chk-non-chq-account-title)
-   (non-chq-credit-account string  chk-non-chq-account-title))
+    ((search                 string)
+     (tx-id                  integer chk-tx-id                 t)
+     (since                  date)
+     (until                  date)
+     (tx-date                date    chk-date)
+     (description            string)
+     (company                string  chk-company-title)
+     (amount                 float   chk-amount)
+     (non-chq-debit-account  string  chk-non-chq-account-title)
+     (non-chq-credit-account string  chk-non-chq-account-title))
   ;; post-validation - prevent update for non-existent temtx or if tx is referenced
   (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
   (validate-parameters #'chk-tx-references tx-id)
   (with-view-page
-      (let* ((filter (params->filter))
-             (tx-table (make-instance 'tx-table
-                                      :op :update
-                                      :selected-key (val tx-id)
-                                      :filter filter)))
-        (with-document ()
-          (:head
-           (:title "Συναλλαγή » Επεξεργασία")
-           (advanced-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'advanced)
-                 (navbar 'advanced 'tx)
-                 (tx-top-actions :update)
-                 (filters tx-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" "Επεξεργασία")
-                             (actions tx-table)
-                             (notifications)
-                             (with-form (actions/tx/update :tx-id (val tx-id)
-                                                           :search (val search)
-                                                           :since (val since)
-                                                           :until (val until))
-                               (display tx-table :payload (params->payload)))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (tx-table (make-instance 'tx-table
+                                    :op :update
+                                    :selected-key (val tx-id)
+                                    :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγή » Επεξεργασία")
+         (advanced-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'advanced)
+               (navbar 'advanced 'tx)
+               (tx-top-actions :update)
+               (filters tx-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Επεξεργασία")
+                           (actions tx-table)
+                           (notifications)
+                           (with-form (actions/tx/update :tx-id (val tx-id)
+                                                         :search (val search)
+                                                         :since (val since)
+                                                         :until (val until))
+                             (display tx-table :payload (params->payload)))))
+               (footer)))))))
 
 (defpage tx-page actions/tx/update ("actions/tx/update"
                                     :request-type :post)
-  ((search                 string)
-   (since                  date)
-   (until                  date)
-   (tx-id                  integer chk-tx-id                 t)
-   (tx-date                date    chk-date)
-   (description            string)
-   (company                string  chk-company-title)
-   (amount                 float   chk-amount)
-   (non-chq-debit-account  string  chk-non-chq-account-title)
-   (non-chq-credit-account string  chk-non-chq-account-title))
+    ((search                 string)
+     (since                  date)
+     (until                  date)
+     (tx-id                  integer chk-tx-id                 t)
+     (tx-date                date    chk-date)
+     (description            string)
+     (company                string  chk-company-title)
+     (amount                 float   chk-amount)
+     (non-chq-debit-account  string  chk-non-chq-account-title)
+     (non-chq-credit-account string  chk-non-chq-account-title))
   ;; post-validation - prevent update for non-existent temtx or if tx is referenced
   (validate-parameters #'chk-temtx-existence non-chq-debit-account non-chq-credit-account)
   (validate-parameters #'chk-tx-references tx-id)
@@ -446,46 +446,46 @@
 ;;; -----------------------------------------------------------------------
 
 (defpage tx-page tx/delete ("tx/delete")
-  ((tx-id  integer chk-tx-id/ref t)
-   (since  date)
-   (until  date)
-   (search string))
+    ((tx-id  integer chk-tx-id/ref t)
+     (since  date)
+     (until  date)
+     (search string))
   ;; post validation - prevent delete if automatically created
   (with-db ()
     (validate-parameters #'chk-tx-references tx-id))
   (with-view-page
-      (let* ((filter (params->filter))
-             (tx-table (make-instance 'tx-table
-                                      :op :delete
-                                      :selected-key (val tx-id)
-                                      :filter filter)))
-        (with-document ()
-          (:head
-           (:title "Συναλλαγή » Διαγραφή")
-           (advanced-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'advanced)
-                 (navbar 'advanced 'tx)
-                 (tx-top-actions :delete)
-                 (filters tx-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" "Διαγραφή")
-                             (actions tx-table)
-                             (with-form (actions/tx/delete :tx-id (val tx-id)
-                                                           :search (val search)
-                                                           :since (val since)
-                                                           :until (val until))
-                               (display tx-table))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (tx-table (make-instance 'tx-table
+                                    :op :delete
+                                    :selected-key (val tx-id)
+                                    :filter filter)))
+      (with-document ()
+        (:head
+         (:title "Συναλλαγή » Διαγραφή")
+         (advanced-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'advanced)
+               (navbar 'advanced 'tx)
+               (tx-top-actions :delete)
+               (filters tx-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" "Διαγραφή")
+                           (actions tx-table)
+                           (with-form (actions/tx/delete :tx-id (val tx-id)
+                                                         :search (val search)
+                                                         :since (val since)
+                                                         :until (val until))
+                             (display tx-table))))
+               (footer)))))))
 
 (defpage tx-page actions/tx/delete ("actions/tx/delete"
                                     :request-type :post)
-  ((tx-id  integer chk-tx-id/ref t)
-   (since  date)
-   (until  date)
-   (search string))
+    ((tx-id  integer chk-tx-id/ref t)
+     (since  date)
+     (until  date)
+     (search string))
   (with-controller-page (tx/delete)
     (delete-dao (get-dao 'tx (val tx-id)))
     (see-other (apply #'tx (params->filter)))))

@@ -15,6 +15,7 @@
                            :message-log-destination nil
                            :document-root #p"/home/gnp/www/scrooge/public")
   :packages '(:scrooge)
+
   :db-connection-spec '(:dbname "scrooge"
                         :dbhost "localhost"
                         :dbuser "gnp"

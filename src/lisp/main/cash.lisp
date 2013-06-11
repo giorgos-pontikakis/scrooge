@@ -61,7 +61,7 @@
     (see-other (cash-accounts-error-page))))
 
 (defpage dynamic-page cash-accounts-error-page ("cash/error")
-  ()
+    ()
   (with-document ()
     (:head
      (:title "Cash accounts error")
@@ -175,10 +175,10 @@
          (role (role table))
          (start (start-index table)))
     (html ()
-          (:a :href (if selected-p
-                        (apply #'cash role :start (page-start pg (index row) start) filter)
-                        (apply #'cash role :tx-id tx-id filter))
-              (selector-img selected-p)))))
+      (:a :href (if selected-p
+                    (apply #'cash role :start (page-start pg (index row) start) filter)
+                    (apply #'cash role :tx-id tx-id filter))
+          (selector-img selected-p)))))
 
 (defmethod payload ((row cash-tx-row) enabled-p)
   (let ((record (record row))
@@ -273,29 +273,29 @@
                                             :debit-account-id))
                            revenues/expenses-root-key)))
     (with-html
-        (:div :id "split-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
-                    (left-column form styles disabled))
-              (:div :class "grid_5 omega"
-                    (:h3 (str (conc "Λογαριασμός " (if customer-p "πίστωσης" "χρέωσης"))))
-                    ;;
-                    (:div :class "hidden-when-immediate-tx-only"
-                          (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
-                          (display (make-instance 'radio-account-tree
-                                                  :disabled disabled
-                                                  :root-key receivable/payable-root-key
-                                                  :debit-p customer-p
-                                                  :selected-key selected-key)))
-                    ;;
-                    (:div :class "company-dependent"
-                          (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
-                                          (if customer-p "εσόδων" "εξόδων"))))
-                          (display (make-instance 'radio-account-tree
-                                                  :disabled disabled
-                                                  :root-key revenues/expenses-root-key
-                                                  :debit-p (not customer-p)
-                                                  :selected-key selected-key))))
-              (clear)))))
+      (:div :id "split-data-form" :class "data-form"
+            (:div :class "grid_6 alpha"
+                  (left-column form styles disabled))
+            (:div :class "grid_5 omega"
+                  (:h3 (str (conc "Λογαριασμός " (if customer-p "πίστωσης" "χρέωσης"))))
+                  ;;
+                  (:div :class "hidden-when-immediate-tx-only"
+                        (:h4 (str "Έναντι ανοιχτού λογαριασμού"))
+                        (display (make-instance 'radio-account-tree
+                                                :disabled disabled
+                                                :root-key receivable/payable-root-key
+                                                :debit-p customer-p
+                                                :selected-key selected-key)))
+                  ;;
+                  (:div :class "company-dependent"
+                        (:h4 (str (conc "Απ' ευθείας χρέωση σε λογαριασμό "
+                                        (if customer-p "εσόδων" "εξόδων"))))
+                        (display (make-instance 'radio-account-tree
+                                                :disabled disabled
+                                                :root-key revenues/expenses-root-key
+                                                :debit-p (not customer-p)
+                                                :selected-key selected-key))))
+            (clear)))))
 
 (defmethod actions ((form cash-form) &key filter)
   (let* ((tx-id (key form))
@@ -313,10 +313,10 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page actions/cash/search
-  (("actions/cash/" (role "(customer|supplier)") "/search") :request-type :get)
-  ((search string)
-   (since date)
-   (until date))
+    (("actions/cash/" (role "(customer|supplier)") "/search") :request-type :get)
+    ((search string)
+     (since date)
+     (until date))
   (with-db ()
     (let* ((filter (params->filter))
            (records (records (make-instance 'cash-tx-table :op :catalogue
@@ -335,70 +335,70 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash (("cash/" (role "(customer|supplier)")))
-  ((tx-id  integer chk-tx-id)
-   (start  integer)
-   (search string)
-   (since  date)
-   (until  date))
+    ((tx-id  integer chk-tx-id)
+     (start  integer)
+     (search string)
+     (since  date)
+     (until  date))
   (check-cash-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (page-title (cash-page-title role "Κατάλογος"))
-             (cash-tx-table (make-instance 'cash-tx-table
-                                           :role role
-                                           :op :catalogue
-                                           :selected-key (val tx-id)
-                                           :filter filter
-                                           :start-index (val start))))
-        (check-id-inclusion cash-tx-table
-                            (val tx-id)
-                            (apply #'cash role filter))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'cash)
-                 (cash-top-actions :catalogue)
-                 (filters cash-tx-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions cash-tx-table)
-                             (display cash-tx-table)))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (page-title (cash-page-title role "Κατάλογος"))
+           (cash-tx-table (make-instance 'cash-tx-table
+                                         :role role
+                                         :op :catalogue
+                                         :selected-key (val tx-id)
+                                         :filter filter
+                                         :start-index (val start))))
+      (check-id-inclusion cash-tx-table
+                          (val tx-id)
+                          (apply #'cash role filter))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'cash)
+               (cash-top-actions :catalogue)
+               (filters cash-tx-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions cash-tx-table)
+                           (display cash-tx-table)))
+               (footer)))))))
 
 (defpage cash-page cash/details (("cash/" (role "(customer|supplier)") "/details"))
-  ((tx-id  integer chk-tx-id t)
-   (search string)
-   (since  date)
-   (until  date))
+    ((tx-id  integer chk-tx-id t)
+     (search string)
+     (since  date)
+     (until  date))
   (check-cash-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (cash-form (make-instance 'cash-form
-                                       :role role
-                                       :op :details
-                                       :key (val tx-id)
-                                       :cancel-url (apply #'cash role :tx-id (val tx-id) filter)))
-             (page-title (cash-page-title role "Λεπτομέρειες")))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'cash)
-                 (cash-top-actions :details)
-                 (:div :class "grid_12"
-                       (:div :id "cash-window" :class "window"
-                             (:div :class "title" "Λεπτομέρειες")
-                             (actions cash-form :filter filter)
-                             (display cash-form)))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (cash-form (make-instance 'cash-form
+                                     :role role
+                                     :op :details
+                                     :key (val tx-id)
+                                     :cancel-url (apply #'cash role :tx-id (val tx-id) filter)))
+           (page-title (cash-page-title role "Λεπτομέρειες")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'cash)
+               (cash-top-actions :details)
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" "Λεπτομέρειες")
+                           (actions cash-form :filter filter)
+                           (display cash-form)))
+               (footer)))))))
 
 
 
@@ -407,59 +407,59 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash/create
-  (("cash/" (role "(customer|supplier)") "/create"))
-  ((tx-date     date)
-   (description string)
-   (company     string  chk-company-title)
-   (amount      float   chk-amount)
-   (account-id  integer chk-account-id)
-   (search      string)
-   (since       date)
-   (until       date)
-   (project-id  integer))
+    (("cash/" (role "(customer|supplier)") "/create"))
+    ((tx-date     date)
+     (description string)
+     (company     string  chk-company-title)
+     (amount      float   chk-amount)
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date)
+     (project-id  integer))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (validate-parameters (tx-project-constraints-chker (val account-id)) project-id)
   (check-cash-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (cash-form (make-instance 'cash-form
-                                       :role role
-                                       :op :create
-                                       :cancel-url (apply #'cash role filter)))
-             (page-title (cash-page-title role "Δημιουργία")))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'cash)
-                 (cash-top-actions :create)
-                 (:div :class "grid_12"
-                       (:div :id "cash-window" :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions cash-form :filter filter)
-                             (notifications)
-                             (with-form (actions/cash/create role
-                                                             :search (val search)
-                                                             :since (val since)
-                                                             :until (val until))
-                               (display cash-form :payload (params->payload)
-                                                  :styles (params->styles)))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (cash-form (make-instance 'cash-form
+                                     :role role
+                                     :op :create
+                                     :cancel-url (apply #'cash role filter)))
+           (page-title (cash-page-title role "Δημιουργία")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'cash)
+               (cash-top-actions :create)
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions cash-form :filter filter)
+                           (notifications)
+                           (with-form (actions/cash/create role
+                                                           :search (val search)
+                                                           :since (val since)
+                                                           :until (val until))
+                             (display cash-form :payload (params->payload)
+                                                :styles (params->styles)))))
+               (footer)))))))
 
 (defpage cash-page actions/cash/create
-  (("actions/cash/" (role "(customer|supplier)") "/create") :request-type :post)
-  ((tx-date     date)
-   (description string)
-   (company     string  chk-company-title t)
-   (amount      float   chk-amount t)
-   (account-id  integer chk-account-id t)
-   (search      string)
-   (since       date)
-   (until       date)
-   (project-id  integer))
+    (("actions/cash/" (role "(customer|supplier)") "/create") :request-type :post)
+    ((tx-date     date)
+     (description string)
+     (company     string  chk-company-title t)
+     (amount      float   chk-amount t)
+     (account-id  integer chk-account-id t)
+     (search      string)
+     (since       date)
+     (until       date)
+     (project-id  integer))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (validate-parameters (tx-project-constraints-chker (val account-id)) project-id)
   (check-cash-accounts)
@@ -485,65 +485,65 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash/update
-  (("cash/" (role "(customer|supplier)") "/update"))
-  ((search      string)
-   (since       date)
-   (until       date)
-   (tx-id       integer chk-tx-id         t)
-   (tx-date     date)
-   (description string)
-   (company     string  chk-company-title)
-   (amount      float   chk-amount)
-   (account-id  integer chk-account-id)
-   (project-id  integer))
+    (("cash/" (role "(customer|supplier)") "/update"))
+    ((search      string)
+     (since       date)
+     (until       date)
+     (tx-id       integer chk-tx-id         t)
+     (tx-date     date)
+     (description string)
+     (company     string  chk-company-title)
+     (amount      float   chk-amount)
+     (account-id  integer chk-account-id)
+     (project-id  integer))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (validate-parameters (tx-project-constraints-chker (val account-id)) project-id)
   (check-cash-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (cash-form (make-instance 'cash-form
-                                       :role role
-                                       :op :update
-                                       :key (val tx-id)
-                                       :cancel-url (apply #'cash/details role
-                                                          :tx-id (val tx-id)
-                                                          filter)))
-             (page-title (cash-page-title role "Επεξεργασία")))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'cash)
-                 (cash-top-actions :update)
-                 (:div :class "grid_12"
-                       (:div :id "cash-window" :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions cash-form :filter filter)
-                             (notifications)
-                             (with-form (actions/cash/update role
-                                                             :tx-id (val tx-id)
-                                                             :search (val search)
-                                                             :since (val since)
-                                                             :until (val until))
-                               (display cash-form :payload (params->payload)
-                                                  :styles (params->styles)))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (cash-form (make-instance 'cash-form
+                                     :role role
+                                     :op :update
+                                     :key (val tx-id)
+                                     :cancel-url (apply #'cash/details role
+                                                        :tx-id (val tx-id)
+                                                        filter)))
+           (page-title (cash-page-title role "Επεξεργασία")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'cash)
+               (cash-top-actions :update)
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions cash-form :filter filter)
+                           (notifications)
+                           (with-form (actions/cash/update role
+                                                           :tx-id (val tx-id)
+                                                           :search (val search)
+                                                           :since (val since)
+                                                           :until (val until))
+                             (display cash-form :payload (params->payload)
+                                                :styles (params->styles)))))
+               (footer)))))))
 
 (defpage cash-page actions/cash/update
-  (("actions/cash/" (role "(customer|supplier)") "/update") :request-type :post)
-  ((search      string)
-   (since       date)
-   (until       date)
-   (tx-id       integer chk-tx-id         t)
-   (tx-date     date)
-   (description string)
-   (company     string  chk-company-title)
-   (amount      float   chk-amount)
-   (account-id  integer chk-account-id t)
-   (project-id  integer))
+    (("actions/cash/" (role "(customer|supplier)") "/update") :request-type :post)
+    ((search      string)
+     (since       date)
+     (until       date)
+     (tx-id       integer chk-tx-id         t)
+     (tx-date     date)
+     (description string)
+     (company     string  chk-company-title)
+     (amount      float   chk-amount)
+     (account-id  integer chk-account-id t)
+     (project-id  integer))
   (validate-parameters (tx-company-constraints-chker role t) company)
   (validate-parameters (tx-project-constraints-chker (val account-id)) project-id)
   (check-cash-accounts)
@@ -568,48 +568,48 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage cash-page cash/delete
-  (("cash/" (role "(customer|supplier)") "/delete"))
-  ((tx-id  integer chk-tx-id/ref t)
-   (search string)
-   (since  date)
-   (until  date))
+    (("cash/" (role "(customer|supplier)") "/delete"))
+    ((tx-id  integer chk-tx-id/ref t)
+     (search string)
+     (since  date)
+     (until  date))
   (check-cash-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (page-title (cash-page-title role "Διαγραφή"))
-             (cash-tx-table (make-instance 'cash-tx-table
-                                           :op :delete
-                                           :role role
-                                           :selected-key (val tx-id)
-                                           :filter filter)))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'cash)
-                 (cash-top-actions :delete)
-                 (filters cash-tx-table)
-                 (:div :class "grid_12"
-                       (:div :id "cash-window" :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions cash-tx-table)
-                             (with-form (actions/cash/delete role
-                                                             :tx-id (val tx-id)
-                                                             :search (val search)
-                                                             :since (val since)
-                                                             :until (val until))
-                               (display cash-tx-table))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (page-title (cash-page-title role "Διαγραφή"))
+           (cash-tx-table (make-instance 'cash-tx-table
+                                         :op :delete
+                                         :role role
+                                         :selected-key (val tx-id)
+                                         :filter filter)))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'cash)
+               (cash-top-actions :delete)
+               (filters cash-tx-table)
+               (:div :class "grid_12"
+                     (:div :id "cash-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions cash-tx-table)
+                           (with-form (actions/cash/delete role
+                                                           :tx-id (val tx-id)
+                                                           :search (val search)
+                                                           :since (val since)
+                                                           :until (val until))
+                             (display cash-tx-table))))
+               (footer)))))))
 
 (defpage cash-page actions/cash/delete
-  (("actions/cash/" (role "(customer|supplier)") "/delete") :request-type :post)
-  ((tx-id  integer chk-tx-id/ref t)
-   (search string)
-   (since  date)
-   (until  date))
+    (("actions/cash/" (role "(customer|supplier)") "/delete") :request-type :post)
+    ((tx-id  integer chk-tx-id/ref t)
+     (search string)
+     (since  date)
+     (until  date))
   (check-cash-accounts)
   (with-controller-page (cash/delete)
     (delete-dao (get-dao 'tx (val tx-id)))

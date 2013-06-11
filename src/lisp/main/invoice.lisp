@@ -60,7 +60,7 @@
     (see-other (invoice-accounts-error-page))))
 
 (defpage dynamic-page invoice-accounts-error-page ("invoice/error")
-  ()
+    ()
   (with-document ()
     (:head
      (:title "Invoice accounts error")
@@ -188,10 +188,10 @@
          (role (role table))
          (start (start-index table)))
     (html ()
-          (:a :href (if selected-p
-                        (apply #'invoice role kind :start (page-start pg (index row) start) filter)
-                        (apply #'invoice role kind :tx-id tx-id filter))
-              (selector-img selected-p)))))
+      (:a :href (if selected-p
+                    (apply #'invoice role kind :start (page-start pg (index row) start) filter)
+                    (apply #'invoice role kind :tx-id tx-id filter))
+          (selector-img selected-p)))))
 
 (defmethod payload ((row invoice-tx-row) enabled-p)
   (let ((record (record row))
@@ -306,14 +306,14 @@
                                                                  :debit-account-id))
                                                 root-key))))
     (with-html
-        (:div :id "split-data-form" :class "data-form"
-              (:div :class "grid_6 alpha"
-                    (left-column form styles disabled))
-              (:div :class "grid_5 omega"
-                    (:h3 (str (conc "Λογαριασμός " (if (debit-invoice-p kind) "χρέωσης" "πίστωσης"))))
-                    ;; Display the tree. If needed, preselect the first account of the tree.
-                    (display tree))
-              (clear)))))
+      (:div :id "split-data-form" :class "data-form"
+            (:div :class "grid_6 alpha"
+                  (left-column form styles disabled))
+            (:div :class "grid_5 omega"
+                  (:h3 (str (conc "Λογαριασμός " (if (debit-invoice-p kind) "χρέωσης" "πίστωσης"))))
+                  ;; Display the tree. If needed, preselect the first account of the tree.
+                  (display tree))
+            (clear)))))
 
 (defmethod actions ((form invoice-form) &key filter)
   (let* ((tx-id (key form))
@@ -332,11 +332,11 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page actions/invoice/search
-  (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/search")
-   :request-type :get)
-  ((search string)
-   (since  string)
-   (until  string))
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/search")
+     :request-type :get)
+    ((search string)
+     (since  string)
+     (until  string))
   (with-db ()
     (let* ((filter (params->filter))
            (records (records (make-instance 'invoice-tx-table :op :catalogue
@@ -364,72 +364,72 @@
 (defpage invoice-page invoice (("invoice/"
                                 (role "(customer|supplier)") "/"
                                 (kind "(debit|credit)")))
-  ((tx-id  integer chk-tx-id)
-   (start  integer)
-   (search string)
-   (since  date)
-   (until  date))
+    ((tx-id  integer chk-tx-id)
+     (start  integer)
+     (search string)
+     (since  date)
+     (until  date))
   (check-invoice-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (page-title (invoice-page-title role kind "Κατάλογος"))
-             (invoice-tx-table (make-instance 'invoice-tx-table :op :catalogue
-                                                                :role role
-                                                                :kind kind
-                                                                :selected-key (val tx-id)
-                                                                :filter filter
-                                                                :start-index (val start))))
-        (check-id-inclusion invoice-tx-table
-                            (val tx-id)
-                            (apply #'invoice role kind filter))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'invoice)
-                 (invoice-top-actions :catalogue)
-                 (filters invoice-tx-table)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions invoice-tx-table)
-                             (display invoice-tx-table)))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (page-title (invoice-page-title role kind "Κατάλογος"))
+           (invoice-tx-table (make-instance 'invoice-tx-table :op :catalogue
+                                                              :role role
+                                                              :kind kind
+                                                              :selected-key (val tx-id)
+                                                              :filter filter
+                                                              :start-index (val start))))
+      (check-id-inclusion invoice-tx-table
+                          (val tx-id)
+                          (apply #'invoice role kind filter))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'invoice)
+               (invoice-top-actions :catalogue)
+               (filters invoice-tx-table)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions invoice-tx-table)
+                           (display invoice-tx-table)))
+               (footer)))))))
 
 (defpage invoice-page invoice/details (("invoice/"
                                         (role "(customer|supplier)") "/"
                                         (kind "(debit|credit)")
                                         "/details"))
-  ((tx-id  integer chk-tx-id t)
-   (search string)
-   (since  date)
-   (until  date))
+    ((tx-id  integer chk-tx-id t)
+     (search string)
+     (since  date)
+     (until  date))
   (with-view-page
-      (let* ((filter (params->filter))
-             (invoice-form (make-instance 'invoice-form
-                                          :role role
-                                          :kind kind
-                                          :op :details
-                                          :key (val tx-id)))
-             (page-title (invoice-page-title role kind "Λεπτομέρειες")))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'invoice)
-                 (invoice-top-actions :details)
-                 (:div :class "grid_12"
-                       (:div :id "invoice-window" :class "window"
-                             (:p :class "title" "Λεπτομέρειες")
-                             (actions invoice-form :filter filter)
-                             (display invoice-form)))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (invoice-form (make-instance 'invoice-form
+                                        :role role
+                                        :kind kind
+                                        :op :details
+                                        :key (val tx-id)))
+           (page-title (invoice-page-title role kind "Λεπτομέρειες")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'invoice)
+               (invoice-top-actions :details)
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:p :class "title" "Λεπτομέρειες")
+                           (actions invoice-form :filter filter)
+                           (display invoice-form)))
+               (footer)))))))
 
 
 ;;; ----------------------------------------------------------------------
@@ -437,60 +437,60 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/create
-  (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/create"))
-  ((tx-date     date)
-   (description string)
-   (company     string  chk-company-title/cash)
-   (amount      float   chk-amount)
-   (account-id  integer chk-account-id)
-   (search      string)
-   (since       date)
-   (until       date)
-   (project-id  integer chk-project-id))
+    (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/create"))
+    ((tx-date     date)
+     (description string)
+     (company     string  chk-company-title/cash)
+     (amount      float   chk-amount)
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date)
+     (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (invoice-form (make-instance 'invoice-form
-                                          :role role
-                                          :kind kind
-                                          :op :create
-                                          :cancel-url (apply #'invoice role kind filter)))
-             (page-title (invoice-page-title role kind "Δημιουργία")))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'invoice)
-                 (invoice-top-actions :create)
-                 (:div :class "grid_12"
-                       (:div :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions invoice-form :filter filter)
-                             (notifications)
-                             (with-form (actions/invoice/create role kind
-                                                                :search (val search)
-                                                                :since (val since)
-                                                                :until (val until))
-                               (display invoice-form :payload (params->payload)
-                                                     :styles (params->styles)))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (invoice-form (make-instance 'invoice-form
+                                        :role role
+                                        :kind kind
+                                        :op :create
+                                        :cancel-url (apply #'invoice role kind filter)))
+           (page-title (invoice-page-title role kind "Δημιουργία")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'invoice)
+               (invoice-top-actions :create)
+               (:div :class "grid_12"
+                     (:div :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions invoice-form :filter filter)
+                           (notifications)
+                           (with-form (actions/invoice/create role kind
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                             (display invoice-form :payload (params->payload)
+                                                   :styles (params->styles)))))
+               (footer)))))))
 
 (defpage invoice-page actions/invoice/create
-  (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/create")
-   :request-type :post)
-  ((tx-date     date)
-   (description string)
-   (company     string  chk-company-title/cash t)
-   (amount      float   chk-amount             t)
-   (account-id  integer chk-account-id         t)
-   (search      string)
-   (since       date)
-   (until       date)
-   (project-id  integer chk-project-id))
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/create")
+     :request-type :post)
+    ((tx-date     date)
+     (description string)
+     (company     string  chk-company-title/cash t)
+     (amount      float   chk-amount             t)
+     (account-id  integer chk-account-id         t)
+     (search      string)
+     (since       date)
+     (until       date)
+     (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
   (with-controller-page (invoice/create role kind)
@@ -515,66 +515,66 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/update
-  (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/update"))
-  ((tx-id       integer chk-tx-id         t)
-   (tx-date     date)
-   (description string)
-   (company     string  chk-company-title/cash)
-   (amount      float   chk-amount)
-   (account-id  integer chk-account-id)
-   (search      string)
-   (since       date)
-   (until       date)
-   (project-id  integer chk-project-id))
+    (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/update"))
+    ((tx-id       integer chk-tx-id         t)
+     (tx-date     date)
+     (description string)
+     (company     string  chk-company-title/cash)
+     (amount      float   chk-amount)
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date)
+     (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (invoice-form (make-instance 'invoice-form
-                                          :role role
-                                          :kind kind
-                                          :op :update
-                                          :key (val tx-id)
-                                          :cancel-url (apply #'invoice/details role kind
-                                                             :tx-id (val tx-id)
-                                                             filter)))
-             (page-title (invoice-page-title role kind "Επεξεργασία")))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'invoice)
-                 (invoice-top-actions :update)
-                 (:div :class "grid_12"
-                       (:div :id "invoice-window" :class "window"
-                             (:p :class "title" "Επεξεργασία")
-                             (actions invoice-form :filter filter)
-                             (notifications)
-                             (with-form (actions/invoice/update role kind
-                                                                :tx-id (val tx-id)
-                                                                :search (val search)
-                                                                :since (val since)
-                                                                :until (val until))
-                               (display invoice-form :payload (params->payload)
-                                                     :styles (params->styles)))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (invoice-form (make-instance 'invoice-form
+                                        :role role
+                                        :kind kind
+                                        :op :update
+                                        :key (val tx-id)
+                                        :cancel-url (apply #'invoice/details role kind
+                                                           :tx-id (val tx-id)
+                                                           filter)))
+           (page-title (invoice-page-title role kind "Επεξεργασία")))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'invoice)
+               (invoice-top-actions :update)
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:p :class "title" "Επεξεργασία")
+                           (actions invoice-form :filter filter)
+                           (notifications)
+                           (with-form (actions/invoice/update role kind
+                                                              :tx-id (val tx-id)
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                             (display invoice-form :payload (params->payload)
+                                                   :styles (params->styles)))))
+               (footer)))))))
 
 (defpage invoice-page actions/invoice/update
-  (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/update")
-   :request-type :post)
-  ((tx-id       integer chk-tx-id         t)
-   (tx-date     date)
-   (description string)
-   (company     string  chk-company-title/cash)
-   (amount      float   chk-amount)
-   (account-id  integer chk-account-id)
-   (search      string)
-   (since       date)
-   (until       date)
-   (project-id  integer chk-project-id))
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/update")
+     :request-type :post)
+    ((tx-id       integer chk-tx-id         t)
+     (tx-date     date)
+     (description string)
+     (company     string  chk-company-title/cash)
+     (amount      float   chk-amount)
+     (account-id  integer chk-account-id)
+     (search      string)
+     (since       date)
+     (until       date)
+     (project-id  integer chk-project-id))
   (validate-parameters (tx-company-constraints-chker role) company)
   (check-invoice-accounts)
   (with-controller-page (invoice/update role kind)
@@ -599,50 +599,50 @@
 ;;; ----------------------------------------------------------------------
 
 (defpage invoice-page invoice/delete
-  (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete"))
-  ((tx-id  integer chk-tx-id/ref t)
-   (search string)
-   (since  date)
-   (until  date))
+    (("invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete"))
+    ((tx-id  integer chk-tx-id/ref t)
+     (search string)
+     (since  date)
+     (until  date))
   (check-invoice-accounts)
   (with-view-page
-      (let* ((filter (params->filter))
-             (page-title (invoice-page-title role kind "Διαγραφή"))
-             (invoice-tx-table (make-instance 'invoice-tx-table
-                                              :role role
-                                              :kind kind
-                                              :op :delete
-                                              :selected-key (val tx-id)
-                                              :filter filter)))
-        (with-document ()
-          (:head
-           (:title (str page-title))
-           (main-headers))
-          (:body
-           (:div :id "container" :class "container_12"
-                 (header 'main)
-                 (navbar 'main 'invoice)
-                 (invoice-top-actions :delete)
-                 (filters invoice-tx-table)
-                 (:div :class "grid_12"
-                       (:div :id "invoice-window" :class "window"
-                             (:div :class "title" (str page-title))
-                             (actions invoice-tx-table)
-                             (with-form (actions/invoice/delete role kind
-                                                                :tx-id (val tx-id)
-                                                                :search (val search)
-                                                                :since (val since)
-                                                                :until (val until))
-                               (display invoice-tx-table))))
-                 (footer)))))))
+    (let* ((filter (params->filter))
+           (page-title (invoice-page-title role kind "Διαγραφή"))
+           (invoice-tx-table (make-instance 'invoice-tx-table
+                                            :role role
+                                            :kind kind
+                                            :op :delete
+                                            :selected-key (val tx-id)
+                                            :filter filter)))
+      (with-document ()
+        (:head
+         (:title (str page-title))
+         (main-headers))
+        (:body
+         (:div :id "container" :class "container_12"
+               (header 'main)
+               (navbar 'main 'invoice)
+               (invoice-top-actions :delete)
+               (filters invoice-tx-table)
+               (:div :class "grid_12"
+                     (:div :id "invoice-window" :class "window"
+                           (:div :class "title" (str page-title))
+                           (actions invoice-tx-table)
+                           (with-form (actions/invoice/delete role kind
+                                                              :tx-id (val tx-id)
+                                                              :search (val search)
+                                                              :since (val since)
+                                                              :until (val until))
+                             (display invoice-tx-table))))
+               (footer)))))))
 
 (defpage invoice-page actions/invoice/delete
-  (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete")
-   :request-type :post)
-  ((tx-id  integer chk-tx-id/ref t)
-   (search string)
-   (since  date)
-   (until  date))
+    (("actions/invoice/" (role "(customer|supplier)") "/" (kind "(debit|credit)") "/delete")
+     :request-type :post)
+    ((tx-id  integer chk-tx-id/ref t)
+     (search string)
+     (since  date)
+     (until  date))
   (check-invoice-accounts)
   (with-controller-page (invoice/delete role kind)
     (delete-dao (get-dao 'tx (val tx-id)))

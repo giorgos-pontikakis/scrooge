@@ -5,7 +5,7 @@
   ())
 
 (defpage root-page home ("")
-  ()
+    ()
   (see-other (company)))
 
 
@@ -17,11 +17,11 @@
     "[\"Session expired.\"]"))
 
 (defpage root-page autocomplete
-  ("autocomplete" :content-type "text/plain"
-                  :parameter-groups '(:system (table column term)))
-  ((table  symbol nil t)
-   (column symbol nil t)
-   (term   string nil t))
+    ("autocomplete" :content-type "text/plain"
+                    :parameter-groups '(:system (table column term)))
+    ((table  symbol nil t)
+     (column symbol nil t)
+     (term   string nil t))
   (with-xhr-page (autocomplete-xhr-auth-error)
     (let ((results (sort (query (:select (val column) :distinct
                                          :from (val table)
@@ -33,10 +33,10 @@
         (write-json (coerce results 'vector))))))
 
 (defpage root-page autocomplete/accounts
-  ("autocomplete/accounts" :content-type "text/plain"
-                           :parameter-groups '(:system (root term)))
-  ((root symbol nil t)
-   (term string nil t))
+    ("autocomplete/accounts" :content-type "text/plain"
+                             :parameter-groups '(:system (root term)))
+    ((root symbol nil t)
+     (term string nil t))
   (with-xhr-page (autocomplete-xhr-auth-error)
     (let ((results (mapcan #'(lambda (rec)
                                (let ((title (getf rec :title)))
@@ -49,11 +49,11 @@
         (write-json (coerce results 'vector))))))
 
 (defpage root-page autocomplete/temtx
-  ("autocomplete/temtx" :content-type "text/plain"
-                        :parameter-groups '(:system (customer-p term force-chequing-p)))
-  ((customer-p       boolean nil t)
-   (term             string  nil t)
-   (force-chequing-p boolean nil))
+    ("autocomplete/temtx" :content-type "text/plain"
+                          :parameter-groups '(:system (customer-p term force-chequing-p)))
+    ((customer-p       boolean nil t)
+     (term             string  nil t)
+     (force-chequing-p boolean nil))
   (with-xhr-page (autocomplete-xhr-auth-error)
     ;; When force-chequing-p is true, we return temtxs
     ;; that reference at least one chequing account
@@ -66,10 +66,10 @@
         (write-json (coerce results 'vector))))))
 
 (defpage root-page autocomplete/project
-  ("autocomplete/project" :content-type "text/plain"
-                          :parameter-groups '(:system (company-title state)))
-  ((company-title string chk-company-title    t)
-   (state         string chk-project-state-id))
+    ("autocomplete/project" :content-type "text/plain"
+                            :parameter-groups '(:system (company-title state)))
+    ((company-title string chk-company-title    t)
+     (state         string chk-project-state-id))
   (with-xhr-page (autocomplete-xhr-auth-error)
     (let* ((sql `(:select project.id project.description
                           :from project
@@ -82,10 +82,10 @@
            (results (query (sql-compile sql))))
       (if results
           (with-html
-              (:select :name "project-id"
-                       (loop for (id description) in results
-                             do (htm (:option :value id (str description))))))
+            (:select :name "project-id"
+                     (loop for (id description) in results
+                           do (htm (:option :value id (str description))))))
           (with-html
-              (:input :type "hidden" :name "project-id" :value +html-null+)
+            (:input :type "hidden" :name "project-id" :value +html-null+)
             (:p "Δεν υπάρχει ενεργό για αυτή την εταίρια. "
                 (:a :href (project/create :company (val company-title)) "Νέο έργο »")))))))

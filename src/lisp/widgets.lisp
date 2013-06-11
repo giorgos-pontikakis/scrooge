@@ -102,19 +102,19 @@
          (prev (previous-page-start pg start))
          (next (next-page-start pg start)))
     (with-html
-        (:div :class (css-class pg)
-              (fmt "Εγγραφές ~A–~A από ~A"
-                   (1+ start)
-                   (min (+ start delta) len)
-                   len)
-              (if prev
-                  (htm (:a :href (target-url pg prev)
-                           (img "resultset_previous.png")))
-                  (img "resultset_first.png"))
-              (if next
-                  (htm (:a :href (target-url pg next)
-                           (img "resultset_next.png")))
-                  (img "resultset_last.png"))))))
+      (:div :class (css-class pg)
+            (fmt "Εγγραφές ~A–~A από ~A"
+                 (1+ start)
+                 (min (+ start delta) len)
+                 len)
+            (if prev
+                (htm (:a :href (target-url pg prev)
+                         (img "resultset_previous.png")))
+                (img "resultset_first.png"))
+            (if next
+                (htm (:a :href (target-url pg next)
+                         (img "resultset_next.png")))
+                (img "resultset_last.png"))))))
 
 
 
@@ -146,7 +146,7 @@
 (defclass ok-button (submit)
   ()
   (:default-initargs :body (html ()
-                                 (img "tick.png"))))
+                             (img "tick.png"))))
 
 (defun ok-button (&rest instance-initargs)
   (display (apply #'make-instance 'ok-button instance-initargs )))
@@ -155,14 +155,14 @@
   ((href :accessor href :initarg :href)
    (body :accessor body :initarg :body))
   (:default-initargs :body (html ()
-                                 (img "cancel.png"))))
+                             (img "cancel.png"))))
 
 (defmethod display ((cancel-button cancel-button) &key)
   (with-html
-      (:a :id (id cancel-button)
-          :class (css-class cancel-button)
-          :href (href cancel-button)
-          (display (body cancel-button)))))
+    (:a :id (id cancel-button)
+        :class (css-class cancel-button)
+        :href (href cancel-button)
+        (display (body cancel-button)))))
 
 (defun cancel-button (href &rest instance-initargs)
   (display (apply #'make-instance 'cancel-button
