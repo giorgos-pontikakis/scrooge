@@ -208,33 +208,50 @@
 (defmethod display ((form company-form) &key styles)
   (let* ((disabled (eql (op form) :details))
          (record (record form))
-         (ldfn (label-datum disabled record styles)))
+         #|(ldfn (label-datum disabled record styles))|#)
     (with-html
       (:div :class "data-form company-form"
             (:div :class "company-form-title"
-                  (display ldfn 'title "Επωνυμία"))
+                  (:label "Επωνυμία"
+                          (obj 'form-textbox :name 'title)))
             (:div :class "form-group"
-                  (display ldfn 'occupation "Επάγγελμα" :enabled-styles "ac-occupation")
+                  (:label "Επάγγελμα"
+                          (obj 'form-textbox :name 'occupation
+                                             :css-class-enabled "ac-occupation"))
                   (:div :id "tin"
-                        (display ldfn 'tin "Α.Φ.Μ."))
+                        (:label "Α.Φ.Μ."
+                                (obj 'form-textbox :name 'tin)))
                   (:div :id "tof"
-                        (display ldfn 'tof "Δ.Ο.Υ." :enabled-styles "ac-tof"))
+                        (:label "Δ.Ο.Υ."
+                                (obj 'form-textbox :name 'tof
+                                                   :css-class-enabled "ac-tof")))
                   (clear))
             (:div :class "form-group"
-                  (display ldfn 'address "Διεύθυνση")
-                  (display ldfn 'city "Πόλη" :enabled-styles "ac-city")
+                  (:label "Διεύθυνση"
+                          (obj 'form-textbox :name 'address))
+                  (obj 'form-textbox :name 'city
+                                     :label "Πόλη"
+                                     :css-class-enabled "ac-city")
                   (:div :id "zipcode"
-                        (display ldfn 'zipcode "Ταχυδρομικός κωδικός"))
+                        (:label "Ταχυδρομικός κωδικός"
+                                (obj 'form-textbox :name 'zipcode)))
                   (:div :id "pobox"
-                        (display ldfn 'pobox "Ταχυδρομική θυρίδα"))
+                        (:label "Ταχυδρομική θυρίδα"
+                                (obj 'form-textbox :name 'pobox)))
                   (clear))
             (:div :class "form-group advanced"
-                  (display ldfn 'revenues-account "Λογαριασμός εσόδων"
-                           :default-value (title (get-dao 'account (account-id 'revenues-root-account)))
-                           :enabled-styles "ac-revenues")
-                  (display ldfn 'expenses-account "Λογαριασμός εξόδων"
-                           :default-value (title (get-dao 'account (account-id 'expenses-root-account)))
-                           :enabled-styles "ac-expenses")
+                  (:label "Λογαριασμός εσόδων"
+                          (obj 'form-textbox :name 'revenues-account
+                                             :value (title
+                                                     (get-dao 'account
+                                                              (account-id 'revenues-root-account)))
+                                             :css-class-enabled "ac-revenues"))
+                  (:label "Λογαριασμός εξόδων"
+                          (obj 'form-textbox :name 'expenses-account
+                                             :value (title
+                                                     (get-dao 'account
+                                                              (account-id 'expenses-root-account)))
+                                             :css-class-enabled "ac-expenses"))
                   (:label "Τρόπος πληρωμής"
                           (obj 'dropdown :name 'immediate-tx-only-p
                                          :value-label-alist '((nil . "Μέσω ανοιχτού λογαριασμού")

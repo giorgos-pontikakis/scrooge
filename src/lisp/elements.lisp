@@ -279,7 +279,47 @@
                        :hidden hidden)))))
 
 
-;;; label-input-text for forms
+;; ;;; label-input-text for forms
+
+(defclass form-textbox (textbox)
+  ((form               :accessor form               :initarg :form)
+   (styles             :accessor styles             :initarg :styles)
+   (css-class-enabled  :accessor css-class-enabled  :initarg :css-class-enabled)
+   (css-class-disabled :accessor css-class-disabled :initarg :css-class-disabled)))
+
+(defmethod make-instance :after ((obj form-textbox) &key styles)
+  (let ((form (form obj)))
+    (setf (slot-value obj 'value)
+          (or (getf (record form) (make-keyword (name form)))
+              (value obj)))
+    (setf (slot-value obj 'css-class)
+          (conc (getf styles (make-keyword (name obj)))
+                " "
+                (if (disabled form)
+                    (css-class-disabled obj)
+                    (css-class-enabled obj))
+                " "
+                (css-class obj)))
+    (setf (disabled obj) (disabled form))))
+
+;; (defmethod display ((obj textbox*) &key record styles)
+;;   (with-html
+;;     (let ((effective-value (or (getf record (make-keyword name))
+;;                                (value obj)))
+;;           (effective-css-class (conc (getf styles (make-keyword name))
+;;                                      " "
+;;                                      (if disabled
+;;                                          (css-class-disabled obj)
+;;                                          (css-class-enabled obj))
+;;                                      " "
+;;                                      (css-class obj))))
+;;       (htm (:label (str label)
+;;                    (obj 'textbox :name (name obj)
+;;                                  :value effective-value
+;;                                  :href (href obj)
+;;                                  :disabled (disabled obj)
+;;                                  :css-class effective-css-class
+;;                                  :format-fn (format-fn obj)))))))
 
 (defun label-datum (disabled record styles)
   (html (name label &key href default-value enabled-styles disabled-styles common-styles format-fn)
