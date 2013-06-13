@@ -23,6 +23,11 @@
   #'(lambda (place)
       (getf place indicator default)))
 
+(defun make-instance-factory (class &rest base-initargs)
+  (let ((obj (apply #'make-instance class base-initargs)))
+    (lambda (&rest initargs)
+      (apply #'make-instance obj base-initargs initargs))))
+
 
 
 ;;; SQL UTILITIES

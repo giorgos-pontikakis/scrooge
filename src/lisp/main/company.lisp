@@ -206,14 +206,13 @@
   (:default-initargs :record-class 'cons))
 
 (defmethod display ((form company-form) &key styles)
-  (let* ((disabled (eql (op form) :details))
-         (record (record form))
-         #|(ldfn (label-datum disabled record styles))|#)
+  (let ((ft (make-instance-factory 'form-textbox :form form
+                                                :styles styles)))
     (with-html
       (:div :class "data-form company-form"
             (:div :class "company-form-title"
                   (:label "Επωνυμία"
-                          (obj 'form-textbox :name 'title)))
+                          (display (funcall ft :name 'title))))
             (:div :class "form-group"
                   (:label "Επάγγελμα"
                           (obj 'form-textbox :name 'occupation
@@ -229,15 +228,15 @@
             (:div :class "form-group"
                   (:label "Διεύθυνση"
                           (obj 'form-textbox :name 'address))
-                  (obj 'form-textbox :name 'city
-                                     :label "Πόλη"
-                                     :css-class-enabled "ac-city")
+                  (:label "Πόλη"
+                          (obj 'form-textbox :name 'city
+                                             :css-class-enabled "ac-city"))
                   (:div :id "zipcode"
                         (:label "Ταχυδρομικός κωδικός"
                                 (obj 'form-textbox :name 'zipcode)))
                   (:div :id "pobox"
                         (:label "Ταχυδρομική θυρίδα"
-                                (obj 'form-textbox :name 'pobox)))
+                                (obj 'textbox-factory :name 'pobox)))
                   (clear))
             (:div :class "form-group advanced"
                   (:label "Λογαριασμός εσόδων"

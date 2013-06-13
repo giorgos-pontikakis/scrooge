@@ -282,20 +282,18 @@
 ;; ;;; label-input-text for forms
 
 (defclass form-textbox (textbox)
-  ((form               :accessor form               :initarg :form)
-   (styles             :accessor styles             :initarg :styles)
+  ((styles             :accessor styles             :initarg :styles)
    (css-class-enabled  :accessor css-class-enabled  :initarg :css-class-enabled)
    (css-class-disabled :accessor css-class-disabled :initarg :css-class-disabled)))
 
-(defmethod make-instance :after ((obj form-textbox) &key styles)
-  (let ((form (form obj)))
-    (setf (slot-value obj 'value)
-          (or (getf (record form) (make-keyword (name form)))
-              (value obj)))
+(defmethod initialize-instance :after ((obj form-textbox)  &key form styles)
+  (let ((disabled (eql (op form) :details)))
+    (when-let (new-value (getf (record form) (make-keyword (name form))))
+      (setf (slot-value obj 'value) new-value))
     (setf (slot-value obj 'css-class)
           (conc (getf styles (make-keyword (name obj)))
                 " "
-                (if (disabled form)
+                (if disabled
                     (css-class-disabled obj)
                     (css-class-enabled obj))
                 " "
