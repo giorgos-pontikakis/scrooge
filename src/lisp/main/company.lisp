@@ -435,12 +435,14 @@
   (simple-controls row controls-p #'company :company-id))
 
 (defmethod payload ((row company-row) enabled-p)
-  (mapcar (textbox-maker (record row) enabled-p)
-          `((title :href ,(apply #'company/details :company-id (key row)
-                                 (filter (collection row))))
-            tin
-            tof
-            (balance :format-fn ,(compose #'fmt-amount #'abs)))))
+  (let ((factory (make-instance-factory 'table-textbox :enabled enabled-p :record (record row))))
+    (mapply factory
+            #|(textbox-maker (record row) enabled-p)|#
+            `((:name title :href ,(apply #'company/details :company-id (key row)
+                                         (filter (collection row))))
+              (:name tin)
+              (:name tof)
+              (:name balance :format-fn ,(compose #'fmt-amount #'abs))))))
 
 (defmethod display ((table company-table) &key payload)
   (unless (member (getf (filter table) :subset) (list "credit" "debit") :test #'string=)

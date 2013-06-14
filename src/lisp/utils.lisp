@@ -23,6 +23,11 @@
   #'(lambda (place)
       (getf place indicator default)))
 
+(defun mapply (fn arglist-list)
+  (mapcar (lambda (arglist)
+            (apply fn arglist))
+          arglist-list))
+
 (defun make-instance-factory (class &rest base-initargs)
   (lambda (&rest initargs)
     (apply #'make-instance class (append base-initargs initargs))))
