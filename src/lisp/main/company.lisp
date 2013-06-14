@@ -206,8 +206,11 @@
   (:default-initargs :record-class 'cons))
 
 (defmethod display ((form company-form) &key styles)
-  (let ((ft (make-instance-factory 'form-textbox :form form
-                                                :styles styles)))
+  (let* ((disabled (eql (op form) :details))
+         (record (record form))
+         (ft (make-instance-factory 'form-textbox :disabled disabled
+                                                  :record record
+                                                  :styles styles)))
     (with-html
       (:div :class "data-form company-form"
             (:div :class "company-form-title"
@@ -215,42 +218,42 @@
                           (display (funcall ft :name 'title))))
             (:div :class "form-group"
                   (:label "Επάγγελμα"
-                          (obj 'form-textbox :name 'occupation
-                                             :css-class-enabled "ac-occupation"))
+                          (display (funcall ft :name 'occupation
+                                               :css-class-enabled "ac-occupation")))
                   (:div :id "tin"
                         (:label "Α.Φ.Μ."
-                                (obj 'form-textbox :name 'tin)))
+                                (display (funcall ft :name 'tin))))
                   (:div :id "tof"
                         (:label "Δ.Ο.Υ."
-                                (obj 'form-textbox :name 'tof
-                                                   :css-class-enabled "ac-tof")))
+                                (display (funcall ft :name 'tof
+                                                     :css-class-enabled "ac-tof"))))
                   (clear))
             (:div :class "form-group"
                   (:label "Διεύθυνση"
-                          (obj 'form-textbox :name 'address))
+                          (display (funcall ft :name 'address)))
                   (:label "Πόλη"
-                          (obj 'form-textbox :name 'city
-                                             :css-class-enabled "ac-city"))
+                          (display (funcall ft :name 'city
+                                               :css-class-enabled "ac-city")))
                   (:div :id "zipcode"
                         (:label "Ταχυδρομικός κωδικός"
-                                (obj 'form-textbox :name 'zipcode)))
+                                (display (funcall ft :name 'zipcode))))
                   (:div :id "pobox"
                         (:label "Ταχυδρομική θυρίδα"
-                                (obj 'textbox-factory :name 'pobox)))
+                                (display (funcall ft :name 'pobox))))
                   (clear))
             (:div :class "form-group advanced"
                   (:label "Λογαριασμός εσόδων"
-                          (obj 'form-textbox :name 'revenues-account
-                                             :value (title
-                                                     (get-dao 'account
-                                                              (account-id 'revenues-root-account)))
-                                             :css-class-enabled "ac-revenues"))
+                          (display (funcall ft :name 'revenues-account
+                                               :value (title
+                                                       (get-dao 'account
+                                                                (account-id 'revenues-root-account)))
+                                               :css-class-enabled "ac-revenues")))
                   (:label "Λογαριασμός εξόδων"
-                          (obj 'form-textbox :name 'expenses-account
-                                             :value (title
-                                                     (get-dao 'account
-                                                              (account-id 'expenses-root-account)))
-                                             :css-class-enabled "ac-expenses"))
+                          (display (funcall ft :name 'expenses-account
+                                               :value (title
+                                                       (get-dao 'account
+                                                                (account-id 'expenses-root-account)))
+                                               :css-class-enabled "ac-expenses")))
                   (:label "Τρόπος πληρωμής"
                           (obj 'dropdown :name 'immediate-tx-only-p
                                          :value-label-alist '((nil . "Μέσω ανοιχτού λογαριασμού")

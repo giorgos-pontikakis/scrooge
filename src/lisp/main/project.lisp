@@ -196,14 +196,19 @@
 (defmethod display ((form project-form) &key styles)
   (let* ((disabled (eql (op form) :details))
          (record (record form))
-         (ldfn (label-datum disabled record styles)))
+         (ft (make-instance-factory 'form-textbox :disabled disabled
+                                                  :record record
+                                                  :styles styles)))
     (with-html
       (:div :class "data-form project-form"
             (:div :class "data-form-title"
-                  (display ldfn 'description "Περιγραφή")
-                  (display ldfn 'company "Εταιρία"
-                           :enabled-styles "ac-company"
-                           :href (company/details :company-id (getf record :company-id))))
+                  (:label "Περιγραφή"
+                          (display (funcall ft :name 'description)))
+                  (:label "Εταιρία"
+                          (display
+                           (funcall ft :name 'company
+                                       :css-class-enabled "ac-company"
+                                       :href (company/details :company-id (getf record :company-id))))))
             (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Οικονομικά")
@@ -214,19 +219,24 @@
                                                 :selected (or (getf record :state-id)
                                                               *default-project-state-id*)
                                                 :disabled disabled)))
-                    (:li (display ldfn 'price "Τιμή"))
-                    (:li (display ldfn 'vat "Φ.Π.Α.")))))
+                    (:li (:label "Τιμή"
+                                 (display (funcall ft :name 'price))))
+                    (:li (:label "Φ.Π.Α."
+                                 (display (funcall ft :name 'vat)))))))
             (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Χρονοδιάγραμμα")
                    (:ul
-                    (:li (display ldfn 'quote-date "Ημερομηνία προσφοράς"
-                                  :enabled-styles "datepicker"
-                                  :default-value (today)))
-                    (:li (display ldfn 'start-date "Ημερομηνία έναρξης"
-                                  :enabled-styles "datepicker"))
-                    (:li (display ldfn 'end-date "Ημερομηνία ολοκλήρωσης"
-                                  :enabled-styles "datepicker")))))
+                    (:li (:label  "Ημερομηνία προσφοράς"
+                                  (display (funcall ft :name 'quote-date
+                                                       :css-class-enabled "datepicker"
+                                                       :default-value (today)))))
+                    (:li (:label  "Ημερομηνία έναρξης"
+                                  (display (funcall ft :name 'start-date
+                                                       :css-class-enabled "datepicker"))))
+                    (:li (:label  "Ημερομηνία ολοκλήρωσης"
+                                  (display (funcall ft :name 'end-date
+                                                       :css-class-enabled "datepicker")))))))
             (clear)
             (:div :id "project-notes"
                   (:label "Σημειώσεις"

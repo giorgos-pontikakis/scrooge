@@ -279,67 +279,38 @@
                        :hidden hidden)))))
 
 
-;; ;;; label-input-text for forms
+;;; label-input-text for forms
 
 (defclass form-textbox (textbox)
   ((styles             :accessor styles             :initarg :styles)
    (css-class-enabled  :accessor css-class-enabled  :initarg :css-class-enabled)
-   (css-class-disabled :accessor css-class-disabled :initarg :css-class-disabled)))
+   (css-class-disabled :accessor css-class-disabled :initarg :css-class-disabled))
+  (:default-initargs :styles nil :css-class-enabled nil :css-class-disabled nil))
 
-(defmethod initialize-instance :after ((obj form-textbox)  &key form styles)
-  (let ((disabled (eql (op form) :details)))
-    (when-let (new-value (getf (record form) (make-keyword (name form))))
-      (setf (slot-value obj 'value) new-value))
-    (setf (slot-value obj 'css-class)
-          (conc (getf styles (make-keyword (name obj)))
-                " "
-                (if disabled
-                    (css-class-disabled obj)
-                    (css-class-enabled obj))
-                " "
-                (css-class obj)))
-    (setf (disabled obj) (disabled form))))
+(defmethod initialize-instance :after ((obj form-textbox) &key disabled record styles)
+  (when-let (new-value (getf record (make-keyword (name obj))))
+    (setf (slot-value obj 'value) new-value))
+  (setf (slot-value obj 'css-class)
+        (conc (getf styles (make-keyword (name obj)))
+              " "
+              (if disabled
+                  (css-class-disabled obj)
+                  (css-class-enabled obj))
+              " "
+              (css-class obj)))
+  (setf (slot-value obj 'disabled) disabled))
 
-;; (defmethod display ((obj textbox*) &key record styles)
-;;   (with-html
-;;     (let ((effective-value (or (getf record (make-keyword name))
-;;                                (value obj)))
-;;           (effective-css-class (conc (getf styles (make-keyword name))
-;;                                      " "
-;;                                      (if disabled
-;;                                          (css-class-disabled obj)
-;;                                          (css-class-enabled obj))
-;;                                      " "
-;;                                      (css-class obj))))
-;;       (htm (:label (str label)
-;;                    (obj 'textbox :name (name obj)
-;;                                  :value effective-value
-;;                                  :href (href obj)
-;;                                  :disabled (disabled obj)
-;;                                  :css-class effective-css-class
-;;                                  :format-fn (format-fn obj)))))))
-
-(defun label-datum (disabled record styles)
-  (html (name label &key href default-value enabled-styles disabled-styles common-styles format-fn)
-    (let ((value (or (getf record (make-keyword name))
-                     default-value))
-          (all-styles (conc (getf styles (make-keyword name))
-                            " "
-                            (if disabled
-                                disabled-styles
-                                enabled-styles)
-                            " "
-                            common-styles)))
-      (htm (:label (str label)
-                   (obj 'textbox :name name
-                                 :value value
-                                 :href href
-                                 :disabled disabled
-                                 :css-class all-styles
-                                 :format-fn format-fn))))))
 
 
 ;;; textbox-maker
+
+(defclass table-textbox (textbox)
+  ())
+
+(defmethod initialize-instance :after ((obj table-textbox) &key record enabled)
+  (when-let (new-value (getf record (make-keyword (name obj))))
+    (setf (slot-value obj 'value) new-value))
+  (setf (slot-value obj 'disabled) (not enabled)))
 
 (defun textbox-maker (record enabled-p)
   (lambda (arglist)

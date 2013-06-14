@@ -24,9 +24,8 @@
       (getf place indicator default)))
 
 (defun make-instance-factory (class &rest base-initargs)
-  (let ((obj (apply #'make-instance class base-initargs)))
-    (lambda (&rest initargs)
-      (apply #'make-instance obj base-initargs initargs))))
+  (lambda (&rest initargs)
+    (apply #'make-instance class (append base-initargs initargs))))
 
 
 

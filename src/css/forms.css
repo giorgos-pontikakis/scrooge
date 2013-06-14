@@ -92,7 +92,8 @@
 }
 
 .data-form input {
-    margin-top: 2px;
+    display: block;
+    margin-top: 4px;
     margin-bottom: 10px;
 }
 
