@@ -91,11 +91,12 @@
     margin: 6px 0px 3px 0px;
 }
 
-.data-form input {
+.data-form input, .data-form select {
     display: block;
     margin-top: 4px;
     margin-bottom: 10px;
 }
+
 
 .data-form input[type="radio"] {
     margin: 5px 5px 8px 5px;
@@ -107,6 +108,7 @@
 }
 
 .data-form p, .data-form a {
+    font-weight: normal;
     display: block;
     padding: 3px 0px;
     font-size: 13px;

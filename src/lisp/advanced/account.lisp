@@ -236,12 +236,12 @@
                                         :credit-amount :null)
                                   (list :debit-amount :null
                                         :credit-amount (getf record :amount))))))
-    (mapcar (textbox-maker record-plus enabled-p)
-            `(tx-date
-              (description :href ,(tx :tx-id (getf record :id)))
-              (company :href ,(company/details :company-id (getf record :company-id)))
-              (debit-amount :format-fn ,#'fmt-amount)
-              (credit-amount :format-fn ,#'fmt-amount)))))
+    (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record record-plus)
+            `((:name tx-date)
+              (:name description :href ,(tx :tx-id (getf record :id)))
+              (:name company :href ,(company/details :company-id (getf record :company-id)))
+              (:name debit-amount :format-fn ,#'fmt-amount)
+              (:name credit-amount :format-fn ,#'fmt-amount)))))
 
 (defmethod controls ((row account-tx-row) enabled-p)
   (declare (ignore row enabled-p))

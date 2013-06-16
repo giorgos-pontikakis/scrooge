@@ -268,14 +268,14 @@
 
 (defmethod payload ((row cheque-row) enabled-p)
   (let* ((record (record row))
-         (head (mapcar (textbox-maker record enabled-p)
-                       `(serial
-                         (company :css-class "ac-company"
-                                  :href ,(company/tx :company-id (getf record :company-id)
-                                                     :tx-id (getf record :tx-id)))
-                         (bank :css-class "ac-bank")
-                         (due-date :css-class ,(if enabled-p "datepicker" nil))
-                         (amount :format-fn ,#'fmt-amount)))))
+         (head (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record (record row))
+                       `((:name serial)
+                         (:name company :css-class "ac-company"
+                          :href ,(company/tx :company-id (getf record :company-id)
+                                             :tx-id (getf record :tx-id)))
+                         (:name bank :css-class "ac-bank")
+                         (:name due-date :css-class ,(if enabled-p "datepicker" nil))
+                         (:name amount :format-fn ,#'fmt-amount)))))
     (append head
             (list
              (if (and enabled-p (eql (op (collection row)) :update))

@@ -183,14 +183,14 @@
 (defmethod payload ((row cash-tx-row) enabled-p)
   (let ((record (record row))
         (table (collection row)))
-    (mapcar (textbox-maker record enabled-p)
-            `(tx-date
-              (company :href ,(company/tx :company-id (getf record :company-id)
-                                          :tx-id (key row)))
-              (description :href ,(apply #'cash/details (role table)
-                                         :tx-id (key row) (filter table)))
-              account
-              (amount :format-fn ,#'fmt-amount)))))
+    (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record record)
+            `((:name tx-date)
+              (:name company :href ,(company/tx :company-id (getf record :company-id)
+                                                :tx-id (key row)))
+              (:name description :href ,(apply #'cash/details (role table)
+                                               :tx-id (key row) (filter table)))
+              (:name account)
+              (:name amount :format-fn ,#'fmt-amount)))))
 
 (defmethod controls ((row cash-tx-row) controls-p)
   (let* ((tx-id (key row))

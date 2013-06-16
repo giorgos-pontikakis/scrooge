@@ -168,16 +168,16 @@
                  (:cheque (cheque role :cheque-id (getf record :cheque-id)))
                  (:invoice (invoice/details role (invoice-kind record)
                                             :tx-id tx-id)))))
-    (mapcar (textbox-maker record enabled-p)
-            `((tx-date :css-class ,(if enabled-p "datepicker" nil))
-              (description :href ,href)
-              (debit-amount :format-fn ,#'fmt-amount
-                            :disabled ,(or (not (getf record :debit-amount))
-                                           (not enabled-p)))
-              (credit-amount :format-fn ,#'fmt-amount
-                             :disabled ,(or (not (getf record :credit-amount))
-                                            (not enabled-p)))
-              (total :disabled t :format-fn ,#'fmt-amount)))))
+    (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record (record row))
+            `((:name tx-date :css-class ,(if enabled-p "datepicker" nil))
+              (:name description :href ,href)
+              (:name debit-amount :format-fn ,#'fmt-amount
+               :disabled ,(or (not (getf record :debit-amount))
+                              (not enabled-p)))
+              (:name credit-amount :format-fn ,#'fmt-amount
+               :disabled ,(or (not (getf record :name :credit-amount))
+                              (not enabled-p)))
+              (:name total :disabled t :format-fn ,#'fmt-amount)))))
 
 
 

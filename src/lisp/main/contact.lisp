@@ -100,9 +100,9 @@
           (selector-img selected-p)))))
 
 (defmethod payload ((row contact-row) enabled-p)
-  (mapcar (textbox-maker (record row) enabled-p)
-          '((tag :css-class "tag")
-            (phone :css-class "phone"))))
+  (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record (record row))
+          '((:name tag :css-class "tag")
+            (:name phone :css-class "phone"))))
 
 (defmethod controls ((row contact-row) enabled-p)
   (let ((table (collection row))

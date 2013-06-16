@@ -155,9 +155,10 @@
 (defun notifications (&optional (page *page*) (parameters *parameters*))
   (unless (every #'validp parameters)
     (with-html
-        (:div :class "notifications"
-              (:obj 'messenger (messages page) parameters
-               :css-class "msg-error")))))
+      (:div :class "notifications"
+            (obj 'messenger :messages (messages page)
+                            :parameters parameters
+                            :css-class "msg-error")))))
 
 
 
@@ -277,51 +278,6 @@
                                     :href (apply submit-fn hidden)
                                     (img "cross.png"))))
                        :hidden hidden)))))
-
-
-;;; label-input-text for forms
-
-(defclass form-textbox (textbox)
-  ((styles             :accessor styles             :initarg :styles)
-   (css-class-enabled  :accessor css-class-enabled  :initarg :css-class-enabled)
-   (css-class-disabled :accessor css-class-disabled :initarg :css-class-disabled))
-  (:default-initargs :styles nil :css-class-enabled nil :css-class-disabled nil))
-
-(defmethod initialize-instance :after ((obj form-textbox) &key disabled record styles)
-  (when-let (new-value (getf record (make-keyword (name obj))))
-    (setf (slot-value obj 'value) new-value))
-  (setf (slot-value obj 'css-class)
-        (conc (getf styles (make-keyword (name obj)))
-              " "
-              (if disabled
-                  (css-class-disabled obj)
-                  (css-class-enabled obj))
-              " "
-              (css-class obj)))
-  (setf (slot-value obj 'disabled) disabled))
-
-
-
-;;; textbox-maker
-
-(defclass table-textbox (textbox)
-  ())
-
-(defmethod initialize-instance :after ((obj table-textbox) &key record enabled)
-  (when-let (new-value (getf record (make-keyword (name obj))))
-    (setf (slot-value obj 'value) new-value))
-  (setf (slot-value obj 'disabled) (not enabled)))
-
-(defun textbox-maker (record enabled-p)
-  (lambda (arglist)
-    (destructuring-bind (name &key href format-fn css-class (disabled (not enabled-p)))
-        (ensure-list arglist)
-      (make-instance 'textbox :name name
-                              :css-class css-class
-                              :value (getf record (make-keyword name))
-                              :disabled disabled
-                              :href href
-                              :format-fn format-fn))))
 
 
 

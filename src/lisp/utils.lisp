@@ -28,9 +28,9 @@
             (apply fn arglist))
           arglist-list))
 
-(defun make-instance-factory (class &rest base-initargs)
-  (lambda (&rest initargs)
-    (apply #'make-instance class (append base-initargs initargs))))
+(defun factory (fn pre-arg &rest post-args)
+  (lambda (&rest args)
+    (apply fn pre-arg (append args post-args))))
 
 
 

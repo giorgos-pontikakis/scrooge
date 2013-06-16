@@ -82,29 +82,28 @@
 
 (defun left-column (form styles disabled)
   (let* ((record (record form))
-         (ft (make-instance-factory 'form-textbox :disabled disabled
-                                                  :record record
-                                                  :styles styles)))
+         (ft (factory #'make-instance 'form-textbox :disabled disabled
+                                                    :record record
+                                                    :styles styles)))
     (with-html
       (:div :class "left-column"
             (:h3 "Στοιχεία Συναλλαγής")
             (:label "Ημερομηνία"
-                    (display (funcall ft :name 'tx-date
-                                         :css-class-enabled "datepicker"
-                                         :default-value (today))))
+                    (call ft :name 'tx-date
+                             :css-class-enabled "datepicker"
+                             :value (today)))
             (:label "Εταιρία"
-                    (display (funcall ft :name 'company
-                                         :css-class-enabled "ac-company"
-                                         :href (company/tx :company-id (getf record :company-id)
-                                                           :tx-id (key form))
-                                         :css-class "company")))
+                    (call ft :name 'company
+                             :css-class-enabled "ac-company"
+                             :href (company/tx :company-id (getf record :company-id)
+                                               :tx-id (key form))
+                             :css-class "company"))
             (:label "Περιγραφή"
-                    (display (funcall ft 'description
-                                      :css-class "description")))
+                    (call ft :name 'description
+                             :css-class "description"))
             (:label "Ποσό"
-                    (display (funcall ft 'amount
-                                      :css-class "amount"
-                                      :format-fn #'fmt-amount)))
+                    (call ft :name 'amount :css-class "amount"
+                             :format-fn #'fmt-amount))
             (:div :id "project-group"
                   (:label "Έργο"
                           (:div :id "project-picker" "")))

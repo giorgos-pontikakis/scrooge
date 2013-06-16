@@ -149,7 +149,7 @@
                              (img "tick.png"))))
 
 (defun ok-button (&rest instance-initargs)
-  (display (apply #'make-instance 'ok-button instance-initargs )))
+  (display (apply #'make-instance 'ok-button instance-initargs)))
 
 (defclass cancel-button (widget)
   ((href :accessor href :initarg :href)
@@ -187,6 +187,40 @@
   (ecase (op form)
     (:details '())
     ((:create :update :delete) '(:update :delete :journal))))
+
+
+
+;;; ------------------------------------------------------------
+;;; textbox variations
+;;; ------------------------------------------------------------
+
+(defclass form-textbox (textbox)
+  ((styles             :accessor styles             :initarg :styles)
+   (css-class-enabled  :accessor css-class-enabled  :initarg :css-class-enabled)
+   (css-class-disabled :accessor css-class-disabled :initarg :css-class-disabled))
+  (:default-initargs :styles nil :css-class-enabled nil :css-class-disabled nil))
+
+(defmethod initialize-instance :after ((obj form-textbox) &key disabled record styles)
+  (when-let (new-value (getf record (make-keyword (name obj))))
+    (setf (slot-value obj 'value) new-value))
+  (setf (slot-value obj 'css-class)
+        (conc (getf styles (make-keyword (name obj)))
+              " "
+              (if disabled
+                  (css-class-disabled obj)
+                  (css-class-enabled obj))
+              " "
+              (css-class obj)))
+  (setf (slot-value obj 'disabled) disabled))
+
+
+(defclass table-textbox (textbox)
+  ())
+
+(defmethod initialize-instance :after ((obj table-textbox) &key record enabled)
+  (when-let (new-value (getf record (make-keyword (name obj))))
+    (setf (slot-value obj 'value) new-value))
+  (setf (slot-value obj 'disabled) (not enabled)))
 
 
 

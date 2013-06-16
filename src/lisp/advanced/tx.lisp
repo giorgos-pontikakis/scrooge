@@ -213,20 +213,20 @@
 
 (defmethod payload ((row tx-row) enabled-p)
   (let ((record (record row)))
-    (mapcar (textbox-maker record enabled-p)
-            `((tx-date :css-class ,(if enabled-p "datepicker" nil))
-              (company :css-class ,(if enabled-p "ac-company" nil)
+    (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record (record row))
+            `((:name tx-date :css-class ,(if enabled-p "datepicker" nil))
+              (:name company :css-class ,(if enabled-p "ac-company" nil)
                        :href ,(company/tx :company-id (getf record :company-id) :tx-id (key row)))
-              description
-              (non-chq-debit-account :href ,(account/tx :account-id (getf record
+              (:name description)
+              (:name non-chq-debit-account :href ,(account/tx :account-id (getf record
                                                                           :non-chq-debit-account-id)
                                                         :tx-id (getf record :id))
                                      :css-class ,(if enabled-p "ac-non-chq-account" nil))
-              (non-chq-credit-account :href ,(account/tx :account-id (getf record
+              (:name non-chq-credit-account :href ,(account/tx :account-id (getf record
                                                                            :non-chq-credit-account-id)
                                                          :tx-id (getf record :id))
                                       :css-class ,(if enabled-p "ac-non-chq-account" nil))
-              (amount :format-fn ,#'fmt-amount)))))
+              (:name amount :format-fn ,#'fmt-amount)))))
 
 
 ;;; paginator

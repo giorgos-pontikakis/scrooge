@@ -196,19 +196,18 @@
 (defmethod display ((form project-form) &key styles)
   (let* ((disabled (eql (op form) :details))
          (record (record form))
-         (ft (make-instance-factory 'form-textbox :disabled disabled
-                                                  :record record
-                                                  :styles styles)))
+         (ft (factory #'make-instance 'form-textbox :disabled disabled
+               :record record
+               :styles styles)))
     (with-html
       (:div :class "data-form project-form"
             (:div :class "data-form-title"
                   (:label "Περιγραφή"
-                          (display (funcall ft :name 'description)))
+                          (call ft :name 'description))
                   (:label "Εταιρία"
-                          (display
-                           (funcall ft :name 'company
-                                       :css-class-enabled "ac-company"
-                                       :href (company/details :company-id (getf record :company-id))))))
+                          (call ft :name 'company
+                                   :css-class-enabled "ac-company"
+                                   :href (company/details :company-id (getf record :company-id)))))
             (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Οικονομικά")
@@ -220,23 +219,23 @@
                                                               *default-project-state-id*)
                                                 :disabled disabled)))
                     (:li (:label "Τιμή"
-                                 (display (funcall ft :name 'price))))
+                                 (call ft :name 'price)))
                     (:li (:label "Φ.Π.Α."
-                                 (display (funcall ft :name 'vat)))))))
+                                 (call ft :name 'vat))))))
             (:div :class "project-form-details"
                   (:fieldset
                    (:legend "Χρονοδιάγραμμα")
                    (:ul
                     (:li (:label  "Ημερομηνία προσφοράς"
-                                  (display (funcall ft :name 'quote-date
-                                                       :css-class-enabled "datepicker"
-                                                       :default-value (today)))))
+                                  (call ft :name 'quote-date
+                                           :css-class-enabled "datepicker"
+                                           :value (today))))
                     (:li (:label  "Ημερομηνία έναρξης"
-                                  (display (funcall ft :name 'start-date
-                                                       :css-class-enabled "datepicker"))))
+                                  (call ft :name 'start-date
+                                           :css-class-enabled "datepicker")))
                     (:li (:label  "Ημερομηνία ολοκλήρωσης"
-                                  (display (funcall ft :name 'end-date
-                                                       :css-class-enabled "datepicker")))))))
+                                  (call ft :name 'end-date
+                                           :css-class-enabled "datepicker"))))))
             (clear)
             (:div :id "project-notes"
                   (:label "Σημειώσεις"
@@ -365,12 +364,12 @@
 
 (defmethod payload ((row project-row) enabled-p)
   (let* ((record (record row))
-         (head (mapcar (textbox-maker record enabled-p)
-                       `((company :href ,(company/details :company-id (getf record :company-id)))
-                         (description :href ,(apply #'project/details
-                                                    :project-id (key row)
-                                                    (filter (collection row))))
-                         (price :format-fn ,#'(lambda (arg) (fmt-amount arg 0)))))))
+         (head (mapply (factory #'make-instance 'table-textbox :enabled enabled-p :record (record row))
+                       `((:name company :href ,(company/details :company-id (getf record :company-id)))
+                         (:name description :href ,(apply #'project/details
+                                                          :project-id (key row)
+                                                          (filter (collection row))))
+                         (:name price :format-fn ,#'(lambda (arg) (fmt-amount arg 0)))))))
     (if (getf (filter (collection row)) :cstate)
         head
         (nconc head (list (html ()
