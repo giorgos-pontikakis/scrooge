@@ -270,7 +270,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (tx-table (make-instance 'tx-table
-                                    :op :catalogue
+                                    :op :read
                                     :selected-key (val tx-id)
                                     :filter filter
                                     :start-index (val start))))

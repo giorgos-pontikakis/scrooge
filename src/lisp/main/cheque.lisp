@@ -326,7 +326,7 @@
      (until  date   chk-date))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (records (make-instance 'cheque-table :op :catalogue
+           (records (records (make-instance 'cheque-table :op :read
                                                           :role role
                                                           :filter filter))))
       (if (single-item-list-p records)
@@ -355,7 +355,7 @@
            (cheque-table (make-instance 'cheque-table
                                         :id "cheque-table"
                                         :role role
-                                        :op :catalogue
+                                        :op :read
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start))))

@@ -215,7 +215,7 @@
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
-                                               :op :catalogue
+                                               :op :read
                                                :selected-key (val tx-id)
                                                :filter filter
                                                :start-index (val start)
@@ -258,7 +258,7 @@
         (let ((company-tx-table (make-instance 'company-tx-table
                                                :records records
                                                :company-id (val company-id)
-                                               :op :catalogue
+                                               :op :read
                                                :filter filter
                                                :paginator nil
                                                :debit-sum debit-sum

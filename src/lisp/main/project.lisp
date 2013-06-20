@@ -194,7 +194,7 @@
   (:default-initargs :record-class 'cons))
 
 (defmethod display ((form project-form) &key styles)
-  (let* ((disabled (eql (op form) :details))
+  (let* ((disabled (eql (op form) :read))
          (record (record form))
          (ft (factory #'make-instance 'form-textbox :disabled disabled
                :record record
@@ -395,7 +395,7 @@
      (cstate string  chk-project-state-id))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (records (make-instance 'project-table :op :catalogue
+           (records (records (make-instance 'project-table :op :read
                                                            :filter filter))))
       (if (single-item-list-p records)
           (see-other (apply #'project/details
@@ -417,7 +417,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-table (make-instance 'project-table
-                                         :op :catalogue
+                                         :op :read
                                          :selected-key (val project-id)
                                          :filter filter
                                          :start-index (val start))))
@@ -449,10 +449,10 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :details
+                                        :op :read
                                         :key (val project-id)))
            (bill-table (make-instance 'bill-table
-                                      :op :catalogue
+                                      :op :read
                                       :selected-key (val bill-id)
                                       :project-id (val project-id))))
       (with-document ()
@@ -580,7 +580,7 @@
                                         :cancel-url (apply #'project/details
                                                            :project-id (val project-id) filter)))
            (bill-table (make-instance 'bill-table
-                                      :op :catalogue
+                                      :op :read
                                       :selected-key (val bill-id)
                                       :project-id (val project-id))))
       (with-document ()

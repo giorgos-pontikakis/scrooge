@@ -130,7 +130,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (bank-table (make-instance 'bank-table
-                                      :op :catalogue
+                                      :op :read
                                       :selected-key (val bank-id)
                                       :filter filter
                                       :start-index (val start))))

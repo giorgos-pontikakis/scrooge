@@ -205,7 +205,7 @@
 
 (defmethod display ((form libtx-form) &key styles)
   (let* ((customer-p (customer-p (role form)))
-         (disabled (eql (op form) :details))
+         (disabled (eql (op form) :read))
          (record (record form))
          (lib-temtx (query (:select 'id 'title
                                     :from 'temtx
@@ -250,7 +250,7 @@
      (until date))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (records (make-instance 'libtx-table :op :catalogue
+           (records (records (make-instance 'libtx-table :op :read
                                                          :role role
                                                          :filter filter))))
       (if (single-item-list-p records)
@@ -276,7 +276,7 @@
            (page-title (libtx-page-title role "Κατάλογος"))
            (libtx-table (make-instance 'libtx-table
                                        :role role
-                                       :op :catalogue
+                                       :op :read
                                        :selected-key (val tx-id)
                                        :filter filter
                                        :start-index (val start))))
@@ -309,7 +309,7 @@
     (let* ((filter (params->filter))
            (libtx-form (make-instance 'libtx-form
                                       :role role
-                                      :op :details
+                                      :op :read
                                       :key (val tx-id)
                                       :cancel-url (apply #'libtx role :tx-id (val tx-id) filter)))
            (page-title (libtx-page-title role "Λεπτομέρειες")))

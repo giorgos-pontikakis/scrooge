@@ -292,7 +292,7 @@
   (let* ((role (role form))
          (kind (kind form))
          (customer-p (customer-p role))
-         (disabled (eql (op form) :details))
+         (disabled (eql (op form) :read))
          (record (record form))
          (root-key (revenues/expenses-root role))
          (tree (make-instance 'radio-account-tree
@@ -339,7 +339,7 @@
      (until  string))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (records (make-instance 'invoice-tx-table :op :catalogue
+           (records (records (make-instance 'invoice-tx-table :op :read
                                                               :role role
                                                               :kind kind
                                                               :filter filter))))
@@ -373,7 +373,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (page-title (invoice-page-title role kind "Κατάλογος"))
-           (invoice-tx-table (make-instance 'invoice-tx-table :op :catalogue
+           (invoice-tx-table (make-instance 'invoice-tx-table :op :read
                                                               :role role
                                                               :kind kind
                                                               :selected-key (val tx-id)
@@ -412,7 +412,7 @@
            (invoice-form (make-instance 'invoice-form
                                         :role role
                                         :kind kind
-                                        :op :details
+                                        :op :read
                                         :key (val tx-id)))
            (page-title (invoice-page-title role kind "Λεπτομέρειες")))
       (with-document ()

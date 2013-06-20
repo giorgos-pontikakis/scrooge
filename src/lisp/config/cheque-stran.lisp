@@ -211,7 +211,7 @@
      (cheque-stran-id integer chk-cheque-stran-id))
   (with-view-page
     (let ((cheque-stran-table (make-instance 'cheque-stran-table
-                                             :op :catalogue
+                                             :op :read
                                              :selected-key (val cheque-stran-id)
                                              :id "cheque-stran-table"
                                              :role role)))

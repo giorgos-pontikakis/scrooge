@@ -126,7 +126,7 @@
 (defclass radio-account-tree (account-tree)
   ((disabled :accessor disabled :initarg :disabled))
   (:default-initargs :item-class 'radio-account-node
-                     :op :catalogue
+                     :op :read
                      :disabled nil))
 
 (defclass radio-account-node (account-node)

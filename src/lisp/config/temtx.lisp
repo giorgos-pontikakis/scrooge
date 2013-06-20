@@ -312,7 +312,7 @@
   (with-view-page
     (let ((temtx-table (make-instance 'temtx-table
                                       :role role
-                                      :op :catalogue
+                                      :op :read
                                       :selected-key (val temtx-id)
                                       :start-index (val start)
                                       :id "temtx-table")))

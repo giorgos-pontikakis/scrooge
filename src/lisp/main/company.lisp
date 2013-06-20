@@ -206,7 +206,7 @@
   (:default-initargs :record-class 'cons))
 
 (defmethod display ((form company-form) &key styles)
-  (let* ((disabled (eql (op form) :details))
+  (let* ((disabled (eql (op form) :read))
          (record (record form))
          (ft (factory #'make-instance 'form-textbox :disabled disabled :record record :styles styles)))
     (with-html
@@ -306,7 +306,7 @@
 
 (defmethod disabled-actions ((form company-form) &key)
   (ecase (op form)
-    (:details '())
+    (:read '())
     ((:create :update :delete) '(:create-project :update :delete))))
 
 
@@ -404,7 +404,7 @@
 
 (defmethod disabled-actions ((tbl company-table) &key)
   (ecase (op tbl)
-    (:catalogue '())
+    (:read '())
     (:delete '(:details :delete :create-project))))
 
 (defmethod filters ((tbl company-table))
@@ -477,7 +477,7 @@
      (subset string chk-subset))
   (with-db ()
     (let* ((filter (params->filter))
-           (company-table (make-instance 'company-table :op :catalogue
+           (company-table (make-instance 'company-table :op :read
                                                         :filter filter))
            (records (records company-table)))
       (if (single-item-list-p records)
@@ -513,7 +513,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-table (make-instance 'company-table
-                                         :op :catalogue
+                                         :op :read
                                          :selected-key (val company-id)
                                          :filter filter
                                          :start-index (val start))))
@@ -546,7 +546,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-table (make-instance 'company-table
-                                         :op :catalogue
+                                         :op :read
                                          :selected-key nil
                                          :filter filter
                                          :start-index (val start)
@@ -575,13 +575,13 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :details
+                                        :op :read
                                         :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))
            (contact-table (make-instance 'contact-table
-                                         :op :catalogue
+                                         :op :read
                                          :selected-key (val contact-id)
                                          :company-id (val company-id))))
       (with-document ()
@@ -615,13 +615,13 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :details
+                                        :op :read
                                         :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
                                                            filter)))
            (contact-table (make-instance 'contact-table
-                                         :op :catalogue
+                                         :op :read
                                          :company-id (val company-id))))
       (with-document ()
         (:head
@@ -760,7 +760,7 @@
                                         :cancel-url (apply #'company/details
                                                            :company-id (val company-id) filter)))
            (contact-table (make-instance 'contact-table
-                                         :op :catalogue
+                                         :op :read
                                          :selected-key (val contact-id)
                                          :company-id (val company-id))))
       (with-document ()

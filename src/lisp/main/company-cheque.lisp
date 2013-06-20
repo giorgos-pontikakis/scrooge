@@ -202,7 +202,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (cheque-table (make-instance 'company-cheque-table
-                                        :op :catalogue
+                                        :op :read
                                         :selected-key (val cheque-id)
                                         :filter filter
                                         :start-index (val start)
@@ -252,14 +252,14 @@
     (with-view-page
       (let* ((filter (params->filter))
              (receivable-table (make-instance 'company-cheque-table
-                                              :op :catalogue
+                                              :op :read
                                               :selected-key nil
                                               :filter filter
                                               :start-index (val start)
                                               :role "customer"
                                               :company-id (val company-id)))
              (payable-table (make-instance 'company-cheque-table
-                                           :op :catalogue
+                                           :op :read
                                            :selected-key nil
                                            :filter filter
                                            :start-index (val start)

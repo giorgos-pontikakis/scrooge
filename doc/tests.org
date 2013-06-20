@@ -1,0 +1,37 @@
+* Main
+
+*** Company
+
+***** Company table
+      - [X] Display correctly
+
+***** Company table with search term
+      - [X] null results
+      - [X] single results
+      - [X] one page result
+      - [X] multiple page results
+      - [ ] with special characters w.r.t. postgresql regexes
+
+***** Company table with filters
+      - [X] Retain search term when changing filters
+      - [ ] Correct filter implementation
+
+***** Company table - print page
+      - [X] Respect search term
+      - [X] Respect filter
+
+***** Company table actions
+      - [ ] Parameters error checking
+      - [ ] Proper error messages for create/update
+
+******* Read
+        - [ ] Display disabled form elements
+
+******* Create
+        - [ ] Correct default values in revenue/expenses accounts
+        - [ ] Cancel button retains filter
+        - [ ] Catalogue button retains filter
+
+******* Update
+
+******* Delete

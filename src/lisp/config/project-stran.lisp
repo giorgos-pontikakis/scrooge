@@ -193,7 +193,7 @@
      (project-stran-id    integer chk-project-stran-id))
   (with-view-page
     (let ((project-stran-table (make-instance 'project-stran-table
-                                              :op :catalogue
+                                              :op :read
                                               :selected-key (val project-stran-id)
                                               :id "project-stran-table")))
       (with-document ()

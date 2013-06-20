@@ -159,7 +159,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :details
+                                        :op :read
                                         :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
@@ -225,7 +225,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :details
+                                        :op :read
                                         :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
@@ -243,7 +243,7 @@
                (header 'main)
                (navbar 'main 'company)
                (company-top-actions :details)
-               (company-tabs (val company-id) filter 'details
+               (company-tabs (val company-id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"
@@ -290,7 +290,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (company-form (make-instance 'company-form
-                                        :op :details
+                                        :op :read
                                         :key (val company-id)
                                         :cancel-url (apply #'company
                                                            :company-id (val company-id)
@@ -308,7 +308,7 @@
                (header 'main)
                (navbar 'main 'company)
                (company-top-actions :details)
-               (company-tabs (val company-id) filter 'details
+               (company-tabs (val company-id) filter 'data
                              (html ()
                                (:div :class "grid_6 alpha"
                                      (:div :id "company-window" :class "window"

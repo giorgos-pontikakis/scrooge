@@ -172,7 +172,7 @@ receivables"
 (defun companies-sum (subset)
   (with-db ()
     (let ((records (records (make-instance 'company-table :filter (list :subset subset)
-                                                          :op :catalogue))))
+                                                          :op :read))))
       (float (reduce #'+
                      (mapcar (getfer :balance 0)
                              records))))))

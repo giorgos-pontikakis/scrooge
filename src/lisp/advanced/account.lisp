@@ -127,7 +127,7 @@
                      for div-id in '("debit-accounts" "credit-accounts")
                      for window-title in '("Πιστωτικοί λογαριασμοί" "Χρεωστικοί λογαριασμοί")
                      for account-tree = (make-instance 'balance-account-tree
-                                                       :op :catalogue
+                                                       :op :read
                                                        :selected-key (val account-id)
                                                        :debit-p debit-p
                                                        :filter filter)
@@ -274,7 +274,7 @@
     (let* ((account-title (with-db ()
                             (title (get-dao 'account (val account-id)))))
            (account-tx-table (make-instance 'account-tx-table
-                                            :op :catalogue
+                                            :op :read
                                             :account-id (val account-id)
                                             :selected-key (val tx-id)
                                             :filter (params->filter)

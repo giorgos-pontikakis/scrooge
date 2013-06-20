@@ -62,7 +62,7 @@
 
 (defmethod disabled-actions ((tbl scrooge-crud-table) &key)
   (ecase (op tbl)
-    (:catalogue '())
+    (:read '())
     ((:create :update :delete) '(:details :create :update :delete :journal))))
 
 
@@ -73,7 +73,7 @@
 
 (defmethod disabled-actions ((tbl ranked-table-mixin) &key key)
   (ecase (op tbl)
-    (:catalogue (if key
+    (:read (if key
                     nil
                     '(:update :delete :rank-up :rank-down)))
     ((:create :update :delete) '(:create :update :delete :rank-up :rank-down))))
@@ -185,7 +185,7 @@
 
 (defmethod disabled-actions ((form scrooge-crud-form) &key)
   (ecase (op form)
-    (:details '())
+    (:read '())
     ((:create :update :delete) '(:update :delete :journal))))
 
 

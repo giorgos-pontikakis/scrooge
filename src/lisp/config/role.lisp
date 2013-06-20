@@ -103,7 +103,7 @@
      (account         string chk-account-title))
   (with-view-page
     (let ((account-role-table (make-instance 'account-role-table
-                                             :op :catalogue
+                                             :op :read
                                              :selected-key (val account-role-id))))
       (with-document ()
         (:head

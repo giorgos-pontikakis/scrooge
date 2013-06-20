@@ -130,7 +130,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (city-table (make-instance 'city-table
-                                      :op :catalogue
+                                      :op :read
                                       :selected-key (val city-id)
                                       :filter filter
                                       :start-index (val start))))

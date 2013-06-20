@@ -151,7 +151,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :details
+                                        :op :read
                                         :key (val project-id)
                                         :cancel-url (apply #'project
                                                            :project-id (val project-id)
@@ -219,7 +219,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :details
+                                        :op :read
                                         :key (val project-id)
                                         :cancel-url (apply #'project
                                                            :project-id (val project-id)
@@ -283,7 +283,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (project-form (make-instance 'project-form
-                                        :op :details
+                                        :op :read
                                         :key (val project-id)
                                         :cancel-url (apply #'project
                                                            :project-id (val project-id)

@@ -263,7 +263,7 @@
 
 (defmethod display ((form cash-form) &key styles)
   (let* ((customer-p (customer-p (role form)))
-         (disabled (eql (op form) :details))
+         (disabled (eql (op form) :read))
          (record (record form))
          (revenues/expenses-root-key (revenues/expenses-root (role form)))
          (receivable/payable-root-key (receivable/payable-root (role form)))
@@ -319,7 +319,7 @@
      (until date))
   (with-db ()
     (let* ((filter (params->filter))
-           (records (records (make-instance 'cash-tx-table :op :catalogue
+           (records (records (make-instance 'cash-tx-table :op :read
                                                            :role role
                                                            :filter filter))))
       (if (single-item-list-p records)
@@ -346,7 +346,7 @@
            (page-title (cash-page-title role "Κατάλογος"))
            (cash-tx-table (make-instance 'cash-tx-table
                                          :role role
-                                         :op :catalogue
+                                         :op :read
                                          :selected-key (val tx-id)
                                          :filter filter
                                          :start-index (val start))))
@@ -380,7 +380,7 @@
     (let* ((filter (params->filter))
            (cash-form (make-instance 'cash-form
                                      :role role
-                                     :op :details
+                                     :op :read
                                      :key (val tx-id)
                                      :cancel-url (apply #'cash role :tx-id (val tx-id) filter)))
            (page-title (cash-page-title role "Λεπτομέρειες")))

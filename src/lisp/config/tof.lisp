@@ -130,7 +130,7 @@
   (with-view-page
     (let* ((filter (params->filter))
            (tof-table (make-instance 'tof-table
-                                     :op :catalogue
+                                     :op :read
                                      :selected-key (val tof-id)
                                      :filter filter
                                      :start-index (val start))))

@@ -240,7 +240,7 @@
              (navbar 'config 'account)
              (mapc (lambda (debit-p div-id window-title)
                      (let ((account-tree (make-instance 'account-tree
-                                                        :op :catalogue
+                                                        :op :read
                                                         :selected-key (val account-id)
                                                         :debit-p debit-p)))
                        (htm
