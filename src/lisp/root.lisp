@@ -13,7 +13,7 @@
 ;;; --- Autocomplete --------------------
 
 (defun autocomplete-xhr-auth-error ()
-  (with-html-output (*standard-output* nil :indent nil :prologue nil)
+  (with-output-to-string (*standard-output*)
     "[\"Session expired.\"]"))
 
 (defpage root-page autocomplete
@@ -29,7 +29,7 @@
                                                         (ilike (val term))))
                                 :column)
                          #'string<)))
-      (with-html-output (*standard-output* nil :indent nil :prologue nil)
+      (with-output-to-string (*standard-output*)
         (write-json (coerce results 'vector))))))
 
 (defpage root-page autocomplete/accounts
@@ -45,7 +45,7 @@
                                      nil)))
                            (subtree-records *accounts*
                                             (account-id (val root))))))
-      (with-html-output (*standard-output* nil :indent nil :prologue nil)
+      (with-output-to-string (*standard-output*)
         (write-json (coerce results 'vector))))))
 
 (defpage root-page autocomplete/temtx
@@ -62,7 +62,7 @@
                   :where (:and (:= customer-p ,(val customer-p))
                                (:ilike title ,(ilike (val term))))))
            (results (query (sql-compile sql) :column)))
-      (with-html-output (*standard-output* nil :indent nil :prologue nil)
+      (with-output-to-string (*standard-output*)
         (write-json (coerce results 'vector))))))
 
 (defpage root-page autocomplete/project
@@ -81,11 +81,11 @@
                                                                  "ongoing")))))
            (results (query (sql-compile sql))))
       (if results
-          (with-html
+          (with-document ()
             (:select :name "project-id"
                      (loop for (id description) in results
                            do (htm (:option :value id (str description))))))
-          (with-html
+          (with-document ()
             (:input :type "hidden" :name "project-id" :value +html-null+)
             (:p "Δεν υπάρχει ενεργό για αυτή την εταίρια. "
                 (:a :href (project/create :company (val company-title)) "Νέο έργο »")))))))

@@ -4,7 +4,8 @@
 ;;; GENERAL UTILITIES
 
 (defun single-item-list-p (list)
-  (and list (null (cdr list))))
+  (and (listp list)
+       (null (cdr list))))
 
 (defun fmt-amount (amount &optional (decimal-digits 2))
   (let ((format-control (concatenate 'string
@@ -37,12 +38,12 @@
 ;;; SQL UTILITIES
 
 (defun get-dao-plist (type &rest args)
-  (with-db ()
-    (query (sql-compile `(:select * :from ,type :where (:and ,@(mapcar (lambda (key val)
-                                                                         (list := key val))
-                                                                       (dao-keys type)
-                                                                       args))))
-           :plist)))
+  "Like get-dao, but returns a plist instead of an object"
+  (query (sql-compile `(:select * :from ,type :where (:and ,@(mapcar (lambda (key val)
+                                                                       (list := key val))
+                                                                     (dao-keys type)
+                                                                     args))))
+         :plist))
 
 (defun ilike (filter)
   (if (or (null filter)

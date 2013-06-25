@@ -491,7 +491,7 @@
                         :parameter-groups '(:system (title)))
     ((title string chk-company-title t))
   (with-xhr-page (autocomplete-xhr-auth-error)
-    (with-html-output (*standard-output* nil :indent nil :prologue nil)
+    (with-output-to-string (*standard-output*)
       (let ((company (get-dao 'company (company-id (val title)))))
         (write-json (alist-hash-table
                      `(("immediateTxOnly" . ,(immediate-tx-only-p company))
@@ -589,7 +589,6 @@
          (:title "Εταιρία » Λεπτομέρειες » Στοιχεία")
          (main-headers))
         (:body
-
          (:div :id "container" :class "container_12"
                (header 'main)
                (navbar 'main 'company)

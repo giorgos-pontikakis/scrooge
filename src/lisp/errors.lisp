@@ -16,7 +16,7 @@
     (t (call-next-method))))
 
 (defun bad-request ()
-  (with-html-output-to-string (s)
+  (with-document ()
     (:head
      (:title "Scrooge - Bad Request"))
     (:body
@@ -26,7 +26,7 @@
            (:p "You are supposed to see this page because of illegal manipulation of request parameters.")))))
 
 (defun internal-server-error ()
-  (with-html-output-to-string (s)
+  (with-document ()
     (:head
      (:title "Scrooge - Internal server error"))
     (:body
@@ -35,7 +35,7 @@
            (:p "An internal server error has occured.")))))
 
 (defun not-found ()
-  (with-html-output-to-string (s)
+  (with-document ()
     (:head
      (:title "Not found"))
     (:body

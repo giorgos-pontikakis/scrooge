@@ -76,7 +76,7 @@
 (update-account-globals)
 
 
-;;; accessor functions
+;;; reader functions
 
 (defun revenues/expenses-root (role)
   (if (customer-p role)
