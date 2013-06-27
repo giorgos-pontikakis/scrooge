@@ -23,10 +23,10 @@
   ;;
   :depends-on ("ironclad"
                (:version "json" "1.0.0")
-               (:version "lisputils" "1.0.0")
-               (:version "veil" "1.0.0")
-               (:version "mortar" "1.0.2")
-               (:version "bricks" "1.2.0"))
+               (:version "lisputils" "1.1.0")
+               (:version "veil" "1.1.0")
+               (:version "bricks" "2.0.0")
+               (:version "mortar" "1.1.0"))
   ;;
   :components ((:file "package")
                (:file "utils")
