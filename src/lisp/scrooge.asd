@@ -78,7 +78,8 @@
   :depends-on (:scrooge :hu.dwim.stefil :drakma)
   :components ((:module "test"
                 :serial t
-                :components ((:file "tests")
+                :components ((:file "parameters")
+                             (:file "tests")
                              (:file "test-utils")))))
 
 

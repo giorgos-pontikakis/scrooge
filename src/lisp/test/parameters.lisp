@@ -27,30 +27,34 @@
 
 
 
-(defparameter *requests* `(:company-id (388 nil ,+html-null+ "asdf")
-                           :subset ("foo" "bar" "baz")
-                           :tin (nil :null "123456789")))
+(defparameter *parameter-sets* `(:company-id (388 nil ,+html-null+ "asdf")
+                                 :subset ("foo" "bar" "baz")
+                                 :search (nil :null "123456789")))
 
-(defun parameter-vector (parameter-name parameter-values)
-  (loop for val in parameter-values
-        collect (list parameter-name val)))
+(defun tagged-set (tag-name tag-values)
+  (loop for val in tag-values
+        collect (list tag-name val)))
 
-(defun parameter-vectors (requests)
-  (plist-map #'parameter-vector requests))
+(defun tagged-sets (sets-spec)
+  (plist-map #'tagged-set sets-spec))
 
-(defun combinations (vectors)
-  (labels ((combinations-2 (vec1 vec2)
+(defun tagged-combinations (tagged-sets)
+  (labels ((tagged-combinations-2 (set1 set2)
              (mapcan (lambda (x)
                        (mapcar (lambda (y)
                                  (append x y))
-                               vec2))
-                     vec1)))
-    (if vectors
-        (cond ((= (length vectors) 1)
-               vectors)
-              ((= (length vectors) 2)
-               (apply #'combinations-2 vectors))
+                               set2))
+                     set1)))
+    (if tagged-sets
+        (cond ((= (length tagged-sets) 1)
+               tagged-sets)
+              ((= (length tagged-sets) 2)
+               (apply #'tagged-combinations-2 tagged-sets))
               (t
-               (combinations-2 (first vectors)
-                               (combinations (rest vectors)))))
+               (tagged-combinations-2 (first tagged-sets)
+                                      (tagged-combinations (rest tagged-sets)))))
         nil)))
+
+
+(defun batch-request-urls (page-fn parameter-sets)
+  (mapply page-fn (tagged-combinations (tagged-sets parameter-sets))))
