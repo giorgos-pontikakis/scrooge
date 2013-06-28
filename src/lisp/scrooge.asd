@@ -86,12 +86,19 @@
 (use-package :trivial-shell)
 (use-package :asdf)
 
+;;; temporary code
+(when (and (= (parse-integer (subseq (asdf-version) 0 1))
+              2)
+           (<= (parse-integer (subseq (asdf-version) 2))
+               26))
+  (defun component-sibling-dependencies (system)
+    (cdr (assoc 'load-op
+                (component-depends-on 'load-op system)))))
+
 (defun versions (&optional (system-name "scrooge"))
   (let* ((systems (mapcar #'second
                           (remove-if #'atom
-                                     (cdr (assoc 'compile-op
-                                                 (component-depends-on 'compile-op
-                                                                       (find-system system-name)))))))
+                                     (component-sibling-dependencies (find-system system-name)))))
          (max-length (reduce #'max (mapcar #'length systems))))
     (mapcar (lambda (name)
               (let ((ver (component-version (find-system name))))
