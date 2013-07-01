@@ -3,7 +3,7 @@
 
 (defpackage :scrooge
   (:use #:common-lisp #:alexandria
-        #:hunchentoot #:cl-who #:cl-ppcre
+        #:hunchentoot #:cl-who #:cl-ppcre #:puri
         #:postmodern #:local-time
         #:lisputils #:veil #:bricks #:mortar #:json))
 

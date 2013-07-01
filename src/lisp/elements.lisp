@@ -7,7 +7,7 @@
 
 (defun img (href)
   (with-html
-    (:img :src (url 'img href))))
+    (:img :src (path 'img href))))
 
 (defun clear ()
   (with-html
@@ -25,18 +25,18 @@
 
 (defun favicon ()
   (with-html ()
-    (:link :rel "icon" :type "image/png" :href (url 'img "money.png"))))
+    (:link :rel "icon" :type "image/png" :href (path 'img "money.png"))))
 
 (defun jquery ()
-  (js (url 'lib "jquery/jquery-1.5.min.js")))
+  (js (path 'lib "jquery/jquery-1.5.min.js")))
 
 (defun jquery-ui ()
-  (js (url 'lib "jquery/jquery-ui-1.8.9.custom/js/jquery-ui-1.8.9.custom.min.js"))
-  (js (url 'lib "jquery/jquery.ui.datepicker-el.js")))
+  (js (path 'lib "jquery/jquery-ui-1.8.9.custom/js/jquery-ui-1.8.9.custom.min.js"))
+  (js (path 'lib "jquery/jquery.ui.datepicker-el.js")))
 
 (defun jquery-autocomplete ()
-  (js (url 'js "main.js"))
-  (css (url 'lib "jquery/jquery-ui-1.8.9.custom/css/custom-theme/jquery-ui-1.8.9.custom.css")))
+  (js (path 'js "main.js"))
+  (css (path 'lib "jquery/jquery-ui-1.8.9.custom/css/custom-theme/jquery-ui-1.8.9.custom.css")))
 
 (defun js-globals ()
   (with-html
@@ -45,41 +45,41 @@
 
 (defun error-headers ()
   (favicon)
-  (css (url 'css "common.css")))
+  (css (path 'css "common.css")))
 
 (defun 960gs ()
-  (css (url 'lib "960gs/code/css/960.css")))
+  (css (path 'lib "960gs/code/css/960.css")))
 
 (defun login-headers ()
   (favicon)
-  (css (url 'css "reset.css"))
+  (css (path 'css "reset.css"))
   (960gs)
-  (css (url 'css "common.css"))
-  (css (url 'css "forms.css"))
-  (css (url 'css "login.css")))
+  (css (path 'css "common.css"))
+  (css (path 'css "forms.css"))
+  (css (path 'css "login.css")))
 
 (defun global-headers ()
   (favicon)
-  (css (url 'css "reset.css"))
+  (css (path 'css "reset.css"))
   (960gs)
-  (css (url 'css "common.css"))
-  (css (url 'css "forms.css"))
-  (css (url 'css "navigation.css"))
-  (css (url 'css "crud.css")))
+  (css (path 'css "common.css"))
+  (css (path 'css "forms.css"))
+  (css (path 'css "navigation.css"))
+  (css (path 'css "crud.css")))
 
 (defun config-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
   (jquery-autocomplete)
-  (css (url 'css "config.css")))
+  (css (path 'css "config.css")))
 
 (defun main-headers ()
   (global-headers)
   (jquery)
   (jquery-ui)
   (jquery-autocomplete)
-  (css (url 'css "main.css"))
+  (css (path 'css "main.css"))
   (js-globals))
 
 (defun advanced-headers ()
@@ -87,13 +87,13 @@
   (jquery)
   (jquery-ui)
   (jquery-autocomplete)
-  (css (url 'css "advanced.css")))
+  (css (path 'css "advanced.css")))
 
 (defun print-headers ()
   (main-headers)
-  (css (url 'css "print.css"))
+  (css (path 'css "print.css"))
   (with-html
-    (:link :media "screen" :rel "stylesheet" :href (url 'css "print.css") )))
+    (:link :media "screen" :rel "stylesheet" :href (path 'css "print.css") )))
 
 
 
@@ -285,7 +285,7 @@
 ;;; selector and controls for crud collections
 ;;; ------------------------------------------------------------
 
-(defun simple-selector (row selected-p url-fn id-key)
+(defun simple-selector (row selected-p path-fn id-key)
   (let* ((id (key row))
          (table (collection row))
          (filter (filter table))
@@ -293,20 +293,20 @@
     (html ()
       (:a :id id
           :href (if selected-p
-                    (apply url-fn :start start filter)
-                    (apply url-fn
+                    (apply path-fn :start start filter)
+                    (apply path-fn
                            id-key
                            id
                            filter))
           (selector-img selected-p)))))
 
-(defun simple-controls (row enabled-p url-fn id-key)
+(defun simple-controls (row enabled-p path-fn id-key)
   (let ((id (key row))
         (table (collection row)))
     (if enabled-p
         (list (make-instance 'ok-button)
               (make-instance 'cancel-button
-                             :href (apply url-fn
+                             :href (apply path-fn
                                           id-key
                                           id
                                           (filter table))))

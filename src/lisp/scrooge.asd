@@ -21,7 +21,8 @@
   :version #.*scrooge-version*
   :serial t
   ;;
-  :depends-on ("ironclad"
+  :depends-on ("puri"
+               "ironclad"
                (:version "json" "1.0.0")
                (:version "lisputils" "1.1.0")
                (:version "veil" "1.1.0")

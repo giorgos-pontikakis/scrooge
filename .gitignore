@@ -14,3 +14,6 @@
 /sql
 /ssl
 /db_dumps
+
+### Credentials used for testing purposes
+/config/credentials.lisp

@@ -1,7 +1,7 @@
 (in-package :scrooge)
 
 
-(when (debug-p *scrooge*)
+(when (webapp-debug-p (default-webapp))
   (setf *catch-errors-p* nil))
 
 

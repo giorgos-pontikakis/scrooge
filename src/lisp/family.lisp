@@ -57,7 +57,7 @@
 (defgeneric family-params (page-identifier &rest group-names))
 
 (defmethod family-params ((page dynamic-page) &rest group-names)
-  (let* ((allowed-param-names (mapcar #'parameter-name (parameter-attributes page)))
+  (let* ((allowed-param-names (mapcar #'parameter-name (page-http-parameters-attributes page)))
          (group-param-names (mappend (lambda (group-name)
                                        (getf (parameter-groups page) group-name))
                                      group-names))
@@ -186,7 +186,7 @@
                    :code +http-temporary-redirect+
                    :add-session-id nil))
        (error (c)
-         (if (debug-p *scrooge*)
+         (if (webapp-debug-p (default-webapp))
              (signal c)
              (setf (return-code*) +http-internal-server-error+))))))
 
@@ -218,7 +218,7 @@
                                          (when-let (qs (query-string*))
                                            (conc "?" qs))))))
        (error (c)
-         (if (debug-p *scrooge*)
+         (if (webapp-debug-p (default-webapp))
              (signal c)
              (setf (return-code*) +http-internal-server-error+))))))
 
@@ -239,6 +239,6 @@
        (authentication-error ()
          ,auth-error-message)
        (error (c)
-         (if (debug-p *scrooge*)
+         (if (webapp-debug-p (default-webapp))
              (signal c)
              (setf (return-code*) +http-internal-server-error+))))))
